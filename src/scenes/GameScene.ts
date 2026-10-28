@@ -337,6 +337,29 @@ export class GameScene extends Phaser.Scene {
         sfx.buy();
         this.afterItemsChanged();
       },
+      move: (from, to) => {
+        d.moveItem(from, to);
+        this.afterItemsChanged();
+      },
+      unequipTo: (slot, i) => {
+        if (!d.unequipTo(slot, i)) this.say("Esse espaço tem um item de outro tipo.");
+        this.afterItemsChanged();
+      },
+      sellMany: (indices) => {
+        let gold = 0, n = 0;
+        for (const i of indices) {
+          const it = d.inventory[i];
+          if (!it) continue;
+          d.inventory[i] = null;
+          gold += Math.round(itemValue(it) / 4);
+          n++;
+        }
+        if (!n) return;
+        d.gold += gold;
+        sfx.coin();
+        this.hud.message(`Vendeu ${n} ite${n > 1 ? "ns" : "m"} por ${gold} ouro.`, "#ffe14d");
+        this.afterItemsChanged();
+      },
       reroll: () => {
         const cost = this.rerollCost();
         if (d.gold < cost) return this.say("Ouro insuficiente.");

@@ -410,3 +410,21 @@ img.icon { image-rendering: pixelated; }
 .ptag .pn { font-size: 13px; color: #9fe8ff; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
 .ptag .pb { width: 40px; height: 4px; margin: 2px auto 0; background: #140c10; border: 1px solid var(--ink); }
 .ptag .pb div { height: 100%; background: #7bea6a; }
+
+/* ---------- Inventory interactions ---------- */
+.slot.picked { outline: 2px dashed var(--rare); outline-offset: -4px; opacity: 0.55; }
+.slot.sel { box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 3px #7bea6a; }
+.slot.drop-ok { border-color: #7bea6a; }
+.ghost-item { position: fixed; z-index: 50; width: 32px; height: 32px; pointer-events: none; display: none; image-rendering: pixelated;
+  filter: drop-shadow(0 2px 0 #000); }
+.sel-bar { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 13px; flex-wrap: wrap; }
+.quick-sell { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.quick-sell .mp-label { width: 100%; margin: 0; }
+.quick-sell .btn { font-size: 12px; }
+.sp-alert {
+  position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); white-space: nowrap; display: none;
+  font: inherit; font-size: 14px; color: var(--ink); background: linear-gradient(#fff3a0, #ffd23d); border: 2px solid var(--ink);
+  padding: 4px 12px; cursor: pointer; box-shadow: 0 0 14px #ffd23daa; animation: spPulse 1.2s ease-in-out infinite;
+}
+@keyframes spPulse { 50% { transform: translateX(-50%) translateY(-3px); box-shadow: 0 0 24px #ffd23d; } }
+.hud { position: absolute; }

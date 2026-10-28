@@ -157,6 +157,24 @@ export class HeroData {
     this.recalc();
   }
 
+  /** Swaps two backpack cells. */
+  moveItem(from: number, to: number) {
+    if (from === to) return;
+    [this.inventory[from], this.inventory[to]] = [this.inventory[to], this.inventory[from]];
+  }
+
+  /** Takes off an equipped item into backpack cell `index` (swapping if that cell holds a fitting item). */
+  unequipTo(slot: Slot, index: number): boolean {
+    const it = this.equipment[slot];
+    const there = this.inventory[index];
+    if (!it || (there && there.slot !== slot)) return false;
+    this.inventory[index] = it;
+    if (there) this.equipment[slot] = there;
+    else delete this.equipment[slot];
+    this.recalc();
+    return true;
+  }
+
   unequip(slot: Slot): boolean {
     const it = this.equipment[slot];
     if (!it) return false;

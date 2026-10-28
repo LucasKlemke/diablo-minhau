@@ -1,5 +1,5 @@
 import { CLASSES, rankMult, SLOT_KEY, type ClassId, type SkillDef } from "../data/classes";
-import { itemLines, itemStats, itemValue, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Slot } from "../data/items";
+import { itemLines, itemStats, itemValue, RARITIES, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Rarity, type Slot } from "../data/items";
 import { formatStat, STAT_LABEL, type Stats } from "../data/stats";
 import { isMuted, toggleMute } from "../game/audio";
 import { iconUrl } from "./icons";
@@ -49,7 +49,13 @@ export interface HudActions {
   sell(index: number): void;
   buyPotion(kind: "hp" | "mp"): void;
   reroll(): void;
+  move(from: number, to: number): void;
+  unequipTo(slot: Slot, index: number): void;
+  sellMany(indices: number[]): void;
 }
+
+/** An item picked up with the left button, waiting to be dropped somewhere. */
+type Pick = { kind: "inv"; i: number } | { kind: "eq"; slot: Slot };
 
 export const skillIconUrl = (id: string) => `assets/icons/skills/${id}.png`;
 /** Skill icon generated with Antigravity; falls back to the skill name when missing. */
@@ -81,6 +87,10 @@ export class Hud {
   private shopStock: (Item | null)[] = [];
   private shopOpen = false;
   private rerollCost = 0;
+  private pick: Pick | null = null;
+  private selected = new Set<number>();
+  private ghost = el("img", "ghost-item icon");
+  private spAlert = el("button", "sp-alert interactive");
 
   constructor(private actions: HudActions, private skills: SkillDef[], resourceColor: string) {
     const r = root();
@@ -146,6 +156,13 @@ export class Hud {
     r.appendChild(this.tree);
     r.appendChild(this.shop);
     r.appendChild(this.tip);
+    r.appendChild(this.ghost);
+    this.spAlert.onclick = () => this.toggle("tree", true);
+    hud.appendChild(this.spAlert);
+    window.addEventListener("mousemove", (e) => {
+      this.ghost.style.left = `${e.clientX + 6}px`;
+      this.ghost.style.top = `${e.clientY + 6}px`;
+    });
   }
 
   get dialogActive() {
@@ -164,6 +181,7 @@ export class Hud {
   }
 
   closeAll() {
+    this.dropPick();
     this.closeShop();
     this.inv.classList.remove("open");
     this.chr.classList.remove("open");
@@ -174,7 +192,7 @@ export class Hud {
 
   /** True when any window (panel, shop, dialog, big map) is open. */
   anyOpen() {
-    return !!this.dialogOpen || this.shopOpen || this.minimap.classList.contains("big")
+    return !!this.dialogOpen || this.shopOpen || !!this.pick || this.minimap.classList.contains("big")
       || [this.inv, this.chr, this.tree].some((p) => p.classList.contains("open"));
   }
 
@@ -200,6 +218,12 @@ export class Hud {
     (this.xp.firstChild as HTMLElement).style.width = `${((h.xp - h.xpPrev) / (h.xpNext - h.xpPrev)) * 100}%`;
     this.top.innerHTML = `${CLASSES[h.cls].name} · Nível ${h.level}<br><span class="gold">Ouro: ${h.gold}</span>`;
     this.bTree.innerHTML = h.skillPoints ? `Habilidades (K) <span class="badge">${h.skillPoints}</span>` : "Habilidades (K)";
+    const showAlert = h.skillPoints > 0 && !this.tree.classList.contains("open");
+    this.spAlert.style.display = showAlert ? "block" : "none";
+    if (showAlert) {
+      const txt = `★ ${h.skillPoints} ponto${h.skillPoints > 1 ? "s" : ""} de habilidade para gastar — clique aqui`;
+      if (this.spAlert.textContent !== txt) this.spAlert.textContent = txt;
+    }
 
     const q = h.quest;
     this.tracker.innerHTML = q
@@ -249,18 +273,58 @@ export class Hud {
     return d;
   }
 
+  private dropPick() {
+    this.pick = null;
+    this.ghost.style.display = "none";
+    this.invDirty = true;
+  }
+
+  private setPick(p: Pick, item: Item) {
+    this.pick = p;
+    this.ghost.src = iconUrl(item.icon);
+    this.ghost.style.display = "block";
+    this.hideTip();
+    this.invDirty = true;
+  }
+
+  /** Drop the picked item on a backpack cell or an equipment slot. */
+  private placeAt(target: Pick) {
+    const p = this.pick;
+    const h = this.hero;
+    if (!p) return;
+    if (target.kind === "inv") {
+      if (p.kind === "inv") this.actions.move(p.i, target.i);
+      else this.actions.unequipTo(p.slot, target.i);
+    } else if (p.kind === "inv") {
+      const it = h.inventory[p.i];
+      if (it && it.slot === target.slot) this.actions.equipFromInventory(p.i);
+    }
+    this.selected.clear();
+    this.dropPick();
+  }
+
   private renderInventory() {
     const h = this.hero;
+    const p = this.pick;
     this.inv.innerHTML = "<h3>Equipamento</h3>";
     const eq = el("div", "equip");
     for (const slot of SLOTS) {
       const it = h.equipment[slot];
       const d = this.slotEl(it);
       if (!it) d.innerHTML = `<span class="slotname">${SLOT_LABEL[slot]}</span>`;
-      else d.onclick = () => {
-        this.hideTip();
-        this.actions.unequip(slot);
+      if (p?.kind === "eq" && p.slot === slot) d.classList.add("picked");
+      if (p?.kind === "inv" && h.inventory[p.i]?.slot === slot) d.classList.add("drop-ok");
+      const target: Pick = { kind: "eq", slot };
+      d.onclick = () => {
+        if (this.pick) this.placeAt(target);
+        else if (it) this.setPick(target, it);
       };
+      d.oncontextmenu = (e) => {
+        e.preventDefault();
+        if (it) { this.hideTip(); this.actions.unequip(slot); }
+      };
+      this.dragSource(d, it, target);
+      this.dropTarget(d, target);
       eq.appendChild(d);
     }
     this.inv.appendChild(eq);
@@ -268,16 +332,80 @@ export class Hud {
     const grid = el("div", "grid");
     h.inventory.forEach((it, i) => {
       const d = this.slotEl(it);
-      if (it) d.onclick = (e) => {
+      if (p?.kind === "inv" && p.i === i) d.classList.add("picked");
+      if (this.selected.has(i)) d.classList.add("sel");
+      const target: Pick = { kind: "inv", i };
+      d.onclick = (e) => {
         this.hideTip();
+        if ((e.ctrlKey || e.metaKey || e.shiftKey) && it) {
+          // Multi-select (to sell several at once).
+          if (this.selected.has(i)) this.selected.delete(i);
+          else this.selected.add(i);
+          this.invDirty = true;
+        } else if (this.pick) this.placeAt(target);
+        else if (it) this.setPick(target, it);
+      };
+      d.oncontextmenu = (e) => {
+        e.preventDefault();
+        if (!it) return;
+        this.hideTip();
+        this.selected.delete(i);
         if (this.shopOpen) this.actions.sell(i);
-        else if (e.shiftKey) this.actions.discard(i);
         else this.actions.equipFromInventory(i);
       };
+      this.dragSource(d, it, target);
+      this.dropTarget(d, target);
       grid.appendChild(d);
     });
     this.inv.appendChild(grid);
-    this.inv.appendChild(el("div", "hint", this.shopOpen ? "Loja aberta: clique num item para VENDER" : "Clique para equipar · Shift+clique para descartar"));
+
+    // Drop the selection of items that no longer exist.
+    for (const i of [...this.selected]) if (!h.inventory[i]) this.selected.delete(i);
+    if (this.selected.size) {
+      const items = [...this.selected].map((i) => h.inventory[i]!);
+      const gold = items.reduce((a, it) => a + Math.round(itemValue(it) / 4), 0);
+      const bar = el("div", "sel-bar");
+      bar.appendChild(el("span", "", `${items.length} selecionado${items.length > 1 ? "s" : ""}`));
+      if (this.shopOpen) {
+        const sell = el("button", "btn primary", `Vender (${gold} ouro)`);
+        sell.onclick = () => {
+          this.actions.sellMany([...this.selected]);
+          this.selected.clear();
+        };
+        bar.appendChild(sell);
+      }
+      const clear = el("button", "btn", "Limpar");
+      clear.onclick = () => { this.selected.clear(); this.invDirty = true; };
+      bar.appendChild(clear);
+      this.inv.appendChild(bar);
+    }
+    this.inv.appendChild(el("div", "hint", this.pick
+      ? "Clique num espaço para colocar o item · Esc cancela"
+      : this.shopOpen
+        ? "Clique: mover · Clique direito: VENDER · Ctrl/Shift+clique: selecionar vários"
+        : "Clique: mover · Clique direito: equipar · Ctrl/Shift+clique: selecionar vários"));
+  }
+
+  /** HTML drag & drop as an alternative to click-to-pick. */
+  private dragSource(d: HTMLElement, it: Item | null | undefined, from: Pick) {
+    if (!it) return;
+    d.draggable = true;
+    d.ondragstart = (e) => {
+      this.pick = from;
+      this.hideTip();
+      e.dataTransfer?.setData("text/plain", "item");
+    };
+    d.ondragend = () => {
+      if (this.pick) this.dropPick();
+    };
+  }
+
+  private dropTarget(d: HTMLElement, target: Pick) {
+    d.ondragover = (e) => e.preventDefault();
+    d.ondrop = (e) => {
+      e.preventDefault();
+      if (this.pick) this.placeAt(target);
+    };
   }
 
   private renderCharacter() {
@@ -479,7 +607,34 @@ export class Hud {
     close.onclick = () => { this.closeShop(); this.inv.classList.remove("open"); };
     row.append(ph, pm, rr, close);
     this.shop.appendChild(row);
-    this.shop.appendChild(el("div", "hint", "Clique num item da loja para comprar · clique num item da sua mochila para vender (¼ do valor)"));
+
+    // Quick sell: everything of one rarity in the backpack (equipped items are never sold).
+    const inv = this.hero.inventory;
+    const byRarity = new Map<Rarity, number[]>();
+    inv.forEach((it, i) => it && byRarity.set(it.rarity, [...(byRarity.get(it.rarity) ?? []), i]));
+    if (byRarity.size) {
+      const quick = el("div", "quick-sell");
+      quick.appendChild(el("div", "mp-label", "Vender tudo da raridade"));
+      for (const r of RARITIES) {
+        const idx = byRarity.get(r);
+        if (!idx) continue;
+        const gold = idx.reduce((a, i) => a + Math.round(itemValue(inv[i]!) / 4), 0);
+        const b = el("button", "btn", `<span style="color:${RARITY_COLOR[r]}">${RARITY_LABEL[r]}</span> ×${idx.length} · ${gold}`);
+        b.title = `Vender ${idx.length} ${RARITY_LABEL[r].toLowerCase()} por ${gold} ouro`;
+        b.onclick = () => {
+          // Valuable rarities ask for a second click.
+          if ((r === "epic" || r === "legendary" || r === "unique") && b.dataset.armed !== "1") {
+            b.dataset.armed = "1";
+            b.innerHTML = `Confirmar: vender ${idx.length} ${RARITY_LABEL[r]}?`;
+            return;
+          }
+          this.actions.sellMany(idx);
+        };
+        quick.appendChild(b);
+      }
+      this.shop.appendChild(quick);
+    }
+    this.shop.appendChild(el("div", "hint", "Clique num item da loja para comprar · clique direito num item da mochila para vender (¼ do valor)"));
   }
 
   // ---------- Big moments ----------
