@@ -1,0 +1,234 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: spider
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.32, -0.05]}
+shadow: {rx: 15, ry: 5.5, alpha: 120}
+
+# Giant cave spider: dungeon enemy (a tinted, scaled-up copy becomes the Spider Queen boss).
+# Not a humanoid: own skeleton. `body` carries the cephalothorax, `abdomen` hangs behind it, and four FK legs
+# per side (coxa -> femur -> tibia bones, written once as _L and mirrored to _R).
+brief:
+  summary: giant purple-black cave spider, low to the ground, big bulbous abdomen with a red hourglass,
+    small cephalothorax, 4 glowing red eyes, two pale fangs, 8 long jointed legs splayed wide
+  must_keep: [bulbous abdomen, red hourglass marking, 4 red emissive eyes, two fangs, 8 legs splayed wide]
+  simplify: [no hair, no leg segments past the tibia (tarsus merged), no pedipalps]
+  decisions: body ~1.3 units long (a goblin's height) with ~2 units of leg span so it fits frame 48 at the
+    shared density; legs in a slightly lighter purple than the body so they read on dark floors; the dark
+    purple ramp goes up to a lavender top band for the rim; fangs bone-coloured so the bite reads;
+    FK legs (not IK) so the death flip carries the legs over with the body
+
+# spec-local ramps (index 0 = the shared outline)
+ramps:
+  spider:     ["#1c0f1a", "#27162f", "#3f254f", "#5e3b78", "#8f6aac"]
+  spider_leg: ["#1c0f1a", "#2a1938", "#432857", "#62437c", "#9073ab"]
+  spider_eye: ["#1c0f1a", "#ff2b2b", "#ffb3a0"]
+  spider_mark: ["#1c0f1a", "#7a1420", "#d1262b", "#f05a4a"]
+
+materials:
+  body:  {ramp: spider, bands: [1, 3]}
+  leg:   {ramp: spider_leg, bands: [1, 4]}
+  mark:  {ramp: spider_mark, bands: [2, 3], outline: false}
+  fang:  {ramp: bone, bands: [2, 4]}
+  eye:   {ramp: spider_eye, emissive: true, band: 1, outline: false, glow: {color: "#ff2b2b", mix: 0.45, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  rear: 0           # + raises the front of the body (rear up)
+  roll: 0           # body roll around its length (death flip: pi)
+  abd: 1            # abdomen scale (pulse)
+  abd_tilt: 0       # + lifts the abdomen tip
+  squash: 1         # abdomen squash
+  fang_L: 0         # + opens the fang outward
+  curl: 0           # 0..1 legs fold in (death)
+  sw1_L: 0          # leg yaw swing (+ toward the back), legs 1 (front) .. 4 (rear)
+  sw2_L: 0
+  sw3_L: 0
+  sw4_L: 0
+  lf1_L: 0          # femur lift (radians, + up)
+  lf2_L: 0
+  lf3_L: 0
+  lf4_L: 0
+
+bones:
+  body:    {parent: root, pos: "[0, 0.30 + bob, 0]", rot: "[-rear, 0, roll]"}
+  abdomen: {parent: body, pos: [0, 0.04, -0.14], rot: "[abd_tilt, 0, 0]",
+            scale: "[abd/sqrt(squash), abd*squash, abd/sqrt(squash)]"}
+  fang_L:  {parent: body, pos: [0.055, -0.01, 0.40], rot: "[0, fang_L, 0]"}
+  # leg 1 (front): points forward-out
+  coxa1_L: {parent: body, pos: [0.10, -0.02, 0.30], rot: "[0, 0.55 + sw1_L, 0]"}
+  fem1_L:  {parent: coxa1_L, rot: "[-(0.75 + lf1_L - 1.15*curl), 0, 0]"}
+  tib1_L:  {parent: fem1_L, pos: [0, 0, 0.48], rot: "[1.62 - 0.2*curl, 0, 0]"}
+  foot1_L: {parent: tib1_L, pos: [0, 0, 0.74]}
+  # leg 2
+  coxa2_L: {parent: body, pos: [0.14, -0.02, 0.22], rot: "[0, 1.15 + sw2_L, 0]"}
+  fem2_L:  {parent: coxa2_L, rot: "[-(0.75 + lf2_L - 1.15*curl), 0, 0]"}
+  tib2_L:  {parent: fem2_L, pos: [0, 0, 0.42], rot: "[1.72 - 0.2*curl, 0, 0]"}
+  foot2_L: {parent: tib2_L, pos: [0, 0, 0.64]}
+  # leg 3
+  coxa3_L: {parent: body, pos: [0.14, -0.02, 0.12], rot: "[0, 1.85 + sw3_L, 0]"}
+  fem3_L:  {parent: coxa3_L, rot: "[-(0.75 + lf3_L - 1.15*curl), 0, 0]"}
+  tib3_L:  {parent: fem3_L, pos: [0, 0, 0.42], rot: "[1.72 - 0.2*curl, 0, 0]"}
+  foot3_L: {parent: tib3_L, pos: [0, 0, 0.64]}
+  # leg 4 (rear): points backward-out
+  coxa4_L: {parent: body, pos: [0.11, -0.02, 0.04], rot: "[0, 2.45 + sw4_L, 0]"}
+  fem4_L:  {parent: coxa4_L, rot: "[-(0.75 + lf4_L - 1.15*curl), 0, 0]"}
+  tib4_L:  {parent: fem4_L, pos: [0, 0, 0.48], rot: "[1.62 - 0.2*curl, 0, 0]"}
+  foot4_L: {parent: tib4_L, pos: [0, 0, 0.74]}
+
+parts:
+  cephalothorax:
+    material: body
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.18], r: [0.20, 0.12, 0.23]}
+      - ellipsoid: {c: [0, 0.04, 0.34], r: [0.13, 0.10, 0.10]}     # head bump
+      - sphere: {c: [0, 0.03, -0.06], r: 0.08}                      # pedicel
+  abdomen:
+    material: body
+    space: abdomen
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.12, -0.36], r: [0.37, 0.29, 0.42], rot: [-0.15, 0, 0]}
+  hourglass:       # red marking on top of the abdomen: two triangles tip to tip
+    material: mark
+    space: abdomen
+    blend: 0.01
+    prims:
+      - tri: {a: [0, 0.412, -0.40], b: [0.12, 0.40, -0.18], c: [-0.12, 0.40, -0.18], th: 0.02}
+      - tri: {a: [0, 0.412, -0.40], b: [0.12, 0.33, -0.62], c: [-0.12, 0.33, -0.62], th: 0.02}
+  eye_L:
+    material: eye
+    space: body
+    prims:
+      - sphere: {c: [0.045, 0.10, 0.415], r: 0.036}
+      - sphere: {c: [0.105, 0.13, 0.37], r: 0.03}
+  chelicera_L:
+    material: body
+    space: fang_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.015, -0.08, 0.09], r: [0.06, 0.045]}
+  fang_L:
+    material: fang
+    space: fang_L
+    prims:
+      - cone: {a: [0.015, -0.08, 0.10], b: [-0.03, -0.20, 0.09], r: [0.042, 0.018]}
+  legs_L:
+    material: leg
+    blend: 0.025
+    prims:
+      - cone: {a: "@fem1_L", b: "@tib1_L", r: [0.05, 0.04]}
+      - sphere: {c: "@tib1_L", r: 0.045}
+      - cone: {a: "@tib1_L", b: "@foot1_L", r: [0.042, 0.03]}
+      - cone: {a: "@fem2_L", b: "@tib2_L", r: [0.05, 0.04]}
+      - sphere: {c: "@tib2_L", r: 0.045}
+      - cone: {a: "@tib2_L", b: "@foot2_L", r: [0.042, 0.03]}
+      - cone: {a: "@fem3_L", b: "@tib3_L", r: [0.05, 0.04]}
+      - sphere: {c: "@tib3_L", r: 0.045}
+      - cone: {a: "@tib3_L", b: "@foot3_L", r: [0.042, 0.03]}
+      - cone: {a: "@fem4_L", b: "@tib4_L", r: [0.05, 0.04]}
+      - sphere: {c: "@tib4_L", r: 0.045}
+      - cone: {a: "@tib4_L", b: "@foot4_L", r: [0.042, 0.03]}
+
+sockets:
+  hit: {bone: body, offset: [0, -0.15, 0.52]}
+  head: {bone: body, offset: [0, 0.25, 0.25]}
+  abdomen: {bone: abdomen, offset: [0, 0.15, -0.36]}
+
+timing: {attack: {hit: 180ms, total: 400ms}}
+
+animations:
+  idle:            # breathing abdomen, a leg twitches now and then, fangs work
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.012*sin(p)"
+      abd: "1 + 0.035*sin(p)"
+      abd_tilt: "0.03*sin(p)"
+      sw1_L: "-0.12*(f == 1)"
+      lf1_L: "0.20*(f == 1)"
+      lf2_R: "0.18*(f == 2)"
+      sw3_R: "0.10*(f == 2)"
+      lf4_L: "0.16*(f == 3)"
+      lf1_R: "0.10*(f == 3)"
+      fang_L: "0.12 + 0.12*sin(p)"
+      fang_R: "0.12 + 0.12*sin(p)"
+  walk:            # alternating tetrapod gait: set A = L1 R2 L3 R4, set B = R1 L2 R3 L4
+    frames: 6
+    ms: 90
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.012*cos(2*p)"
+      roll: "0.03*sin(p)"
+      abd_tilt: "0.04*sin(2*p)"
+      sw1_L: "-0.24*sin(p)"
+      lf1_L: "0.35*pos(cos(p))"
+      sw3_L: "-0.22*sin(p)"
+      lf3_L: "0.35*pos(cos(p))"
+      sw2_R: "-0.22*sin(p)"
+      lf2_R: "0.35*pos(cos(p))"
+      sw4_R: "-0.22*sin(p)"
+      lf4_R: "0.35*pos(cos(p))"
+      sw1_R: "0.24*sin(p)"
+      lf1_R: "0.35*pos(-cos(p))"
+      sw3_R: "0.22*sin(p)"
+      lf3_R: "0.35*pos(-cos(p))"
+      sw2_L: "0.22*sin(p)"
+      lf2_L: "0.35*pos(-cos(p))"
+      sw4_L: "0.22*sin(p)"
+      lf4_L: "0.35*pos(-cos(p))"
+      fang_L: 0.1
+      fang_R: 0.1
+  attack:          # rears up, fangs open, then bites forward (hit at 180 ms, total 400 ms)
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.03], rear: 0.25, bob: 0.04, abd_tilt: 0.15, squash: 0.96,
+              lf1_L: 0.35, lf1_R: 0.35, sw1_L: -0.10, sw1_R: -0.10, fang_L: 0.3, fang_R: 0.3}
+      - ms: 110
+        event: windup
+        set: {root: [0, 0, -0.08], rear: 0.55, bob: 0.08, abd_tilt: 0.40, squash: 0.92,
+              lf1_L: 0.95, lf1_R: 0.95, sw1_L: -0.25, sw1_R: -0.25, lf2_L: 0.35, lf2_R: 0.35,
+              fang_L: 0.65, fang_R: 0.65}
+      - ms: 70
+        event: hit
+        set: {root: [0, 0, 0.07], rear: -0.22, bob: -0.04, abd_tilt: -0.10, squash: 1.06,
+              lf1_L: 0.15, lf1_R: 0.15, sw1_L: -0.26, sw1_R: -0.26, sw4_L: 0.12, sw4_R: 0.12,
+              fang_L: -0.12, fang_R: -0.12}
+      - ms: 80
+        set: {root: [0, 0, 0.05], rear: -0.12, bob: -0.02, abd_tilt: -0.05, squash: 1.02,
+              lf1_L: 0.05, lf1_R: 0.05, sw1_L: -0.25, sw1_R: -0.25, fang_L: -0.05, fang_R: -0.05}
+      - ms: 70
+        set: {root: [0, 0, 0.04], rear: -0.03, sw1_L: -0.08, sw1_R: -0.08}
+  hit:             # jolts back, legs splay, abdomen squashed
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.08], rear: 0.22, bob: 0.03, squash: 0.86, abd_tilt: 0.12, fang_L: 0.45, fang_R: 0.45,
+              lf1_L: 0.30, lf1_R: 0.30, lf2_L: -0.12, lf2_R: -0.12, lf3_L: -0.12, lf3_R: -0.12, lf4_L: 0.10, lf4_R: 0.10}
+      - ms: 80
+        set: {root: [0, 0, -0.06], rear: 0.10, bob: 0.01, squash: 0.94, abd_tilt: 0.06, fang_L: 0.25, fang_R: 0.25,
+              lf1_L: 0.15, lf1_R: 0.15}
+      - ms: 100
+        set: {root: [0, 0, -0.02], rear: 0.02, squash: 0.99, fang_L: 0.1, fang_R: 0.1}
+  death:           # rears in pain, flips onto its back, legs curl up
+    loop: false
+    keys:
+      - ms: 80
+        set: {root: [0, 0, -0.05], rear: 0.30, bob: 0.04, squash: 0.88, fang_L: 0.55, fang_R: 0.55,
+              lf1_L: 0.35, lf1_R: 0.35, lf2_L: 0.25, lf2_R: 0.25, lf3_L: 0.25, lf3_R: 0.25, lf4_L: 0.25, lf4_R: 0.25}
+      - ms: 100
+        set: {root: [0, 0, -0.06], rear: 0.15, roll: 1.2, bob: 0.18, curl: 0.30, fang_L: 0.4, fang_R: 0.4}
+      - ms: 100
+        set: {root: [0, 0, -0.05], rear: 0.05, roll: 2.3, bob: 0.13, curl: 0.50, fang_L: 0.3, fang_R: 0.3}
+      - ms: 110
+        set: {root: [0, 0, -0.04], roll: 3.14159, bob: 0.16, curl: 0.80, squash: 0.95, fang_L: 0.2, fang_R: 0.2}
+      - ms: 650
+        set: {root: [0, 0, -0.04], roll: 3.14159, bob: 0.16, curl: 1.0, squash: 0.94}

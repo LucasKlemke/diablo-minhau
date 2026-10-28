@@ -1,0 +1,36 @@
+# SpriteKiln project settings (https://github.com/LucasJRamos/spritekiln).
+# Commands run anywhere inside this folder find this file.
+
+[project]
+specs = "art/specs"        # where `spritekiln new` creates specs
+engine = "generic"       # godot | unity | monogame | generic
+ai = ["claude"]       # assistants whose files `spritekiln update` refreshes
+
+[export]
+# `spritekiln export <spec>` (or `render --export`) copies the atlas, JSON and maps here;
+# for Godot it also writes SpriteFrames, a CanvasTexture and a ready scene.
+dir = "public/assets/sprites"
+
+[defaults]                # given to specs created by `spritekiln new`
+view = "topdown"
+size = 48
+palette = "farm"
+camera = { pitch = 38, scale = 0.055 }
+mirror = true
+
+[style]                   # the art style every asset follows (`spritekiln style`); change it only when asked
+recorded = 2026-10-27
+view = "topdown"
+height = 32               # px on screen of a human-sized character
+scale = 0.055             # camera.scale of every asset (from height)
+size = 48                 # frame px for that character
+directions = 8
+mirror = true
+palette = "farm"
+colors = "vivid, saturated, Farm RPG 16x16 pack"
+outline = "dark"
+shading = "flat"
+proportions = "chibi"
+animation = "snappy"
+references = ["Farm RPG FREE 16x16 - Tiny Asset Pack/Character/Idle.png", "Diablo II"]
+notes = "chibi heroes and goblins over Farm RPG 16px grass tiles; one near-black outline #1c0f1a; magic effects are emissive accents"

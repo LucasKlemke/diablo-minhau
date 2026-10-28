@@ -1,0 +1,313 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: bandit
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+# Bandit: normal human enemy, same skeleton and height as the archer. Project style: flat 2-3 tones,
+# dark outline, chibi head, snappy anims.
+brief:
+  summary: chibi human outlaw - dark rounded hood, red bandana over the lower face, brown leather vest over a
+    dull shirt, belt with pouches, dark trousers and boots, curved steel scimitar in the right hand
+  must_keep: [dark hood, red bandana mask with knot tails at the back, scimitar silhouette]
+  simplify: [face is two eyes between hood and bandana, no fingers, pouches are two blobs]
+  decisions:
+    - earthy desaturated spec-local ramps; the bandana (cloth_red) is the only saturated accent
+    - hood is round with a short drape (no pointed tip) so it does not read as the archer
+    - scimitar lives in its own frame (blade) at the right wrist, pitched by sword_rot
+    - mirrored directions swap the scimitar to the left hand (mirror: true project style)
+
+ramps:
+  hood:     ["#1c0f1a", "#241b1f", "#372a2c", "#4d3c39"]   # dark smoky brown
+  shirt:    ["#1c0f1a", "#5c5446", "#857a62", "#a89c7e"]   # dull oatmeal
+  vest:     ["#1c0f1a", "#4a2e1e", "#71472b", "#96683f"]   # worn leather
+  trousers: ["#1c0f1a", "#262a33", "#3a404c", "#545c68"]   # dark slate
+
+materials:
+  skin:   {ramp: skin, bands: [2, 4], line_band: 2}
+  hoodm:  {ramp: hood, bands: [1, 3]}
+  bandana: {ramp: cloth_red, bands: [1, 3]}
+  shirt:  {ramp: shirt, bands: [1, 3]}
+  vest:   {ramp: vest, bands: [1, 3]}
+  strap:  {ramp: leather, bands: [1, 2]}
+  pants:  {ramp: trousers, bands: [1, 3]}
+  boots:  {ramp: hair, bands: [1, 2]}
+  steel:  {ramp: steel, bands: [2, 4]}
+  brass:  {ramp: gold, bands: [1, 2]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.06
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  hand_L: [0.26, 0.0, 0.08]
+  hand_R: [0.25, 0.04, 0.14]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  tails: 0         # bandana knot tails sway (-1..1)
+  sword_rot: 0     # scimitar pitch in the hand (radians, + tips the blade forward/down)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.62
+  smear_y: 0.74
+  smear_z: 0.12
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.36, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.9}
+  tailbase:  {parent: head, pos: [0, 0.10, -0.13], rot: "[-0.5 - tails*0.4, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.27, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  blade:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[1.4 + sword_rot, 0, -0.35]"}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  shirt:           # dull shirt, shows in the open front of the vest
+    material: shirt
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.14, 0.10, 0.105]}
+      - ellipsoid: {c: [0, 0.21, 0.0], r: [0.15, 0.10, 0.105]}
+  vest:            # leather vest, open in front
+    material: vest
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.08, -0.005], r: [0.152, 0.11, 0.115]}
+      - ellipsoid: {c: [0, 0.21, -0.005], r: [0.162, 0.10, 0.115]}
+    cut:
+      - cone: {a: [0, 0.30, 0.13], b: [0, 0.02, 0.13], r: [0.06, 0.035]}   # V opening
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.01, 0], b: [0, 0.055, 0], r: 0.158}
+  buckle:
+    material: brass
+    space: pelvis
+    line: false
+    prims:
+      - box: {c: [0, 0.033, 0.155], half: [0.03, 0.026, 0.012], round: 0.005}
+  pouch_L:         # pouches on both hips
+    material: vest
+    space: pelvis
+    blend: 0.01
+    prims:
+      - box: {c: [0.135, -0.01, 0.07], half: [0.035, 0.045, 0.03], rot: [0, 0.6, 0], round: 0.015}
+  hips:            # trouser seat under the belt
+    material: pants
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0], r: [0.135, 0.07, 0.10]}
+  cowl:            # hood drape over the shoulders
+    material: hoodm
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.28, -0.04], r: [0.17, 0.06, 0.12]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.28, 0], b: [0, 0.36, 0.02], r: [0.055, 0.05]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.15, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.11, 0.08, 0.10]}
+  bandana:         # mask over nose and mouth, a point hanging under the chin
+    material: bandana
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.075, 0.03], r: [0.128, 0.085, 0.118]}
+      - cone: {a: [0, 0.05, 0.10], b: [0, -0.04, 0.11], r: [0.07, 0.015]}
+    cut:
+      - box: {c: [0, 0.22, 0], half: [0.3, 0.095, 0.3]}
+  bandana_tails:   # knot tails at the back of the head
+    material: bandana
+    space: tailbase
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0, 0], r: 0.03}
+      - cone: {a: [0, 0, 0], b: [0.045, -0.11, -0.03], r: [0.028, 0.012]}
+      - cone: {a: [0, 0, 0], b: [-0.03, -0.13, -0.01], r: [0.028, 0.012]}
+  hood:
+    material: hoodm
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.165, -0.02], r: [0.172, 0.16, 0.165]}
+      - ellipsoid: {c: [0, 0.04, -0.07], r: [0.15, 0.08, 0.11]}             # drape on the nape
+      - cone: {a: [0, 0.27, 0.09], b: [0, 0.22, 0.175], r: [0.07, 0.02]}     # peak over the brow
+      - cone: {a: [0, 0.20, -0.12], b: [0, 0.02, -0.22], r: [0.09, 0.03]}    # tail drooping down the back
+    cut:
+      - ellipsoid: {c: [0, 0.10, 0.16], r: [0.135, 0.12, 0.11]}             # face opening
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.055, 0.13, 0.135], r: [0.025, 0.03, 0.02]}
+  arm_L:           # shirt sleeve
+    material: shirt
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.068}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.064, 0.055]}
+  bracer_L:
+    material: vest
+    blend: 0.02
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.055, 0.05]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.048}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.08, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.065, 0.055]}
+  boot_L:
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.12, 0], b: [0, -0.02, 0.0], r: [0.068, 0.062]}
+      - ellipsoid: {c: [0, -0.035, 0.04], r: [0.062, 0.042, 0.09]}
+  scimitar:        # right hand only (no _L => not mirrored); curved blade, back edge toward -z
+    material: steel
+    space: blade
+    blend: 0.015
+    prims:
+      - chain: {pts: [[0, 0.05, 0.0], [0, 0.20, 0.02], [0, 0.34, 0.01], [0, 0.45, -0.06]],
+                r: [0.032, 0.042, 0.038, 0.01]}
+  hilt:
+    material: brass
+    space: blade
+    prims:
+      - box: {c: [0, 0.045, 0.0], half: [0.02, 0.012, 0.055], round: 0.006}
+  grip:
+    material: strap
+    space: blade
+    prims:
+      - cylinder: {a: [0, -0.06, 0], b: [0, 0.035, 0], r: 0.022}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hit: {bone: blade, offset: [0, 0.25, 0.0]}     # blade centre
+  head: {bone: head, offset: [0, 0.38, 0]}        # above the hood
+
+timing: {attack: {hit: 200ms, total: 440ms}}
+
+animations:
+  idle:
+    frames: 4
+    ms: 170
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.26, -0.01 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.25, 0.04 + 0.02*sin(p - 0.6), 0.14]"
+      sword_rot: "0.06*sin(p - 0.8)"
+      tails: "0.4*sin(p - 1.0)"
+  walk:            # 6-frame swagger, blade swinging low
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.12
+      bob: "-0.03*cos(2*p) + 0.01"
+      twist: "0.09*cos(p)"
+      foot_L: "[0.09, 0.08*pos(-sin(p)), 0.02 + 0.16*cos(p)]"
+      foot_R: "[0.09, 0.08*pos(sin(p)), 0.02 - 0.16*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.26, 0.0 + 0.03*pos(cos(p)), 0.08 - 0.12*cos(p)]"
+      hand_R: "[0.25, 0.05 + 0.03*pos(-cos(p)), 0.12 + 0.10*cos(p)]"
+      sword_rot: "-0.15 - 0.12*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      tails: "0.6 + 0.3*sin(2*p)"
+  attack:          # quick slash right to left: raise (held), strike with smear, impact, follow-through, recover
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {twist: -0.50, bob: -0.03, squash: 0.94, head_pitch: -0.05, hand_R: [0.38, 0.34, 0.0], sword_rot: 2.0,
+              hand_L: [0.20, 0.08, 0.22], foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.05], tails: -0.4}
+      - ms: 80
+        set: {root: [0, 0, 0.08], twist: 0.15, lean: 0.25, squash: 1.05, hand_R: [0.14, 0.24, 0.34], sword_rot: -1.6,
+              hand_L: [0.24, 0.04, 0.02], foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.08], tails: 0.5,
+              smear_a0: -1.6, smear_a1: -0.1, smear_w: 0.08}
+      - ms: 100
+        event: hit
+        set: {root: [0, 0, 0.11], twist: 0.50, lean: 0.30, hand_R: [-0.18, 0.16, 0.30], sword_rot: -1.3,
+              hand_L: [0.26, 0.02, -0.06], foot_L: [0.09, 0, 0.18], foot_R: [0.09, 0, -0.08], tails: 0.8,
+              smear_a0: -1.2, smear_a1: 1.0, smear_w: 0.09}
+      - ms: 70
+        set: {root: [0, 0, 0.10], twist: 0.58, lean: 0.26, squash: 0.97, hand_R: [-0.24, 0.06, 0.14], sword_rot: -0.7,
+              hand_L: [0.26, 0.02, -0.04], foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.06], tails: 0.4,
+              smear_a0: 0.3, smear_a1: 1.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 70
+        set: {root: [0, 0, 0.04], twist: 0.20, lean: 0.12, hand_R: [0.10, 0.05, 0.20], sword_rot: -0.3, tails: 0.1}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, hand_L: [0.32, 0.12, 0.0],
+                       hand_R: [0.30, 0.14, 0.0], sword_rot: -0.6, tails: 0.6, foot_R: [0.09, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.12, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.1, hand_L: [0.29, 0.06, 0.06],
+                       hand_R: [0.27, 0.08, 0.06], sword_rot: -0.3, tails: 0.3, foot_R: [0.09, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.0, root: [0, 0, -0.02], hand_R: [0.25, 0.05, 0.12], tails: 0.1}}
+  death:           # stagger, knees buckle, fall on the back, blade drops, lie still
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.25, squash: 0.95, head_pitch: -0.3, root: [0, 0, -0.05], hand_L: [0.32, 0.15, 0.0],
+                        hand_R: [0.30, 0.16, 0.0], sword_rot: -0.6, tails: 0.5}}
+      - {ms: 110, set: {bob: -0.12, lean: -0.45, squash: 0.92, head_pitch: -0.35, root: [0, 0, -0.08], hand_L: [0.34, 0.22, -0.04],
+                        hand_R: [0.32, 0.22, -0.04], sword_rot: -0.9, foot_L: [0.10, 0, 0.10], foot_R: [0.10, 0, 0.06], tails: 0.7}}
+      - {ms: 120, set: {bob: -0.28, lean: -0.95, head_pitch: -0.1, root: [0, 0, 0.06], hand_L: [0.36, 0.25, -0.05],
+                        hand_R: [0.34, 0.25, -0.05], sword_rot: -1.3, foot_L: [0.10, 0.04, 0.22], foot_R: [0.10, 0, 0.18], tails: 0.8}}
+      - {ms: 110, set: {bob: -0.38, lean: -1.30, squash: 0.92, head_pitch: 0.25, root: [0, 0, 0.16], hand_L: [0.40, 0.18, 0.0],
+                        hand_R: [0.38, 0.18, 0.0], sword_rot: -1.5, foot_L: [0.10, 0.02, 0.30], foot_R: [0.11, 0, 0.26], tails: 0.4}}
+      - {ms: 600, set: {bob: -0.38, lean: -1.35, head_pitch: 0.3, root: [0, 0, 0.16], hand_L: [0.42, 0.15, 0.02],
+                        hand_R: [0.40, 0.15, 0.02], sword_rot: -1.5, foot_L: [0.10, 0, 0.30], foot_R: [0.11, 0, 0.27], tails: 0.0}}

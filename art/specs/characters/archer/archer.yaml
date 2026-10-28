@@ -1,0 +1,347 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: archer
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+# Chibi ranger (player class). Project style: flat 2-3 tones, dark outline, chibi head 1.8x, snappy anims.
+brief:
+  summary: chibi ranger - green hooded cloak, leather vest and bracers, brown hair, quiver on the back, longbow in the left hand
+  must_keep: [pointed green hood, longbow silhouette, quiver with red fletchings over the right shoulder]
+  simplify: [bowstring is 1 px or less, face is two eyes]
+  decisions:
+    - bow lives in its own frame (bowgrip) at the left wrist, oriented by the bow_rot channel (torso space)
+    - the shot turns the left shoulder toward the target (twist -0.6) and the head counter-turns so the aim is the facing
+    - mirrored directions swap the bow to the right hand (mirror: true project style)
+
+ramps:
+  green_dark: ["#1c0f1a", "#1d4322", "#2c6226", "#3f8a32"]   # cape and tunic, a step below the hood
+
+materials:
+  skin:  {ramp: skin, bands: [2, 4], line_band: 2}
+  hoodm: {ramp: cloth_green, bands: [1, 3]}
+  cloak: {ramp: green_dark, bands: [1, 3]}
+  shirt: {ramp: bone, bands: [2, 3]}
+  vest:  {ramp: leather, bands: [1, 3]}
+  strap: {ramp: leather, bands: [1, 2]}
+  pants: {ramp: cloth, bands: [2, 4]}
+  boots: {ramp: hair, bands: [1, 3]}
+  hair:  {ramp: hair, bands: [1, 3]}
+  wood:  {ramp: wood, bands: [2, 4]}
+  string: {ramp: bone, bands: [3, 4], line: false, outline: false}
+  steel: {ramp: steel, bands: [2, 4]}
+  fletch: {ramp: cloth_red, bands: [2, 3]}
+  ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  hand_L: [0.27, 0.0, 0.12]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  cape: 0          # cape sway (-1..1)
+  bow_rot: [0.0, 0.9, -0.45]   # bow orientation in torso space (rest: hanging, curve shown to the camera)
+  draw: 0          # 0 = string at rest, 1 = pulled to the right hand
+  arrow: 0         # > 0.5 shows the nocked arrow
+  volley: 0        # > 0.5 shows two extra arrows (cast)
+  aimcant: 0       # extra cant of the drawn bow, only near s and n where a vertical bow is edge-on
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.36, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 2.0}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.27, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  capebase:   {parent: pelvis, pos: [0, 0.30, -0.08], rot: "[-cape*0.3, 0, 0]"}
+  bowgrip:    {parent: torso_rot, at: wrist_L,
+               rot: "bow_rot + [0, 0, aimcant*(pulse(yaw, 0, 45) + pulse(abs(yaw), 180, 45))]"}
+  bowtop:     {parent: bowgrip, pos: [0, 0.40, -0.09]}
+  bowbot:     {parent: bowgrip, pos: [0, -0.40, -0.09]}
+  nockrest:   {parent: bowgrip, pos: [0, 0, -0.09]}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # leather vest
+    material: vest
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.15, 0.10, 0.11]}
+      - ellipsoid: {c: [0, 0.21, 0.0], r: [0.16, 0.10, 0.11]}
+  tunic:           # green skirt of the tunic under the belt
+    material: cloak
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, -0.02, 0], b: [0, -0.10, 0], r: [0.13, 0.175]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.04, 0], b: [0, 0.08, 0], r: 0.162}
+  baldric:         # quiver strap across the chest
+    material: strap
+    space: pelvis
+    prims:
+      - cone: {a: [0.13, 0.07, 0.10], b: [-0.12, 0.29, 0.10], r: [0.028, 0.028]}
+  mantle:          # capelet over the shoulders, joins the hood
+    material: cloak
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.27, -0.05], r: [0.18, 0.06, 0.11]}
+  cape:
+    material: cloak
+    space: capebase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, -0.02], b: [0, -0.36, -0.08], r: [0.13, 0.20]}
+    cut:
+      - box: {c: [0, -0.2, 0.13], half: [0.4, 0.5, 0.12]}
+  quiver:
+    material: strap
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0.09, 0.0, -0.25], b: [-0.09, 0.36, -0.27], r: 0.06, round: 0.02}
+  quiver_band:
+    material: wood
+    space: pelvis
+    prims:
+      - cylinder: {a: [-0.07, 0.32, -0.268], b: [-0.09, 0.36, -0.27], r: 0.067}
+  fletchings:
+    material: fletch
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cone: {a: [-0.09, 0.36, -0.27], b: [-0.16, 0.52, -0.29], r: [0.035, 0.055]}
+      - cone: {a: [-0.07, 0.36, -0.25], b: [-0.06, 0.53, -0.24], r: [0.035, 0.055]}
+      - cone: {a: [-0.11, 0.36, -0.29], b: [-0.21, 0.47, -0.33], r: [0.035, 0.05]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.28, 0], b: [0, 0.36, 0.02], r: [0.055, 0.05]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.15, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.11, 0.08, 0.10]}
+  hair:            # brown bangs and side locks peeking from the hood
+    material: hair
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.21, 0.09], r: [0.13, 0.05, 0.07]}
+      - ellipsoid: {c: [0.10, 0.13, 0.08], r: [0.04, 0.07, 0.05]}
+      - ellipsoid: {c: [-0.10, 0.13, 0.08], r: [0.04, 0.07, 0.05]}
+  hood:
+    material: hoodm
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.16, -0.02], r: [0.175, 0.175, 0.165]}
+      - cone: {a: [0, 0.22, -0.10], b: [0, 0.30, -0.27], r: [0.09, 0.02]}   # pointed tip
+      - ellipsoid: {c: [0, 0.03, -0.07], r: [0.15, 0.07, 0.11]}             # drape on the nape
+    cut:
+      - ellipsoid: {c: [0, 0.10, 0.16], r: [0.135, 0.14, 0.11]}             # face opening
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.055, 0.11, 0.135], r: [0.025, 0.034, 0.02]}
+  arm_L:           # cream sleeve
+    material: shirt
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.055]}
+  bracer_L:
+    material: vest
+    blend: 0.02
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.055, 0.05]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.048}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.08, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.065, 0.055]}
+  boot_L:
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.11, 0], b: [0, -0.02, 0.0], r: [0.065, 0.06]}
+      - ellipsoid: {c: [0, -0.035, 0.04], r: [0.06, 0.04, 0.09]}
+  bow:             # longbow, left hand only (no _L => not mirrored)
+    material: wood
+    space: bowgrip
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, -0.40, -0.09], [0, -0.22, 0.0], [0, 0, 0.04], [0, 0.22, 0.0], [0, 0.40, -0.09]],
+                r: [0.02, 0.03, 0.035, 0.03, 0.02]}
+  bow_grip:
+    material: strap
+    space: bowgrip
+    prims:
+      - cylinder: {a: [0, -0.05, 0.04], b: [0, 0.05, 0.04], r: 0.042}
+  bowstring:
+    material: string
+    prims:
+      - cone: {a: "@bowtop", b: {between: ["@nockrest", "@wrist_R"], t: draw}, r: [0.016, 0.016]}
+      - cone: {a: {between: ["@nockrest", "@wrist_R"], t: draw}, b: "@bowbot", r: [0.016, 0.016]}
+  arrow_shaft:
+    when: "arrow > 0.5"
+    material: wood
+    prims:
+      - cone: {a: "@wrist_R", b: {at: bowgrip, off: [0, 0, 0.20]}, r: [0.02, 0.02]}
+  arrow_head:
+    when: "arrow > 0.5"
+    material: steel
+    space: bowgrip
+    prims:
+      - cone: {a: [0, 0, 0.19], b: [0, 0, 0.29], r: [0.04, 0.008]}
+  arrow_fletch:
+    when: "arrow > 0.5"
+    material: fletch
+    space: wrist_R
+    prims:
+      - ellipsoid: {c: [0, 0, 0.0], r: [0.04, 0.04, 0.06]}
+  volley_arrows:   # two extra arrows fanned for the multishot cast
+    when: "volley > 0.5"
+    material: wood
+    space: bowgrip
+    prims:
+      - cone: {a: [0.05, 0.03, -0.30], b: [0.13, 0.03, 0.18], r: [0.018, 0.018]}
+      - cone: {a: [-0.05, 0.03, -0.30], b: [-0.13, 0.03, 0.18], r: [0.018, 0.018]}
+  volley_heads:
+    when: "volley > 0.5"
+    material: steel
+    space: bowgrip
+    prims:
+      - cone: {a: [0.13, 0.03, 0.17], b: [0.15, 0.03, 0.26], r: [0.038, 0.008]}
+      - cone: {a: [-0.13, 0.03, 0.17], b: [-0.15, 0.03, 0.26], r: [0.038, 0.008]}
+
+sockets:
+  muzzle: {bone: bowgrip, offset: [0, 0, 0.10]}   # arrow spawn: bow centre, just ahead of the grip
+
+timing: {attack: {release: 280ms, total: 450ms}, cast: {release: 300ms, total: 470ms}}
+
+animations:
+  idle:
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.25, -0.02 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.24, 0.0 + 0.02*sin(p - 0.6), 0.04]"
+      cape: "0.2*sin(p - 1.0)"
+  walk:
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.10
+      bob: "-0.03*cos(2*p) + 0.01"
+      twist: "0.08*cos(p)"
+      foot_L: "[0.09, 0.08*pos(-sin(p)), 0.02 + 0.16*cos(p)]"
+      foot_R: "[0.09, 0.08*pos(sin(p)), 0.02 - 0.16*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.27, 0.0 + 0.03*pos(cos(p)), 0.12 - 0.08*cos(p)]"
+      hand_R: "[0.24, 0.02 + 0.03*pos(-cos(p)), 0.04 + 0.12*cos(p)]"
+      head_yaw: "-0.05*cos(p)"
+      cape: "0.5 + 0.3*sin(2*p)"
+  attack:          # nock, raise, full draw (held), release, recover
+    loop: false
+    keys:
+      - ms: 80
+        set: {twist: -0.3, head_yaw: 0.25, hand_L: [0.32, 0.16, 0.22], bow_rot: [0, 0.3, 0.1],
+              hand_R: [-0.02, 0.18, 0.14], arrow: 1, draw: 0.1, squash: 0.98}
+      - ms: 90
+        set: {twist: -0.55, head_yaw: 0.45, hand_L: [0.36, 0.28, 0.26], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.04, 0.28, 0.08], arrow: 1, draw: 0.5, aimcant: 1.1, squash: 0.98, foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.04]}
+      - ms: 110
+        event: windup
+        set: {twist: -0.6, head_yaw: 0.5, bob: -0.02, hand_L: [0.37, 0.29, 0.27], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.14, 0.29, -0.06], arrow: 1, draw: 1, aimcant: 1.1, squash: 0.96, foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.04], cape: -0.2}
+      - ms: 70
+        event: release
+        set: {twist: -0.62, head_yaw: 0.5, root: [0, 0, -0.03], hand_L: [0.37, 0.31, 0.25], bow_rot: [-0.1, 0.6, 0.15],
+              hand_R: [-0.24, 0.34, -0.14], draw: -0.12, aimcant: 1.1, squash: 1.03, foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.04], cape: 0.4}
+      - ms: 100
+        set: {twist: -0.3, head_yaw: 0.25, hand_L: [0.32, 0.14, 0.20], bow_rot: [0, 0.45, 0],
+              hand_R: [0.18, 0.06, 0.06], foot_L: [0.09, 0, 0.06], cape: 0.2}
+  cast:            # multishot volley: same draw aimed ~35 deg up, three arrows
+    loop: false
+    keys:
+      - ms: 90
+        set: {twist: -0.3, lean: -0.02, head_yaw: 0.25, hand_L: [0.32, 0.26, 0.22], bow_rot: [-0.3, 0.3, 0.1],
+              hand_R: [-0.02, 0.20, 0.12], arrow: 1, volley: 1, draw: 0.1, squash: 0.97}
+      - ms: 90
+        set: {twist: -0.55, lean: -0.08, head_yaw: 0.45, head_pitch: -0.15, hand_L: [0.33, 0.42, 0.22], bow_rot: [-0.6, 0.6, 0.1],
+              hand_R: [-0.06, 0.26, 0.06], arrow: 1, volley: 1, draw: 0.5, aimcant: 1.1, squash: 0.97, foot_L: [0.09, 0, 0.12], foot_R: [0.09, 0, -0.06]}
+      - ms: 120
+        event: windup
+        set: {twist: -0.6, lean: -0.12, head_yaw: 0.5, head_pitch: -0.2, bob: -0.03, hand_L: [0.33, 0.46, 0.22], bow_rot: [-0.6, 0.6, 0.1],
+              hand_R: [-0.15, 0.23, -0.05], arrow: 1, volley: 1, draw: 1, aimcant: 1.1, squash: 0.95, foot_L: [0.09, 0, 0.12], foot_R: [0.09, 0, -0.06], cape: -0.3}
+      - ms: 70
+        event: release
+        set: {twist: -0.62, lean: -0.14, head_yaw: 0.5, head_pitch: -0.2, root: [0, 0, -0.04], hand_L: [0.33, 0.48, 0.20], bow_rot: [-0.7, 0.6, 0.1],
+              hand_R: [-0.26, 0.30, -0.14], draw: -0.12, aimcant: 1.1, squash: 1.04, foot_L: [0.09, 0, 0.12], foot_R: [0.09, 0, -0.06], cape: 0.5}
+      - ms: 100
+        set: {twist: -0.3, lean: -0.02, head_yaw: 0.25, hand_L: [0.32, 0.18, 0.20], bow_rot: [-0.2, 0.45, 0],
+              hand_R: [0.18, 0.06, 0.06], foot_L: [0.09, 0, 0.06], cape: 0.2}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, hand_L: [0.32, 0.12, 0.0],
+                       hand_R: [0.30, 0.14, 0.0], bow_rot: [0.3, 0.9, -0.6], cape: 0.6, foot_R: [0.09, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.12, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.1, hand_L: [0.29, 0.06, 0.06],
+                       hand_R: [0.27, 0.06, 0.02], cape: 0.3, foot_R: [0.09, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.0, root: [0, 0, -0.02], hand_R: [0.25, 0.02, 0.04], cape: 0.1}}
+  death:           # stagger, knees buckle, fall on the back, lie still
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.25, squash: 0.95, head_pitch: -0.3, root: [0, 0, -0.05], hand_L: [0.32, 0.15, 0.0],
+                        hand_R: [0.30, 0.16, 0.0], bow_rot: [0.3, 0.9, -0.7], cape: 0.5}}
+      - {ms: 110, set: {bob: -0.12, lean: -0.45, squash: 0.92, head_pitch: -0.35, root: [0, 0, -0.08], hand_L: [0.34, 0.22, -0.04],
+                        hand_R: [0.32, 0.22, -0.04], bow_rot: [0.6, 0.9, -0.9], foot_L: [0.10, 0, 0.10], foot_R: [0.10, 0, 0.06], cape: 0.7}}
+      - {ms: 120, set: {bob: -0.28, lean: -0.95, head_pitch: -0.1, root: [0, 0, 0.06], hand_L: [0.36, 0.25, -0.05],
+                        hand_R: [0.34, 0.25, -0.05], bow_rot: [1.0, 0.9, -1.1], foot_L: [0.10, 0.04, 0.22], foot_R: [0.10, 0, 0.18], cape: 0.8}}
+      - {ms: 110, set: {bob: -0.38, lean: -1.30, squash: 0.92, head_pitch: 0.25, root: [0, 0, 0.16], hand_L: [0.40, 0.18, 0.0],
+                        hand_R: [0.38, 0.18, 0.0], bow_rot: [1.3, 0.9, -1.3], foot_L: [0.10, 0.02, 0.30], foot_R: [0.11, 0, 0.26], cape: 0.4}}
+      - {ms: 600, set: {bob: -0.38, lean: -1.35, head_pitch: 0.3, root: [0, 0, 0.16], hand_L: [0.42, 0.15, 0.02],
+                        hand_R: [0.40, 0.15, 0.02], bow_rot: [1.4, 0.9, -1.3], foot_L: [0.10, 0, 0.30], foot_R: [0.11, 0, 0.27], cape: 0.0}}

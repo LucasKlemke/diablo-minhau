@@ -1,0 +1,412 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: troll
+mirror: true
+kind: character
+size: 96
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 2.15, 0]}
+shadow: {rx: 30, ry: 10, alpha: 120}
+
+# BOSS of the swamp zone: "Gorlak, o Troll do Pantano". Same density as every asset (scale 0.055);
+# only the frame is bigger (96).
+brief:
+  summary: >
+    Gorlak, swamp troll boss, about 2.2x hero height. Massively hunched: a mossy hump towers over a
+    small head set low and forward. Small head with an underbite, two upward tusks, long drooping nose,
+    glowing yellow eyes under a heavy brow, small pointed ears. Mossy grey-green (desaturated teal-grey)
+    skin that reads over dark swamp grass. Huge arms with big fists reaching the knees; short thick bowed
+    legs, big flat feet. Moss patches and hanging weeds on the shoulders and hump. Loincloth of hide on a
+    rope belt with bones hanging around it and a small skull in front. A giant uprooted tree trunk club
+    in the right hand, resting on the right shoulder, root ball up and behind.
+  must_keep: [hunch with mossy hump, huge arms reaching the knees, uprooted tree-trunk club, tusks, glowing yellow eyes]
+  simplify: [no fingers (fists), weeds as 3-4 strands per shoulder, 5 hanging bones, 5 roots]
+  decisions: >
+    Head deliberately small (boss exception to the chibi head scale: the hunch and arms carry the
+    silhouette). Club rests on the shoulder when idle/walking (like the bandit brute) so the trunk and
+    root ball read in every direction. Back (n): hump covered in moss with weeds hanging down.
+  exceptions: frame size 96 (boss), spec-local ramps troll_skin/moss/weed/bark; same camera scale/pitch/light.
+
+ramps:
+  troll_skin: ["#1c0f1a", "#3d5052", "#68847f", "#98b0a6", "#c7d6cb"]
+  troll_dark: ["#1c0f1a", "#2f3f42", "#4d6664", "#6f8a84", "#98b0a6"]
+  moss:       ["#1c0f1a", "#2f4d24", "#58803a", "#8aab4e", "#b9cf7a"]
+  weed:       ["#1c0f1a", "#24402a", "#3e6842", "#5f8c52", "#86ad6a"]
+  bark:       ["#1c0f1a", "#3a2418", "#5e3d25", "#86603a", "#a8835a"]
+
+materials:
+  skin:    {ramp: troll_skin, bands: [1, 3]}
+  skin_dk: {ramp: troll_dark, bands: [1, 3]}
+  moss:    {ramp: moss, bands: [1, 2]}
+  weed:    {ramp: weed, bands: [1, 3]}
+  bone:    {ramp: bone, bands: [1, 3]}
+  hide:    {ramp: leather, bands: [1, 3]}
+  rope:    {ramp: rag, bands: [1, 2]}
+  bark:    {ramp: bark, bands: [1, 3]}
+  wood:    {ramp: wood, bands: [2, 3]}
+  eye:     {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.45, radius: 1}}
+  mouth:   {ramp: mouth, emissive: true, band: 1, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.5           # massively hunched
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  jaw: 0              # 0 closed .. 1 roaring
+  hand_L: [1.0, -0.30, 0.95]     # torso_rot space; arms hang to the knees
+  hand_R: [0.80, 0.70, 0.80]     # right fist in front of the shoulder, club resting on it
+  foot_L: [0.46, 0, 0.05]
+  pitch_foot_L: 0
+  club_pitch: -0.25 # club rotation in body space (Ry.Rz.Rx of +y: the trunk axis, grip -> root ball)
+  club_yaw: 0
+  club_cheat: 0.4     # extra back tilt near n so the trunk stays in the frame
+  club_roll: 0.45     # z: positive leans the trunk out to the right, over the shoulder
+  loin: 0             # loincloth / bones sway (-1..1)
+  weeds: 0            # hanging weeds sway (-1..1)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 1.8
+  smear_y: 1.8
+  smear_z: 0.4
+  smear_fade: 1
+  smear_roll: 0
+
+bones:
+  body:      {parent: root, scale: 1.22}   # boss scale over the authored skeleton
+  torso_rot: {parent: body, pos: "[0, 1.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 1.06, 0.98], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.25 - 0.1, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.6}
+  jawb:      {parent: head, pos: [0, 0.06, 0.02], rot: "[jaw*0.45, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.82, 1.00, 0.18]}
+  hip_L:      {parent: pelvis, pos: [0.36, -0.06, 0.0]}
+  legyaw:     {parent: body, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: body, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.22, 0]"}
+  loinbase:   {parent: pelvis, rot: "[-loin*0.25, 0, 0]"}
+  weedbase:   {parent: pelvis, rot: "[-weeds*0.2, 0, weeds*0.05]"}
+  clubspace:  {parent: body, rot: "[0, twist*0.6, 0]"}
+  club:       {parent: clubspace, at: wrist_R, rot: "[club_pitch - club_cheat*pulse(abs(yaw), 180, 70), club_yaw, club_roll]", scale: 0.76}
+  fxspace:    {parent: body, rot: "[0, twist*0.3, 0]"}
+  smearspace: {parent: fxspace, pos: "[0, smear_y, smear_z]", rot: "[0, 0, smear_roll]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.84, 0.80],
+          pole: [0.5, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: body, target: "foot_L + [0, 0.16, -0.02]", lengths: [0.72, 0.68],
+          pole: [0.35, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # pot belly, barrel chest and the huge hump
+    material: skin
+    space: pelvis
+    blend: 0.16
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0.02], r: [0.56, 0.40, 0.46]}
+      - ellipsoid: {c: [0, 0.48, 0.16], r: [0.64, 0.50, 0.56]}
+      - ellipsoid: {c: [0, 0.95, 0.10], r: [0.84, 0.46, 0.58]}
+      - ellipsoid: {c: [0, 1.12, -0.22], r: [0.72, 0.52, 0.56]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 1.02, 0.30], b: [0, 1.06, 0.94], r: [0.28, 0.22]}
+  deltoid_L:       # huge shoulder balls
+    material: skin
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0.80, 1.04, 0.14], r: [0.36, 0.34, 0.38]}
+  moss:            # moss mats on the hump and both shoulders
+    material: moss
+    space: pelvis
+    blend: 0.10
+    prims:
+      - ellipsoid: {c: [0.05, 1.50, -0.30], r: [0.44, 0.13, 0.36]}
+      - ellipsoid: {c: [-0.30, 1.44, -0.50], r: [0.26, 0.10, 0.22]}
+      - ellipsoid: {c: [0.86, 1.30, 0.02], r: [0.22, 0.09, 0.24], rot: [0, 0, -0.45]}
+      - ellipsoid: {c: [-0.84, 1.28, 0.16], r: [0.20, 0.09, 0.20], rot: [0, 0, 0.45]}
+  weeds_L:         # weeds hanging from the shoulders and the hump
+    material: weed
+    space: weedbase
+    prims:
+      - chain: {pts: [[0.98, 1.30, 0.20], [1.10, 1.00, 0.24], [1.12, 0.74, 0.30]], r: [0.07, 0.06, 0.05]}
+      - chain: {pts: [[0.90, 1.28, -0.10], [1.02, 0.98, -0.18], [1.04, 0.70, -0.20]], r: [0.07, 0.06, 0.05]}
+      - chain: {pts: [[0.40, 1.42, -0.62], [0.46, 1.10, -0.76], [0.46, 0.84, -0.78]], r: [0.07, 0.06, 0.05]}
+      - chain: {pts: [[0.10, 1.48, -0.60], [0.10, 1.18, -0.80], [0.12, 0.98, -0.84]], r: [0.06, 0.055, 0.05]}
+  head:            # small skull, heavy underbite muzzle, brow ridge
+    material: skin
+    line: true
+    space: head
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.14, -0.02], r: [0.22, 0.19, 0.22]}
+      - ellipsoid: {c: [0, 0.20, 0.14], r: [0.21, 0.06, 0.09]}
+  jaw:
+    material: skin
+    line: true
+    space: jawb
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.10], r: [0.24, 0.12, 0.19]}
+  mouth:
+    material: mouth
+    space: head
+    when: "jaw > 0.25"
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.20], r: [0.13, 0.05, 0.06]}
+  nose:            # long drooping nose
+    material: skin_dk
+    space: head
+    prims:
+      - chain: {pts: [[0, 0.17, 0.22], [0, 0.10, 0.36], [0, -0.02, 0.42]], r: [0.065, 0.075, 0.07]}
+  ear_L:
+    material: skin_dk
+    space: head
+    prims:
+      - cone: {a: [0.18, 0.15, -0.02], b: [0.40, 0.24, -0.12], r: [0.07, 0.025]}
+  tusk_L:
+    material: bone
+    space: jawb
+    prims:
+      - cone: {a: [0.13, -0.04, 0.22], b: [0.17, 0.16, 0.30], r: [0.05, 0.02]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.09, 0.15, 0.20], r: 0.045}
+  arm_L:           # gorilla arms: thick forearms
+    material: skin
+    space: body
+    line: true
+    prims:
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.30, 0.24]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.26, 0.30]}
+  fist_L:
+    material: skin_dk
+    space: wrist_L
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0, 0.10], r: [0.28, 0.25, 0.26]}
+  leg_L:           # short, thick, bowed legs
+    material: skin
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.32, 0.25]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.25, 0.19]}
+  foot_L:          # big flat feet with three toes
+    material: skin_dk
+    space: sole_L
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.06, 0.12], r: [0.24, 0.12, 0.32]}
+      - sphere: {c: [0.12, -0.08, 0.40], r: 0.09}
+      - sphere: {c: [-0.02, -0.08, 0.43], r: 0.09}
+      - sphere: {c: [-0.15, -0.08, 0.38], r: 0.08}
+  belt:            # rope belt
+    material: rope
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.12, 0.03], R: 0.55, r: 0.06, rot: [0.08, 0, 0]}
+  loincloth:       # hide flaps front and back
+    material: hide
+    space: loinbase
+    blend: 0.02
+    prims:
+      - box: {c: [0, -0.18, 0.50], half: [0.24, 0.26, 0.04], rot: [0.12, 0, 0], round: 0.03}
+      - box: {c: [0, -0.18, -0.44], half: [0.30, 0.26, 0.04], rot: [-0.12, 0, 0], round: 0.03}
+  bones_L:         # bones hanging from the belt around the hips
+    material: bone
+    space: loinbase
+    prims:
+      - cone: {a: [0.30, 0.06, 0.48], b: [0.34, -0.30, 0.52], r: [0.045, 0.045]}
+      - sphere: {c: [0.34, -0.32, 0.52], r: 0.065}
+      - cone: {a: [0.52, 0.06, 0.20], b: [0.58, -0.30, 0.22], r: [0.045, 0.045]}
+      - sphere: {c: [0.58, -0.32, 0.22], r: 0.065}
+      - cone: {a: [0.48, 0.06, -0.26], b: [0.54, -0.26, -0.30], r: [0.045, 0.045]}
+      - sphere: {c: [0.54, -0.28, -0.30], r: 0.065}
+  skull:           # small skull on the front of the belt
+    material: bone
+    space: loinbase
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.10, 0.58], r: 0.13}
+      - ellipsoid: {c: [0, 0.00, 0.60], r: [0.08, 0.06, 0.07]}
+  skull_eyes:
+    material: mouth
+    space: loinbase
+    prims:
+      - sphere: {c: [0.05, 0.11, 0.69], r: 0.035}
+      - sphere: {c: [-0.05, 0.11, 0.69], r: 0.035}
+  trunk:           # giant uprooted tree trunk: grip at the thin broken end, root ball at the far end
+    material: bark
+    space: club
+    blend: 0.06
+    prims:
+      - cone: {a: [0, -0.30, 0], b: [0, 1.30, 0], r: [0.13, 0.24]}
+      - ellipsoid: {c: [0, 1.52, 0], r: [0.34, 0.30, 0.34]}
+      - cone: {a: [0, 0.55, 0], b: [0.24, 0.72, 0.05], r: [0.07, 0.04]}
+  roots:           # splayed roots around the root ball
+    material: bark
+    space: club
+    prims:
+      - chain: {pts: [[0.20, 1.60, 0], [0.46, 1.78, 0.04], [0.56, 1.66, 0.06]], r: [0.08, 0.06, 0.04]}
+      - chain: {pts: [[-0.20, 1.60, 0], [-0.44, 1.82, -0.04], [-0.58, 1.72, -0.08]], r: [0.08, 0.06, 0.04]}
+      - chain: {pts: [[0, 1.62, 0.20], [0.04, 1.86, 0.44], [0.10, 1.76, 0.58]], r: [0.08, 0.06, 0.04]}
+      - chain: {pts: [[0, 1.62, -0.20], [-0.04, 1.88, -0.42], [-0.06, 1.80, -0.58]], r: [0.08, 0.06, 0.04]}
+      - chain: {pts: [[0, 1.74, 0], [0.06, 2.00, 0.04], [0.02, 2.10, 0.10]], r: [0.08, 0.06, 0.04]}
+  trunk_end:       # pale broken wood at the grip end
+    material: wood
+    space: club
+    prims:
+      - cylinder: {a: [0, -0.36, 0], b: [0, -0.30, 0], r: 0.12, round: 0.02}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: smearspace
+    prims:
+      - arc: {c: [0, 0, 0], r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.15}
+
+sockets:
+  hand_R: {bone: wrist_R}
+  hit: {bone: club, offset: [0, 1.50, 0]}
+  head: {bone: head, offset: [0, 0.45, 0]}
+  slam: {bone: fxspace, offset: [0, 0, 1.15]}   # ground point in front of the fists: cast shockwave origin
+
+animations:
+  idle:            # heavy breathing: chest heaves, shoulders rise, weeds sway late
+    frames: 4
+    ms: 220
+    channels:
+      bob: "0.035*sin(p)"
+      squash: "1 + 0.03*sin(p)"
+      lean: "0.5 - 0.03*sin(p)"
+      head_pitch: "-0.06*sin(p - 0.5)"
+      jaw: "0.12 + 0.12*sin(p)"
+      hand_L: "[1.0, -0.30 + 0.04*sin(p - 0.6), 0.95]"
+      hand_R: "[0.80, 0.70 + 0.04*sin(p - 0.6), 0.80]"
+      weeds: "0.4*sin(p - 1.0)"
+      loin: "0.2*sin(p - 1.2)"
+  walk:            # earth-shaking stomp: big drop on each contact, side-to-side sway, knuckles swing
+    frames: 6
+    ms: 140
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.55
+      bob: "-0.09*cos(2*p) + 0.02"
+      roll: "0.07*sin(p)"
+      twist: "0.09*cos(p)"
+      squash: "1 - 0.04*cos(2*p)"
+      foot_L: "[0.46, 0.22*pos(-sin(p)), 0.05 + 0.30*cos(p)]"
+      foot_R: "[0.46, 0.22*pos(sin(p)), 0.05 - 0.30*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[1.0, -0.26 + 0.06*pos(cos(p)), 0.95 - 0.28*cos(p)]"
+      hand_R: "[0.80, 0.70 + 0.04*pos(-cos(p)), 0.80 + 0.06*cos(p)]"
+      club_pitch: "-0.25 + 0.06*cos(2*p)"
+      head_pitch: "0.06*cos(2*p)"
+      head_yaw: "-0.06*cos(p)"
+      weeds: "0.6*sin(2*p - 0.8)"
+      loin: "0.5*sin(2*p - 0.6)"
+  attack:          # overhead club smash: lift, long held windup, slam the trunk into the ground
+    loop: false
+    keys:
+      - ms: 120
+        set: {hand_R: [0.70, 1.00, 0.55], hand_L: [0.90, 0.10, 0.85], club_pitch: -0.80, club_roll: 0.30,
+              lean: 0.35, squash: 0.98, head_pitch: -0.1, weeds: -0.3}
+      - ms: 280
+        event: windup
+        set: {hand_R: [0.45, 1.10, 0.15], hand_L: [0.35, 1.00, 0.25], club_pitch: -1.45, root: [0, 0, -0.12], club_roll: 0.12,
+              lean: 0.15, bob: -0.05, squash: 0.95, head_pitch: -0.3, jaw: 0.7, twist: -0.08,
+              foot_L: [0.50, 0, 0.20], foot_R: [0.50, 0, -0.10], weeds: -0.6, loin: -0.4}
+      - ms: 100
+        set: {hand_R: [0.35, 1.00, 0.70], hand_L: [0.30, 1.00, 0.70], club_pitch: "0.80 - 0.40*pulse(yaw, 90, 50) + 1.1*pulse(abs(yaw), 180, 60)", root: [0, 0, -0.30], club_roll: 0.12,
+              lean: 0.62, squash: 1.05, head_pitch: 0.1, jaw: 0.9, twist: 0.04,
+              foot_L: [0.50, 0, 0.24], foot_R: [0.50, 0, -0.14], weeds: 0.3, loin: 0.4,
+              smear_roll: 1.4, smear_y: 2.2, smear_z: 0.3, smear_r: 1.5, smear_a0: 2.0, smear_a1: 0.2, smear_w: 0.20}
+      - ms: 170
+        event: hit
+        set: {hand_R: [0.35, 0.90, 0.70], hand_L: [0.30, 0.90, 0.70], club_pitch: "2.75 + 0.35*pulse(yaw, 0, 150)", club_roll: 0.12, root: "[0, 0, -0.25 - 0.35*pulse(yaw, 0, 150)]",
+              lean: 0.62, bob: -0.14, squash: 0.92, head_pitch: 0.2, jaw: 1.0, twist: 0.06,
+              foot_L: [0.52, 0, 0.26], foot_R: [0.52, 0, -0.16], weeds: 0.9, loin: 0.7,
+              smear_roll: 1.4, smear_y: 2.2, smear_z: 0.3, smear_r: 1.5, smear_a0: 1.4, smear_a1: -0.6, smear_w: 0.20, smear_fade: 0.7}
+      - ms: 180
+        set: {hand_R: [0.70, 0.80, 0.80], hand_L: [0.90, -0.10, 0.95], club_pitch: 0.45, club_roll: 0.15, root: [0, 0, -0.10],
+              lean: 0.65, bob: -0.06, squash: 0.97, jaw: 0.4, foot_L: [0.50, 0, 0.16], foot_R: [0.50, 0, -0.06],
+              weeds: 0.2, loin: 0.2}
+  cast:            # ground-pound roar: rear up roaring, both fists hammer the ground (game spawns a shockwave)
+    loop: false
+    keys:
+      - ms: 120
+        set: {hand_L: [0.95, 0.90, 0.70], hand_R: [0.95, 0.90, 0.70], club_pitch: -1.6, club_roll: 0.40,
+              lean: 0.30, head_pitch: -0.2, jaw: 0.5, squash: 0.98, weeds: -0.3}
+      - ms: 230
+        event: windup
+        set: {hand_L: [0.85, 1.45, 0.30], hand_R: [0.85, 1.45, 0.30], club_pitch: -2.4, club_roll: 0.40,
+              lean: 0.0, bob: 0.06, squash: 1.04, head_pitch: -0.55, jaw: 1.0,
+              foot_L: [0.52, 0, 0.12], foot_R: [0.52, 0, -0.02], weeds: -0.8, loin: -0.5}
+      - ms: 100
+        set: {hand_L: [0.90, 0.40, 1.05], hand_R: [0.90, 0.40, 1.05], club_pitch: -1.2, club_roll: 0.40, root: [0, 0, -0.15],
+              lean: 0.80, squash: 1.04, head_pitch: 0.0, jaw: 1.0, weeds: 0.3, loin: 0.4,
+              foot_L: [0.54, 0, 0.18], foot_R: [0.54, 0, -0.06]}
+      - ms: 170
+        event: hit
+        set: {hand_L: [0.85, -0.25, 1.15], hand_R: [0.85, -0.25, 1.15], club_pitch: -0.9, club_roll: 0.40, root: [0, 0, -0.15],
+              lean: 1.0, bob: -0.22, squash: 0.90, head_pitch: -0.25, jaw: 1.0, weeds: 1.0, loin: 0.8,
+              foot_L: [0.56, 0, 0.18], foot_R: [0.56, 0, -0.06]}
+      - ms: 180
+        set: {hand_L: [0.95, -0.15, 1.05], hand_R: [0.90, 0.20, 0.95], club_pitch: -0.6, club_roll: 0.40, root: [0, 0, -0.10],
+              lean: 0.75, bob: -0.08, squash: 0.97, head_pitch: -0.1, jaw: 0.5, weeds: 0.3, loin: 0.2,
+              foot_L: [0.50, 0, 0.12], foot_R: [0.50, 0, -0.02]}
+  hit:             # small flinch backwards
+    loop: false
+    keys:
+      - ms: 70
+        set: {hand_R: [0.90, 0.80, 0.60], hand_L: [1.10, -0.10, 0.70], root: [0, 0, -0.06], lean: 0.38, roll: 0.06,
+              head_pitch: -0.3, squash: 0.95, bob: -0.03, jaw: 0.7, club_pitch: -0.45, weeds: -0.6, loin: -0.4}
+      - ms: 90
+        set: {hand_R: [0.85, 0.75, 0.70], hand_L: [1.05, -0.20, 0.82], root: [0, 0, -0.04], lean: 0.44, roll: 0.03,
+              head_pitch: -0.15, squash: 0.97, jaw: 0.4, club_pitch: -0.35, weeds: -0.2}
+      - ms: 90
+        set: {root: [0, 0, -0.01], lean: 0.49, jaw: 0.1, weeds: 0.2, loin: 0.1}
+  death:           # staggers, knees buckle, topples face down; the club drops beside him
+    loop: false
+    keys:
+      - ms: 130
+        set: {hand_R: [1.00, 0.70, 0.40], hand_L: [1.15, 0.10, 0.50], root: [0, 0, -0.08], lean: 0.25,
+              head_pitch: -0.45, jaw: 1.0, squash: 0.96, club_pitch: -0.6, weeds: -0.6, loin: -0.4}
+      - ms: 140
+        set: {hand_R: [1.00, 0.20, 0.80], hand_L: [1.05, -0.20, 0.85], root: [0, 0, -0.10], lean: 0.75, bob: -0.40,
+              head_pitch: 0.1, jaw: 0.6, squash: 0.94, club_pitch: 0.2, club_roll: 0.35,
+              foot_L: [0.50, 0, 0.0], foot_R: [0.50, 0, -0.10], weeds: 0.3}
+      - ms: 140
+        set: {hand_R: [1.05, 0.70, 0.70], hand_L: [1.10, 0.60, 0.75], root: "[0.8*sin(radians(yaw)), 0, -0.5 - 0.8*cos(radians(yaw))]", lean: 1.15, bob: -0.75,
+              head_pitch: 0.3, jaw: 0.3, club_pitch: -0.9, club_roll: 0.6,
+              foot_L: [0.50, 0.05, -0.45], foot_R: [0.50, 0.05, -0.55], weeds: 0.8, loin: 0.6}
+      - ms: 130
+        event: thud
+        set: {hand_R: [1.10, 1.20, 0.30], hand_L: [1.15, 1.10, 0.35], root: "[1.5*sin(radians(yaw)), 0, -0.75 - 1.5*cos(radians(yaw))]", lean: 1.55, bob: -1.02,
+              head_pitch: 0.7, squash: 0.90, club_pitch: -1.57, club_roll: 0.30,
+              foot_L: [0.50, 0.10, -1.15], foot_R: [0.50, 0.10, -1.25], weeds: 1.0, loin: 0.8}
+      - ms: 110
+        set: {hand_R: [1.10, 1.20, 0.25], hand_L: [1.15, 1.10, 0.30], root: "[1.5*sin(radians(yaw)), 0, -0.75 - 1.5*cos(radians(yaw))]", lean: 1.50, bob: -0.97,
+              head_pitch: 0.65, squash: 0.97, club_pitch: -1.57, club_roll: 0.30,
+              foot_L: [0.50, 0.14, -1.15], foot_R: [0.50, 0.14, -1.25], weeds: 0.4, loin: 0.3}
+      - ms: 900
+        event: dead
+        set: {hand_R: [1.10, 1.20, 0.30], hand_L: [1.15, 1.10, 0.35], root: "[1.5*sin(radians(yaw)), 0, -0.75 - 1.5*cos(radians(yaw))]", lean: 1.55, bob: -1.02,
+              head_pitch: 0.7, squash: 1.0, club_pitch: -1.57, club_roll: 0.30,
+              foot_L: [0.50, 0.10, -1.15], foot_R: [0.50, 0.10, -1.25], weeds: 0.6, loin: 0.5}
+
+timing: {attack: {hit: 500ms, total: 850ms}, cast: {hit: 450ms, total: 800ms}}

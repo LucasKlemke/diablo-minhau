@@ -1,0 +1,367 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: lich
+mirror: true
+kind: character
+size: 64                 # boss: bigger frame, same density (camera.scale shared by the game)
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.52, 0]}
+shadow: {rx: 13, ry: 4.5, alpha: 120}
+
+# "Malakar, o Lich": final boss of the frozen peaks. Ranged caster that FLOATS above the ground.
+brief:
+  summary: floating lich boss, ~1.4x hero height, skull face with a jagged iron-and-ice crown, glowing cyan eyes,
+    tattered navy robes with frost-blue trim ending in wisps, skeletal hands, tall staff with a floating ice crystal
+  must_keep: [skull with two glowing cyan eyes, jagged iron+ice crown, tall staff with glowing crystal (socket muzzle),
+    dark robes ending in wisps (no legs), ground shadow under the floating body]
+  simplify: [no legs, no mouth detail beyond the jaw, fingers as two claws per hand]
+  exceptions: |
+    size 64 (boss), camera.center raised to 1.52; camera.scale/pitch/light untouched.
+    Spec-local ramps (lich_robe, frost_trim, cold_bone, iron, ice, ash) all keep index 0 = #1c0f1a.
+  decisions: |
+    Robes are dark navy (contrast with snow); every glow uses one icy cyan so the accent reads.
+    Staff is held in the right hand (mirrored directions swap hands, like the sorcerer).
+    Spiked high collar behind the skull adds a third striking shape to the silhouette.
+    Death: crown pops off and falls to the ground, the body sinks and squashes into a robe pile, ash puffs rise,
+    the staff topples and its crystal goes dark.
+
+ramps:
+  lich_robe:  ["#1c0f1a", "#161a34", "#232e5a", "#34467e"]
+  lich_black: ["#1c0f1a", "#120f1f", "#1d1a30", "#2b2944"]
+  frost_trim: ["#1c0f1a", "#2a5f9e", "#4fa3d9", "#8fd3f0"]
+  cold_bone:  ["#1c0f1a", "#6a6f84", "#b4bac6", "#e4e8ea"]
+  iron:       ["#1c0f1a", "#2e3040", "#535a70", "#8a94aa"]
+  ice:        ["#1c0f1a", "#2c7cc4", "#7edaf2", "#dbf9fa"]
+  ash:        ["#1c0f1a", "#5d6b80", "#9fb0c4", "#d6e2ee"]
+  glow_ice:   ["#174682", "#219be7", "#7edaf2", "#dbf9fa"]
+
+materials:
+  robe:    {ramp: lich_robe, bands: [1, 3]}
+  robe_dk: {ramp: lich_black, bands: [1, 3]}
+  trim:    {ramp: frost_trim, bands: [1, 3]}
+  bone:    {ramp: cold_bone, bands: [2, 3]}
+  iron:    {ramp: iron, bands: [1, 3]}
+  ice:     {ramp: ice, bands: [1, 3]}
+  void:    {ramp: lich_black, emissive: true, band: 0, outline: false}
+  eye:     {ramp: glow_ice, emissive: true, band: 2, outline: false, glow: {color: "#7ef9ff", mix: 0.25, radius: 1}}
+  crystal: {ramp: glow_ice, emissive: true, band: 2, outline: false, glow: {color: "#7ef9ff", mix: 0.45, radius: 1}}
+  crystal_core: {ramp: glow_ice, emissive: true, band: 3, outline: false}
+  ash:     {ramp: ash, bands: [1, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  hover: 0.45       # float height of the whole body (0 = touching the ground)
+  bob: 0
+  lean: 0.03
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.18
+  head_yaw: 0
+  hand_L: [0.30, -0.02, 0.12]
+  hand_R: [0.46, 0.04, 0.12]
+  coat: 0           # robe hem sway (-1..1)
+  trail: 0          # wisps trailing back (glide)
+  glow: 1           # crystal size / pulse (0 = dark)
+  cfloat: 0         # crystal float offset above the staff
+  staff_pitch: 0    # staff tilt forward (+) / back (-)
+  staff_roll: 0     # staff tilt sideways (death fall)
+  crown_off: [0, 0, 0]   # crown displacement (head space) for the death fall
+  crown_rot: 0
+  magic: 0          # left-hand frost orb (cast)
+  nova: 0           # ground frost ring (cast release)
+  dust: 0           # ash puffs (death)
+  eyes: 1           # eye glow size (0 = dead)
+
+bones:
+  float:     {parent: root, pos: "[0, hover + bob, 0]"}
+  torso_rot: {parent: float, pos: [0, 0.85, 0], rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.58, 0.04], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.95}
+  crown_b:   {parent: head, pos: "crown_off", rot: "[crown_rot, 0, crown_rot*0.3]"}
+  shoulder_L: {parent: pelvis, pos: [0.24, 0.42, 0.0]}
+  coatbase:  {parent: pelvis, rot: "[-coat*0.2, 0, 0]"}
+  staff_b:   {parent: root, at: wrist_R, rot: "[staff_pitch, 0, staff_roll]"}   # upright staff frame at the right hand
+  magic_b:   {parent: root, at: wrist_L}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.26, 0.24],
+          pole: [0.4, -0.2, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+
+parts:
+  torso:
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0], r: [0.18, 0.14, 0.15]}
+      - ellipsoid: {c: [0, 0.28, 0.0], r: [0.22, 0.19, 0.17]}
+  ribs:            # dark open chest panel with a bony sternum
+    material: robe_dk
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.22, 0.15], half: [0.06, 0.16, 0.03], rot: [-0.15, 0, 0], round: 0.03}
+  mantle:          # heavy shoulder mantle
+    material: robe
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.42, -0.02], r: [0.30, 0.10, 0.22]}
+  mantle_trim:
+    material: trim
+    space: pelvis
+    prims:
+      - torus: {c: [0, 0.38, -0.02], R: 0.27, r: 0.025, rot: [0, 0, 0]}
+  collar_L:        # spiked high collar behind the skull
+    material: robe_dk
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0.10, 0.44, -0.14], b: [0.26, 0.86, -0.20], r: [0.08, 0.012]}
+      - cone: {a: [0.04, 0.44, -0.16], b: [0.10, 0.80, -0.26], r: [0.07, 0.012]}
+  collar_trim_L:
+    material: trim
+    space: pelvis
+    prims:
+      - cone: {a: [0.20, 0.70, -0.18], b: [0.265, 0.87, -0.20], r: [0.03, 0.012]}
+  robe:            # long robe skirt (no legs)
+    material: robe
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.06, 0], b: [0, -0.60, -0.03], r: [0.19, 0.31]}
+  hem:
+    material: trim
+    space: coatbase
+    prims:
+      - cone: {a: [0, -0.55, -0.03], b: [0, -0.61, -0.03], r: [0.30, 0.315]}
+  sash:
+    material: trim
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, 0.03, 0], b: [0, 0.08, 0], r: 0.185}
+      - box: {c: [0, -0.22, 0.20], half: [0.04, 0.28, 0.02], rot: [-0.2, 0, 0]}   # front panel
+  wisp_L:          # tattered robe ending in wisps
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - chain: {pts: ["[0.16, -0.52, 0.22]", "[0.18, -0.74, 0.20 - 0.08*trail]", "[0.15 + 0.03*coat, -0.96, 0.16 - 0.18*trail - 0.05*coat]"], r: [0.09, 0.05, 0.012]}
+      - chain: {pts: ["[0.28, -0.52, -0.02]", "[0.30, -0.70, -0.04 - 0.08*trail]", "[0.27 - 0.03*coat, -0.88, -0.06 - 0.18*trail + 0.05*coat]"], r: [0.09, 0.05, 0.012]}
+      - chain: {pts: ["[0.17, -0.52, -0.24]", "[0.19, -0.76, -0.28 - 0.08*trail]", "[0.16, -0.98, -0.32 - 0.20*trail - 0.04*coat]"], r: [0.09, 0.05, 0.012]}
+  wisp_c:
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - chain: {pts: ["[0, -0.52, 0.27]", "[0.02, -0.78, 0.25 - 0.08*trail]", "[-0.02*coat, -1.02, 0.20 - 0.18*trail - 0.05*coat]"], r: [0.09, 0.05, 0.012]}
+      - chain: {pts: ["[0, -0.52, -0.30]", "[0, -0.72, -0.34 - 0.08*trail]", "[0.03*coat, -0.90, -0.38 - 0.20*trail]"], r: [0.09, 0.05, 0.012]}
+  skull:
+    material: bone
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.01], r: [0.13, 0.125, 0.13]}   # cranium
+      - ellipsoid: {c: [0, 0.07, 0.05], r: [0.10, 0.08, 0.09]}     # cheekbones
+      - ellipsoid: {c: [0, 0.0, 0.07], r: [0.065, 0.045, 0.06]}    # jaw
+    cut:
+      - sphere: {c: [0.056, 0.14, 0.155], r: 0.042}
+      - sphere: {c: [-0.056, 0.14, 0.155], r: 0.042}
+  sockets_dark:
+    material: void
+    space: head
+    prims:
+      - sphere: {c: [0.056, 0.145, 0.112], r: 0.045}
+      - sphere: {c: [-0.056, 0.145, 0.112], r: 0.045}
+      - sphere: {c: [0, 0.035, 0.135], r: 0.016}       # nose hole
+  eye_L:
+    when: "eyes > 0.05"
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.056, 0.15, 0.146], r: "0.026*eyes"}
+  crown_ring:
+    material: iron
+    space: crown_b
+    prims:
+      - torus: {c: [0, 0.28, -0.02], R: 0.112, r: 0.025, rot: [0.12, 0, 0]}
+  crown_iron_L:    # jagged iron spikes
+    material: iron
+    space: crown_b
+    prims:
+      - cone: {a: [0.08, 0.28, 0.07], b: [0.10, 0.39, 0.08], r: [0.03, 0.006]}
+      - cone: {a: [0.11, 0.28, -0.04], b: [0.15, 0.40, -0.05], r: [0.03, 0.006]}
+      - cone: {a: [0.06, 0.28, -0.11], b: [0.07, 0.38, -0.15], r: [0.03, 0.006]}
+  crown_ice:       # tall ice spikes
+    material: ice
+    space: crown_b
+    prims:
+      - cone: {a: [0, 0.29, 0.08], b: [0, 0.46, 0.04], r: [0.035, 0.006]}
+      - cone: {a: [0, 0.28, -0.12], b: [0, 0.44, -0.16], r: [0.035, 0.006]}
+  crown_ice_L:
+    material: ice
+    space: crown_b
+    prims:
+      - cone: {a: [0.11, 0.28, 0.03], b: [0.16, 0.45, 0.04], r: [0.035, 0.006]}
+  arm_L:
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.08}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.07, 0.065]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.065, 0.10]}   # wide ragged sleeve
+  cuff_L:
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.035], b: [0, 0, 0.0], r: 0.10}
+  hand_L:          # skeletal hand: bony palm and two claws
+    material: bone
+    space: wrist_L
+    blend: 0.015
+    prims:
+      - sphere: {c: [0, 0, 0.045], r: 0.042}
+      - cone: {a: [0.025, 0, 0.06], b: [0.04, -0.04, 0.14], r: [0.024, 0.01]}
+      - cone: {a: [-0.025, 0, 0.06], b: [-0.03, -0.05, 0.13], r: [0.024, 0.01]}
+  staff:
+    material: iron
+    space: staff_b
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, -0.62, 0.04], b: [0, 1.00, 0.04], r: 0.035}
+      - sphere: {c: [0, 1.02, 0.04], r: 0.055}
+      - cone: {a: [0, 1.02, 0.04], b: [0.10, 1.22, 0.04], r: [0.03, 0.008]}     # cradle prongs
+      - cone: {a: [0, 1.02, 0.04], b: [-0.10, 1.22, 0.04], r: [0.03, 0.008]}
+      - cone: {a: [0, 1.02, 0.04], b: [0, 1.20, -0.07], r: [0.03, 0.008]}
+  staff_wrap:
+    material: trim
+    space: staff_b
+    prims:
+      - cylinder: {a: [0, 0.80, 0.04], b: [0, 0.88, 0.04], r: 0.045}
+  crystal:         # floating ice crystal (diamond)
+    when: "glow > 0.05"
+    material: crystal
+    space: staff_b
+    blend: 0.01
+    prims:
+      - cone: {a: "[0, 1.24 + cfloat, 0.04]", b: "[0, 1.24 + cfloat + 0.26*glow, 0.04]", r: ["0.11*glow", 0.008]}
+      - cone: {a: "[0, 1.24 + cfloat, 0.04]", b: "[0, 1.24 + cfloat - 0.15*glow, 0.04]", r: ["0.11*glow", 0.008]}
+  crystal_core:
+    when: "glow > 0.05"
+    material: crystal_core
+    space: staff_b
+    prims:
+      - sphere: {c: "[0, 1.25 + cfloat, 0.08]", r: "0.05*glow"}
+  orb:             # left-hand frost orb (cast)
+    when: "magic > 0.05"
+    material: crystal
+    space: magic_b
+    blend: 0.02
+    prims:
+      - sphere: {c: "[0, 0.08, 0.05]", r: "0.09*magic"}
+  nova:            # frost ring on the ground at the cast release
+    when: "nova > 0.05"
+    material: crystal
+    space: root
+    prims:
+      - torus: {c: [0, 0.03, 0], R: "0.25 + 0.45*nova", r: 0.04, rot: [0, 0, 0]}
+  dust:            # ash puffs (death)
+    when: "dust > 0.05"
+    material: ash
+    space: root
+    blend: 0.05
+    prims:
+      - sphere: {c: "[0.42, 0.25 + 0.35*dust, 0.10]", r: "0.16*dust"}
+      - sphere: {c: "[-0.40, 0.30 + 0.40*dust, 0.0]", r: "0.17*dust"}
+      - sphere: {c: "[0.10, 0.45 + 0.50*dust, -0.35]", r: "0.14*dust"}
+      - sphere: {c: "[-0.15, 0.20 + 0.30*dust, 0.40]", r: "0.13*dust"}
+
+sockets:
+  muzzle: {bone: staff_b, offset: [0, 1.27, 0.04]}
+
+animations:
+  idle:
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.05*sin(p)"
+      squash: "1 + 0.01*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.30, -0.02 + 0.02*sin(p - 0.6), 0.12]"
+      hand_R: "[0.46, 0.04 + 0.015*sin(p - 0.6), 0.12]"
+      coat: "0.35*sin(p - 1.0)"
+      glow: "1 + 0.15*sin(p)"
+      cfloat: "0.03*sin(p + 0.8)"
+  walk:            # glide in place: forward lean, wisps trailing, robe sway
+    frames: 6
+    ms: 110
+    channels:
+      lean: 0.14
+      bob: "0.04*sin(p)"
+      twist: "0.06*sin(p)"
+      head_pitch: -0.08
+      hand_L: "[0.30, -0.02 + 0.02*sin(p), 0.04 - 0.05*sin(p)]"
+      hand_R: "[0.46, 0.04 + 0.015*sin(p - 0.5), 0.14]"
+      coat: "0.6*sin(p - 0.8)"
+      trail: "0.8 + 0.25*sin(p - 1.2)"
+      staff_pitch: -0.08
+      glow: "1 + 0.1*sin(2*p)"
+      cfloat: "0.03*sin(p + 0.8)"
+  attack:          # thrust the staff; release at 250 ms (ice bolt from muzzle), total 500 ms
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {lean: -0.08, bob: -0.02, squash: 0.96, twist: -0.20, hand_R: [0.34, 0.12, 0.04], hand_L: [0.26, 0.04, 0.18],
+              staff_pitch: -0.30, coat: -0.3, glow: 1.25, head_pitch: -0.06}
+      - ms: 130
+        set: {lean: -0.12, bob: -0.03, squash: 0.94, twist: -0.28, hand_R: [0.32, 0.16, -0.02], hand_L: [0.26, 0.06, 0.20],
+              staff_pitch: -0.40, coat: -0.45, glow: 1.5, head_pitch: -0.08, cfloat: 0.03}
+      - ms: 80
+        event: release
+        set: {root: [0, 0, 0.06], lean: 0.22, squash: 1.05, twist: 0.18, hand_R: [0.26, 0.02, 0.42], hand_L: [0.30, -0.04, 0.0],
+              staff_pitch: "0.55 - 0.3*pulse(yaw, 0, 70) - 0.6*pulse(abs(yaw), 180, 70)", coat: 0.6, trail: 0.6, glow: 1.7, head_pitch: 0.05}
+      - ms: 90
+        set: {root: [0, 0, 0.05], lean: 0.18, twist: 0.20, hand_R: [0.28, 0.0, 0.40], hand_L: [0.30, -0.04, 0.02],
+              staff_pitch: "0.45 - 0.25*pulse(yaw, 0, 70) - 0.5*pulse(abs(yaw), 180, 70)", coat: 0.4, trail: 0.4, glow: 0.8}
+      - ms: 80
+        set: {root: [0, 0, 0.02], lean: 0.08, twist: 0.06, hand_R: [0.34, 0.06, 0.28], staff_pitch: 0.12, coat: 0.1, glow: 0.95}
+  cast:            # both arms raised summoning; release at the peak (400 ms), total 750 ms
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {bob: -0.05, squash: 0.92, lean: 0.10, hand_R: [0.26, -0.06, 0.20], hand_L: [0.24, -0.08, 0.20],
+              coat: -0.3, head_pitch: 0.12, glow: 0.8, magic: 0.4}
+      - ms: 130
+        set: {bob: 0.04, squash: 1.0, lean: 0.0, hand_R: [0.42, 0.34, 0.14], hand_L: [0.36, 0.44, 0.14],
+              coat: 0.2, head_pitch: -0.06, glow: 1.2, magic: 0.8}
+      - ms: 140
+        set: {bob: 0.10, squash: 1.05, lean: -0.08, hand_R: "[0.42, 0.46 - 0.14*pulse(abs(yaw), 180, 70), 0.12]", hand_L: [0.34, 0.76, 0.10],
+              coat: 0.5, head_pitch: -0.14, glow: 1.5, magic: 1.2, cfloat: 0.04}
+      - ms: 200
+        event: release
+        set: {bob: 0.12, squash: 1.07, lean: -0.10, hand_R: "[0.44, 0.50 - 0.16*pulse(abs(yaw), 180, 70), 0.12]", hand_L: [0.36, 0.82, 0.10],
+              coat: 0.7, head_pitch: -0.16, glow: 1.8, magic: 1.5, cfloat: 0.06, nova: 0.5}
+      - ms: 150
+        set: {bob: 0.02, lean: 0.02, hand_R: [0.36, 0.10, 0.20], hand_L: [0.30, 0.04, 0.14], coat: 0.1, glow: 1.0, magic: 0.3, nova: 1.0}
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, event: hit, set: {root: [0, 0, -0.08], lean: -0.28, squash: 0.92, head_pitch: -0.3, hand_R: [0.40, 0.14, 0.06], hand_L: [0.38, 0.12, 0.0], coat: -0.7, trail: -0.3, staff_pitch: -0.25, glow: 0.6, eyes: 1.3}}
+      - {ms: 90, set: {root: [0, 0, -0.04], lean: -0.12, squash: 0.97, head_pitch: -0.12, coat: -0.35, staff_pitch: -0.1, glow: 0.8}}
+      - {ms: 110, set: {lean: 0.06, coat: 0.15, glow: 1.0}}
+  death:           # crown falls, body collapses into robes and dust, last frame 900 ms
+    loop: false
+    keys:
+      - {ms: 110, set: {lean: -0.25, squash: 0.95, head_pitch: -0.35, hand_R: [0.40, 0.18, 0.04], hand_L: [0.40, 0.20, 0.0], coat: -0.6, staff_pitch: -0.15, glow: 1.6, eyes: 1.4, crown_off: [0, 0.06, -0.02], crown_rot: -0.2}}
+      - {ms: 120, set: {hover: 0.18, lean: 0.15, squash: 0.80, head_pitch: 0.25, hand_R: [0.34, -0.10, 0.18], hand_L: [0.34, -0.12, 0.18], coat: 0.4, staff_roll: -0.35, glow: 0.9, eyes: 0.8, crown_off: [0.04, 0.0, 0.06], crown_rot: 0.45, dust: 0.3}}
+      - {ms: 130, set: {hover: 0.06, lean: 0.30, squash: 0.55, head_pitch: 0.35, hand_R: [0.36, -0.20, 0.24], hand_L: [0.36, -0.20, 0.24], coat: 0.5, staff_roll: -0.85, glow: 0.5, eyes: 0.5, crown_off: [0.10, -0.22, 0.10], crown_rot: 0.8, dust: 0.7}}
+      - {ms: 140, set: {hover: -0.02, lean: 0.20, squash: 0.30, head_pitch: 0.3, hand_R: [0.40, -0.12, 0.26], hand_L: [0.40, -0.12, 0.26], coat: 0.2, staff_roll: -1.35, glow: 0.2, eyes: 0.2, crown_off: [0.24, -0.40, -0.04], crown_rot: 1.2, dust: 1.0}}
+      - {ms: 900, event: dead, set: {hover: -0.04, lean: 0.15, squash: 0.25, head_pitch: 0.3, hand_R: [0.42, -0.10, 0.26], hand_L: [0.42, -0.10, 0.26], staff_roll: -1.45, glow: 0, eyes: 0, crown_off: [0.24, -0.42, -0.04], crown_rot: 1.25, dust: 0.45}}
+
+timing: {attack: {release: 250ms, total: 500ms}, cast: {release: 400ms, total: 750ms}}

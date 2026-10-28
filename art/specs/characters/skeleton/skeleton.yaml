@@ -1,0 +1,337 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: skeleton
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+# Skeleton warrior: hero-height undead enemy (swamp, frozen peaks, dungeons). Same skeleton proportions
+# as the bandit (pelvis 0.50, head 1.9x). Project style: flat 2-3 tones, dark outline, chibi head, snappy.
+brief:
+  summary: chibi skeleton warrior - big bone-white skull with dark eye sockets and small cyan glowing
+    pupils, bare skull (no helmet), ribcage with dark gaps, thin bone limbs, tattered dark cape scrap on
+    the back, rusty notched sword in the right hand, small round wooden buckler on the left forearm
+  must_keep: [big skull with cyan pupils, readable rib gaps, rusty notched sword, round buckler, cape scrap]
+  simplify: [no finger bones (hand = knob), feet are bony wedges, ribs are 3 rings over a dark chest cavity]
+  decisions:
+    - bones use a spec-local warm cream ramp (top tone dcc99a, not white) with a brown shadow band so it
+      separates from green grass (hue/value) and from bluish snow and grey stone (warm hue + dark outline)
+    - the chest is a dark cavity ellipsoid with 3 bone rib rings over it, so the gaps read dark everywhere
+    - no helmet: a rusty cap read as orange hair over the dome at 32 px and hid the eyes; rust lives on the sword hilt and buckler boss
+    - the skull is tilted up 0.22 rad (headbase) so the sockets show under the dome from the 38 deg camera
+    - sword_rot is a pitch in torso space (blade bone at wrist_R, rotation from torso_rot), 0 = tip down-forward
+    - attack smear is a vertical arc (fxspace rolled 90 deg); eyes channel turns the pupils off on the last death frame
+    - death pops the skull off (skull_off/skull_roll channels) while the body collapses into a pile; loose
+      bones (pile channel) appear on the ground in the last keys
+    - mirrored directions swap sword and buckler hands (project mirror style)
+
+ramps:
+  bone_skel: ["#1c0f1a", "#6b5236", "#a88d64", "#dcc99a", "#f0e4bf"]   # warm cream bone, darker shadow
+  cavity:    ["#1c0f1a", "#2b1622", "#3d2230"]                          # chest cavity / sockets
+  pupil:     ["#1c0f1a", "#3fe6ff", "#d2fbff"]                          # cyan glow
+  rust:      ["#1c0f1a", "#4f2416", "#8c4523", "#c0703a"]               # rusty iron
+  blade_rust: ["#1c0f1a", "#4a3a3c", "#7c6a62", "#a8968a"]              # dull pitted blade
+  capecloth: ["#1c0f1a", "#25182c", "#3b2845", "#55405f"]               # dark rotten cape
+
+materials:
+  bone:    {ramp: bone_skel, bands: [1, 3]}
+  cavity:  {ramp: cavity, emissive: true, band: 1, outline: false, line: false}
+  socket:  {ramp: cavity, emissive: true, band: 0, outline: false, line: false}
+  pupil:   {ramp: pupil, emissive: true, band: 1, outline: false, glow: {color: "#3fe6ff", mix: 0.3, radius: 1}}
+  rust:    {ramp: rust, bands: [1, 3]}
+  blade:   {ramp: blade_rust, bands: [1, 3]}
+  cape:    {ramp: capecloth, bands: [1, 3], two_sided: true}
+  wood:    {ramp: wood, bands: [1, 3]}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  head_roll: 0
+  jaw: 0            # jaw drop (radians, + opens)
+  skull_off: [0, 0, 0]   # skull offset from the neck (pelvis space): death pops it off
+  skull_roll: 0     # skull roll on the ground (radians)
+  pile: 0           # loose bones on the ground (death)
+  eyes: 1           # pupils lit (0 = the glow dies)
+  hand_L: [0.24, 0.02, 0.10]
+  hand_R: [0.24, 0.04, 0.16]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  cape: 0           # cape scrap sway (-1..1)
+  sword_rot: 0      # sword pitch in the hand (radians)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.45
+  smear_y: 0.75
+  smear_z: 0.10
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: "[0, 0.45, 0.02] + skull_off", inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 - 0.22, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, head_roll + skull_roll]", scale: 1.9}
+  jawb:      {parent: head, pos: [0, 0.08, -0.02], rot: "[jaw, 0, 0]"}
+  capebase:  {parent: pelvis, pos: [0, 0.35, -0.12], rot: "[0.15 - cape*0.35, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.32, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.01, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  blade:      {parent: torso_rot, at: wrist_R, rot: "[2.3 + sword_rot, 0, 0.25]"}   # sword_rot 0 = tip down-forward, -2.9 = straight up/back
+  shieldb:    {parent: torso_rot, at: wrist_L, rot: [0, -0.75, 0]}
+  fxspace:    {parent: root, pos: [-0.10, 0, 0], rot: "[0, twist*0.3, 1.5708]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  ribcage:         # solid bone cage; dark gap rings and the sternum sit over it
+    material: bone
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.22, -0.01], r: [0.13, 0.14, 0.12]}
+      - cone: {a: [0.17, 0.355, -0.01], b: [0, 0.365, 0.05], r: [0.032, 0.03]}    # collarbones
+      - cone: {a: [-0.17, 0.355, -0.01], b: [0, 0.365, 0.05], r: [0.032, 0.03]}
+  ribgaps:         # dark gaps between the ribs (rings slightly proud of the cage)
+    material: cavity
+    space: pelvis
+    line: false
+    prims:
+      - torus: {c: [0, 0.255, -0.01], R: 0.11, r: 0.032, rot: [0.1, 0, 0]}
+      - torus: {c: [0, 0.15, -0.01], R: 0.095, r: 0.032, rot: [0.1, 0, 0]}
+  spine:           # sternum in front, spine at the back, neck
+    material: bone
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.34, 0.115], b: [0, 0.12, 0.11], r: [0.03, 0.026]}
+      - cone: {a: [0, 0.02, -0.06], b: [0, 0.36, -0.12], r: [0.036, 0.034]}
+      - cone: {a: [0, 0.02, 0.0], b: [0, 0.10, 0.0], r: [0.04, 0.04]}             # lumbar
+      - cone: {a: [0, 0.34, -0.03], b: [0, 0.47, 0.0], r: [0.034, 0.03]}         # neck
+  hipbone:         # pelvis girdle
+    material: bone
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.0, -0.01], r: [0.12, 0.055, 0.075]}
+  cape:            # tattered dark cape scrap hanging from the shoulders
+    material: cape
+    space: capebase
+    blend: 0.02
+    prims:
+      - box: {c: [0, -0.15, 0], half: [0.12, 0.17, 0.012], round: 0.008}
+      - box: {c: [0.0, 0.0, 0.03], half: [0.15, 0.03, 0.04], round: 0.02}
+    cut:
+      - box: {c: [0.07, -0.33, 0], half: [0.03, 0.06, 0.05], rot: [0, 0, 0.5]}
+      - box: {c: [-0.05, -0.31, 0], half: [0.025, 0.05, 0.05], rot: [0, 0, -0.6]}
+      - box: {c: [-0.13, -0.24, 0], half: [0.03, 0.05, 0.05], rot: [0, 0, 0.7]}
+      - sphere: {c: [0.04, -0.12, 0], r: 0.025}
+  head:            # big skull
+    material: bone
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.005], r: [0.135, 0.125, 0.13]}
+      - ellipsoid: {c: [0, 0.09, 0.05], r: [0.10, 0.07, 0.085]}          # cheekbones
+  jaw:
+    material: bone
+    space: jawb
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.025, 0.07], r: [0.075, 0.03, 0.06]}
+  socket_L:
+    material: socket
+    space: head
+    prims:
+      - ellipsoid: {c: [0.06, 0.135, 0.108], r: [0.04, 0.047, 0.035]}
+  nose:
+    material: socket
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.075, 0.13], r: [0.014, 0.02, 0.012]}
+  teeth:
+    material: socket
+    space: head
+    prims:
+      - box: {c: [0, 0.045, 0.125], half: [0.05, 0.006, 0.01]}
+  pupil_L:
+    material: pupil
+    when: "eyes > 0"
+    space: head
+    prims:
+      - sphere: {c: "[0.06, 0.148, 0.128 - 0.012*pulse(yaw, 90, 35)]", r: 0.022}
+  arm_L:
+    material: bone
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.045}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.034, 0.03]}
+      - sphere: {c: "@elbow_L", r: 0.038}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.03, 0.03]}
+  hand_L:
+    material: bone
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.035, 0.03, 0.045]}
+  leg_L:
+    material: bone
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.038, 0.032]}
+      - sphere: {c: "@knee_L", r: 0.042}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.032, 0.03]}
+  foot_L:
+    material: bone
+    space: sole_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.0, -0.01], b: [0, -0.03, 0.10], r: [0.04, 0.03]}
+  buckler:         # small round wooden buckler strapped to the left forearm, facing out
+    material: wood
+    space: shieldb
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0.03, 0.03, 0], b: [0.06, 0.03, 0], r: 0.12, round: 0.01}
+  buckler_rim:
+    material: rust
+    space: shieldb
+    prims:
+      - sphere: {c: [0.07, 0.03, 0], r: 0.035}      # boss
+      - torus: {c: [0.055, 0.03, 0], R: 0.11, r: 0.016, rot: [0, 0, 1.5708]}   # iron rim
+  sword:           # right hand only: rusty notched straight blade
+    material: blade
+    space: blade
+    blend: 0.01
+    prims:
+      - box: {c: [0, 0.25, 0], half: [0.018, 0.19, 0.04], round: 0.006}
+      - cone: {a: [0, 0.43, 0], b: [0, 0.49, 0], r: [0.035, 0.008]}
+    cut:
+      - sphere: {c: [0, 0.18, 0.05], r: 0.025}       # notches on the edge
+      - sphere: {c: [0, 0.34, 0.048], r: 0.02}
+      - sphere: {c: [0, 0.27, -0.05], r: 0.018}
+  hilt:
+    material: rust
+    space: blade
+    prims:
+      - box: {c: [0, 0.05, 0.0], half: [0.022, 0.015, 0.075], round: 0.006}
+      - cylinder: {a: [0, -0.07, 0], b: [0, 0.04, 0], r: 0.022}
+      - sphere: {c: [0, -0.08, 0], r: 0.03}
+  bonepile:        # loose bones on the ground after the collapse
+    when: "pile > 0"
+    material: bone
+    space: root
+    prims:
+      - cone: {a: [0.22, 0.03, 0.12], b: [0.08, 0.03, 0.28], r: [0.035, 0.03]}
+      - cone: {a: [-0.26, 0.03, 0.02], b: [-0.12, 0.03, -0.16], r: [0.035, 0.03]}
+      - cone: {a: [-0.05, 0.03, 0.30], b: [-0.22, 0.03, 0.22], r: [0.03, 0.03]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[smear_y, 0, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.08}
+
+sockets:
+  hit: {bone: blade, offset: [0, 0.30, 0.0]}      # blade centre
+  head: {bone: head, offset: [0, 0.36, 0]}         # above the helmet
+
+timing: {attack: {hit: 200ms, total: 450ms}}
+
+animations:
+  idle:
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      jaw: "0.18*(f == 1) + 0.08*(f == 3)"
+      head_roll: "0.06*(f == 1) - 0.05*(f == 3)"
+      hand_L: "[0.24, 0.02 + 0.02*sin(p - 0.6), 0.10]"
+      hand_R: "[0.24, 0.04 + 0.02*sin(p - 0.6), 0.16]"
+      sword_rot: "0.05*sin(p - 0.8)"
+      cape: "0.3*sin(p - 1.0)"
+  walk:            # stiff shamble: short strides, little knee lift, body rocks side to side
+    frames: 6
+    ms: 115
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.10
+      bob: "-0.025*cos(2*p) + 0.005"
+      roll: "0.07*cos(p)"
+      twist: "0.06*cos(p)"
+      foot_L: "[0.09, 0.05*pos(-sin(p)), 0.02 + 0.12*cos(p)]"
+      foot_R: "[0.09, 0.05*pos(sin(p)), 0.02 - 0.12*cos(p)]"
+      pitch_foot_L: "0.2*pos(-sin(p))"
+      pitch_foot_R: "0.2*pos(sin(p))"
+      hand_L: "[0.24, 0.03, 0.10 - 0.06*cos(p)]"
+      hand_R: "[0.24, 0.06, 0.16 + 0.08*cos(p)]"
+      sword_rot: "-0.10 - 0.10*cos(p)"
+      head_roll: "-0.08*cos(p)"
+      jaw: "0.12*pos(sin(2*p))"
+      cape: "0.4*sin(2*p - 0.8)"
+  attack:          # overhead chop: raise (held), chop with a vertical smear, impact, recover
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {lean: -0.15, bob: -0.02, squash: 0.94, head_pitch: -0.10, jaw: 0.15, hand_R: [0.10, 0.68, -0.12], sword_rot: -2.95,
+              hand_L: [0.22, 0.10, 0.20], foot_L: [0.09, 0, 0.08], foot_R: [0.09, 0, -0.04], cape: -0.4}
+      - ms: 70
+        set: {root: [0, 0, 0.06], lean: 0.25, squash: 1.05, jaw: 0.3, hand_R: [0.10, 0.45, 0.30], sword_rot: -1.2,
+              hand_L: [0.24, 0.04, 0.04], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06], cape: 0.4,
+              smear_a0: -1.3, smear_a1: 0.1, smear_w: 0.08}
+      - ms: 100
+        event: hit
+        set: {root: [0, 0, 0.10], lean: 0.45, squash: 0.96, jaw: 0.2, hand_R: [0.08, 0.06, 0.34], sword_rot: 0.1,
+              hand_L: [0.26, 0.02, -0.04], foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.08], cape: 0.7,
+              smear_a0: -2.2, smear_a1: -0.5, smear_w: 0.09}
+      - ms: 70
+        set: {root: [0, 0, 0.09], lean: 0.40, jaw: 0.1, hand_R: [0.10, 0.02, 0.30], sword_rot: 0.2,
+              hand_L: [0.26, 0.02, -0.02], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06], cape: 0.3,
+              smear_a0: -2.5, smear_a1: -1.5, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 80
+        set: {root: [0, 0, 0.03], lean: 0.15, hand_R: [0.20, 0.04, 0.20], sword_rot: 0.0, cape: 0.1}
+  hit:             # bones rattle back
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, head_roll: 0.15, jaw: 0.35,
+                       hand_L: [0.30, 0.12, 0.0], hand_R: [0.30, 0.14, 0.02], sword_rot: -0.5, cape: 0.6, foot_R: [0.09, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.10, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.08, head_roll: -0.10, jaw: 0.15,
+                       hand_L: [0.27, 0.06, 0.06], hand_R: [0.27, 0.08, 0.08], sword_rot: -0.2, cape: 0.3, foot_R: [0.09, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.02, root: [0, 0, -0.02], head_roll: 0.04, hand_R: [0.24, 0.05, 0.14], cape: 0.1}}
+  death:           # knees buckle, body collapses into a pile, skull pops off and rolls a little
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.20, squash: 0.95, head_pitch: -0.3, jaw: 0.4, root: [0, 0, -0.05], hand_L: [0.32, 0.15, 0.0],
+                        hand_R: [0.30, 0.16, 0.0], sword_rot: -0.6, cape: 0.5}}
+      - {ms: 100, set: {bob: -0.16, lean: 0.10, squash: 0.92, jaw: 0.3, skull_off: [0.0, 0.08, 0.04], head_pitch: -0.2,
+                        hand_L: [0.32, 0.0, 0.08], hand_R: [0.30, 0.0, 0.10], sword_rot: -0.9,
+                        foot_L: [0.14, 0, 0.10], foot_R: [0.14, 0, 0.06], cape: 0.7}}
+      - {ms: 100, set: {bob: -0.34, lean: 0.40, squash: 0.85, jaw: 0.4, skull_off: [0.20, -0.22, 0.06], head_roll: 0.5, head_pitch: -0.2,
+                        hand_L: [0.34, -0.20, 0.10], hand_R: [0.34, -0.20, 0.14], sword_rot: -0.6,
+                        foot_L: [0.22, 0, 0.18], foot_R: [0.22, 0, 0.14], cape: 0.3, pile: 1}}
+      - {ms: 110, set: {bob: -0.40, lean: 0.30, squash: 0.78, jaw: 0.5, skull_off: [0.31, -0.50, 0.10], skull_roll: 0.9, head_pitch: 0.1,
+                        hand_L: [0.38, -0.30, 0.10], hand_R: [0.36, -0.30, 0.04], sword_rot: -1.05,
+                        foot_L: [0.26, 0, 0.20], foot_R: [0.26, 0, 0.16], cape: 0.0, pile: 1}}
+      - {ms: 700, set: {bob: -0.42, lean: 0.30, squash: 0.75, jaw: 0.5, skull_off: [0.37, -0.47, 0.11], skull_roll: 1.6, head_pitch: 0.1,
+                        hand_L: [0.38, -0.30, 0.10], hand_R: [0.36, -0.30, 0.04], sword_rot: -1.05, eyes: 0,
+                        foot_L: [0.26, 0, 0.20], foot_R: [0.26, 0, 0.16], cape: 0.0, pile: 1}}

@@ -1,0 +1,296 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: sorcerer
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Chibi sorcerer ("Feiticeiro"): dark/arcane caster, warlock-like. Distinct from the blue Mage:
+# purple robe with dark trim, deep pointed hood hiding the face, two fel-green glowing eyes,
+# small horns through the hood, fel flame on the right hand (projectile hand, socket `muzzle`).
+brief:
+  summary: chibi warlock in a purple hooded robe, face in shadow, glowing green eyes, fel flame in the right hand
+  must_keep: [deep pointed hood, two glowing eyes in a shadowed face, glowing right hand, small horns]
+  simplify: [no visible legs under the robe (only the boots), no weapon, no mouth/nose]
+  decisions: |
+    Fel green (ramp `fel`) for every glow so it contrasts with the purple robe and the blue Mage.
+    The template's sword was removed; the left hand carries nothing (a flame appears on it only in `cast`).
+
+materials:
+  robe:   {ramp: cloth_purple, bands: [1, 3]}
+  trim:   {ramp: cloth_dark, bands: [1, 3]}
+  skin:   {ramp: skin, bands: [2, 3]}
+  void:   {ramp: cloth_dark, emissive: true, band: 0, outline: false}   # face in shadow
+  horn:   {ramp: bone, bands: [2, 3]}
+  leather: {ramp: leather, bands: [1, 3]}
+  eye:    {ramp: fel, emissive: true, band: 3, outline: false, glow: {color: "#5dff3d", mix: 0.4, radius: 1}}
+  flame:  {ramp: fel, emissive: true, band: 1, outline: false, glow: {color: "#5dff3d", mix: 0.45, radius: 1}}
+  flame_core: {ramp: fel, emissive: true, band: 3, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  hand_L: [0.24, 0.0, 0.08]
+  hand_R: [0.28, 0.14, 0.22]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  coat: 0           # robe hem sway (-1..1)
+  flame: 1          # size of the right-hand flame (0 = off)
+  flame2: 0         # size of the left-hand flame (cast only)
+  flick: 0          # flame flicker offset
+  boltsz: 0         # thrown bolt blob in front of the hand (attack release)
+  bolt_z: 0.25
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.9}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.32, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.25, 0, 0]"}
+  flameA_b:   {parent: root, at: wrist_R}      # upright frame at the right hand (flames rise in world y)
+  flameB_b:   {parent: root, at: wrist_L}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.06, -0.02]", lengths: [0.24, 0.22],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:
+    material: robe
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.16, 0.12, 0.13]}
+      - ellipsoid: {c: [0, 0.24, 0.0], r: [0.17, 0.14, 0.13]}
+  mantle:          # short capelet under the hood
+    material: robe
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.32, -0.01], r: [0.21, 0.09, 0.17]}
+  robe:            # long robe skirt, hides the legs
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.08, 0], b: [0, -0.36, -0.02], r: [0.15, 0.24]}
+  hem:
+    material: trim
+    space: coatbase
+    prims:
+      - cone: {a: [0, -0.31, -0.02], b: [0, -0.38, -0.02], r: [0.235, 0.245]}
+  sash:
+    material: trim
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, 0.07, 0], b: [0, 0.12, 0], r: 0.165}
+      - box: {c: [0, -0.10, 0.165], half: [0.035, 0.17, 0.02], rot: [-0.18, 0, 0]}   # front panel
+  head:            # the face: pure shadow inside the hood
+    material: void
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.14, 0.14, 0.13]}
+  hood:
+    material: robe
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.02], r: [0.17, 0.175, 0.165]}
+      - cone: {a: [0, 0.24, -0.05], b: [0, 0.48, -0.20], r: [0.11, 0.012]}   # pointed tip
+    cut:
+      - ellipsoid: {c: [0, 0.10, 0.18], r: [0.13, 0.125, 0.11]}            # face opening
+  hood_rim:
+    material: trim
+    space: head
+    prims:
+      - torus: {c: [0, 0.10, 0.13], R: 0.13, r: 0.022, rot: [1.35, 0, 0]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.052, 0.10, 0.125], r: 0.034}
+  horn_L:
+    material: horn
+    space: head
+    prims:
+      - chain: {pts: [[0.12, 0.24, 0.02], [0.19, 0.30, 0.02], [0.21, 0.37, -0.02]], r: [0.035, 0.024, 0.008]}
+  arm_L:
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.08]}   # wide sleeve
+  cuff_L:
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.03], b: [0, 0, 0.0], r: 0.082}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.048}
+  leg_L:
+    material: trim
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.07, 0.055]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.055, 0.045]}
+  boot_L:
+    material: leather
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.07, 0], b: [0, -0.01, 0.0], r: [0.055, 0.055]}
+      - ellipsoid: {c: [0, -0.03, 0.04], r: [0.055, 0.04, 0.09]}
+  flameA:          # fel flame on the right hand (no _L: not mirrored)
+    when: "flame > 0.05"
+    material: flame
+    space: flameA_b
+    blend: 0.03
+    prims:
+      - sphere: {c: "[0, 0.05, 0.05]", r: "0.10*flame"}
+      - cone: {a: "[0, 0.07, 0.05]", b: "[0.02*flick, 0.07 + 0.30*flame, 0.05 - 0.02*flick]", r: ["0.08*flame", 0.012]}
+  flameA_core:
+    when: "flame > 0.05"
+    material: flame_core
+    space: flameA_b
+    prims:
+      - sphere: {c: "[0, 0.06, 0.06]", r: "0.05*flame"}
+  flameB:          # left-hand flame, cast only
+    when: "flame2 > 0.05"
+    material: flame
+    space: flameB_b
+    blend: 0.03
+    prims:
+      - sphere: {c: "[0, 0.05, 0.05]", r: "0.10*flame2"}
+      - cone: {a: "[0, 0.07, 0.05]", b: "[-0.02*flick, 0.07 + 0.30*flame2, 0.05 - 0.02*flick]", r: ["0.08*flame2", 0.012]}
+  flameB_core:
+    when: "flame2 > 0.05"
+    material: flame_core
+    space: flameB_b
+    prims:
+      - sphere: {c: "[0, 0.06, 0.06]", r: "0.05*flame2"}
+  bolt:            # bolt leaving the hand on the attack release frame
+    when: "boltsz > 0.05"
+    material: flame
+    space: root
+    blend: 0.04
+    prims:
+      - sphere: {c: "[-0.10, 0.70, bolt_z]", r: "0.11*boltsz"}
+      - cone: {a: "[-0.10, 0.70, bolt_z]", b: "[-0.10, 0.70, bolt_z - 0.22*boltsz]", r: ["0.07*boltsz", 0.01]}
+  bolt_core:
+    when: "boltsz > 0.05"
+    material: flame_core
+    space: root
+    prims:
+      - sphere: {c: "[-0.10, 0.70, bolt_z + 0.01]", r: "0.06*boltsz"}
+
+sockets:
+  muzzle: {bone: flameA_b, offset: [0, 0.07, 0.06]}
+
+animations:
+  idle:
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.012*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.24, 0.0 + 0.015*sin(p - 0.6), 0.08]"
+      hand_R: "[0.28, 0.14 + 0.02*sin(p - 0.6), 0.22]"
+      coat: "0.12*sin(p - 1.0)"
+      flame: "1 + 0.18*sin(2*p)"
+      flick: "sin(p + 0.7)"
+  walk:
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.10
+      bob: "-0.025*cos(2*p) + 0.01"
+      twist: "0.08*cos(p)"
+      foot_L: "[0.09, 0.06*pos(-sin(p)), 0.02 + 0.14*cos(p)]"
+      foot_R: "[0.09, 0.06*pos(sin(p)), 0.02 - 0.14*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.22, 0.0 + 0.03*pos(cos(p)), 0.06 - 0.12*cos(p)]"
+      hand_R: "[0.20, 0.06 + 0.03*pos(-cos(p)), 0.14 + 0.08*cos(p)]"
+      head_yaw: "-0.05*cos(p)"
+      coat: "0.45*sin(2*p)"
+      flame: "1 + 0.15*sin(2*p)"
+      flick: "-cos(p)"
+  attack:          # throw a fel bolt from the right hand; release at 230 ms, total 490 ms
+    loop: false
+    keys:
+      - ms: 110
+        event: windup
+        set: {twist: -0.35, lean: -0.04, bob: -0.02, squash: 0.96, hand_R: [0.30, 0.20, -0.14], hand_L: [0.18, 0.12, 0.18],
+              coat: -0.3, head_pitch: -0.06, flame: 1.3, flick: 1}
+      - ms: 120
+        set: {twist: -0.45, lean: -0.06, bob: -0.03, squash: 0.94, hand_R: [0.30, 0.26, -0.18], hand_L: [0.18, 0.14, 0.20],
+              coat: -0.4, head_pitch: -0.08, flame: 1.55, flick: -1}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.05], twist: 0.30, lean: 0.20, squash: 1.04, hand_R: [0.02, 0.22, 0.34], hand_L: [0.22, 0.0, -0.04],
+              coat: 0.6, flame: 0.5, boltsz: 1.2, bolt_z: 0.52}
+      - ms: 90
+        set: {root: [0, 0, 0.05], twist: 0.38, lean: 0.18, squash: 1.0, hand_R: [0.0, 0.18, 0.32], hand_L: [0.22, 0.0, -0.04],
+              coat: 0.4, flame: 0.4}
+      - ms: 100
+        set: {root: [0, 0, 0.02], twist: 0.10, lean: 0.08, hand_R: [0.16, 0.08, 0.20], coat: 0.1, flame: 0.8}
+  cast:            # both hands raised summoning a curse; release at the peak (360 ms), total 720 ms
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {bob: -0.04, squash: 0.92, lean: 0.10, hand_R: [0.16, -0.04, 0.16], hand_L: [0.16, -0.04, 0.16],
+              coat: -0.2, head_pitch: 0.10, flame: 0.7, flame2: 0.5, flick: 1}
+      - ms: 120
+        set: {bob: 0.0, squash: 1.0, lean: 0.0, hand_R: [0.24, 0.30, 0.12], hand_L: [0.24, 0.30, 0.12],
+              coat: 0.2, head_pitch: -0.05, flame: 1.1, flame2: 1.0, flick: -1}
+      - ms: 120
+        set: {bob: 0.03, squash: 1.05, lean: -0.08, hand_R: [0.22, 0.44, 0.08], hand_L: [0.22, 0.44, 0.08],
+              coat: 0.4, head_pitch: -0.12, flame: 1.4, flame2: 1.4, flick: 1}
+      - ms: 200
+        event: release
+        set: {bob: 0.04, squash: 1.06, lean: -0.10, hand_R: [0.26, 0.48, 0.10], hand_L: [0.26, 0.48, 0.10],
+              coat: 0.5, head_pitch: -0.14, flame: 1.8, flame2: 1.8, flick: -1}
+      - ms: 160
+        set: {bob: 0.0, lean: 0.02, hand_R: [0.22, 0.14, 0.16], hand_L: [0.22, 0.10, 0.12], coat: 0.1, flame: 1.0, flame2: 0.4}
+  hit:
+    loop: false
+    keys:
+      - {ms: 80, event: hit, set: {root: [0, 0, -0.06], lean: -0.25, squash: 0.92, head_pitch: -0.25, hand_R: [0.28, 0.16, 0.0], hand_L: [0.28, 0.16, 0.0], coat: -0.6, flame: 0.6}}
+      - {ms: 90, set: {root: [0, 0, -0.03], lean: -0.10, squash: 0.97, head_pitch: -0.10, coat: -0.3, flame: 0.8}}
+      - {ms: 100, set: {lean: 0.06, coat: 0.1}}
+  death:
+    loop: false
+    keys:
+      - {ms: 110, set: {lean: 0.25, squash: 0.94, head_pitch: 0.25, hand_R: [0.28, 0.18, 0.0], hand_L: [0.28, 0.18, 0.0], coat: -0.5, flame: 0.7}}
+      - {ms: 120, set: {lean: -0.35, bob: -0.10, squash: 0.92, head_pitch: 0.3, hand_R: [0.22, -0.06, 0.20], hand_L: [0.22, -0.06, 0.20], coat: 0.4, flame: 0.4}}
+      - {ms: 120, set: {root: [0, 0, 0.0], lean: -0.9, bob: -0.22, squash: 0.95, head_pitch: 0.2, hand_R: [0.28, -0.05, 0.25], hand_L: [0.28, -0.05, 0.25], coat: 0.6, flame: 0.15}}
+      - {ms: 130, set: {root: [0, 0, 0.08], lean: -1.35, bob: -0.36, squash: 0.98, head_pitch: 0.1, hand_R: [0.34, 0.0, 0.25], hand_L: [0.34, 0.0, 0.25], coat: 0.4, flame: 0, foot_L: [0.09, 0.03, 0.10], foot_R: [0.09, 0.03, 0.10]}}
+      - {ms: 500, event: dead, set: {root: [0, 0, 0.10], lean: -1.45, bob: -0.40, squash: 1.0, head_pitch: 0.1, hand_R: [0.36, 0.0, 0.22], hand_L: [0.36, 0.0, 0.22], coat: 0.2, flame: 0, foot_L: [0.09, 0.03, 0.10], foot_R: [0.09, 0.03, 0.10]}}
+
+timing: {attack: {release: 230ms, total: 490ms}}

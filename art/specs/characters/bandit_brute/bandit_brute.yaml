@@ -1,0 +1,345 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: bandit_brute
+mirror: true
+kind: character
+size: 64
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.43, 0]}
+shadow: {rx: 17, ry: 6, alpha: 120}
+
+# Enemy: the hulking "brute" bandit. Same density as every asset (scale 0.055); bigger frame (64) only.
+brief:
+  summary: >
+    Hulking chibi bandit, about 1.35x hero height and much wider. Hunched, heavy. Bald head with a scar,
+    thick dark stubble beard, red bandana knotted around the neck (bandit faction accent), bare massive
+    arms with leather wrist wraps, a leather strap across the chest holding one iron pauldron on the
+    left shoulder, leather apron/kilt over dark trousers, heavy boots. Huge two-handed spiked wooden club
+    with iron bands, carried in the right hand resting over the shoulder.
+  must_keep: [massive shoulders, iron pauldron, giant spiked club, red neck bandana, bald scarred head]
+  simplify: [no face beyond eyes, brow and beard; one chest strap; 4 spikes visible per side of club]
+  exceptions: frame size 64 (bigger creature), same camera scale/pitch/light as the project.
+
+materials:
+  skin:    {ramp: skin, bands: [2, 4]}
+  scar:    {ramp: skin, emissive: true, band: 1, outline: false}
+  beard:   {ramp: hair, bands: [1, 2]}
+  bandana: {ramp: cloth_red, bands: [2, 3]}
+  leather: {ramp: leather, bands: [1, 3]}
+  pants:   {ramp: cloth, bands: [2, 3]}
+  boot:    {ramp: hair, bands: [1, 2]}
+  iron:    {ramp: steel, bands: [1, 3]}
+  wood:    {ramp: wood, bands: [1, 2]}
+  ink:     {ramp: hair_dark, emissive: true, band: 0, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.16          # hunched forward
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  hand_L: [0.46, 0.10, 0.10]
+  foot_L: [0.18, 0, 0.02]
+  pitch_foot_L: 0
+  club_pitch: -0.75   # club rotation in torso space (x: positive tilts the head forward)
+  club_yaw: 0
+  club_roll: 0.10     # z: tilts the haft outward
+  knot: 0             # bandana tails sway (-1..1)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 1.0
+  smear_y: 0.9
+  smear_z: 0.2
+  smear_fade: 1
+  smear_roll: 0       # tilts the smear plane: 0 horizontal, ~1.57 vertical
+
+bones:
+  body:      {parent: root, scale: 1.3}   # brute is ~1.3x the hero skeleton
+  torso_rot: {parent: body, pos: "[0, 0.74 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.54, 0.19], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.4, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.5}
+  shoulder_L: {parent: pelvis, pos: [0.44, 0.42, 0.02]}
+  hip_L:      {parent: pelvis, pos: [0.16, -0.02, 0.0]}
+  legyaw:     {parent: body, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: body, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.10, 0]"}
+  knotbase:   {parent: pelvis, rot: "[-knot*0.3, 0, 0]"}
+  club:       {parent: torso_rot, at: wrist_R, rot: "[club_pitch, club_yaw, club_roll]"}
+  fxspace:    {parent: body, rot: "[0, twist*0.3, 0]"}
+  smearspace: {parent: fxspace, pos: "[0, smear_y, smear_z]", rot: "[0, 0, smear_roll]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.27, 0.26],
+          pole: [0.4, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: body, target: "foot_L + [0, 0.10, -0.02]", lengths: [0.33, 0.30],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # bare barrel chest, huge trapezius and shoulders
+    material: skin
+    space: pelvis
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0.02], r: [0.27, 0.17, 0.22]}
+      - ellipsoid: {c: [0, 0.27, 0.03], r: [0.31, 0.18, 0.23]}
+      - ellipsoid: {c: [0, 0.44, -0.02], r: [0.44, 0.16, 0.23]}
+  strap:           # leather strap across the chest, from the pauldron to the right hip
+    material: leather
+    space: pelvis
+    prims:
+      - chain: {pts: [[0.30, 0.52, 0.12], [0.10, 0.38, 0.25], [-0.12, 0.20, 0.25], [-0.27, 0.06, 0.16]],
+                r: [0.045, 0.045, 0.045, 0.045]}
+      - chain: {pts: [[0.30, 0.52, -0.12], [0.10, 0.38, -0.24], [-0.12, 0.20, -0.24], [-0.27, 0.06, -0.14]],
+                r: [0.045, 0.045, 0.045, 0.045]}
+  pauldron:        # one big iron pauldron on the left shoulder (two plates)
+    material: iron
+    space: pelvis
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.42, 0.50, 0.0], r: [0.19, 0.12, 0.18], rot: [0, 0, -0.35]}
+      - ellipsoid: {c: [0.50, 0.40, 0.0], r: [0.13, 0.08, 0.15], rot: [0, 0, -0.6]}
+  rivets:
+    material: leather
+    space: pelvis
+    prims:
+      - sphere: {c: [0.46, 0.56, 0.12], r: 0.03}
+  kilt:            # leather apron/kilt + belt
+    material: leather
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cylinder: {a: [0, 0.04, 0.01], b: [0, 0.12, 0.01], r: 0.27}
+      - cone: {a: [0, 0.04, 0.01], b: [0, -0.16, 0.01], r: [0.26, 0.29]}
+      - box: {c: [0, -0.14, 0.22], half: [0.13, 0.15, 0.03], round: 0.02}
+  buckle:
+    material: iron
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.08, 0.27], half: [0.06, 0.045, 0.02]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.46, 0.06], b: [0, 0.56, 0.14], r: [0.13, 0.12]}
+  bandana:         # red bandana knotted around the neck, triangle hanging on the chest
+    material: bandana
+    space: pelvis
+    blend: 0.03
+    prims:
+      - torus: {c: [0, 0.50, 0.12], R: 0.17, r: 0.06, rot: [0.35, 0, 0]}
+      - tri: {a: [-0.17, 0.48, 0.27], b: [0.17, 0.48, 0.27], c: [0, 0.28, 0.31], th: 0.035}
+  bandana_knot:    # knot and two tails at the back of the neck
+    material: bandana
+    space: knotbase
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0.55, -0.06], r: 0.06}
+      - cone: {a: [0.02, 0.54, -0.08], b: [0.10, 0.40, -0.20], r: [0.04, 0.025]}
+      - cone: {a: [-0.02, 0.54, -0.08], b: [-0.08, 0.42, -0.22], r: [0.04, 0.025]}
+  head:            # bald head, heavy jaw
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.15, 0.14, 0.145]}
+      - ellipsoid: {c: [0, 0.04, 0.04], r: [0.13, 0.08, 0.11]}
+      - sphere: {c: [0, 0.10, 0.15], r: 0.028}
+  brow:            # heavy brow ridge
+    material: skin
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.155, 0.11], r: [0.12, 0.03, 0.04]}
+  scar:            # scar across the crown
+    material: scar
+    space: head
+    prims:
+      - cone: {a: [0.09, 0.26, 0.04], b: [-0.03, 0.22, 0.12], r: [0.012, 0.012]}
+  beard:           # thick dark stubble beard
+    material: beard
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.07], r: [0.14, 0.08, 0.10]}
+      - ellipsoid: {c: [0, -0.03, 0.09], r: [0.10, 0.06, 0.07]}
+    cut:
+      - ellipsoid: {c: [0, 0.075, 0.17], r: [0.05, 0.02, 0.05]}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.125, 0.135], r: 0.024}
+  arm_L:           # massive bare arms
+    material: skin
+    blend: 0.04
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.14}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.14, 0.11]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.11, 0.10]}
+  wrap_L:          # leather wrist wraps
+    material: leather
+    prims:
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.45}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.95}, r: [0.11, 0.105]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.05], r: 0.10}
+  leg_L:           # trousers
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.15, 0.12]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.12, 0.10]}
+  boot_L:          # heavy boots with a fold-over cuff
+    material: boot
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.18, 0], b: [0, -0.02, 0.0], r: [0.12, 0.11]}
+      - cylinder: {a: [0, 0.16, 0], b: [0, 0.22, 0], r: 0.13, round: 0.01}
+      - ellipsoid: {c: [0, -0.04, 0.07], r: [0.11, 0.06, 0.15]}
+  haft:            # huge two-handed club: tapering wood, held in the right hand (no _L)
+    material: wood
+    space: club
+    blend: 0.03
+    prims:
+      - cone: {a: [0, -0.16, 0], b: [0, 0.46, 0], r: [0.05, 0.10]}
+      - ellipsoid: {c: [0, 0.68, 0], r: [0.165, 0.27, 0.165]}
+      - sphere: {c: [0, -0.18, 0], r: 0.055}
+  club_bands:      # iron bands around the head
+    material: iron
+    space: club
+    prims:
+      - cylinder: {a: [0, 0.49, 0], b: [0, 0.56, 0], r: 0.145, round: 0.01}
+      - cylinder: {a: [0, 0.80, 0], b: [0, 0.87, 0], r: 0.14, round: 0.01}
+  club_spikes:     # iron spikes around the head
+    material: iron
+    space: club
+    prims:
+      - cone: {a: [0.14, 0.68, 0], b: [0.30, 0.70, 0], r: [0.05, 0.014]}
+      - cone: {a: [-0.14, 0.68, 0], b: [-0.30, 0.70, 0], r: [0.05, 0.014]}
+      - cone: {a: [0, 0.68, 0.14], b: [0, 0.70, 0.30], r: [0.05, 0.014]}
+      - cone: {a: [0, 0.68, -0.14], b: [0, 0.70, -0.30], r: [0.05, 0.014]}
+      - cone: {a: [0, 0.93, 0], b: [0, 1.04, 0], r: [0.045, 0.014]}
+  armband:         # second red bandana tied around the right (club) biceps
+    material: bandana
+    prims:
+      - cone: {a: {between: ["@shoulder_R", "@elbow_R"], t: 0.45}, b: {between: ["@shoulder_R", "@elbow_R"], t: 0.70}, r: [0.15, 0.14]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: smearspace
+    prims:
+      - arc: {c: [0, 0, 0], r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hand_R: {bone: wrist_R}
+  hit: {bone: club, offset: [0, 0.70, 0]}
+  head: {bone: head, offset: [0, 0.32, 0]}
+
+animations:
+  idle:
+    frames: 4
+    ms: 220
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      head_pitch: "-0.05*sin(p - 0.5)"
+      hand_L: "[0.46, 0.10 + 0.025*sin(p - 0.6), 0.10]"
+      hand_R: "[0.34, 0.30 + 0.025*sin(p - 0.6), 0.26]"
+      club_pitch: "-0.75 + 0.03*sin(p - 0.6)"
+      knot: "0.2*sin(p - 1.0)"
+  walk:            # heavy stomp, side-to-side sway, club bouncing on the shoulder
+    frames: 6
+    ms: 120
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.22
+      bob: "-0.045*cos(2*p) + 0.01"
+      roll: "0.05*sin(p)"
+      twist: "0.08*cos(p)"
+      squash: "1 - 0.02*cos(2*p)"
+      foot_L: "[0.18, 0.12*pos(-sin(p)), 0.02 + 0.18*cos(p)]"
+      foot_R: "[0.18, 0.12*pos(sin(p)), 0.02 - 0.18*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.46, 0.12 + 0.04*pos(cos(p)), 0.10 - 0.14*cos(p)]"
+      hand_R: "[0.34, 0.30 + 0.03*pos(-cos(p)), 0.26 + 0.05*cos(p)]"
+      club_pitch: "-0.75 + 0.06*cos(2*p)"
+      head_pitch: "0.04*cos(2*p)"
+      head_yaw: "-0.05*cos(p)"
+      knot: "0.5*sin(2*p)"
+  attack:          # slow two-handed overhead slam: raise, long held windup, smash into the ground
+    loop: false
+    keys:
+      - ms: 120
+        set: {hand_R: [0.20, 0.48, 0.20], hand_L: [0.0, 0.44, 0.22], club_pitch: -0.8, lean: 0.05, squash: 0.98,
+              twist: -0.08, knot: -0.3}
+      - ms: 250
+        event: windup
+        set: {hand_R: [0.10, 0.74, -0.02], hand_L: [-0.02, 0.70, 0.0], club_pitch: "-0.95 - 0.5*pulse(yaw, 0, 70)", club_roll: 0.05,
+              lean: -0.15, bob: -0.03, squash: 0.94, head_pitch: -0.15, twist: -0.10,
+              foot_L: [0.20, 0, 0.12], foot_R: [0.20, 0, -0.06], knot: -0.6}
+      - ms: 80
+        set: {hand_R: [0.06, 0.56, 0.34], hand_L: [-0.04, 0.58, 0.30], club_pitch: "0.6 - 0.7*pulse(yaw, 180, 80)", club_roll: 0.15,
+              lean: 0.25, squash: 1.06, root: [0, 0, 0.0], twist: 0.05,
+              foot_L: [0.20, 0, 0.16], foot_R: [0.20, 0, -0.08], knot: 0.4,
+              smear_roll: 1.4, smear_y: 1.0, smear_z: 0.10, smear_r: 0.95, smear_a0: 2.0, smear_a1: 0.3, smear_w: 0.12}
+      - ms: 150
+        event: hit
+        set: {hand_R: [0.14, 0.14, 0.32], hand_L: [0.04, 0.20, 0.28], club_pitch: "1.9 - 1.4*pulse(yaw, 0, 110)", club_roll: 0.30,
+              lean: 0.55, bob: -0.10, squash: 0.90, head_pitch: 0.15, root: [0, 0, 0.04], twist: 0.08,
+              foot_L: [0.22, 0, 0.18], foot_R: [0.22, 0, -0.10], knot: 0.8,
+              smear_roll: 1.4, smear_y: 1.0, smear_z: 0.10, smear_r: 0.95, smear_a0: 1.5, smear_a1: -0.5, smear_w: 0.12, smear_fade: 0.7}
+      - ms: 120
+        set: {hand_R: [0.14, 0.16, 0.31], hand_L: [0.04, 0.22, 0.27], club_pitch: "1.98 - 1.4*pulse(yaw, 0, 110)", club_roll: 0.30,
+              lean: 0.50, bob: -0.08, squash: 0.95, head_pitch: 0.10, root: [0, 0, 0.04], twist: 0.06,
+              foot_L: [0.22, 0, 0.18], foot_R: [0.22, 0, -0.10], knot: 0.3}
+      - ms: 130
+        set: {hand_R: [0.30, 0.25, 0.32], hand_L: [0.40, 0.12, 0.16], club_pitch: 0.4, lean: 0.25, bob: -0.03,
+              root: [0, 0, 0.04], foot_L: [0.20, 0, 0.10], foot_R: [0.20, 0, -0.04], knot: -0.2}
+  hit:             # small flinch backwards
+    loop: false
+    keys:
+      - ms: 70
+        set: {hand_R: [0.38, 0.34, 0.20], hand_L: [0.50, 0.16, 0.04], root: [0, 0, -0.05], lean: -0.05, roll: 0.06,
+              head_pitch: -0.25, squash: 0.94, bob: -0.02, club_pitch: -0.95, knot: -0.5}
+      - ms: 90
+        set: {hand_R: [0.36, 0.32, 0.23], hand_L: [0.48, 0.13, 0.07], root: [0, 0, -0.03], lean: 0.06, roll: 0.03,
+              head_pitch: -0.12, squash: 0.97, club_pitch: -0.85, knot: -0.2}
+      - ms: 90
+        set: {hand_R: [0.34, 0.30, 0.26], root: [0, 0, -0.01], lean: 0.14, knot: 0.1}
+  death:           # staggers back, knees buckle, topples onto his back, club drops beside him
+    loop: false
+    keys:
+      - ms: 120
+        set: {hand_R: [0.44, 0.36, 0.10], hand_L: [0.52, 0.24, 0.0], root: [0, 0, -0.05], lean: -0.20, head_pitch: -0.3,
+              squash: 0.95, club_pitch: -0.4, knot: -0.5}
+      - ms: 130
+        set: {hand_R: [0.46, 0.12, 0.18], hand_L: [0.50, 0.16, -0.02], root: [0, 0, -0.06], lean: -0.05, bob: -0.15,
+              head_pitch: 0.1, squash: 0.94, club_pitch: 0.9, foot_L: [0.20, 0, 0.10], foot_R: [0.18, 0, 0.04]}
+      - ms: 130
+        set: {hand_R: [0.50, 0.15, -0.10], hand_L: [0.56, 0.22, -0.12], root: [0, 0, 0.0], lean: -0.85, bob: -0.32,
+              head_pitch: -0.3, club_pitch: 0.6, foot_L: [0.20, 0.04, 0.22], foot_R: [0.18, 0.02, 0.18], knot: 0.4}
+      - ms: 140
+        set: {hand_R: [0.40, 0.02, -0.15], hand_L: [0.44, 0.06, -0.18], root: "[0, 0, -0.04 + 0.48*pulse(yaw, 180, 150) + 0.22*pulse(abs(yaw), 135, 30)]", lean: -1.45, bob: -0.48,
+              head_pitch: -0.6, squash: 0.90, club_pitch: 0.4, club_roll: "0.9*pulse(yaw, 180, 100)", foot_L: [0.22, 0.06, 0.30], foot_R: [0.18, 0.06, 0.26], knot: 0.8}
+      - ms: 100
+        set: {hand_R: [0.40, 0.05, -0.15], hand_L: [0.44, 0.08, -0.18], root: "[0, 0, -0.04 + 0.48*pulse(yaw, 180, 150) + 0.22*pulse(abs(yaw), 135, 30)]", lean: -1.40, bob: -0.45,
+              head_pitch: -0.55, squash: 0.97, club_pitch: 0.4, club_roll: "0.9*pulse(yaw, 180, 100)", foot_L: [0.22, 0.04, 0.30], foot_R: [0.18, 0.03, 0.26], knot: 0.4}
+      - ms: 700
+        event: dead
+        set: {hand_R: [0.40, 0.02, -0.15], hand_L: [0.44, 0.05, -0.18], root: "[0, 0, -0.04 + 0.48*pulse(yaw, 180, 150) + 0.22*pulse(abs(yaw), 135, 30)]", lean: -1.45, bob: -0.48,
+              head_pitch: -0.6, squash: 1.0, club_pitch: 0.4, club_roll: "0.9*pulse(yaw, 180, 100)", foot_L: [0.22, 0, 0.30], foot_R: [0.18, 0, 0.26], knot: 0.2}
+
+timing: {attack: {hit: 450ms}}

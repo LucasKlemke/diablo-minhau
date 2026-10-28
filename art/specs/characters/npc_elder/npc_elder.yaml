@@ -1,0 +1,190 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_elder
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Village NPC "Anciao Bento". Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi village elder - old hunched man, bald pink head with white side tufts, long white beard to the
+    belly, brown monk-like robe to the ground with a cream rope belt (knot + hanging ends), gnarled
+    wooden walking stick in the right hand planted on the ground.
+  must_keep: [hunched back, long white beard, bald head, brown robe + rope belt, gnarled stick taller than the hand]
+  simplify: [no fingers, legs hidden under the robe (only sandals peek out), rope is one cylinder + 2 short ends]
+  decisions: >
+    Head scale 1.8 (chibi). Hunch = lean 0.28 on the torso, head counter-rotated to look ahead. The stick
+    lives in its own frame at wrist_R (yaw follows the torso) and is kept vertical in world space so it
+    rests on the ground in every direction. No hat (distinct from the mage); robe is earthy brown so it
+    does not read as any hero. Idle: slow breathing, the weight shifts onto the stick. Talk: the free
+    left hand rises and opens.
+
+ramps:
+  beard: ["#1c0f1a", "#8a8fa3", "#c9cfdb", "#f2f4f8"]
+  robe_brown: ["#1c0f1a", "#3f2618", "#6e4227", "#94603a", "#b8845a"]
+
+materials:
+  skin:  {ramp: skin, bands: [2, 3]}
+  robe:  {ramp: robe_brown, bands: [1, 3]}
+  rope:  {ramp: bone, bands: [2, 3]}
+  beard: {ramp: beard, bands: [1, 3]}
+  wood:  {ramp: wood, bands: [2, 3]}
+  boot:  {ramp: leather, bands: [1, 2]}
+  ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.28        # the hunch
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.45 # looks up/ahead despite the hunch
+  head_yaw: 0
+  hand_L: [0.20, 0.16, 0.14]
+  foot_L: [0.09, 0, 0.04]
+  pitch_foot_L: 0
+  coat: 0           # robe hem sway (-1..1)
+  stick_pitch: 0    # stick tilt forward (+) / back (-), world-vertical at 0
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, -0.04]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.06], inherit_scale: false, rot: "[-lean*0.6, 0, 0]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.33, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: root, pos: "[0, 0.50 + bob, -0.02]", rot: "[-coat*0.25 + 0.06, twist*0.5, 0]"}
+  stickyaw:   {parent: root, rot: "[0, twist, 0]"}
+  stick:      {parent: stickyaw, at: wrist_R, rot: "[stick_pitch, 0, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.22, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # rounded, hunched back
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.18, 0.14, 0.16]}
+      - ellipsoid: {c: [0, 0.26, -0.02], r: [0.20, 0.15, 0.16]}
+      - ellipsoid: {c: [0, 0.30, -0.08], r: [0.16, 0.12, 0.12]}    # hump
+  hood:            # hood folded on the back of the neck
+    material: robe
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.38, -0.08], r: [0.16, 0.07, 0.11]}
+  robe:            # skirt to the ground
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.05, 0], b: [0, -0.44, 0], r: [0.18, 0.25]}
+  belt:            # rope belt with a knot and two hanging ends
+    material: rope
+    space: pelvis
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.10, 0], b: [0, 0.14, 0], r: 0.19}
+      - sphere: {c: [0.06, 0.11, 0.18], r: 0.035}
+      - cone: {a: [0.06, 0.10, 0.19], b: [0.04, -0.10, 0.22], r: [0.022, 0.02]}
+      - cone: {a: [0.07, 0.10, 0.19], b: [0.10, -0.06, 0.21], r: [0.022, 0.02]}
+  head:            # bald
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.15, 0.155, 0.145]}
+      - sphere: {c: [0, 0.10, 0.15], r: 0.032}      # big nose
+  tufts_L:         # white hair tufts above the ears
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.135, 0.12, -0.03], r: [0.045, 0.06, 0.08]}
+  hair_back:       # white fringe low at the back of the head
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.08, -0.08], r: [0.14, 0.07, 0.09]}
+  beard:           # long white beard to the belly
+    material: beard
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.09], r: [0.13, 0.08, 0.08]}
+      - cone: {a: [0, 0.02, 0.11], b: [0, -0.22, 0.02], r: [0.10, 0.035]}
+  brows_L:         # bushy white brows
+    material: beard
+    space: head
+    prims:
+      - ellipsoid: {c: [0.06, 0.185, 0.13], r: [0.045, 0.02, 0.02]}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.145, 0.135], r: 0.022}
+  arm_L:
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.06, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.08]}       # wide sleeve
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.06}
+  boot_L:          # sandals peeking under the hem
+    material: boot
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.065, 0.05, 0.09]}
+  stick:           # gnarled walking stick, right hand only
+    material: wood
+    space: stick
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, -0.74, 0.03], [0.02, -0.40, 0.03], [-0.015, -0.08, 0.03], [0.01, 0.30, 0.03]],
+                r: [0.034, 0.038, 0.038, 0.042]}
+      - chain: {pts: [[0.01, 0.28, 0.03], [0.05, 0.40, 0.04], [0.0, 0.48, 0.06], [-0.07, 0.45, 0.07]],
+                r: [0.048, 0.055, 0.05, 0.038]}                                     # curled knob
+      - sphere: {c: [0.025, -0.30, 0.03], r: 0.046}                                 # knot
+
+animations:
+  idle:            # slow breath, weight shifts onto the stick
+    frames: 4
+    ms: 200
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      lean: "0.28 + 0.03*sin(p)"
+      head_pitch: "-0.45 - 0.04*sin(p - 0.5)"
+      hand_L: "[0.20, 0.16 + 0.015*sin(p - 0.6), 0.14]"
+      hand_R: "[0.42, 0.26, 0.16]"
+      coat: "0.10*sin(p - 1.0)"
+  talk:            # left hand rises and opens, head nods
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.015*sin(p)"
+      head_pitch: "-0.45 - 0.08*sin(2*p)"
+      hand_L: "[0.26 + 0.04*sin(p), 0.30 + 0.06*sin(p), 0.22]"
+      hand_R: "[0.42, 0.26, 0.16]"
+      coat: "0.08*sin(p - 1.0)"
