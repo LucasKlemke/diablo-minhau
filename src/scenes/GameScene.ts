@@ -1,10 +1,10 @@
 import Phaser from "phaser";
 import { rankMult, skillAt, type ActiveSlot, type DeathKind, type SkillDef } from "../data/classes";
 import { ENEMIES, UNIQUES, type BossAbility, type EnemyDef, type EnemyRank, type EnemyType, type UniqueDef, type UniqueId } from "../data/enemies";
-import { BEAM_RARITIES, COMPARE_MARK, compareItem, generateItem, itemValue, rollRarity, RARITY_COLOR, type Item, type Rarity } from "../data/items";
-import { EPILOGUE, NPCS, PROLOGUE, type NpcId } from "../data/quests";
+import { BEAM_RARITIES, capRarity, COMPARE_MARK, compareItem, generateItem, itemValue, rollRarity, RARITY_COLOR, type Item, type Rarity } from "../data/items";
+import { EPILOGUE, INTRO, NPCS, PROLOGUE, type NpcId } from "../data/quests";
 import { ZONES, ZONE_ORDER, type CampKind, type ZoneDef, type ZoneId } from "../data/zones";
-import { setAmbience, sfx } from "../game/audio";
+import { setAmbience, setMusic, sfx } from "../game/audio";
 import { DIFFICULTIES } from "../data/difficulty";
 import { settings } from "../game/settings";
 import { openMainMenu, showPauseMenu } from "../ui/menu";
@@ -15,13 +15,22 @@ import { armorReduction } from "../data/stats";
 import { HeroData, MAX_POTIONS } from "../game/hero";
 import { playDeath } from "../game/deaths";
 import { Minimap, type MapMarker } from "../game/minimap";
-import { hasSprite, KilnSprite, portrait, type Dir, type SpriteName } from "../kiln";
+import { PropHover } from "../game/propHover";
+import { drawIcon, type IconId } from "../ui/icons";
+import { playArrival } from "../game/arrival";
+import { hasSprite, kilnImage, KilnSprite, portrait, type Dir, type SpriteName } from "../kiln";
 import { Hud } from "../ui/hud";
 import { blobTile } from "../world/autotile";
 import { generateMap, MAP_H, MAP_W, TILE, type Pack, type WorldMap } from "../world/mapgen";
 import { Grid } from "../world/pathfind";
 
+/** NPC profession icons for the name tags (pixel icons as data URLs, drawn once). */
+const npcIconUrls: Partial<Record<IconId, string>> = {};
+const npcIcon = (id: IconId) => (npcIconUrls[id] ??= drawIcon(id).toDataURL());
+
 interface Enemy {
+  /** Village raid goblin: keeps chasing inside the village (normally a safe zone). */
+  raider?: boolean;
   spr: KilnSprite;
   body: Phaser.Physics.Arcade.Body;
   type: EnemyType;
@@ -122,6 +131,11 @@ interface Npc {
   id: NpcId;
   spr: KilnSprite;
   tag: HTMLDivElement;
+  /** Floating "!"/"?" sprite above the head (SpriteKiln npc_marker); the HTML tag shows it as text otherwise. */
+  marker?: KilnSprite;
+  /** Where the NPC stands; during the village raid it hides inside a house. */
+  home: { x: number; y: number };
+  hidden?: boolean;
 }
 
 type Order =
@@ -198,6 +212,18 @@ export class GameScene extends Phaser.Scene {
   private cooldowns: Record<string, number> = {};
   private hovered: Enemy | null = null;
   private hoveredNpc: Npc | null = null;
+  private hoverGlow?: Phaser.FX.Glow;
+  private hoverGlowTween?: Phaser.Tweens.Tween;
+  private hoverRing?: Phaser.GameObjects.Image;
+  private propHover!: PropHover;
+  /** Opening arrival cutscene in progress (controls locked, HUD hidden). */
+  private cinematic = false;
+  /** Act I barricades on the village exits, and the raid in progress. */
+  private gateObjs: Phaser.GameObjects.Image[] = [];
+  /** The village's animated gates (north, west, east), when the SpriteKiln export exists. */
+  private villageGates: KilnSprite[] = [];
+  private gateHintAt = 0;
+  private attack: { wave: number; foes: Set<Enemy> } | null = null;
   private lastHit: { e: Enemy; t: number } | null = null;
   private leftHeldAt = 0;
   private moveRepathAt = 0;
@@ -210,8 +236,10 @@ export class GameScene extends Phaser.Scene {
     super("game");
   }
 
-  init(data: { hero: HeroData; dungeon?: number; exitAt?: number; netSeed?: number; netZone?: ZoneId; spawnAt?: { x: number; y: number } }) {
+  init(data: { hero: HeroData; dungeon?: number; exitAt?: number; netSeed?: number; netZone?: ZoneId; spawnAt?: { x: number; y: number };
+    cinematic?: boolean }) {
     this.data_ = data.hero;
+    this.cinematic = !!data.cinematic;
     this.netSeed = data.netSeed;
     this.netZone = data.netZone;
     this.spawnAt = data.spawnAt;
@@ -222,7 +250,7 @@ export class GameScene extends Phaser.Scene {
     this.exitAt = data.exitAt ?? null;
     this.darkEl = undefined;
     Object.assign(this, {
-      enemies: [], loot: [], projectiles: [], zones: [], chests: [], npcs: [], trees: [], decals: [], cooldowns: {}, enemyBolts: [],
+      enemies: [], loot: [], hovered: null, hoverGlow: undefined, hoverRing: undefined, gateObjs: [], villageGates: [], attack: null, projectiles: [], zones: [], chests: [], npcs: [], trees: [], decals: [], cooldowns: {}, enemyBolts: [],
       busy: false, dead: false, leaping: false, order: null, path: [], dashUntil: 0, invulnUntil: 0, dashCd: 0,
     });
   }
@@ -250,6 +278,8 @@ export class GameScene extends Phaser.Scene {
     if (this.netZone) d0.zone = this.netZone;
     else if (!ZONES[d0.zone] || d0.tier < ZONES[d0.zone].unlockAt) d0.zone = "forest";
     this.zone = ZONES[d0.zone];
+    // A guest joins the host's story: the village raid only plays for the host or solo.
+    if (this.isGuest && d0.quest.intro !== "done") d0.quest.intro = "done";
     this.mapSeed = this.netSeed ?? this.seedFor(this.zone.id, this.dungeonRef?.index ?? null);
     if (this.dungeonRef) {
       const dd = this.zone.dungeons[this.dungeonRef.index];
@@ -261,8 +291,10 @@ export class GameScene extends Phaser.Scene {
     }
     this.grid = new Grid(MAP_W, MAP_H, this.map.blocked);
     this.buildWorld();
+    this.buildGates(this.gatesLocked);
 
     let sp = this.map.spawn;
+    if (this.map.start && d0.quest.intro === "road" && !this.dungeonRef && this.exitAt === null) sp = this.map.start;
     if (this.spawnAt) {
       const f = this.grid.nearestFree(Math.floor(this.spawnAt.x / TILE), Math.floor(this.spawnAt.y / TILE), 4);
       if (f) sp = { x: f[0], y: f[1] };
@@ -371,12 +403,16 @@ export class GameScene extends Phaser.Scene {
         sfx.buy();
       },
     }, d.def.skills, d.def.resourceColor);
+    this.hud.textures = this.textures;
     this.minimap = new Minimap(this.hud.minimap, this.map);
+    this.propHover = new PropHover(this, this.hud.world);
     this.spawnNpcs();
 
     this.setupInput();
     this.setupNet();
     setAmbience(this.map.kind === "dungeon" ? "amb_dungeon" : "amb_town");
+    setMusic(this.map.kind === "dungeon" ? "dungeon" : "town");
+    if (this.d_intro === "attack" && this.map.gates.length) this.startAttack(3000, true);
     this.game.events.on(Phaser.Core.Events.POST_RENDER, this.updateOverlay, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.events.off(Phaser.Core.Events.POST_RENDER, this.updateOverlay, this);
@@ -390,17 +426,75 @@ export class GameScene extends Phaser.Scene {
       this.darkEl = document.createElement("div");
       this.darkEl.className = "darkness";
       document.getElementById("ui")!.prepend(this.darkEl);
-    } else if (d.quest.prologueSeen) {
+    } else if (d.quest.prologueSeen && !this.cinematic) {
       this.hud.zoneTitle(this.zone.name, this.zone.subtitle);
     }
     if (!d.quest.prologueSeen) {
       this.hud.dialog("Prólogo", null, PROLOGUE, [], () => {
         d.quest.prologueSeen = true;
         d.save();
-        this.hud.message("Fale com o Ancião Bento (!) na praça da vila.", "#ffe14d");
+        this.hud.message(d.quest.intro === "road" ? "Siga a estrada para o norte até a vila Minhau." : "Fale com o Ancião Bento (!) na praça da vila.", "#ffe14d");
       });
     }
     this.restockShop(false);
+    if (this.cinematic) this.startArrival();
+  }
+
+  /** End of the opening cutscene, on the real map: the hero walks up the road and the player takes over. */
+  private startArrival() {
+    const h = this.hero;
+    const village = { x: this.map.spawn.x * TILE + 8, y: this.map.spawn.y * TILE + 8 };
+    const tiles = this.grid.find(Math.floor(h.x / TILE), Math.floor(h.y / TILE), this.map.spawn.x, this.map.spawn.y) ?? [];
+    const path: { x: number; y: number }[] = [];
+    let walked = 0, px = h.x, py = h.y;
+    for (const [tx, ty] of tiles) {
+      const p = { x: tx * TILE + 8, y: ty * TILE + 8 };
+      walked += Phaser.Math.Distance.Between(px, py, p.x, p.y);
+      if (walked > 170) break;
+      path.push(p);
+      px = p.x;
+      py = p.y;
+    }
+    if (!path.length) {
+      // No route (the village gates are barred during the raid): walk straight toward it while the ground is free.
+      const ang = Phaser.Math.Angle.Between(h.x, h.y, village.x, village.y);
+      for (let d = 8; d <= 170; d += 8) {
+        const x = h.x + Math.cos(ang) * d, y = h.y + Math.sin(ang) * d;
+        if (!this.grid.free(Math.floor(x / TILE), Math.floor(y / TILE))) break;
+        if (d % 32 === 0 || d + 8 > 170) path.push({ x, y });
+      }
+    }
+    const asFoe = (e: Enemy) => {
+      e.aggro = true;
+      return { spr: e.spr, kill: (kind: DeathKind, angle: number) => this.damageEnemy(e, e.hp, true, false, { kind, angle }) };
+    };
+    playArrival({
+      scene: this, hero: h, cls: this.data_.cls, path, village,
+      lock: (on) => {
+        this.busy = on;
+        this.order = null;
+        this.path = [];
+        this.heroBody.setVelocity(0, 0);
+        this.invulnUntil = on ? Infinity : this.time.now;
+      },
+      ring: (x, y, r, t, ms) => this.ringFx(x, y, r, t, ms),
+      burst: (kind, n, x, y) => this.emitters[kind].explode(n, x, y),
+      shake: (ms, i) => this.shake(ms, i),
+      foe: (x, y) => {
+        const t = this.grid.nearestFree(Math.floor(x / TILE), Math.floor(y / TILE), 4);
+        if (!t) return null;
+        const pack: Pack = { x: t[0], y: t[1], level: 1, count: 1, champion: false, faction: "goblin" };
+        return asFoe(this.spawnEnemy(t[0] * TILE + 8, t[1] * TILE + 8, pack, "goblin", "normal"));
+      },
+      foesIn: (r) => this.enemies
+        .filter((e) => e.state !== "dead" && e.rank !== "boss" && !e.proxy && r.contains(e.spr.x, e.spr.y))
+        .map(asFoe),
+      done: () => {
+        this.cinematic = false;
+        this.hud.zoneTitle(this.zone.name, this.zone.subtitle);
+        this.hud.message(this.data_.quest.intro === "road" ? "Siga a estrada para o norte até a vila Minhau." : "Fale com o Ancião Bento (!) na praça da vila.", "#ffe14d");
+      },
+    });
   }
 
   private fitZoom() {
@@ -453,21 +547,40 @@ export class GameScene extends Phaser.Scene {
       switch (p.kind) {
         case "house": {
           const v = p.frame ?? 0;
+          const name = v ? "house" : "barn";
+          if (hasSprite(name)) {
+            // Pivot = middle of the front wall's base, on the footprint's front tile row.
+            kilnImage(this, px + 2.5 * TILE, (p.y + 1) * TILE, name).setDepth((p.y + 1) * TILE - 8);
+            break;
+          }
           const bottom = (p.y + 1 + v) * TILE;
-          this.add.image(px, bottom, "house", `h${v}`).setOrigin(0, 1).setDepth(bottom - 8);
+          this.add.image(px, bottom, "house_farm", `h${v}`).setOrigin(0, 1).setDepth(bottom - 8);
           break;
         }
         case "ruin": {
           if (hasSprite("crypt")) {
             // Crypt entrance modelled in SpriteKiln, centred on its 5x3 footprint.
-            const crypt = new KilnSprite(this, px + 2.5 * TILE, (p.y + 1) * TILE, "crypt");
+            const cx = px + 2.5 * TILE, cy = (p.y + 1) * TILE;
+            const crypt = new KilnSprite(this, cx, cy, "crypt");
             crypt.play2("idle");
-            crypt.setDepth((p.y + 1) * TILE - 8);
+            crypt.setDepth(cy - 8);
+            // Graveyard dressing: a stone yard under the crypt, a dead tree, iron railings and tombstones
+            // (offsets in tiles from the crypt's pivot; the doorway in front stays clear).
+            if (hasSprite("crypt_floor")) kilnImage(this, cx, cy, "crypt_floor").setDepth(-4);
+            const dress: [SpriteName, number, number][] = [
+              ["dead_tree", -3.2, -1.9], ["grave_fence", 3.4, -2.0], ["grave_fence", -1.6, -3.1],
+              ["tombstone", -3.1, -0.2], ["tombstone", -2.2, 0.7], ["tombstone", 3.2, 0.3],
+            ];
+            for (const [name, ox, oy] of dress) {
+              if (!hasSprite(name)) continue;
+              const y = cy + oy * TILE;
+              kilnImage(this, cx + ox * TILE, y, name).setDepth(y - 2);
+            }
             break;
           }
           // Fallback: the Farm RPG house, darkened, with a glowing doorway.
           const bottom = (p.y + 2) * TILE;
-          this.add.image(px, bottom, "house", "h1").setOrigin(0, 1).setDepth(bottom - 8).setTint(0x7a6a7a);
+          this.add.image(px, bottom, "house_farm", "h1").setOrigin(0, 1).setDepth(bottom - 8).setTint(0x7a6a7a);
           const glow = this.add.image(px + 2.5 * TILE, (p.y + 1) * TILE - 4, "disc").setTint(0xc06bff).setScale(0.35, 0.25)
             .setBlendMode(Phaser.BlendModes.ADD).setDepth(bottom - 7);
           this.tweens.add({ targets: glow, alpha: { from: 0.4, to: 0.9 }, duration: 900, yoyo: true, repeat: -1 });
@@ -475,19 +588,27 @@ export class GameScene extends Phaser.Scene {
         }
         case "fence_h":
         case "fence_v":
-          this.add.image(px + 8, py + TILE, "fence", p.kind === "fence_h" ? "h" : "v").setOrigin(0.5, 1).setDepth(py + TILE - 2);
+          if (hasSprite(p.kind)) kilnImage(this, px + 8, py + TILE - 3, p.kind).setDepth(py + TILE - 2);
+          else this.add.image(px + 8, py + TILE, "fence", p.kind === "fence_h" ? "h" : "v").setOrigin(0.5, 1).setDepth(py + TILE - 2);
           break;
+        // SpriteKiln trees (pivot = trunk base) when exported, else the Farm RPG art; both use the biome skin.
         case "tree_big":
-          this.trees.push(this.add.image(px + TILE, py + TILE - 1, `tree${skin}`, "big").setOrigin(0.5, 1).setDepth(py + TILE - 3));
+          this.trees.push(hasSprite("tree_big")
+            ? kilnImage(this, px + TILE, py + TILE - 3, "tree_big", `tree_big${skin}`).setDepth(py + TILE - 3)
+            : this.add.image(px + TILE, py + TILE - 1, `tree${skin}`, "big").setOrigin(0.5, 1).setDepth(py + TILE - 3));
           break;
         case "tree_medium":
-          this.trees.push(this.add.image(px + 8, py + TILE - 1, `tree${skin}`, "medium").setOrigin(0.5, 1).setDepth(py + TILE - 3));
+          this.trees.push(hasSprite("tree_medium")
+            ? kilnImage(this, px + 8, py + TILE - 3, "tree_medium", `tree_medium${skin}`).setDepth(py + TILE - 3)
+            : this.add.image(px + 8, py + TILE - 1, `tree${skin}`, "medium").setOrigin(0.5, 1).setDepth(py + TILE - 3));
           break;
         case "tree_bush":
-          this.add.image(px + 8, py + TILE, `tree${skin}`, "bush").setOrigin(0.5, 1).setDepth(py + TILE - 4);
+          if (hasSprite("bush")) kilnImage(this, px + 8, py + TILE - 3, "bush", `bush${skin}`).setDepth(py + TILE - 4);
+          else this.add.image(px + 8, py + TILE, `tree${skin}`, "bush").setOrigin(0.5, 1).setDepth(py + TILE - 4);
           break;
         case "tree_stump":
-          this.add.image(px + 8, py + TILE, "tree", "stump").setOrigin(0.5, 1).setDepth(py + TILE - 4);
+          if (hasSprite("stump")) kilnImage(this, px + 8, py + TILE - 3, "stump").setDepth(py + TILE - 4);
+          else this.add.image(px + 8, py + TILE, "tree", "stump").setOrigin(0.5, 1).setDepth(py + TILE - 4);
           break;
         case "stone":
           this.add.image(px + 8, py + 8, "stones", p.frame).setDepth(-5);
@@ -543,7 +664,8 @@ export class GameScene extends Phaser.Scene {
       const tag = document.createElement("div");
       tag.className = "npc-tag";
       this.hud.world.appendChild(tag);
-      this.npcs.push({ id, spr, tag });
+      const marker = hasSprite("npc_marker") ? new KilnSprite(this, spr.x, spr.y - 40, "npc_marker").setDepth(1e6).setVisible(false) : undefined;
+      this.npcs.push({ id, spr, tag, marker, home: { x: spr.x, y: spr.y } });
     }
   }
 
@@ -644,6 +766,7 @@ export class GameScene extends Phaser.Scene {
     k.K.on("down", () => this.hud.toggle("tree"));
     k.M.on("down", () => this.hud.toggleMap());
     k.ESC.on("down", () => {
+      if (this.cinematic) return; // the arrival cutscene can only be sped up (cinematic.ts)
       if (this.hud.anyOpen()) {
         this.hud.closeAll();
         this.hud.closeDialog();
@@ -762,6 +885,8 @@ export class GameScene extends Phaser.Scene {
     const t = this.map.town;
     const htx = this.hero.x / TILE, hty = this.hero.y / TILE;
     this.inTown = htx > t.x0 && htx < t.x1 && hty > t.y0 && hty < t.y1 + 1;
+    this.gateHint(time);
+    this.updateHoverRing(time);
 
     if (!this.dead) {
       const regen = d.stats.hpRegen * (this.inTown ? 4 : 1);
@@ -772,6 +897,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updateHover(pw.x, pw.y);
+    this.propHover.update(pw.x, pw.y, !!this.hovered || !!this.hoveredNpc || this.hud.anyOpen());
     this.updateLootHover(pw.x, pw.y);
     if (!this.dead) this.updateHero(time, delta, pw);
     this.updateEnemies(time, delta);
@@ -800,13 +926,43 @@ export class GameScene extends Phaser.Scene {
       cls: d.cls, level: d.level, xp: d.xp, xpNext: d.xpNext, xpPrev: d.xpPrev, gold: d.gold, hp: d.hp, mana: d.mana,
       absorb: d.absorb, stats: d.stats, potions: d.potions, inventory: d.inventory, equipment: d.equipment,
       ranks: d.ranks, skillPoints: d.skillPoints, cooldowns: this.cooldowns, dashCooldown: this.dashCd, buffs: d.buffs, now: time,
-      quest: q && d.quest.status !== "available"
+      quest: d.quest.intro !== "done" ? this.introTracker()
+        : q && d.quest.status !== "available"
         ? { title: q.title, goal: q.goal, progress: `${Math.min(d.quest.progress, q.objective.count)}/${q.objective.count}`, ready: d.quest.status === "ready" }
         : q ? { title: "Nova missão", goal: `Fale com ${NPCS[q.giver].name}`, progress: "", ready: false } : null,
     });
     const boss = this.enemies.find((e) => e.boss && e.aggro && e.state !== "dead" && Phaser.Math.Distance.Between(e.spr.x, e.spr.y, this.hero.x, this.hero.y) < 340);
     const tgt = this.hovered ?? boss ?? (this.lastHit && time - this.lastHit.t < 2500 && this.lastHit.e.state !== "dead" ? this.lastHit.e : null);
     this.hud.setTarget(tgt ? { name: `${tgt.name} (nv ${tgt.level})`, hp: tgt.hp, maxHp: tgt.maxHp, kind: tgt.rank } : null);
+  }
+
+  /** Hovered enemy: red tint, a pulsing red outline (WebGL) and a target ring at its feet. */
+  private setHovered(e: Enemy | null) {
+    const prev = this.hovered;
+    if (prev) {
+      if (this.hoverGlow) prev.spr.preFX?.remove(this.hoverGlow);
+      if (prev.state !== "dead") this.restoreTint(prev);
+    }
+    this.hoverGlow = undefined;
+    this.hoverGlowTween?.stop();
+    this.hovered = e;
+    if (!e) {
+      this.hoverRing?.setVisible(false);
+      return;
+    }
+    e.spr.setTint(0xff9a8a);
+    this.hoverGlow = e.spr.preFX?.addGlow(0xff3a2a, 2, 0, false, 0.1, 8);
+    if (this.hoverGlow) this.hoverGlowTween = this.tweens.add({ targets: this.hoverGlow, outerStrength: 5, duration: 380, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
+    this.hoverRing ??= this.add.image(0, 0, "ring").setTint(0xff3a2a).setBlendMode(Phaser.BlendModes.ADD);
+    const w = (e.def.body * 2 + 10) / 64 * e.spr.scaleX;
+    this.hoverRing.setVisible(true).setScale(w, w * 0.45).setAlpha(0.9);
+  }
+
+  /** Keeps the target ring under the hovered enemy, breathing slightly. */
+  private updateHoverRing(time: number) {
+    const e = this.hovered, ring = this.hoverRing;
+    if (!e || !ring) return;
+    ring.setPosition(e.spr.x, e.spr.y + 1).setDepth(e.spr.y - 1).setAlpha(0.65 + 0.3 * Math.sin(time / 120));
   }
 
   private updateHover(wx: number, wy: number) {
@@ -816,12 +972,8 @@ export class GameScene extends Phaser.Scene {
       const dd = Phaser.Math.Distance.Between(e.spr.x, e.spr.y - 12 * e.spr.scaleY, wx, wy);
       if (dd < bd * e.spr.scaleX * (e.type === "brute" ? 1.3 : 1)) { bd = dd; best = e; }
     }
-    if (best !== this.hovered) {
-      if (this.hovered && this.hovered.state !== "dead") this.restoreTint(this.hovered);
-      this.hovered = best;
-      if (best) best.spr.setTint(0xff9a8a);
-    }
-    this.hoveredNpc = best ? null : this.npcs.find((n) => Phaser.Math.Distance.Between(n.spr.x, n.spr.y - 12, wx, wy) < 14) ?? null;
+    if (best !== this.hovered) this.setHovered(best);
+    this.hoveredNpc = best ? null : this.npcs.find((n) => !n.hidden && Phaser.Math.Distance.Between(n.spr.x, n.spr.y - 12, wx, wy) < 14) ?? null;
     for (const n of this.npcs) {
       if (n === this.hoveredNpc) n.spr.setTint(0xfff2b0);
       else n.spr.clearTint();
@@ -939,6 +1091,8 @@ export class GameScene extends Phaser.Scene {
           this.path = [];
           this.askEnterDungeon(o.index);
         } else if (!this.path.length) this.planPath(dx, dy);
+      } else if (o.type === "talk" && o.npc.hidden) {
+        this.order = null;
       } else if (o.type === "talk") {
         const n = o.npc;
         if (Phaser.Math.Distance.Between(this.hero.x, this.hero.y, n.spr.x, n.spr.y) < 26) {
@@ -1384,12 +1538,13 @@ export class GameScene extends Phaser.Scene {
     const d = this.data_;
     e.state = "dead";
     sfx.die(e.def.sprite);
+    if (e.rank === "boss") setMusic(this.map.kind === "dungeon" ? "dungeon" : "town");
     e.body.setVelocity(0, 0);
     e.body.enable = false;
     if (e.def.maimed) e.spr.setSprite(e.def.maimed);
     this.restoreTint(e);
     e.spr.setDepth(e.spr.y - 6);
-    if (this.hovered === e) this.hovered = null;
+    if (this.hovered === e) this.setHovered(null);
     // A brutal "normal" kill (crit/overkill) blows the body apart.
     const kind = blow.kind === "normal" && overkill ? "gib" : blow.kind;
     if (this.isHost) net.send({ t: "die", id: e.id, kind, angle: blow.angle, big: !!(blow.big || overkill || e.rank === "boss"), overkill });
@@ -1429,6 +1584,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
     this.questKill(e);
+    if (this.attack?.foes.delete(e) && !this.attack.foes.size) this.nextWave();
     this.dropLoot(e);
     this.time.delayedCall(12000, () => {
       if (!e.spr.active) return;
@@ -1444,6 +1600,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private giveXp(xp: number) {
+    if (this.cinematic) return; // the opening cutscene's kills give no XP
     const d = this.data_;
     const before = { hp: d.stats.maxHp, dmg: d.stats.dmgMax };
     const ups = d.gainXp(xp);
@@ -1473,33 +1630,14 @@ export class GameScene extends Phaser.Scene {
     }, ms);
   }
 
-  private levelUpFx(ups: number, gains: string[], unlocked: SkillDef[]) {
+  /** Level up: the "NÍVEL x" card in the middle of the screen with only the skill points gained, a sound and
+   * a small sparkle (no zoom or slow motion). */
+  private levelUpFx(ups: number, _gains: string[], _unlocked: SkillDef[]) {
     const h = this.hero;
-    const d = this.data_;
     sfx.levelUp();
-    this.slowmo(700, 0.3);
-    this.hud.levelUp(d.level, gains, unlocked);
+    this.hud.levelUp(this.data_.level, [`+${ups} ponto${ups > 1 ? "s" : ""} de habilidade`], []);
     this.hud.markInventoryDirty();
-    // Zoom punch.
-    const cam = this.cameras.main;
-    const z = cam.zoom;
-    cam.zoomTo(z * 1.25, 180, "Quad.easeOut");
-    window.setTimeout(() => this.scene.isActive() && cam.zoomTo(z, 600, "Quad.easeInOut"), 650);
-    cam.flash(250, 255, 240, 180);
-    // Pillar of light, golden fountain and a shockwave that throws enemies back.
-    const beam = this.add.image(h.x, h.y + 2, "beam").setOrigin(0.5, 1).setTint(0xffe14d).setBlendMode(Phaser.BlendModes.ADD)
-      .setDepth(1e5).setScale(0.2, 0);
-    this.tweens.add({ targets: beam, scaleX: 3, scaleY: 2.4, duration: 220, ease: "Back.easeOut" });
-    this.tweens.add({ targets: beam, alpha: 0, scaleX: 0.5, delay: 700, duration: 700, onComplete: () => beam.destroy() });
-    for (let i = 0; i < 8; i++) this.time.delayedCall(i * 70, () => this.emitters.gold.explode(14, h.x + (Math.random() - 0.5) * 16, h.y - 10 - Math.random() * 30));
-    this.ringFx(h.x, h.y - 2, 90, 0xffe14d, 600);
-    this.time.delayedCall(150, () => this.ringFx(h.x, h.y - 2, 60, 0xffffff, 500));
-    for (const e of this.enemiesIn(h.x, h.y, 90)) {
-      const a = Phaser.Math.Angle.Between(h.x, h.y, e.spr.x, e.spr.y);
-      this.tweens.add({ targets: e.spr, x: e.spr.x + Math.cos(a) * 26, y: e.spr.y + Math.sin(a) * 18, duration: 250, ease: "Quad.easeOut" });
-      e.stunUntil = this.time.now + 1200;
-      this.damageEnemy(e, Math.round(d.stats.dmgMax * ups), false, true, { kind: "normal", angle: a });
-    }
+    this.emitters.gold.explode(12, h.x, h.y - 16);
   }
 
   // ---------------------------------------------------------------- enemies: AI
@@ -1519,6 +1657,10 @@ export class GameScene extends Phaser.Scene {
       }
       if (!active) continue;
       e.spr.setDepth(e.spr.y);
+      if (this.cinematic) {
+        e.body.setVelocity(0, 0); // the opening cutscene moves them (or keeps them waiting)
+        continue;
+      }
       if (time < e.stunUntil) {
         e.body.setVelocity(0, 0);
         if (e.state !== "hit") e.spr.play2("idle", { timeScale: 0.3 });
@@ -1529,7 +1671,7 @@ export class GameScene extends Phaser.Scene {
       if (e.state === "attack" || e.state === "hit") continue;
 
       const fromHome = Phaser.Math.Distance.Between(e.home.x, e.home.y, e.spr.x, e.spr.y);
-      if (h.dead || this.inTownAt(h.x, h.y) || fromHome > 320) {
+      if (h.dead || (!e.raider && (this.inTownAt(h.x, h.y) || fromHome > 320))) {
         if (e.aggro) {
           e.aggro = false;
           e.hp = e.maxHp;
@@ -1640,6 +1782,7 @@ export class GameScene extends Phaser.Scene {
     if (!e.announced) {
       e.announced = true;
       sfx.boss();
+      setMusic("boss");
       this.shake(400, 0.006);
       this.hud.banner(boss.name, "Chefe");
     }
@@ -2197,13 +2340,15 @@ export class GameScene extends Phaser.Scene {
     // In a session the world keeps running for the partner.
     if (!net.active) this.scene.pause();
     showPauseMenu({
-      difficulty: d.difficulty, slot: d.slot,
+      difficulty: d.difficulty, slot: d.slot, cls: d.cls, level: d.level, zone: this.zone.name, online: net.active,
+      quest: d.currentQuest ? `Missão: ${d.currentQuest.title}` : "História concluída",
       onResume: () => this.scene.isPaused() && this.scene.resume(),
       onInvite: net.active ? undefined : () => this.startHosting(),
       onQuit: () => {
         net.leave();
         d.save();
         setAmbience(null);
+        setMusic(null);
         // The shutdown handler clears the UI layer: show the menu after it.
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.setTimeout(openMainMenu));
         this.scene.stop();
@@ -2391,6 +2536,269 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  // ---------------------------------------------------------------- Act I opening: the village raid
+
+  private get d_intro() {
+    return this.data_.quest.intro;
+  }
+
+  /** The village exits stay closed until the raid is over and the first quest is accepted. */
+  private get gatesLocked() {
+    const q = this.data_.quest;
+    return this.map.gates.length > 0 && !this.isGuest && (q.intro !== "done" || (q.index === 0 && q.status === "available"));
+  }
+
+  /** Exit gates of the village: closed (and solid) until the raid is over and the first quest accepted. */
+  private buildGates(locked: boolean) {
+    if (!this.map.gates.length) return;
+    if (locked)
+      for (const g of this.map.gates) {
+        this.grid.blocked[g.y * MAP_W + g.x] = true;
+        this.collision.putTileAt(0, g.x, g.y);
+      }
+    if (hasSprite("village_gate")) {
+      // One gate per gap, pivot on the middle tile; leaves swing outwards (s = north, e = west, w = east).
+      for (const [x, y, fx, fy] of this.gateExits()) {
+        const spr = new KilnSprite(this, x * TILE + 8, y * TILE + TILE - 3, "village_gate");
+        spr.face(fx, fy);
+        spr.play2(locked ? "closed" : "opened");
+        this.villageGates.push(spr.setDepth(y * TILE + TILE - 5));
+      }
+      return;
+    }
+    if (!locked) return;
+    for (const g of this.map.gates) {
+      const px = g.x * TILE + 8, py = g.y * TILE + TILE;
+      const img = hasSprite(g.kind) ? kilnImage(this, px, py - 3, g.kind) : this.add.image(px, py, "fence", g.kind === "fence_h" ? "h" : "v").setOrigin(0.5, 1);
+      this.gateObjs.push(img.setDepth(py - 2).setTint(0xd8b890));
+    }
+  }
+
+  /** Middle tile of the north, west and east gaps, with the direction each gate faces. */
+  private gateExits(): [number, number, number, number][] {
+    const t = this.map.town;
+    const cx = (t.x0 + t.x1) >> 1, cy = (t.y0 + t.y1) >> 1;
+    return [[cx, t.y0, 0, 1], [t.x0, cy, 1, 0], [t.x1, cy, -1, 0]];
+  }
+
+  private openGates() {
+    for (const g of this.map.gates) {
+      this.grid.blocked[g.y * MAP_W + g.x] = false;
+      this.collision.removeTileAt(g.x, g.y);
+    }
+    for (const spr of this.villageGates) {
+      spr.play2("open", {
+        restart: true,
+        onEvent: (ev) => ev === "unbar" && this.emitters.dust.explode(6, spr.x, spr.y - 6),
+        onComplete: () => spr.play2("opened"),
+      });
+    }
+    for (const img of this.gateObjs) {
+      this.emitters.dust.explode(6, img.x, img.y - 4);
+      this.tweens.add({ targets: img, alpha: 0, y: img.y + 4, duration: 400, onComplete: () => img.destroy() });
+    }
+    this.gateObjs = [];
+    this.hud.banner("Os portões foram abertos!", "Explore a floresta e cumpra as missões.");
+  }
+
+  /** Bumping into a closed exit explains why it is closed. */
+  private gateHint(time: number) {
+    if (!this.gatesLocked || time < this.gateHintAt) return;
+    const near = this.map.gates.some((g) => Phaser.Math.Distance.Between(g.x * TILE + 8, g.y * TILE + 8, this.hero.x, this.hero.y) < 20);
+    if (!near) return;
+    this.gateHintAt = time + 4000;
+    this.say(this.d_intro === "done" ? "Os portões estão fechados. Fale com o Ancião Bento." : "Os portões estão fechados por causa dos goblins.", "#ffe14d");
+  }
+
+  private introTracker() {
+    switch (this.d_intro) {
+      case "road": return { title: "A Estrada para Minhau", goal: "Siga a estrada até a vila e fale com o Ancião Bento", progress: "", ready: false };
+      case "attack": return { title: "Ataque à Vila", goal: "Defenda a vila dos goblins", progress: `Onda ${Math.min((this.attack?.wave ?? 0) + 1, INTRO.waves.length)}/${INTRO.waves.length}`, ready: false };
+      default: return { title: "Ataque à Vila", goal: "Fale com o Ancião Bento", progress: "", ready: true };
+    }
+  }
+
+  private talkIntro(n: Npc, pic: HTMLCanvasElement | null, done: () => void) {
+    const d = this.data_;
+    const npc = NPCS[n.id];
+    if (d.quest.intro === "road") {
+      this.hud.dialog(npc.name, pic, INTRO.arrive, [{ label: "Defender a vila!", action: () => {
+        done();
+        d.quest.intro = "attack";
+        d.save();
+        this.startAttack(1200);
+      } }], done);
+    } else if (d.quest.intro === "attack") {
+      this.hud.dialog(npc.name, pic, [INTRO.fighting], [], done);
+    } else {
+      this.hud.dialog(npc.name, pic, INTRO.won, [{ label: "Receber recompensa", action: () => {
+        const r = INTRO.reward;
+        d.gold += r.gold;
+        d.potions.hp = Math.min(MAX_POTIONS, d.potions.hp + r.potions);
+        this.hud.message(`+${r.xp} XP · +${r.gold} ouro · +${r.potions} poções`, "#ffe14d");
+        sfx.quest();
+        this.emitters.gold.explode(30, this.hero.x, this.hero.y - 14);
+        d.quest.intro = "done";
+        this.giveXp(r.xp);
+        this.afterItemsChanged();
+        d.save();
+        // The elder goes straight on to the first quest.
+        this.time.delayedCall(250, () => this.talk(n));
+      } }], done);
+    }
+  }
+
+  private startAttack(delay: number, resumed = false) {
+    this.attack = { wave: 0, foes: new Set() };
+    this.hideNpcs(resumed);
+    this.hud.banner("Ataque goblin!", "Defenda a vila Minhau");
+    sfx.boss();
+    setMusic("boss");
+    this.time.delayedCall(delay, () => this.spawnWave());
+  }
+
+  /** Raiders jump the barricades at the north, west and east gates and go straight for the hero. */
+  /** Each wave: the gates rattle as goblins push from outside, then they leap the fence into the village
+   * and go straight for the hero. */
+  private spawnWave() {
+    const a = this.attack;
+    if (!a) return;
+    const counts = INTRO.waves[a.wave];
+    this.villageGates.forEach((g, gi) => counts[gi] && g.play2("rattle", { restart: true }));
+    this.time.delayedCall(this.villageGates.length ? 1500 : 0, () => {
+      for (const g of this.villageGates) g.play2("closed");
+      this.raidWave(a);
+    });
+  }
+
+  private raidWave(a: NonNullable<GameScene["attack"]>) {
+    const last = a.wave === INTRO.waves.length - 1;
+    this.gateExits().forEach(([gx, gy, fx, fy], gi) => {
+      const count = INTRO.waves[a.wave][gi];
+      const pack: Pack = { x: gx + fx * 2, y: gy + fy * 2, level: 1 + a.wave, count, champion: false, faction: "goblin" };
+      for (let i = 0; i < count; i++) {
+        // Along the fence, 2 tiles outside; lands 2 tiles inside.
+        const off = Math.round((Math.random() - 0.5) * 4);
+        const ox = gx - fx * 2 + (fy ? off : 0), oy = gy - fy * 2 + (fx ? off : 0);
+        const f = this.grid.nearestFree(gx + fx * 2 + (fy ? off : 0), gy + fy * 2 + (fx ? off : 0), 4);
+        if (!f) continue;
+        const e = this.spawnEnemy(ox * TILE + 8, oy * TILE + 8, pack, "goblin", last && gi === 0 && i === 0 ? "champion" : "normal");
+        e.raider = true;
+        e.aggro = true;
+        a.foes.add(e);
+        this.smokePuff(e.spr.x, e.spr.y, i * 260);
+        e.spr.setAlpha(0);
+        this.tweens.add({ targets: e.spr, alpha: 1, duration: 220, delay: i * 260 + 120 });
+        this.leapIn(e, f[0] * TILE + 8, f[1] * TILE + 8, i * 260 + 380);
+      }
+    });
+    if (!a.foes.size) this.nextWave();
+  }
+
+  /** A cloud of grey smoke the raider appears in, so it does not pop out of nothing. */
+  private smokePuff(x: number, y: number, delay: number) {
+    // Two rings of soft puffs: a dense core that hides the sprite, and an outer ring that drifts away.
+    for (let i = 0; i < 14; i++) {
+      const core = i < 6;
+      const a = (i / (core ? 6 : 8)) * Math.PI * 2 + (core ? 0 : 0.4);
+      const r = core ? 3 : 8;
+      const puff = this.add.image(x + Math.cos(a) * r, y - 10 + Math.sin(a) * r * 0.6, "disc")
+        .setTint(i % 3 ? 0xa39aa0 : 0xd4ccce).setAlpha(0).setScale(core ? 0.3 : 0.22).setDepth(y + 20);
+      this.tweens.add({
+        targets: puff, delay: delay + i * 15, duration: core ? 950 : 800, ease: "Quad.easeOut",
+        alpha: { from: 1, to: 0 }, scale: core ? 0.6 : 0.45,
+        x: puff.x + Math.cos(a) * (core ? 6 : 14), y: puff.y + Math.sin(a) * (core ? 3 : 7) - 8,
+        onComplete: () => puff.destroy(),
+      });
+    }
+    this.time.delayedCall(delay, () => this.emitters.dust.explode(10, x, y));
+  }
+
+  /** A raider jumps over the fence in an arc, then lands in a puff of dust and joins the fight. */
+  private leapIn(e: Enemy, tx: number, ty: number, delay: number) {
+    const x0 = e.spr.x, y0 = e.spr.y;
+    e.charging = true;
+    e.body.enable = false;
+    e.spr.face(tx - x0, ty - y0);
+    e.spr.play2("walk", { timeScale: 1.6 });
+    this.tweens.addCounter({
+      from: 0, to: 1, duration: 560, delay,
+      onUpdate: (tw) => {
+        const k = tw.getValue() ?? 0;
+        e.spr.setPosition(x0 + (tx - x0) * k, y0 + (ty - y0) * k - Math.sin(Math.PI * k) * 26);
+        e.spr.setDepth(Math.max(e.spr.y, ty) + 4);
+      },
+      onComplete: () => {
+        if (e.state === "dead") return;
+        e.body.reset(tx, ty);
+        e.body.enable = true;
+        e.charging = false;
+        this.emitters.dust.explode(10, tx, ty);
+      },
+    });
+  }
+
+  private nextWave() {
+    const a = this.attack!;
+    a.wave++;
+    if (a.wave < INTRO.waves.length) {
+      this.hud.banner(`Onda ${a.wave + 1}/${INTRO.waves.length}`, "Mais goblins estão vindo!");
+      this.time.delayedCall(2500, () => this.spawnWave());
+      return;
+    }
+    this.attack = null;
+    const d = this.data_;
+    d.quest.intro = "won";
+    d.save();
+    sfx.quest();
+    setMusic("town");
+    // The screen fades out; when it comes back the hero is in the plaza and the villagers are out again.
+    const cam = this.cameras.main;
+    this.time.delayedCall(1200, () => {
+      cam.fadeOut(600, 0, 0, 0);
+      cam.once(Phaser.Cameras.Scene2D.Events.FADE_OUT_COMPLETE, () => {
+        this.order = null;
+        this.path = [];
+        this.heroBody.reset(this.map.spawn.x * TILE + 8, this.map.spawn.y * TILE + 8);
+        this.hero.face(0, 1);
+        this.hero.play2("idle", { restart: true });
+        this.showNpcs();
+        cam.fadeIn(700, 0, 0, 0);
+        this.hud.banner("Vila defendida!", "Fale com o Ancião Bento.");
+      });
+    });
+  }
+
+  /** During the raid the villagers run into the nearest house (or vanish at once when resuming a save). */
+  private hideNpcs(instant: boolean) {
+    const doors = this.map.props.filter((p) => p.kind === "house").map((p) => ({ x: (p.x + 2.5) * TILE, y: (p.y + 1) * TILE + 2 }));
+    for (const n of this.npcs) {
+      n.hidden = true;
+      const door = doors.sort((a, b) => Phaser.Math.Distance.Between(a.x, a.y, n.spr.x, n.spr.y) - Phaser.Math.Distance.Between(b.x, b.y, n.spr.x, n.spr.y))[0];
+      if (instant || !door) {
+        n.spr.setVisible(false);
+        continue;
+      }
+      const ms = Phaser.Math.Distance.Between(door.x, door.y, n.spr.x, n.spr.y) / 70 * 1000;
+      n.spr.face(door.x - n.spr.x, door.y - n.spr.y);
+      n.spr.play2("walk", { timeScale: 1.4 });
+      this.tweens.add({
+        targets: n.spr, x: door.x, y: door.y, duration: ms, onUpdate: () => n.spr.setDepth(n.spr.y),
+        onComplete: () => this.tweens.add({ targets: n.spr, alpha: 0, duration: 250, onComplete: () => n.spr.setVisible(false) }),
+      });
+    }
+  }
+
+  private showNpcs() {
+    for (const n of this.npcs) {
+      this.tweens.killTweensOf(n.spr);
+      n.hidden = false;
+      n.spr.setPosition(n.home.x, n.home.y).setDepth(n.home.y).setAlpha(1).setVisible(true);
+      n.spr.face(0, 1);
+      n.spr.play2("idle", { restart: true });
+    }
+  }
+
   private npcPortrait(n: Npc) {
     return hasSprite(n.spr.spriteName) ? portrait(this, n.spr.spriteName, 2) : null;
   }
@@ -2404,6 +2812,7 @@ export class GameScene extends Phaser.Scene {
     const q = d.currentQuest;
     const pic = this.npcPortrait(n);
     const shop = n.id === "smith" ? [{ label: "Ver mercadorias", action: () => { done(); this.hud.openShop(d.shop, this.rerollCost()); } }] : [];
+    if (n.id === "elder" && d.quest.intro !== "done") return this.talkIntro(n, pic, done);
     if (q && q.giver === n.id) {
       if (d.quest.status === "available") {
         this.hud.dialog(npc.name, pic, q.intro, [{ label: `Aceitar: ${q.title}`, action: () => { this.acceptQuest(); done(); } }, ...shop], done);
@@ -2432,6 +2841,7 @@ export class GameScene extends Phaser.Scene {
     d.quest.status = "active";
     d.quest.progress = 0;
     this.hud.message(`Nova missão: ${q.title}`, "#ffe14d");
+    if (this.map.gates.length && !this.gatesLocked && (this.gateObjs.length || this.villageGates.length)) this.openGates();
     if (q.objective.type === "unique" && d.quest.killed.includes(q.objective.id)) this.questProgress();
     d.save();
   }
@@ -2492,6 +2902,7 @@ export class GameScene extends Phaser.Scene {
 
   private npcMark(n: Npc): "" | "!" | "?" {
     const d = this.data_;
+    if (d.quest.intro !== "done") return n.id !== "elder" ? "" : d.quest.intro === "road" ? "!" : d.quest.intro === "won" ? "?" : "";
     const q = d.currentQuest;
     if (!q || q.giver !== n.id) return "";
     return d.quest.status === "available" ? "!" : d.quest.status === "ready" ? "?" : "";
@@ -2549,6 +2960,11 @@ export class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- loot
 
+  /** How far item drops have grown with the hero's level: 0 at level 1, 1 from level 15. */
+  private get dropGrowth() {
+    return Phaser.Math.Clamp((this.data_.level - 1) / 14, 0, 1);
+  }
+
   private dropLoot(e: Enemy) {
     const d = this.data_;
     const x = e.spr.x, y = e.spr.y;
@@ -2558,12 +2974,18 @@ export class GameScene extends Phaser.Scene {
       const amt = Math.round(lvl * (2 + Math.random() * 5) * rich * (e.rank === "boss" ? 12 : e.rank === "champion" ? 3 : e.type === "brute" ? 2 : 1));
       this.spawnLoot({ kind: "gold", amount: amt }, x, y);
     }
-    if (Math.random() < (e.rank === "normal" ? 0.12 : 0.6)) this.spawnLoot({ kind: Math.random() < 0.65 ? "potion_hp" : "potion_mp", amount: 1 }, x, y);
-    let items = e.rank === "boss" ? 4 : e.rank === "champion" ? 1 + (Math.random() < 0.5 ? 1 : 0) : Math.random() < 0.13 ? 1 : 0;
-    if (e.type === "brute" && e.rank === "normal" && Math.random() < 0.35) items++;
+    if (Math.random() < (e.rank === "normal" ? 0.08 : 0.5)) this.spawnLoot({ kind: Math.random() < 0.65 ? "potion_hp" : "potion_mp", amount: 1 }, x, y);
+    // Items are scarce early and get more frequent as the hero levels (t: 0 at level 1, 1 from level 15).
+    // Normal kills: 1 in 50 at level 1, ~1 in 14 at 15; champions 35% -> 75%; bosses 1-2 -> 2-3.
+    const t = this.dropGrowth;
+    let items = e.rank === "boss" ? 1 + (Math.random() < 0.5 + 0.5 * t ? 1 : 0) + (Math.random() < 0.5 * t ? 1 : 0)
+      : e.rank === "champion" ? (Math.random() < 0.35 + 0.4 * t ? 1 : 0) + (Math.random() < 0.15 * t ? 1 : 0)
+      : Math.random() < 0.02 + 0.05 * t ? 1 : 0;
+    if (e.type === "brute" && e.rank === "normal" && Math.random() < 0.08 + 0.12 * t) items++;
+    // Rarity is capped by the hero's level (see maxRarityFor).
     for (let i = 0; i < items; i++) {
-      let r: Rarity = rollRarity((e.rank === "boss" ? 3 : e.rank === "champion" || e.type === "brute" ? 1.8 : 1) * this.magicFind);
-      if (e.rank === "boss" && i === 0) r = Math.random() < 0.5 ? "unique" : "rare";
+      let r: Rarity = rollRarity((e.rank === "boss" ? 3 : e.rank === "champion" || e.type === "brute" ? 1.8 : 1) * this.magicFind, d.level);
+      if (e.rank === "boss" && i === 0) r = capRarity(Math.random() < 0.5 ? "unique" : "rare", d.level);
       this.spawnLoot({ kind: "item", amount: 1, item: generateItem(lvl, d.def, r) }, x, y);
     }
   }
@@ -2577,8 +2999,8 @@ export class GameScene extends Phaser.Scene {
     const d = this.data_;
     const lvl = c.level + this.tierBonus;
     this.spawnLoot({ kind: "gold", amount: Math.round(lvl * (6 + Math.random() * 10)) }, c.spr.x, c.spr.y + 4);
-    const n = 1 + Math.floor(Math.random() * 3);
-    for (let i = 0; i < n; i++) this.spawnLoot({ kind: "item", amount: 1, item: generateItem(lvl, d.def, rollRarity((1.6) * this.magicFind)) }, c.spr.x, c.spr.y + 4);
+    const n = 1 + (Math.random() < 0.1 + 0.25 * this.dropGrowth ? 1 : 0);
+    for (let i = 0; i < n; i++) this.spawnLoot({ kind: "item", amount: 1, item: generateItem(lvl, d.def, rollRarity(1.6 * this.magicFind, d.level)) }, c.spr.x, c.spr.y + 4);
     if (Math.random() < 0.6) this.spawnLoot({ kind: "potion_hp", amount: 1 }, c.spr.x, c.spr.y + 4);
     const q = d.currentQuest;
     if (q && d.quest.status === "active" && q.objective.type === "chests") this.questProgress();
@@ -2780,6 +3202,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private floatAt(wx: number, wy: number, text: string, cls: string) {
+    if (this.cinematic) return; // no damage/XP numbers during the opening cutscene
     const cam = this.cameras.main;
     const v = cam.worldView;
     this.hud.float((wx - v.x) * cam.zoom, (wy - v.y) * cam.zoom, text, cls);
@@ -2808,13 +3231,22 @@ export class GameScene extends Phaser.Scene {
       if (bar) bar.style.width = `${Math.max(0, r.st.hp / r.st.maxHp) * 100}%`;
     }
     for (const n of this.npcs) {
-      const mark = this.npcMark(n);
-      const html = `${mark ? `<div class="mark${mark === "?" ? " ready" : ""}">${mark}</div>` : ""}<div class="nname">${NPCS[n.id].name}</div>`;
+      const mark = n.hidden ? "" : this.npcMark(n);
+      if (n.marker) {
+        n.marker.setVisible(!!mark);
+        if (mark) n.marker.play2(mark === "?" ? "ready" : "quest");
+        // Just above the name tag.
+        n.marker.setPosition(n.spr.x, n.spr.y - 30 - n.tag.offsetHeight / cam.zoom - 2);
+      }
+      const info = NPCS[n.id];
+      const html = `${mark && !n.marker ? `<div class="mark${mark === "?" ? " ready" : ""}">${mark}</div>` : ""}`
+        + `<div class="nname"><img class="nicon" src="${npcIcon(info.icon)}">${info.name}</div><div class="ntitle">${info.title}</div>`;
       if (n.tag.dataset.html !== html) {
         n.tag.innerHTML = html;
         n.tag.dataset.html = html;
       }
-      place(n.tag, n.spr.x, n.spr.y - 30);
+      if (n.hidden) n.tag.style.display = "none";
+      else place(n.tag, n.spr.x, n.spr.y - 30);
     }
   }
 }

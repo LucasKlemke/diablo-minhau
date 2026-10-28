@@ -1,0 +1,250 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: barn
+kind: prop
+view: topdown
+size: 128                # 80 px wide, ~100 px tall incl. cupola, 2+ px margins
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 2.0, -1.4]}
+shadow: {rx: 44, ry: 10, alpha: 90}
+
+# Village barn (replaces the Farm RPG house frame "h0").
+brief:
+  summary: friendly village barn, 5x3 tiles (4.4 x 2.64 units, 80 px wide on screen); same gable-front body,
+    red-orange tiled roof and cream plank walls as the cottage, but a big red double barn door with cream
+    X braces filling the front, an open hay loft with hay and a hoist beam in the gable, and a small
+    louvred cupola on the ridge instead of a chimney
+  reference: public/assets/farm/house.png frame h0 (x0 y0 w80 h96), seen from s
+  must_keep: [red-orange tiled roof with ridge beam, big double barn door with X braces, hay loft with hay,
+    cupola on the ridge, cream plank walls in a dark timber frame, no chimney]
+  simplify: [roof tiles as grooves, hay as a few blended blobs, cupola louvres as two dark slits]
+  exceptions: |
+    kind prop, size 128, directions 1, mirror false; camera.center [0, 2.0, -1.4] so the tall roof fits.
+    camera.scale/pitch/light untouched. Spec-local ramps all keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: the world origin (= the exported pivot) is the ground point at the centre of the FRONT
+    (camera-facing) edge of the 5x3 footprint, i.e. the bottom-centre of the front wall. The building spans
+    x -2.2..2.2 (roof eaves; walls x -1.75..1.75) and z -2.64..0 (front wall face at z 0); the door, the
+    roof overhang and the hoist beam stick out a little in front (z > 0). The game puts the pivot on the
+    bottom edge of the footprint's front tile row.
+    The reference h0 has a striped garage-like door; it became a classic red double barn door with cream X
+    braces so it reads as a barn at 1x. Silhouette differs from the cottage: no chimney, a cupola breaking
+    the ridge line near the back, a hoist beam poking out of the gable apex. Same materials as house.yaml.
+    Only s is rendered; sides and back are modeled plainly.
+
+ramps:
+  h_roof:   ["#1c0f1a", "#5a160a", "#8a2a12", "#c33f1a", "#e0692c"]
+  h_wall:   ["#1c0f1a", "#a8786a", "#d9ab91", "#efc9b0", "#f7dbc6"]
+  h_plank:  ["#1c0f1a", "#8f5f55", "#b98676", "#d9ab91"]
+  h_timber: ["#1c0f1a", "#3a1a1c", "#5e2a24", "#8a3625", "#a8482e"]
+  h_door:   ["#1c0f1a", "#5e2a24", "#8a3625", "#ae4924", "#c45a32"]
+  h_glass:  ["#1c0f1a", "#3f78a8", "#7ec4ea", "#c4ecfa"]
+  h_soot:   ["#1c0f1a", "#241418", "#3a2a2e"]
+  h_hay:    ["#1c0f1a", "#9e6d32", "#e1a227", "#eddc83"]
+  h_gold:   ["#1c0f1a", "#804a19", "#e1a227", "#eddc83"]
+
+materials:
+  roof:    {ramp: h_roof, bands: [2, 4]}
+  roof_ln: {ramp: h_roof, bands: [1, 2], outline: false, line: false}
+  wall:    {ramp: h_wall, bands: [2, 4]}
+  plank:   {ramp: h_plank, bands: [1, 2], outline: false, line: false}
+  timber:  {ramp: h_timber, bands: [1, 3]}
+  door:    {ramp: h_door, bands: [1, 3]}
+  glass:   {ramp: h_glass, bands: [1, 3]}
+  soot:    {ramp: h_soot, bands: [1, 2]}
+  trim:    {ramp: h_wall, bands: [2, 4]}
+  hay:     {ramp: h_hay, bands: [1, 3]}
+  gold:    {ramp: h_gold, bands: [2, 3], outline: false}
+
+channels:
+  root: [0, 0, 0]
+
+# Layout (world units, +x = screen right, +z = towards the camera). Pivot/origin = front-centre ground.
+# Walls x +-1.75, y 0..1.95, z -2.64..0. Gable apex y 3.70 at x 0. Roof slabs at 45 deg, eaves at x +-2.12 (+outline = 80 px).
+bones:
+  body: {parent: root}
+
+parts:
+  walls:
+    material: wall
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.975, -1.32], half: [1.75, 0.975, 1.32]}
+  attic:           # triangular attic prism (a 45-degree diamond whose lower half hides in the walls)
+    material: wall
+    space: body
+    prims:
+      - box: {c: [0, 1.95, -1.32], half: [1.237, 1.237, 1.32], rot: [0, 0, 0.7854]}
+  planks:          # horizontal board lines on the front wall and gable
+    material: plank
+    space: body
+    prims:
+      - box: {c: [0, 0.36, 0.01], half: [1.70, 0.035, 0.01]}
+      - box: {c: [0, 0.76, 0.01], half: [1.70, 0.035, 0.01]}
+      - box: {c: [0, 1.16, 0.01], half: [1.70, 0.035, 0.01]}
+      - box: {c: [0, 1.56, 0.01], half: [1.70, 0.035, 0.01]}
+      - box: {c: [0, 2.40, 0.01], half: [1.25, 0.035, 0.01]}
+      - box: {c: [0, 2.80, 0.01], half: [0.85, 0.035, 0.01]}
+      - box: {c: [0, 3.20, 0.01], half: [0.45, 0.035, 0.01]}
+  frame_L:         # timber corner posts
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.68, 0.975, -0.02], half: [0.11, 0.975, 0.10]}
+  beam:            # horizontal beam under the gable and the sill along the ground
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.98, 0.02], half: [1.82, 0.08, 0.08]}
+      - box: {c: [0, 0.05, 0.02], half: [1.80, 0.05, 0.06]}
+  roof_L:          # roof slab on +x (screen right), mirrored to roof_R
+    material: roof
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.075, 2.765, -1.30], half: [1.48, 0.10, 1.60], rot: [0, 0, -0.7854]}
+  # Tile grooves sit on the slab's top surface (surface line y = 3.98 - x; s = distance from the ridge).
+  # Courses run front-to-back (vertical on screen); cross grooves are staggered (diagonal on screen).
+  tiles_L:
+    material: roof_ln
+    space: body
+    prims:
+      - box: {c: [0.548, 3.467, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [1.078, 2.937, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [1.609, 2.407, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, 0.00], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -0.60], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -1.20], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -1.80], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -2.40], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -0.30], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -0.90], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -1.50], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -2.10], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -2.70], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, 0.00], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -0.60], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -1.20], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -1.80], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -2.40], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -0.30], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -0.90], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -1.50], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -2.10], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -2.70], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+  barge_L:         # dark timber bargeboard under the front edge of the tiles
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.03, 2.61, 0.27], half: [1.50, 0.13, 0.06], rot: [0, 0, -0.7854]}
+  ridge:           # ridge beam with a cap block at the front apex
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.86, -1.30], half: [0.13, 0.13, 1.62], round: 0.02}
+      - box: {c: [0, 3.70, 0.30], half: [0.17, 0.20, 0.10], round: 0.02}
+  door_frame:      # timber frame around the big double door
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.84, 0.03], half: [1.24, 0.86, 0.05]}
+  door_L:          # door leaf on +x (screen right), mirrored to door_R
+    material: door
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.565, 0.76, 0.08], half: [0.545, 0.76, 0.03]}
+  boards_L:        # vertical board lines on the leaf
+    material: timber
+    space: body
+    prims:
+      - box: {c: [0.30, 0.76, 0.115], half: [0.025, 0.72, 0.01]}
+      - box: {c: [0.83, 0.76, 0.115], half: [0.025, 0.72, 0.01]}
+  brace_L:         # cream rails and X brace on the leaf
+    material: trim
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.565, 1.42, 0.13], half: [0.50, 0.07, 0.03]}
+      - box: {c: [0.565, 0.10, 0.13], half: [0.50, 0.07, 0.03]}
+      - box: {c: [0.565, 0.76, 0.13], half: [0.06, 0.62, 0.025], rot: [0, 0, 0.66]}
+      - box: {c: [0.565, 0.76, 0.13], half: [0.06, 0.62, 0.025], rot: [0, 0, -0.66]}
+      - box: {c: [0.07, 0.76, 0.13], half: [0.05, 0.70, 0.03]}
+      - box: {c: [1.06, 0.76, 0.13], half: [0.05, 0.70, 0.03]}
+  handle_L:
+    material: gold
+    space: body
+    prims:
+      - box: {c: [0.18, 0.80, 0.17], half: [0.03, 0.12, 0.02]}
+  loft_frame:      # hay loft opening in the gable
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.58, 0.03], half: [0.42, 0.40, 0.05]}
+  loft_dark:
+    material: soot
+    space: body
+    prims:
+      - box: {c: [0, 2.58, 0.06], half: [0.32, 0.31, 0.03]}
+  hay:             # hay piled in the loft, spilling over the sill
+    material: hay
+    space: body
+    blend: 0.05
+    prims:
+      - box: {c: [0, 2.36, 0.09], half: [0.31, 0.13, 0.04]}
+      - ellipsoid: {c: [-0.14, 2.50, 0.08], r: [0.17, 0.08, 0.05]}
+      - ellipsoid: {c: [0.13, 2.49, 0.08], r: [0.17, 0.07, 0.05]}
+      - ellipsoid: {c: [0, 2.20, 0.13], r: [0.36, 0.05, 0.08]}
+  hoist:           # hoist beam poking out of the gable apex with a hanging hook
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.22, 0.18], half: [0.09, 0.09, 0.30]}
+  hoist_rope:
+    material: soot
+    space: body
+    prims:
+      - cylinder: {a: [0, 3.14, 0.42], b: [0, 2.98, 0.42], r: 0.025}
+      - torus: {c: [0, 2.95, 0.42], R: 0.05, r: 0.02, rot: [1.5708, 0, 0]}
+  cupola:          # small louvred cupola on the ridge near the back
+    material: wall
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.95, -1.95], half: [0.30, 0.42, 0.30]}
+  cupola_slits:
+    material: soot
+    space: body
+    prims:
+      - box: {c: [-0.10, 4.05, -1.64], half: [0.05, 0.18, 0.01]}
+      - box: {c: [0.10, 4.05, -1.64], half: [0.05, 0.18, 0.01]}
+  cupola_roof:     # tiny gable roof, same pitch and orientation as the main roof
+    material: roof
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 4.37, -1.95], half: [0.30, 0.30, 0.40], rot: [0, 0, 0.7854]}
+    cut:
+      - box: {c: [0, 4.07, -1.95], half: [0.8, 0.30, 0.8]}
+  cupola_ridge:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 4.80, -1.95], half: [0.06, 0.06, 0.42]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

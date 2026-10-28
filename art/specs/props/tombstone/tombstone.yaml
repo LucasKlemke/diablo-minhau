@@ -1,0 +1,79 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: tombstone
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.40, 0]}
+shadow: {rx: 12, ry: 4, alpha: 100}
+
+# Graveyard dressing around the crypt (with crypt_floor, dead_tree, grave_fence).
+brief:
+  summary: old rounded-top gravestone, slightly tilted, crypt-grey stone with a carved cross, moss on top and
+    a low earth mound in front; ~1 tile wide
+  must_keep: [rounded top, carved cross, tilt, earth mound]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false. camera.scale/pitch/light untouched.
+    Spec-local ramps keep index 0 = #1c0f1a; stone ramps match the crypt.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot) is the ground point under the centre of the stone's
+    base. The mound lies in front (z > 0). Tilted 0.12 rad to the right so a row of them looks neglected.
+
+ramps:
+  ts_stone: ["#1c0f1a", "#46405a", "#6a6480", "#918aa3", "#bcb6c8"]
+  ts_earth: ["#1c0f1a", "#3f3040", "#55434f", "#6b5660"]
+  ts_moss:  ["#1c0f1a", "#2b4a22", "#4f7d33", "#74a347"]
+  ts_void:  ["#1c0f1a", "#1f1622", "#2a1f2c"]
+
+materials:
+  stone: {ramp: ts_stone, bands: [1, 4]}
+  earth: {ramp: ts_earth, bands: [1, 3]}
+  moss:  {ramp: ts_moss, bands: [1, 3]}
+  carve: {ramp: ts_void, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body:  {parent: root}
+  stone: {parent: body, rot: [-0.05, 0, -0.12]}
+
+parts:
+  slab:
+    material: stone
+    space: stone
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.32, 0], half: [0.30, 0.32, 0.08], round: 0.02}
+      - cylinder: {a: [0, 0.64, -0.08], b: [0, 0.64, 0.08], r: 0.30}
+  base:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.05, 0], half: [0.38, 0.05, 0.14], round: 0.02}
+  cross:
+    material: carve
+    space: stone
+    prims:
+      - box: {c: [0, 0.56, 0.085], half: [0.04, 0.22, 0.01]}
+      - box: {c: [0, 0.64, 0.085], half: [0.14, 0.04, 0.01]}
+  mound:
+    material: earth
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.36], r: [0.28, 0.05, 0.24]}
+  moss:
+    material: moss
+    space: stone
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.14, 0.88, 0], r: [0.14, 0.06, 0.10]}
+      - ellipsoid: {c: [0.24, 0.12, 0.06], r: [0.10, 0.10, 0.06]}
+
+animations:
+  idle: {frames: 1, ms: 1000, channels: {}}

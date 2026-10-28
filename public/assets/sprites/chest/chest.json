@@ -230,6 +230,90 @@
     "h": 32
    },
    "duration": 220
+  },
+  "hover_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 110
+  },
+  "hover_s_1": {
+   "frame": {
+    "x": 32,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 100
+  },
+  "hover_s_2": {
+   "frame": {
+    "x": 64,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 110
+  },
+  "hover_s_3": {
+   "frame": {
+    "x": 96,
+    "y": 96,
+    "w": 32,
+    "h": 32
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 32,
+    "h": 32
+   },
+   "sourceSize": {
+    "w": 32,
+    "h": 32
+   },
+   "duration": 100
   }
  },
  "meta": {
@@ -239,7 +323,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 160,
-   "h": 96
+   "h": 128
   },
   "scale": "1",
   "frameTags": [
@@ -259,6 +343,12 @@
     "name": "opened_s",
     "from": 9,
     "to": 10,
+    "direction": "forward"
+   },
+   {
+    "name": "hover_s",
+    "from": 11,
+    "to": 14,
     "direction": "forward"
    }
   ]
@@ -355,6 +445,27 @@
       "durations": [
        220,
        220
+      ],
+      "events": {}
+     }
+    }
+   },
+   "hover": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 3,
+      "frames": [
+       "hover_s_0",
+       "hover_s_1",
+       "hover_s_2",
+       "hover_s_3"
+      ],
+      "durations": [
+       110,
+       100,
+       110,
+       100
       ],
       "events": {}
      }

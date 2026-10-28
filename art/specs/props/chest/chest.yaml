@@ -39,8 +39,10 @@ channels:
   glint: 0          # gold spark on the lock (0 off, 1 on)
   glint_x: 0        # spark position across the plate
   glint_y: 0.29     # spark height on the plate
+  glint_r: 0.04     # spark radius (hover makes it bigger)
   glow: 0           # inner glow strength (0..1)
   rays: 0           # light rays length (0..1)
+  seam: 0           # gold light leaking from the lid seam (hover; 0 off)
 
 bones:
   body: {parent: root, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
@@ -86,7 +88,7 @@ parts:
     space: body
     when: "glint > 0"
     prims:
-      - sphere: {c: "[glint_x, glint_y, 0.28]", r: 0.04}
+      - sphere: {c: "[glint_x, glint_y, 0.28]", r: "glint_r"}
   lid_wood:
     material: wood
     space: lid
@@ -121,6 +123,12 @@ parts:
     when: "glow > 0"
     prims:
       - ellipsoid: {c: [0, 0.3, 0], r: "[0.3*glow, 0.06 + 0.06*glow, 0.17*glow]"}
+  seam_glow:        # thin gold strip in the gap under a lifted lid (hover)
+    material: glow
+    space: body
+    when: "seam > 0"
+    prims:
+      - box: {c: [0, 0.345, 0.215], half: ["0.27*seam", 0.025, 0.02]}
   light_rays:
     material: ray
     space: body
@@ -147,3 +155,10 @@ animations:
     frames: 2
     ms: 220
     channels: {lid: 1.88, glow: "0.8 + 0.15*cos(p)", rays: "0.6 + 0.12*cos(p)"}
+  hover:            # cursor over the chest: lid rattles 1-2 px, gold leaks from the seam, lock glint flares
+    loop: true
+    keys:
+      - {ms: 110, set: {lid: 0.04, glint: 1, glint_x: -0.035, glint_y: 0.3, glint_r: 0.045}}                                # near idle
+      - {ms: 100, set: {lid: 0.2, squash: 1.03, seam: 1, glint: 1, glint_x: -0.03, glint_y: 0.3, glint_r: 0.06}}             # lid hops
+      - {ms: 110, set: {lid: 0.08, seam: 0.6, glint: 1, glint_x: -0.035, glint_y: 0.3, glint_r: 0.05}}                       # rattles down
+      - {ms: 100, set: {lid: 0.17, squash: 1.02, seam: 0.9, glint: 1, glint_x: -0.03, glint_y: 0.3, glint_r: 0.06}}          # hops again

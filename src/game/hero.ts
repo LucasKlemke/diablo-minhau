@@ -8,7 +8,7 @@ import { addStats, emptyStats, type Stats } from "../data/stats";
 export const INVENTORY_SIZE = 30;
 export const MAX_POTIONS = 9;
 
-export const xpForLevel = (lvl: number) => (lvl <= 1 ? 0 : Math.round(90 * Math.pow(lvl - 1, 1.6)));
+export const xpForLevel = (lvl: number) => (lvl <= 1 ? 0 : Math.round(150 * Math.pow(lvl - 1, 1.9)));
 
 export interface Buff { id: string; until: number; stats: Partial<Stats>; tint: number }
 
@@ -18,6 +18,8 @@ export interface QuestState {
   status: "available" | "active" | "ready";
   progress: number;
   prologueSeen: boolean;
+  /** Act I opening: walk to the village, defend it from the raid, collect the reward; then the quests. */
+  intro: "road" | "attack" | "won" | "done";
   /** Story bosses already slain (they never come back). */
   killed: string[];
 }
@@ -33,7 +35,7 @@ export class HeroData {
   equipment: Partial<Record<Slot, Item>> = {};
   ranks: Record<string, number> = {};
   skillPoints = 0;
-  quest: QuestState = { index: 0, status: "available", progress: 0, prologueSeen: false, killed: [] };
+  quest: QuestState = { index: 0, status: "available", progress: 0, prologueSeen: false, intro: "road", killed: [] };
   /** Current zone, fixed world seeds per zone and dungeons already cleared ("forest:0"). */
   zone: ZoneId = "forest";
   seeds: Record<string, number> = {};
@@ -241,10 +243,13 @@ export class HeroData {
       h.difficulty = d.difficulty ?? "normal";
       h.playtime = d.playtime ?? 0;
       Object.assign(h, { level: d.level, xp: d.xp, gold: d.gold, potions: d.potions, equipment: d.equipment ?? {} });
+      // The XP curve got steeper: older saves keep their level, with XP at least that level's floor.
+      h.xp = Math.max(h.xp, xpForLevel(h.level));
       if (d.ranks) Object.assign(h.ranks, d.ranks);
       // Older saves had no skill points: grant one per level.
       h.skillPoints = d.skillPoints ?? Math.max(0, h.level - 1);
-      if (d.quest) h.quest = { ...h.quest, ...d.quest };
+      // Saves from before the village raid skip it.
+      if (d.quest) h.quest = { ...h.quest, intro: "done", ...d.quest };
       if (d.zone) h.zone = d.zone;
       if (d.seeds) h.seeds = d.seeds;
       if (d.cleared) h.cleared = d.cleared;

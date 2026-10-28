@@ -26,6 +26,10 @@ export interface WorldMap {
   chests: { x: number; y: number; level: number }[];
   packs: Pack[];
   spawn: { x: number; y: number };
+  /** Act I: where a new hero starts, at the far end of the forest road leading to the village. */
+  start?: { x: number; y: number };
+  /** Act I: village exits closed by barricades until the first quest is accepted (tiles of the fence gaps). */
+  gates: { x: number; y: number; kind: "fence_h" | "fence_v" }[];
   portal: { x: number; y: number };
   /** Abandoned houses: entering one loads that zone's dungeon `index`. */
   dungeons: { x: number; y: number; index: number }[];
@@ -83,22 +87,32 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
   const town = village ? { x0: cx - 13, y0: cy - 9, x1: cx + 13, y1: cy + 9 } : { x0: cx - 5, y0: cy - 4, x1: cx + 5, y1: cy + 4 };
 
   // Roads: wobbling dirt lines from the village to the four edges.
-  const road = (dx: number, dy: number) => {
+  const road = (dx: number, dy: number, straight = false) => {
     let x = cx, y = cy, wob = 0;
+    const tiles: [number, number][] = [];
     while (x > 3 && y > 3 && x < MAP_W - 4 && y < MAP_H - 4) {
+      tiles.push([x, y]);
       for (let oy = -1; oy <= 1; oy++)
         for (let ox = -1; ox <= 1; ox++) {
           if (!inside(x + ox, y + oy)) continue;
           grass[idx(x + ox, y + oy)] = false;
           reserved[idx(x + ox, y + oy)] = true;
         }
+      if (straight) {
+        x += dx;
+        y += dy;
+        continue;
+      }
       wob += (rand() - 0.5) * 0.9;
       wob = Math.max(-1, Math.min(1, wob));
       x += dx || (rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
       y += dy || (rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
     }
+    return tiles;
   };
-  road(1, 0); road(-1, 0); road(0, 1); road(0, -1);
+  road(1, 0); road(-1, 0);
+  const southRoad = road(0, 1, village); // Act I: the straight trail the hero arrives by
+  road(0, -1);
 
   // Village (or portal clearing): grass with a dirt plaza, reserved from trees.
   for (let y = town.y0; y <= town.y1; y++)
@@ -107,6 +121,38 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
       grass[idx(x, y)] = !(Math.abs(x - cx) <= 4 && Math.abs(y - cy) <= 3);
     }
   const block = (x: number, y: number) => inside(x, y) && (blocked[idx(x, y)] = true);
+
+  // Act I: south of the village there is only the trail the hero arrives by: a wide, straight road between
+  // two walls of forest, from the hero's start to the village gate. Nothing else of the map is out there
+  // (no camps, chests or dungeons); the three goblins on it are the ones of the arrival cutscene.
+  const corridor = new Array<boolean>(MAP_W * MAP_H).fill(false);
+  const nearTrail = corridor; // no camps around the trail
+  const trail = village ? southRoad.filter(([, y]) => y >= town.y1 + 2) : [];
+  const OPEN = 6, WALL = 8; // open ground half-width, then this many tiles of dense forest
+  if (trail.length) {
+    const y0 = town.y1 + 2;
+    for (let y = y0; y < MAP_H; y++)
+      for (let x = 0; x < MAP_W; x++) {
+        const i = idx(x, y), ox = Math.abs(x - cx);
+        corridor[i] = reserved[i] = true;
+        if (ox <= 1 && y <= trail[trail.length - 1][1]) continue; // the road itself (dirt)
+        grass[i] = true;
+        if (ox <= OPEN && y <= trail[trail.length - 1][1]) {
+          // Open verge: grass, a few flowers and stumps.
+          const r = rand();
+          if (ox >= 3 && r < 0.05) props.push({ kind: "plant", x, y, frame: [15, 16, 44, 45, 46, 72, 73, 100, 101][Math.floor(rand() * 9)] });
+          else if (ox >= 4 && r < 0.07) { props.push({ kind: "tree_stump", x, y }); blocked[i] = true; }
+          else if (ox >= 4 && r < 0.09) { props.push({ kind: "tree_bush", x, y }); }
+          continue;
+        }
+        blocked[i] = true;
+        // The forest edge is dense; farther out a sparser grid of big trees fills the view.
+        const edge = ox <= OPEN + WALL;
+        if (edge ? (x + y) % 2 === 0 : x % 2 === 0 && y % 2 === 0)
+          props.push({ kind: edge && ox <= OPEN + 2 && rand() < 0.5 ? "tree_medium" : "tree_big", x, y });
+      }
+  }
+
   const portal = village ? { x: cx - 3, y: cy - 1 } : { x: cx, y: cy - 2 };
   block(portal.x, portal.y);
 
@@ -140,10 +186,16 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
     props.push({ kind: "house", x: hx, y: hy, frame: variant });
     for (let y = hy - 2; y <= hy; y++) for (let x = hx; x < hx + 5; x++) block(x, y);
   }
-  // Fence around the village, with gaps for the roads.
+  // Fence around the village, with gaps for the roads; in Act I the north, west and east gaps are gates.
+  const gates: WorldMap["gates"] = [];
+  if (village)
+    for (let o = -2; o <= 2; o++)
+      gates.push({ x: cx + o, y: town.y0, kind: "fence_h" }, { x: town.x0, y: cy + o, kind: "fence_v" }, { x: town.x1, y: cy + o, kind: "fence_v" });
+  // The south gap follows the road where it leaves the village, so the trail always gets in.
+  const southGap = southRoad.find(([, y]) => y === town.y1 + 1)?.[0] ?? cx;
   for (let x = town.x0; x <= town.x1 && village; x++) {
-    if (Math.abs(x - cx) <= 2) continue;
     for (const y of [town.y0, town.y1 + 1]) {
+      if (Math.abs(x - (y === town.y0 ? cx : southGap)) <= 2) continue;
       props.push({ kind: "fence_h", x, y });
       block(x, y);
     }
@@ -167,6 +219,7 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
       const border = x < 3 || y < 3 || x >= MAP_W - 3 || y >= MAP_H - 3;
       if (border) {
         blocked[i] = true;
+        if (corridor[i]) continue; // the trail's forest already fills it
         if ((x + y) % 2 === 0 && rand() < 0.8) props.push({ kind: "tree_big", x, y });
         continue;
       }
@@ -205,7 +258,7 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
   while (packs.length < 42 && tries++ < 5000) {
     const x = 4 + Math.floor(rand() * (MAP_W - 8));
     const y = 4 + Math.floor(rand() * (MAP_H - 8));
-    if (!free(x, y) || dist(x, y) < (village ? 25 : 14)) continue;
+    if (!free(x, y) || nearTrail[idx(x, y)] || dist(x, y) < (village ? 25 : 14)) continue;
     if (packs.some((p) => Math.hypot(p.x - x, p.y - y) < 9)) continue;
     const level = levelAt(x, y);
     // Bandits camp along the roads, farther out; goblins everywhere.
@@ -230,12 +283,19 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
   while (chests.length < 14 && tries++ < 3000) {
     const x = 4 + Math.floor(rand() * (MAP_W - 8));
     const y = 4 + Math.floor(rand() * (MAP_H - 8));
-    if (!free(x, y) || dist(x, y) < 18 || chests.some((c) => Math.hypot(c.x - x, c.y - y) < 12)) continue;
+    if (!free(x, y) || corridor[idx(x, y)] || dist(x, y) < 18 || chests.some((c) => Math.hypot(c.x - x, c.y - y) < 12)) continue;
     chests.push({ x, y, level: levelAt(x, y) });
     block(x, y);
   }
 
+  // The hero starts near the far end of the trail (its goblins come with the arrival cutscene).
+  let start: WorldMap["start"];
+  if (trail.length > 12) {
+    const [sx, sy] = trail[trail.length - 3];
+    start = { x: sx, y: sy };
+  }
+
   const npcs: WorldMap["npcs"] = village ? { elder: [cx + 2, cy - 2], smith: [town.x0 + 8, cy - 4], hunter: [town.x1 - 3, cy + 3] } : null;
   if (npcs) for (const [x, y] of Object.values(npcs)) block(x, y);
-  return { kind: "zone", grass, blocked, props, chests, packs, spawn: { x: cx, y: cy + 1 }, portal, dungeons, town, npcs };
+  return { kind: "zone", grass, blocked, props, chests, packs, spawn: { x: cx, y: cy + 1 }, start, gates, portal, dungeons, town, npcs };
 }

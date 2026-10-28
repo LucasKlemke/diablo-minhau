@@ -1,0 +1,114 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: tree_medium
+kind: prop
+view: topdown
+size: 64                 # ~26 x 41 px on screen at camera.scale 0.055, 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.15, 0]}
+shadow: {rx: 11, ry: 4, alpha: 110}
+
+# Medium leafy tree (replaces the Farm RPG "medium" tree, tree.png x64 y0 w32 h48).
+brief:
+  summary: medium round leafy tree, a smaller bumpy cluster-of-spheres crown, slightly taller than wide, in
+    vivid greens lit from the top-left with a dark green underside, on a short red-brown trunk with roots
+  reference: public/assets/farm/tree.png (frame x64 y0 w32 h48, seen from s)
+  must_keep: [bumpy oval crown, light top-left / dark underside, short red-brown trunk with root flare]
+  simplify: [no branches visible at this size; leaf clusters are lumps separated by inner lines]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.15, 0]. camera.scale/pitch/light
+    untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT = world origin = ground point at the centre of the trunk base (the game places the sprite by it).
+    Colour contract with the game's biome recolour (green > red+6 and green >= blue): every leaf tone is
+    green-dominant; bark tones are red-brown (red > green), and the outline #1c0f1a is not green-dominant.
+    Same leaf and bark ramps as tree_big so the two read as one species at two ages.
+
+ramps:
+  tree_leaf: ["#1c0f1a", "#174438", "#0f6542", "#1a8321", "#38a129", "#6ebd3c"]
+  tree_bark: ["#1c0f1a", "#4a2123", "#8a3625", "#ae4924", "#c46120"]
+
+materials:
+  leaf:      {ramp: tree_leaf, bands: [2, 5]}
+  leaf_dark: {ramp: tree_leaf, bands: [1, 2]}
+  bark:      {ramp: tree_bark, bands: [1, 4]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+# Layout (world units, +x = screen right, +z = towards the camera). Trunk base at the origin; crown centre
+# ~y 1.5, crown x +-0.67 (~26 px).
+parts:
+  trunk:
+    material: bark
+    space: body
+    blend: 0.07
+    prims:
+      - cone: {a: [0, 0.0, 0], b: [0, 0.85, 0], r: [0.21, 0.15]}
+      - cone: {a: [0, 0.08, 0.02], b: [0.36, 0.02, 0.12], r: [0.12, 0.06]}     # roots
+      - cone: {a: [0, 0.08, 0.02], b: [-0.37, 0.02, 0.10], r: [0.12, 0.06]}
+      - cone: {a: [0, 0.08, 0.02], b: [0.04, 0.02, 0.32], r: [0.11, 0.05]}
+  crown_back:         # underside and back masses (dark teal-green)
+    material: leaf_dark
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 1.48, -0.15], r: [0.60, 0.64, 0.52]}
+      - sphere: {c: [-0.38, 1.10, 0.08], r: 0.26}
+      - sphere: {c: [0.38, 1.10, 0.08], r: 0.26}
+      - sphere: {c: [0, 1.02, 0.0], r: 0.28}
+  crown_left:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [-0.32, 1.50, 0.26], r: 0.35}
+      - sphere: {c: [-0.48, 1.24, 0.16], r: 0.19}
+  crown_right:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [0.32, 1.47, 0.26], r: 0.34}
+      - sphere: {c: [0.48, 1.21, 0.16], r: 0.19}
+  crown_top:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [0, 1.84, 0.22], r: 0.30}
+      - sphere: {c: [-0.22, 2.00, -0.08], r: 0.23}
+      - sphere: {c: [0.22, 1.98, -0.10], r: 0.23}
+      - sphere: {c: [0, 2.04, -0.18], r: 0.26}
+  crown_tufts:        # small leaf tufts that make the silhouette bumpy
+    material: leaf
+    space: body
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.55, 1.62, -0.05], r: 0.13}
+      - sphere: {c: [0.55, 1.58, -0.05], r: 0.13}
+      - sphere: {c: [-0.36, 2.12, -0.20], r: 0.13}
+      - sphere: {c: [0.37, 2.10, -0.22], r: 0.13}
+  crown_tufts_low:    # tufts on the dark underside
+    material: leaf_dark
+    space: body
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.55, 1.16, 0.05], r: 0.13}
+      - sphere: {c: [0.55, 1.14, 0.05], r: 0.13}
+      - sphere: {c: [-0.22, 0.90, 0.25], r: 0.13}
+      - sphere: {c: [0.23, 0.88, 0.25], r: 0.13}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

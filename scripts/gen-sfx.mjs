@@ -65,6 +65,16 @@ const SOUNDS = [
   // Group 4: looping ambience.
   ["amb_town", 20, "Peaceful medieval farm village ambience, birds, light wind, distant cows and chickens, no music.", true],
   ["amb_dungeon", 20, "Dark dungeon ambience, low drone, dripping water, distant echoes, faint wind, no music.", true],
+  // Group 5: opening cutscene.
+  ["cine_drums", 8, "Tribal goblin war drums at night, fast heavy pounding rhythm, deep and menacing, no melody.", true],
+  ["cine_fire", 8, "Big campfire crackling and roaring at night, wood popping, no music.", true],
+  ["cine_night", 10, "Dark forest at night ambience, crickets, a distant owl, faint cold wind, no music.", true],
+  ...[1, 2, 3].map((i) => [`cine_laugh_0${i}`, 1.5, `${STYLE} Small goblin cackling an evil mischievous laugh, high pitched and nasal, no words.`]),
+  ["cine_cheer", 3, `${STYLE} A horde of goblins cheering and howling around a fire, chaotic high pitched shrieks and cackles, no words.`],
+  ["cine_grumm", 2.5, `${STYLE} Huge goblin king roaring a guttural raspy war cry, monstrous, no words.`],
+  ["cine_bell", 4, `${STYLE} Distant village alarm bell ringing urgently at dusk, faint echo over fields.`],
+  ["cine_ambush", 1.5, `${STYLE} Several goblins screeching a battle cry as they leap out of bushes, leaves rustling, no words.`],
+  ["cine_title", 3, `${STYLE} Cinematic title hit, deep boom with a dark reverb tail and a metallic ring.`],
 ];
 
 const key = process.env.ELEVENLABS_API_KEY;

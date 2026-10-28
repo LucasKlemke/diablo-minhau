@@ -1,0 +1,78 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: stump
+kind: prop
+view: topdown
+size: 32                 # ~20 x 13 px on screen at camera.scale 0.055, 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.14, 0]}
+shadow: {rx: 9, ry: 3, alpha: 110}
+
+# Cut tree stump with roots (replaces the Farm RPG stump, tree.png x128 y32 w32 h16).
+brief:
+  summary: short cut tree stump in red-brown bark, a lighter orange cut face on top with a darker ring, a
+    broken splinter standing up at the back left, roots flaring out at the base
+  reference: public/assets/farm/tree.png (frame x128 y32 w32 h16, seen from s)
+  must_keep: [lighter cut face on top, broken splinter at the back left, root flare, dark outline]
+  simplify: [growth rings as one darker ring; no bark texture]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false; camera.center [0, 0.14, 0]. camera.scale/pitch/light
+    untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT = world origin = ground point at the centre of the stump base (the game places the sprite by it).
+    Colour contract with the game's biome recolour (green > red+6 and green >= blue): no green at all; bark
+    and cut wood are red-brown/orange (red > green), so the biome recolour leaves the stump alone.
+    Same bark ramp as the trees.
+
+ramps:
+  tree_bark: ["#1c0f1a", "#4a2123", "#8a3625", "#ae4924", "#c46120"]
+  stump_cut: ["#1c0f1a", "#8a3625", "#c46120", "#e0894a"]
+
+materials:
+  bark:     {ramp: tree_bark, bands: [1, 4]}
+  cut:      {ramp: stump_cut, bands: [2, 3], line: false}
+  ring:     {ramp: tree_bark, bands: [3, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+# Layout (world units, +x = screen right, +z = towards the camera). Base at the origin; cut face y 0.32.
+parts:
+  trunk:
+    material: bark
+    space: body
+    blend: 0.06
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.32, 0], r: 0.26, round: 0.02}
+      - cone: {a: [0.12, 0.12, 0.02], b: [0.46, 0.02, 0.10], r: [0.11, 0.05]}     # roots
+      - cone: {a: [-0.12, 0.12, 0.02], b: [-0.47, 0.02, 0.06], r: [0.11, 0.05]}
+      - cone: {a: [0.04, 0.10, 0.12], b: [0.10, 0.02, 0.32], r: [0.09, 0.045]}
+      - cone: {a: [-0.06, 0.10, -0.10], b: [-0.20, 0.02, -0.34], r: [0.09, 0.04]}
+  splinter:           # broken piece left standing at the back left
+    material: bark
+    space: body
+    line: true
+    blend: 0.02
+    prims:
+      - cone: {a: [-0.14, 0.30, -0.08], b: [-0.12, 0.46, -0.10], r: [0.10, 0.035]}
+  cut_face:
+    material: cut
+    space: body
+    prims:
+      - cylinder: {a: [0, 0.31, 0], b: [0, 0.36, 0], r: 0.22}
+  cut_ring:
+    material: ring
+    space: body
+    prims:
+      - torus: {c: [0.02, 0.362, 0.02], R: 0.11, r: 0.022}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

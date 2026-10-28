@@ -1,5 +1,9 @@
-import { CLASSES, CLASS_ORDER, type ClassId } from "../data/classes";
-import { DIFFICULTIES, DIFFICULTY_ORDER, type Difficulty } from "../data/difficulty";
+import type Phaser from "phaser";
+import { CLASSES, type ClassId } from "../data/classes";
+import { showCampfire } from "./campfire";
+import { heroStage } from "./stage";
+import { drawKiln } from "../kiln";
+import { DIFFICULTIES, type Difficulty } from "../data/difficulty";
 import { QUESTS } from "../data/quests";
 import { ZONES } from "../data/zones";
 import { HeroData, type SlotInfo } from "../game/hero";
@@ -9,6 +13,10 @@ import { isMuted, sfx, toggleMute } from "../game/audio";
 // Main menu, save slots, new game (class + difficulty), options, controls and the in-game pause menu.
 
 type Portraits = Partial<Record<ClassId, HTMLCanvasElement>>;
+
+/** Phaser's textures, so menus can draw SpriteKiln sprites (set by Boot). */
+let menuTextures: Phaser.Textures.TextureManager | null = null;
+export const setMenuTextures = (t: Phaser.Textures.TextureManager) => (menuTextures = t);
 
 /** How a game starts from the menu: alone, hosting a session, or joining one with a code. */
 export type StartMode = { kind: "solo" } | { kind: "host" } | { kind: "join"; code: string };
@@ -64,32 +72,121 @@ function screen(): HTMLDivElement {
   return m;
 }
 
+/** Boot registers how to replay a cutscene from the Cinematics menu. */
+let playCinematic: ((id: "prologue") => void) | null = null;
+export const registerCinematics = (fn: (id: "prologue") => void) => (playCinematic = fn);
+
+const CINEMATICS: { id: "prologue"; name: string; desc: string }[] = [
+  { id: "prologue", name: "Prólogo: A Horda de Grumm", desc: "Os tambores na floresta e a vila Minhau ao entardecer." },
+];
+
+/** A SpriteKiln hero drawn into a small canvas (roster cards). */
+function heroPic(cls: ClassId, size: number) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  c.className = "pix";
+  if (menuTextures) drawKiln(c.getContext("2d")!, menuTextures, cls, "idle", "s", 0, size / 2, size * 0.86, Math.max(1, Math.round(size / 40)));
+  return c;
+}
+
+/** Title screen (Diablo II style): a gothic side panel with the menu, and the player's heroes in a night scene. */
 export function showMainMenu(portraits: Portraits, onStart: OnStart) {
   const slots = HeroData.slots();
-  const latest = slots.filter((s): s is SlotInfo => !!s).sort((a, b) => b.savedAt - a.savedAt)[0];
+  const filled = slots.filter((s): s is SlotInfo => !!s);
+  let chosen: SlotInfo | null = [...filled].sort((a, b) => b.savedAt - a.savedAt)[0] ?? null;
   const m = screen();
-  const box = el("div", "mm-title");
-  box.innerHTML = `<div class="mm-heroes"></div><h1>Diablo Minhau</h1><div class="sub">Um RPG de ação na vila de Minhau</div>`;
-  const heroes = box.querySelector(".mm-heroes")!;
-  for (const c of CLASS_ORDER) heroes.appendChild(portraitOf(portraits, c, 112));
-  const list = el("div", "mm-buttons");
-  if (latest) {
-    const c = button(`Continuar<small>${CLASSES[latest.cls].name} · Nível ${latest.level} · ${DIFFICULTIES[latest.difficulty].name}</small>`, () => {
-      const h = HeroData.load(latest.slot);
-      if (h) onStart(h, SOLO);
-    }, "mbtn primary");
-    list.appendChild(c);
+  m.classList.add("tm");
+  m.innerHTML += `<canvas class="tm-canvas"></canvas>
+    <aside class="tm-side"><div class="tm-arch">
+      <div class="tm-logo"><h1>Diablo<span>Minhau</span></h1><div class="tm-sub">Um RPG de ação</div></div>
+      <div class="tm-buttons mm-buttons"></div>
+      <div class="tm-foot">SpriteKiln · Farm RPG 16x16 · Antigravity</div>
+    </div></aside>
+    <div class="tm-info"></div>
+    <div class="tm-roster"></div>`;
+  const stage = menuTextures ? heroStage(m.querySelector(".tm-canvas")!, { textures: menuTextures, heroX: 0.62, fire: -1 }) : null;
+  const list = m.querySelector(".tm-buttons") as HTMLElement;
+  const info = m.querySelector(".tm-info") as HTMLElement;
+  const roster = m.querySelector(".tm-roster") as HTMLElement;
+  const play = (s: SlotInfo) => {
+    const h = HeroData.load(s.slot);
+    if (h) onStart(h, SOLO);
+  };
+
+  const renderStage = () => stage?.set(chosen?.cls ?? null, filled.filter((s) => s !== chosen).map((s) => s.cls));
+
+  const renderInfo = () => {
+    if (!chosen) {
+      info.innerHTML = `<div class="tm-name">Bem-vindo, viajante</div><div class="tm-line">Crie seu primeiro herói para começar a lenda.</div>`;
+      return;
+    }
+    const c = CLASSES[chosen.cls], d = DIFFICULTIES[chosen.difficulty], q = QUESTS[chosen.quest];
+    info.innerHTML = `<div class="tm-slot">Espaço ${chosen.slot + 1}</div><div class="tm-name">${esc(c.name)}</div>
+      <div class="tm-lvl">Nível ${chosen.level} · <span style="color:${d.color}">${d.name}</span></div>
+      <div class="tm-line">${esc(ZONES[chosen.zone]?.name ?? "")}</div>
+      <div class="tm-line">${q ? `Missão: ${esc(q.title)}` : "História concluída"}</div>
+      <div class="tm-line dim">${fmtTime(chosen.playtime)} jogados · ${fmtDate(chosen.savedAt)}</div>`;
+  };
+
+  const renderRoster = () => {
+    roster.innerHTML = "";
+    slots.forEach((s, i) => {
+      const card = el("button", `tm-card${s ? "" : " empty"}${s && s === chosen ? " on" : ""}`);
+      if (s) {
+        card.appendChild(heroPic(s.cls, 64));
+        card.insertAdjacentHTML("beforeend", `<div><b>${esc(CLASSES[s.cls].name)}</b><span>Nível ${s.level}</span>
+          <span style="color:${DIFFICULTIES[s.difficulty].color}">${DIFFICULTIES[s.difficulty].name}</span></div>`);
+        card.onclick = () => {
+          if (chosen === s) return;
+          sfx.coin();
+          chosen = s;
+          renderAll();
+          stage?.cast();
+        };
+        card.ondblclick = () => play(s);
+      } else {
+        card.innerHTML = `<div class="tm-plus">+</div><div><b>Novo herói</b><span>Espaço ${i + 1}</span></div>`;
+        card.onclick = () => { sfx.click(); showClassSelect(portraits, i, onStart); };
+      }
+      roster.appendChild(card);
+    });
+  };
+
+  const renderButtons = () => {
+    list.innerHTML = "";
+    if (chosen) {
+      const s = chosen;
+      list.appendChild(button(`Jogar<small>${CLASSES[s.cls].name} · Nível ${s.level}</small>`, () => play(s), "mbtn primary"));
+    }
+    list.append(
+      button("Novo Jogo", () => showSlots(portraits, "new", onStart)),
+      button("Carregar Jogo", () => showSlots(portraits, "load", onStart)),
+      button("Multijogador", () => showMultiplayer(portraits, onStart)),
+      button("Cinemáticas", renderCinematics),
+      button("Opções", () => showOptions(() => showMainMenu(portraits, onStart))),
+      button("Controles", () => showControls(() => showMainMenu(portraits, onStart))),
+    );
+  };
+
+  function renderCinematics() {
+    list.innerHTML = `<div class="tm-head">Cinemáticas</div>`;
+    for (const c of CINEMATICS) {
+      list.appendChild(button(`${esc(c.name)}<small>${esc(c.desc)}</small>`, () => {
+        stage?.destroy();
+        m.remove();
+        playCinematic?.(c.id);
+      }));
+    }
+    list.appendChild(button("Voltar", renderButtons));
   }
-  list.append(
-    button("Novo Jogo", () => showSlots(portraits, "new", onStart)),
-    button("Carregar Jogo", () => showSlots(portraits, "load", onStart)),
-    button("Multijogador<small>jogue com um amigo pela internet</small>", () => showMultiplayer(portraits, onStart)),
-    button("Opções", () => showOptions(() => showMainMenu(portraits, onStart))),
-    button("Controles", () => showControls(() => showMainMenu(portraits, onStart))),
-  );
-  box.appendChild(list);
-  box.appendChild(el("div", "mm-foot", "Sprites feitos com SpriteKiln · Terreno: Farm RPG 16x16 · Ícones gerados com Antigravity"));
-  m.appendChild(box);
+
+  function renderAll() {
+    renderStage();
+    renderInfo();
+    renderRoster();
+    renderButtons();
+  }
+  renderAll();
 }
 
 function slotCard(info: SlotInfo | null, i: number, portraits: Portraits) {
@@ -147,51 +244,14 @@ function showSlots(portraits: Portraits, mode: "new" | "load", onStart: OnStart)
   m.appendChild(box);
 }
 
+/** New game: pick class and difficulty around the campfire. */
 function showClassSelect(portraits: Portraits, slot: number, onStart: OnStart) {
-  const m = screen();
-  const box = el("div", "mm-panel wide");
-  box.innerHTML = "<h2>Escolha sua classe</h2>";
-  const grid = el("div", "classes");
-  for (const id of CLASS_ORDER) {
-    const c = CLASSES[id];
-    const card = el("button", "class-card");
-    const pic = el("div", "portrait");
-    pic.appendChild(portraitOf(portraits, id, 96));
-    card.appendChild(pic);
-    card.appendChild(el("h2", "", c.name));
-    card.appendChild(el("p", "", esc(c.desc)));
-    card.appendChild(el("p", "", `<b style="color:${c.resourceColor}">${c.resource}</b> · ${c.skills.length} habilidades`));
-    card.onclick = () => {
-      sfx.coin();
-      showDifficulty(portraits, slot, id, onStart);
-    };
-    grid.appendChild(card);
-  }
-  box.appendChild(grid);
-  box.appendChild(button("Voltar", () => showSlots(portraits, "new", onStart)));
-  m.appendChild(box);
-}
-
-function showDifficulty(portraits: Portraits, slot: number, cls: ClassId, onStart: OnStart) {
-  const m = screen();
-  const box = el("div", "mm-panel");
-  box.innerHTML = `<h2>Dificuldade</h2><div class="sub">${esc(CLASSES[cls].name)} · espaço ${slot + 1}</div>`;
-  const grid = el("div", "diff-list");
-  for (const id of DIFFICULTY_ORDER) {
-    const d = DIFFICULTIES[id];
-    const b = el("button", `diff-card${id === "normal" ? " rec" : ""}`);
-    b.innerHTML = `<div class="dn" style="color:${d.color}">${d.name}${id === "normal" ? " <small>(recomendado)</small>" : ""}</div>
-      <div class="dd">${esc(d.desc)}</div>
-      <div class="ds">Vida dos inimigos ×${d.enemyHp} · Dano ×${d.enemyDmg} · XP ×${d.xp} · Loot ×${d.magicFind}</div>`;
-    b.onclick = () => {
-      sfx.levelUp();
-      onStart(HeroData.create(slot, cls, id as Difficulty), SOLO);
-    };
-    grid.appendChild(b);
-  }
-  box.appendChild(grid);
-  box.appendChild(button("Voltar", () => showClassSelect(portraits, slot, onStart)));
-  m.appendChild(box);
+  if (!menuTextures) return;
+  showCampfire({
+    textures: menuTextures, slot,
+    onStart: (cls, difficulty) => onStart(HeroData.create(slot, cls, difficulty), SOLO),
+    onBack: () => showSlots(portraits, "new", onStart),
+  });
 }
 
 function confirmBox(text: string, onYes: () => void) {
@@ -311,26 +371,47 @@ export function showControls(onBack: () => void) {
   m.appendChild(box);
 }
 
-/** In-game pause menu. */
-export function showPauseMenu(opts: { onResume: () => void; onQuit: () => void; onInvite?: () => void; difficulty: Difficulty; slot: number }) {
+/** In-game menu (Diablo III style): the hero on a pedestal, game options on the left, the session on the right. */
+export function showPauseMenu(opts: {
+  onResume: () => void; onQuit: () => void; onInvite?: () => void; difficulty: Difficulty; slot: number;
+  cls: ClassId; level: number; zone: string; quest: string; online: boolean;
+}) {
   const m = screen();
-  m.classList.add("pause");
-  const box = el("div", "mm-panel small");
+  m.classList.add("tm", "pause");
   const d = DIFFICULTIES[opts.difficulty];
-  box.innerHTML = `<h2>Pausado</h2><div class="sub">Espaço ${opts.slot + 1} · <span style="color:${d.color}">${d.name}</span></div>`;
-  const list = el("div", "mm-buttons");
+  m.innerHTML += `<canvas class="tm-canvas"></canvas>
+    <aside class="tm-side slim"><div class="tm-arch">
+      <div class="tm-logo"><h1>Diablo<span>Minhau</span></h1><div class="tm-sub">Menu do jogo (Esc)</div></div>
+      <div class="tm-buttons mm-buttons"></div>
+    </div></aside>
+    <div class="tm-info right">
+      <div class="tm-slot">Configuração atual</div>
+      <div class="tm-name">${esc(CLASSES[opts.cls].name)}</div>
+      <div class="tm-lvl">Nível ${opts.level} · Espaço ${opts.slot + 1}</div>
+      <div class="tm-line">${esc(opts.zone)}</div>
+      <div class="tm-line">${esc(opts.quest)}</div>
+      <div class="tm-line">${opts.online ? "Partida em grupo (online)" : "Partida particular"}</div>
+      <div class="tm-diff" style="--c:${d.color}"><b>${d.name}</b><span>${esc(d.desc)}</span></div>
+    </div>
+    <div class="tm-return"></div>`;
+  const stage = menuTextures ? heroStage(m.querySelector(".tm-canvas")!, { textures: menuTextures, heroX: 0.55, heroY: 0.78, fire: 1 }) : null;
+  stage?.set(opts.cls, []);
+  const list = m.querySelector(".tm-buttons") as HTMLElement;
   const back = () => showPauseMenu(opts);
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key !== "Escape" || !m.isConnected || !m.querySelector(".tm-return")) return;
+    close();
+    opts.onResume();
+  };
+  const close = () => { window.removeEventListener("keydown", onKey); stage?.destroy(); m.remove(); };
+  window.setTimeout(() => window.addEventListener("keydown", onKey));
   list.append(
-    button("Continuar", () => { m.remove(); opts.onResume(); }, "mbtn primary"),
     button("Opções", () => showOptions(back)),
     button("Controles", () => showControls(back)),
   );
-  if (opts.onInvite) list.appendChild(button("Convidar amigo (multijogador)", () => { m.remove(); opts.onInvite!(); }));
-  list.append(
-    button("Salvar e sair para o menu", () => { m.remove(); opts.onQuit(); }),
-  );
-  box.appendChild(list);
-  m.appendChild(box);
+  if (opts.onInvite) list.appendChild(button("Convidar amigo", () => { close(); opts.onInvite!(); }));
+  list.append(button("Salvar e sair", () => { close(); opts.onQuit(); }, "mbtn danger"));
+  m.querySelector(".tm-return")!.appendChild(button("Voltar ao jogo", () => { close(); opts.onResume(); }, "mbtn primary"));
 }
 
 export const closeMenus = () => root().querySelector(".mm")?.remove();

@@ -3,6 +3,8 @@ import { COMPARE_MARK, compareItem, itemLines, itemStats, itemValue, RARITIES, R
 import { formatStat, STAT_LABEL, type Stats } from "../data/stats";
 import { isMuted, sfx, toggleMute } from "../game/audio";
 import { iconUrl } from "./icons";
+import { drawKiln, type Dir } from "../kiln";
+import type Phaser from "phaser";
 
 const root = () => document.getElementById("ui")!;
 
@@ -62,6 +64,8 @@ export const skillIconUrl = (id: string) => `assets/icons/skills/${id}.png`;
 const skillIcon = (sk: SkillDef | string) =>
   `<img class="sicon" src="${skillIconUrl(typeof sk === "string" ? sk : sk.id)}" onload="this.parentElement.classList.add('has-icon')" onerror="this.remove()">`;
 
+const DOLL_DIRS: Dir[] = ["s", "sw", "w", "nw", "n", "ne", "e", "se"];
+
 export class Hud {
   readonly world = el("div", "world");
   readonly minimap = el("canvas", "minimap interactive");
@@ -91,6 +95,12 @@ export class Hud {
   private selected = new Set<number>();
   private ghost = el("img", "ghost-item icon");
   private spAlert = el("button", "sp-alert interactive");
+  /** Phaser's textures, to draw the hero in the equipment window (set by the game scene). */
+  textures?: Phaser.Textures.TextureManager;
+  /** The animated hero between the equipment slots (Diablo style); clicking turns them around. */
+  private doll = el("canvas", "doll-canvas");
+  private dollDir = 0;
+  private dollRaf = 0;
 
   constructor(private actions: HudActions, private skills: SkillDef[], resourceColor: string) {
     const r = root();
@@ -313,8 +323,19 @@ export class Hud {
   private renderInventory() {
     const h = this.hero;
     const p = this.pick;
-    this.inv.innerHTML = "<h3>Equipamento</h3>";
-    const eq = el("div", "equip");
+    const c = CLASSES[h.cls], s = h.stats;
+    this.inv.innerHTML = `<div class="doll-head"><b>${esc(c.name)}</b><span>Nível ${h.level}</span></div>`;
+    const eq = el("div", "equip doll");
+    const stage = el("div", "doll-stage");
+    stage.appendChild(this.doll);
+    stage.insertAdjacentHTML("beforeend", `<div class="doll-stats">
+      <div><span>Dano</span><b>${Math.round((s.dmgMin + s.dmgFlat) * (1 + s.dmgPct))}–${Math.round((s.dmgMax + s.dmgFlat) * (1 + s.dmgPct))}</b></div>
+      <div><span>${STAT_LABEL.armor}</span><b>${Math.round(s.armor)}</b></div>
+      <div><span>${STAT_LABEL.maxHp}</span><b>${Math.round(s.maxHp)}</b></div></div>`);
+    eq.appendChild(stage);
+    this.doll.onclick = () => { this.dollDir = (this.dollDir + 1) % DOLL_DIRS.length; };
+    this.doll.title = "Clique para girar";
+    this.startDoll();
     for (const slot of SLOTS) {
       const it = h.equipment[slot];
       const d = this.slotEl(it);
@@ -332,6 +353,7 @@ export class Hud {
       };
       this.dragSource(d, it, target);
       this.dropTarget(d, target);
+      d.style.gridArea = slot;
       eq.appendChild(d);
     }
     this.inv.appendChild(eq);
@@ -391,6 +413,41 @@ export class Hud {
       : this.shopOpen
         ? "Clique: mover · Clique direito: VENDER · Ctrl/Shift+clique: selecionar vários"
         : "Clique: mover · Clique direito: equipar · Ctrl/Shift+clique: selecionar vários"));
+  }
+
+  /** Animates the hero figure while the equipment window is open. */
+  private startDoll() {
+    if (this.dollRaf) return;
+    const t0 = performance.now();
+    const W = 150, H = 196;
+    this.doll.width = W;
+    this.doll.height = H;
+    const ctx = this.doll.getContext("2d")!;
+    const frame = () => {
+      if (!this.doll.isConnected || !this.inv.classList.contains("open")) {
+        this.dollRaf = 0;
+        return;
+      }
+      const t = performance.now() - t0;
+      ctx.clearRect(0, 0, W, H);
+      const bg = ctx.createRadialGradient(W / 2, H * 0.55, 6, W / 2, H * 0.55, H * 0.7);
+      bg.addColorStop(0, "#3a2a24");
+      bg.addColorStop(1, "#0e080b");
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "rgba(0,0,0,0.45)";
+      ctx.beginPath();
+      ctx.ellipse(W / 2, H - 22, 40, 10, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = `rgba(200,150,62,${0.35 + 0.15 * Math.sin(t / 600)})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(W / 2, H - 22, 34, 8, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      if (this.textures && this.hero) drawKiln(ctx, this.textures, this.hero.cls, "idle", DOLL_DIRS[this.dollDir], t, W / 2, H - 22, 4);
+      this.dollRaf = requestAnimationFrame(frame);
+    };
+    this.dollRaf = requestAnimationFrame(frame);
   }
 
   /** HTML drag & drop as an alternative to click-to-pick. */

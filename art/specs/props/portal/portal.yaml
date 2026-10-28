@@ -210,3 +210,13 @@ animations:
       - {ms: 100, set: {spin_a: 2.2, spin_b: -3.0, flare: 1.12, core: 4, rune_glow: 1.8, gem: 1.4, burst: 0.65}}
       - {ms: 90, set: {spin_a: 2.7, spin_b: -3.6, flare: 1.05, core: 2.0, rune_glow: 1.2, gem: 1.2, burst: 0.95}}
       - {ms: 90, set: {spin_a: 3.1, spin_b: -4.0, flare: 1.0, core: 1.2, rune_glow: 0.7}}
+  hover:            # cursor over the portal: faster, brighter spin, swollen core, runes fully lit (seamless)
+    frames: 8
+    ms: 65
+    channels:
+      spin_a: "2*p/3"
+      spin_b: "-p"
+      flare: "1.05 + 0.02*sin(2*p)"
+      core: "1.4 + 0.22*sin(p)"
+      rune_glow: 1.7
+      gem: "1.2 + 0.08*sin(p)"

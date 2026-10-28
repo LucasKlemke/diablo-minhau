@@ -333,3 +333,12 @@ animations:
       sway_L: "0.05*sin(p + 0.8)"
       sway_R: "0.05*sin(p + 3.0)"
       glow: "1 + 0.18*sin(p)"
+  hover:            # cursor over the crypt: torches flare up, the doorway glow swells and pulses (seamless)
+    frames: 6
+    ms: 95
+    channels:
+      flicker_L: "1.55 + 0.22*sin(p) + 0.10*sin(2*p + 1.2)"
+      flicker_R: "1.55 + 0.22*sin(p + 2.4) + 0.10*sin(2*p + 0.3)"
+      sway_L: "0.07*sin(p + 0.8)"
+      sway_R: "0.07*sin(p + 3.0)"
+      glow: "1.65 + 0.35*sin(p)"

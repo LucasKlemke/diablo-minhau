@@ -1,0 +1,62 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: dead_tree
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.25, 0]}
+shadow: {rx: 14, ry: 5, alpha: 100}
+
+# Graveyard dressing around the crypt (with crypt_floor, tombstone, grave_fence).
+brief:
+  summary: leafless gnarled dead tree, dark grey-brown bark, twisted trunk splitting into 3 crooked branches
+    with thin twigs, roots gripping the ground; ~2.5 units tall (~45 px)
+  must_keep: [crooked bare branches, flared roots, dark bark that contrasts with grass]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false. camera.scale/pitch/light untouched.
+    Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot) is the ground point at the centre of the trunk base.
+    Branches reach mostly sideways (x) so they read in the single s view.
+
+ramps:
+  dt_bark: ["#1c0f1a", "#2f2530", "#4a3c44", "#6b5a5e", "#8a7a78"]
+
+materials:
+  bark: {ramp: dt_bark, bands: [1, 4]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  trunk:
+    material: bark
+    space: body
+    blend: 0.08
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.06, 0.6, 0], [-0.04, 1.2, 0.02], [0.05, 1.6, 0]], r: [0.22, 0.15, 0.12, 0.09]}
+      - cone: {a: [0, 0.08, 0], b: [0.42, 0.02, 0.12], r: [0.10, 0.04]}
+      - cone: {a: [0, 0.08, 0], b: [-0.40, 0.02, 0.18], r: [0.10, 0.04]}
+      - cone: {a: [0, 0.08, 0], b: [0.05, 0.02, -0.38], r: [0.09, 0.04]}
+      - cone: {a: [0, 0.08, 0], b: [-0.12, 0.02, 0.38], r: [0.08, 0.035]}
+  branches:
+    material: bark
+    space: body
+    blend: 0.04
+    prims:
+      - chain: {pts: [[0.05, 1.55, 0], [0.45, 1.95, 0.05], [0.65, 2.35, 0], [0.95, 2.45, -0.05]], r: [0.08, 0.06, 0.04, 0.03]}
+      - chain: {pts: [[-0.02, 1.25, 0], [-0.45, 1.60, 0.05], [-0.80, 1.75, 0], [-0.95, 2.10, 0]], r: [0.08, 0.06, 0.04, 0.03]}
+      - chain: {pts: [[0.05, 1.60, 0], [0.0, 2.10, -0.05], [-0.18, 2.50, 0], [-0.10, 2.70, 0]], r: [0.07, 0.05, 0.04, 0.03]}
+      - cone: {a: [0.45, 1.95, 0.05], b: [0.80, 1.92, 0.10], r: [0.04, 0.025]}
+      - cone: {a: [-0.80, 1.75, 0], b: [-1.10, 1.65, 0.05], r: [0.035, 0.025]}
+      - cone: {a: [-0.18, 2.50, 0], b: [-0.45, 2.62, 0], r: [0.03, 0.025]}
+      - cone: {a: [0.65, 2.35, 0], b: [0.60, 2.65, 0], r: [0.03, 0.025]}
+
+animations:
+  idle: {frames: 1, ms: 1000, channels: {}}

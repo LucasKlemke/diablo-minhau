@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { CLASS_ORDER, type ClassId } from "../data/classes";
-import { portrait, preloadKiln, setupKiln } from "../kiln";
-import { registerMainMenu, showMainMenu, showMultiplayer, showWaiting, type StartMode } from "../ui/menu";
+import { hasSprite, portrait, preloadKiln, setupKiln } from "../kiln";
+import { registerCinematics, registerMainMenu, setMenuTextures, showMainMenu, showMultiplayer, showWaiting, type StartMode } from "../ui/menu";
 import { net } from "../net/net";
 import type { HeroData } from "../game/hero";
 import { drawIcon, ICON_IDS } from "../ui/icons";
@@ -16,7 +16,7 @@ export class BootScene extends Phaser.Scene {
     const farm = "assets/farm";
     this.load.image("grass", `${farm}/grass.png`);
     this.load.image("tree", `${farm}/tree.png`);
-    this.load.image("house", `${farm}/house.png`);
+    this.load.image("house_farm", `${farm}/house.png`);
     this.load.image("fence", `${farm}/fence.png`);
     this.load.spritesheet("stones", `${farm}/stones.png`, { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet("crops", `${farm}/crops.png`, { frameWidth: 16, frameHeight: 16 });
@@ -35,7 +35,7 @@ export class BootScene extends Phaser.Scene {
     tree.add("medium", 0, 64, 0, 32, 48);
     tree.add("bush", 0, 48, 32, 16, 16);
     tree.add("stump", 0, 128, 32, 32, 16);
-    const house = this.textures.get("house");
+    const house = this.textures.get("house_farm");
     house.add("h0", 0, 0, 0, 80, 96);
     house.add("h1", 0, 144, 0, 80, 112);
     const fence = this.textures.get("fence");
@@ -43,7 +43,7 @@ export class BootScene extends Phaser.Scene {
     fence.add("v", 0, 16, 64, 16, 16);
 
     makeWorldTextures(this);
-    makeSkins(this, ["grass", "tree", "crops"]);
+    makeSkins(this, ["grass", "tree", "crops", ...(["tree_big", "tree_medium", "bush"] as const).filter(hasSprite)]);
     for (const id of ICON_IDS) this.textures.addCanvas(`icon_${id}`, drawIcon(id));
     this.makeFx();
 
@@ -56,7 +56,11 @@ export class BootScene extends Phaser.Scene {
     const start = (hero: HeroData, mode: StartMode): void => {
       if (mode.kind === "solo") {
         net.leave();
-        go({ hero });
+        // A brand-new character watches the opening cutscene first.
+        if (!hero.quest.prologueSeen) {
+          document.querySelector("#ui .mm")?.remove();
+          this.scene.start("intro", { hero });
+        } else go({ hero });
       } else if (mode.kind === "host") {
         showWaiting("Abrindo a sessão...", () => { net.leave(); open(); });
         net.host().then(() => go({ hero }))
@@ -79,8 +83,10 @@ export class BootScene extends Phaser.Scene {
         }).catch(fail);
       }
     };
+    setMenuTextures(this.textures);
     const open = () => showMainMenu(portraits, start);
     registerMainMenu(open);
+    registerCinematics(() => this.scene.start("intro", { replay: true }));
     // Invite links (?join=CODE) open straight on the multiplayer screen.
     const code = new URLSearchParams(location.search).get("join");
     if (code) {

@@ -3,10 +3,10 @@ import type { Faction, UniqueId } from "./enemies";
 
 export type NpcId = "elder" | "smith" | "hunter";
 
-export const NPCS: Record<NpcId, { name: string; sprite: "npc_elder" | "npc_smith" | "npc_hunter"; idle: string[] }> = {
-  elder: { name: "Ancião Bento", sprite: "npc_elder", idle: ["Que a luz guie seus passos, herói.", "A vila Minhau já viu dias melhores..."] },
-  smith: { name: "Ferreira Marta", sprite: "npc_smith", idle: ["Aço bom é aço testado em goblin.", "Volte quando precisar de uma lâmina afiada."] },
-  hunter: { name: "Caçador Ivo", sprite: "npc_hunter", idle: ["As trilhas estão cheias de pegadas estranhas.", "Fique atento à estrada. Bandidos não dormem."] },
+export const NPCS: Record<NpcId, { name: string; title: string; icon: "staff" | "axe" | "bow"; sprite: "npc_elder" | "npc_smith" | "npc_hunter"; idle: string[] }> = {
+  elder: { name: "Ancião Bento", title: "Líder da Vila", icon: "staff", sprite: "npc_elder", idle: ["Que a luz guie seus passos, herói.", "A vila Minhau já viu dias melhores..."] },
+  smith: { name: "Ferreira Marta", title: "Ferreira · Loja", icon: "axe", sprite: "npc_smith", idle: ["Aço bom é aço testado em goblin.", "Volte quando precisar de uma lâmina afiada."] },
+  hunter: { name: "Caçador Ivo", title: "Caçador", icon: "bow", sprite: "npc_hunter", idle: ["As trilhas estão cheias de pegadas estranhas.", "Fique atento à estrada. Bandidos não dormem."] },
 };
 
 export type Objective =
@@ -29,17 +29,34 @@ export interface Quest {
 export const PROLOGUE = [
   "Há gerações, a vila Minhau vive em paz entre campos e florestas.",
   "Até que, numa noite sem lua, tambores de guerra ecoaram na mata. Os goblins voltaram.",
-  "Atraído pelos boatos, você chega à vila. O Ancião Bento espera na praça.",
+  "Atraído pelos boatos, você segue pela estrada da floresta rumo à vila.",
 ];
+
+/** Act I opening: the hero reaches the village, defends it from a goblin raid, then gets the first quest. */
+export const INTRO = {
+  arrive: [
+    "Um aventureiro? Chegou na hora certa... Ouça! Os tambores!",
+    "Os goblins estão atacando a vila! Eles vão entrar pelos portões!",
+    "Por favor, nos ajude a defender Minhau!",
+  ],
+  fighting: "Eles estão vindo pelos portões! Não deixe nenhum passar!",
+  won: [
+    "Você salvou a vila! Nunca vi alguém lutar daquele jeito.",
+    "Aceite isto como agradecimento. E escute, tenho um pedido a fazer...",
+  ],
+  reward: { xp: 80, gold: 40, potions: 2 },
+  /** Raid waves: goblins coming through the north, west and east gates. */
+  waves: [[2, 2, 0], [2, 1, 2], [3, 2, 2]] as const,
+};
 
 /** The story, in order. Each completed quest makes the world more dangerous. */
 export const QUESTS: Quest[] = [
   {
     id: "goblins", giver: "elder", title: "Os Goblins na Porta",
     intro: [
-      "Graças aos céus, um aventureiro! Os goblins cercam a vila há dias.",
+      "Esse ataque não foi o primeiro. Os goblins cercam a vila há dias.",
       "Eles roubam nossas colheitas e atacam quem sai da cerca.",
-      "Mate 10 goblins na floresta e mostre que Minhau ainda sabe se defender.",
+      "Vou mandar abrir os portões. Mate 10 goblins na floresta e mostre que Minhau ainda sabe se defender.",
     ],
     objective: { type: "kill", faction: "goblin", count: 10 },
     goal: "Mate goblins",

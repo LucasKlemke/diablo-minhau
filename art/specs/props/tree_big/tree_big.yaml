@@ -1,0 +1,128 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: tree_big
+kind: prop
+view: topdown
+size: 64                 # ~38 x 50 px on screen at camera.scale 0.055, 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.35, 0]}
+shadow: {rx: 15, ry: 5, alpha: 110}
+
+# Big leafy tree (replaces the Farm RPG "big" tree, tree.png x96 y0 w32 h48). Stands over 2 tiles.
+brief:
+  summary: big round leafy tree, a bumpy cluster-of-spheres crown in vivid greens lit from the top-left with a
+    dark green underside, two branches showing in the lower crown, a red-brown trunk with a root flare
+  reference: public/assets/farm/tree.png (frame x96 y0 w32 h48, seen from s)
+  must_keep: [bumpy round crown silhouette, light top-left / dark underside, branches in a V under the crown,
+    red-brown trunk with root flare]
+  simplify: [no individual leaves; leaf clusters are overlapping lumps separated by inner lines]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.55, 0]. camera.scale/pitch/light
+    untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT = world origin = ground point at the centre of the trunk base (the game places the sprite by it).
+    Colour contract with the game's biome recolour (green > red+6 and green >= blue): every leaf tone is
+    green-dominant; bark tones are red-brown (red > green), and the outline #1c0f1a is not green-dominant.
+    Leaf colours sampled from the reference; the darkest leaf tone is a deep teal-green for the underside.
+
+ramps:
+  tree_leaf: ["#1c0f1a", "#174438", "#0f6542", "#1a8321", "#38a129", "#6ebd3c"]
+  tree_bark: ["#1c0f1a", "#4a2123", "#8a3625", "#ae4924", "#c46120"]
+
+materials:
+  leaf:      {ramp: tree_leaf, bands: [2, 5]}
+  leaf_dark: {ramp: tree_leaf, bands: [1, 2]}
+  bark:      {ramp: tree_bark, bands: [1, 4]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+# Layout (world units, +x = screen right, +z = towards the camera). Trunk base at the origin; crown centre
+# ~y 2.2, crown x +-1.0 (~37 px).
+parts:
+  trunk:
+    material: bark
+    space: body
+    blend: 0.08
+    prims:
+      - cone: {a: [0, 0.0, 0], b: [0, 1.05, 0], r: [0.27, 0.19]}
+      - cone: {a: [0, 0.10, 0.02], b: [0.46, 0.02, 0.16], r: [0.15, 0.07]}     # roots
+      - cone: {a: [0, 0.10, 0.02], b: [-0.48, 0.02, 0.12], r: [0.15, 0.07]}
+      - cone: {a: [0, 0.10, 0.02], b: [0.06, 0.02, 0.40], r: [0.13, 0.06]}
+      - cone: {a: [0, 0.10, 0], b: [-0.20, 0.02, -0.34], r: [0.12, 0.05]}
+  branches:           # V of branches showing through the gap under the crown
+    material: bark
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.85, 0.10], b: [0.55, 1.48, 0.55], r: [0.13, 0.07]}
+      - cone: {a: [0, 0.85, 0.10], b: [-0.52, 1.52, 0.52], r: [0.13, 0.07]}
+  crown_back:         # underside and back masses (dark teal-green)
+    material: leaf_dark
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 1.75, -0.20], r: [0.86, 0.76, 0.70]}
+      - sphere: {c: [-0.60, 1.32, 0.08], r: 0.34}
+      - sphere: {c: [0.60, 1.32, 0.08], r: 0.34}
+      - sphere: {c: [0, 1.25, -0.05], r: 0.38}
+  crown_left:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - sphere: {c: [-0.50, 1.92, 0.25], r: 0.42}
+      - sphere: {c: [-0.78, 1.70, 0.15], r: 0.25}
+      - sphere: {c: [-0.66, 2.22, -0.05], r: 0.30}
+  crown_right:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - sphere: {c: [0.50, 1.88, 0.25], r: 0.40}
+      - sphere: {c: [0.78, 1.66, 0.12], r: 0.25}
+      - sphere: {c: [0.66, 2.18, -0.05], r: 0.30}
+  crown_top:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - sphere: {c: [0, 2.18, 0.32], r: 0.40}
+      - sphere: {c: [-0.28, 2.50, -0.05], r: 0.30}
+      - sphere: {c: [0.30, 2.47, -0.08], r: 0.29}
+      - sphere: {c: [0.02, 2.45, -0.30], r: 0.28}
+  crown_tufts:        # small leaf tufts that make the silhouette bumpy
+    material: leaf
+    space: body
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.90, 1.98, -0.05], r: 0.17}
+      - sphere: {c: [0.89, 1.94, -0.05], r: 0.17}
+      - sphere: {c: [-0.52, 2.50, -0.22], r: 0.17}
+      - sphere: {c: [0.52, 2.48, -0.24], r: 0.17}
+      - sphere: {c: [-0.18, 2.62, -0.30], r: 0.15}
+      - sphere: {c: [0.20, 2.60, -0.32], r: 0.15}
+  crown_tufts_low:    # tufts on the dark underside
+    material: leaf_dark
+    space: body
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.86, 1.42, 0.05], r: 0.17}
+      - sphere: {c: [0.86, 1.40, 0.05], r: 0.17}
+      - sphere: {c: [-0.35, 1.08, 0.30], r: 0.16}
+      - sphere: {c: [0.36, 1.06, 0.30], r: 0.16}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

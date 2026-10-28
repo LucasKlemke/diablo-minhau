@@ -34,6 +34,7 @@ const SAMPLE_NAMES = [
   ...["cleave", "warcry", "leap", "berserk", "quake", "arrow", "multishot", "explosive", "rain", "piercing",
     "firebolt", "frostnova", "chain", "shield", "meteor", "shadowbolt", "drain", "plague", "corpse", "bloodpact"].map((s) => `skill_${s}`),
   "dash", "ui_click", "ui_open", "ui_close", "equip", "amb_town", "amb_dungeon",
+  ...["drums", "fire", "night", "laugh_01", "laugh_02", "laugh_03", "cheer", "grumm", "bell", "ambush", "title"].map((s) => `cine_${s}`),
 ];
 const STEPS = (surface: string) => [1, 2, 3, 4].map((i) => `step_${surface}_0${i}`);
 const DEATH: Record<string, string> = { bandit_brute: "die_bandit" };
@@ -93,10 +94,68 @@ export function setAmbience(name: "amb_town" | "amb_dungeon" | null) {
   playAmbience();
 }
 
+// Background music (public/assets/music, scripts/gen-music.mjs): one track at a time, cross-faded on change.
+// A track with several files plays them in turn.
+type Track = "town" | "dungeon" | "boss";
+const TRACK_FILES: Record<Track, string[]> = {
+  town: ["town_01", "town_02"],
+  dungeon: ["dungeon"],
+  boss: ["boss"],
+};
+const MUSIC_VOL = 0.35;
+const tracks: Partial<Record<Track, HTMLAudioElement>> = {};
+let wantMusic: Track | null = null;
+
+function musicVolume() {
+  return muted ? 0 : MUSIC_VOL * settings.volume;
+}
+
+function fade(el: HTMLAudioElement, to: number, ms = 1200) {
+  const from = el.volume, t0 = performance.now();
+  if (to > 0 && el.paused) void el.play().catch(() => {});
+  const step = () => {
+    const k = Math.min(1, (performance.now() - t0) / ms);
+    el.volume = from + (to - from) * k;
+    if (k < 1 && (el.dataset.target === String(to))) requestAnimationFrame(step);
+    else if (to === 0 && k >= 1) el.pause();
+  };
+  el.dataset.target = String(to);
+  requestAnimationFrame(step);
+}
+
+export function setMusic(name: Track | null) {
+  if (name === wantMusic) return;
+  wantMusic = name;
+  for (const [n, el] of Object.entries(tracks)) if (n !== name && !el.paused) fade(el, 0);
+  if (!name) return;
+  let el = tracks[name];
+  if (!el) {
+    const files = TRACK_FILES[name].map((f) => `${import.meta.env.BASE_URL}assets/music/${f}.mp3`);
+    let i = 0;
+    const audio = (el = tracks[name] = new Audio(files[0]));
+    audio.loop = files.length === 1;
+    audio.volume = 0;
+    audio.addEventListener("ended", () => {
+      audio.src = files[(i = (i + 1) % files.length)];
+      void audio.play().catch(() => {});
+    });
+  }
+  // The boss theme restarts each fight; town and dungeon resume where they left off.
+  if (name === "boss") el.currentTime = 0;
+  fade(el, musicVolume());
+}
+
+onSettingsChange(() => {
+  const el = wantMusic && tracks[wantMusic];
+  if (el) el.volume = musicVolume();
+});
+
 export const isMuted = () => muted;
 export function toggleMute() {
   muted = !muted;
   playAmbience();
+  const el = wantMusic && tracks[wantMusic];
+  if (el) fade(el, musicVolume(), 300);
   try {
     localStorage.setItem("diablo-minhau:mute", muted ? "1" : "0");
   } catch {
@@ -137,6 +196,36 @@ function noise(start: number, dur: number, vol = 0.2, lowpass = 800) {
   src.connect(f).connect(g).connect(master!);
   src.start(a.currentTime + start);
 }
+
+/** Opening cutscene sounds (cine_* samples): one-shots and fading loops. */
+export const cine = {
+  /** One of the samples cine_<name> (or cine_<name>_01..03 at random). */
+  play(name: string, vol = 1) {
+    sample([`cine_${name}`, ...[1, 2, 3].map((i) => `cine_${name}_0${i}`)], vol);
+  },
+  /** Starts a looping sample; the returned function fades it out. */
+  loop(name: string, vol = 1, fadeIn = 0.8) {
+    if (muted || !samples[`cine_${name}`]) return (_fade = 0) => {};
+    const a = ac();
+    const src = a.createBufferSource();
+    src.buffer = samples[`cine_${name}`];
+    src.loop = true;
+    const g = a.createGain();
+    g.gain.setValueAtTime(0, a.currentTime);
+    g.gain.linearRampToValueAtTime(vol, a.currentTime + fadeIn);
+    src.connect(g).connect(master!);
+    src.start();
+    let stopped = false;
+    return (fade = 0.8) => {
+      if (stopped) return;
+      stopped = true;
+      g.gain.cancelScheduledValues(a.currentTime);
+      g.gain.setValueAtTime(g.gain.value, a.currentTime);
+      g.gain.linearRampToValueAtTime(0, a.currentTime + fade);
+      src.stop(a.currentTime + fade + 0.05);
+    };
+  },
+};
 
 export const sfx = {
   levelUp() {

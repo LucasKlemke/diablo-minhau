@@ -293,6 +293,174 @@
     "h": 64
    },
    "duration": 90
+  },
+  "hover_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_6": {
+   "frame": {
+    "x": 384,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
+  },
+  "hover_s_7": {
+   "frame": {
+    "x": 448,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 65
   }
  },
  "meta": {
@@ -302,7 +470,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 512,
-   "h": 128
+   "h": 192
   },
   "scale": "1",
   "frameTags": [
@@ -316,6 +484,12 @@
     "name": "activate_s",
     "from": 8,
     "to": 13,
+    "direction": "forward"
+   },
+   {
+    "name": "hover_s",
+    "from": 14,
+    "to": 21,
     "direction": "forward"
    }
   ]
@@ -407,6 +581,35 @@
         "travel"
        ]
       }
+     }
+    }
+   },
+   "hover": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 2,
+      "frames": [
+       "hover_s_0",
+       "hover_s_1",
+       "hover_s_2",
+       "hover_s_3",
+       "hover_s_4",
+       "hover_s_5",
+       "hover_s_6",
+       "hover_s_7"
+      ],
+      "durations": [
+       65,
+       65,
+       65,
+       65,
+       65,
+       65,
+       65,
+       65
+      ],
+      "events": {}
      }
     }
    }

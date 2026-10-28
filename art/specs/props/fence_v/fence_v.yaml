@@ -1,0 +1,83 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: fence_v
+kind: prop
+view: topdown
+size: 32
+directions: 1
+mirror: false
+palette: "farm"
+# center x 0 -> pivot x = 16.0; center y 0.41878 -> pivot y = 16 + 0.41878*cos(38)/0.055 = 22.0 (integer pixels)
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.41878, 0]}
+shadow: {rx: 6, ry: 2, alpha: 90}
+
+# Vertical fence TILE (one per 16 px tile, runs up/down the screen). One post at the origin, two rails running
+# along z (toward the camera). Ground depth is foreshortened by sin(38): one 16 px tile on screen is
+# 16*0.055/sin(38) = 1.4293 units of z, so each rail spans z in [-0.7146, 0.7146] (8 px each way).
+brief:
+  summary: Farm RPG style red-brown wooden fence piece, vertical run; same round-topped post with an orange
+    cap as fence_h, with its two rails running toward the camera (seen as a narrow plank going up/down)
+  must_keep: [same post, cap, wood colours and rail heights as fence_h, rails continuous between tiles]
+  simplify: [no wood grain, no nails, both rails at x 0 so they read as one plank from above]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, camera.center [0, 0.41878, 0] (integer pivot).
+    The rail material has outline off so its ends at the tile border get no outline cap; the dark side
+    lines of the rails come from a thin near-black plate (rail_edge) under each rail, 1 px wider each side.
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot = ground point under the post centre (world origin) = frame pixel (16, 22) of the
+    32x32 frame. Rail length 1.4293 in z (the tile depth after the 38 degree foreshortening) = 16 screen px,
+    so a piece drawn every 16 px down the screen continues the rails; the game must draw southern pieces
+    over northern ones (depth by y) so each rail's front end face is hidden by the next piece.
+    Rail heights match fence_h so corners line up. Static: 1-frame idle.
+
+ramps:
+  fence_wood: ["#1c0f1a", "#32131e", "#4a2123", "#8a3625", "#ae4924"]
+  fence_cap:  ["#1c0f1a", "#8f3317", "#c46120", "#e08a3a"]
+  fence_ink:  ["#1c0f1a"]
+
+materials:
+  wood:      {ramp: fence_wood, bands: [2, 3]}
+  rail:      {ramp: fence_wood, bands: [2, 3], outline: false}
+  rail_edge: {ramp: fence_ink, emissive: true, band: 0, outline: false, line: false}
+  cap:       {ramp: fence_cap, bands: [2, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  post:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.44, 0], half: [0.15, 0.44, 0.12], round: 0.09}
+  post_cap:
+    material: cap
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0.825, 0.08], r: [0.085, 0.075, 0.07]}
+  rails:
+    material: rail
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.655, 0], half: [0.07, 0.055, 0.7146]}   # top rail
+      - box: {c: [0, 0.27, 0], half: [0.07, 0.08, 0.7146]}     # bottom rail
+  rail_edges:
+    material: rail_edge
+    space: body
+    prims:
+      # thin plates under each rail, 1 px wider on each side: dark side lines without end caps
+      - box: {c: [0, 0.59, 0], half: [0.13, 0.01, 0.7146]}
+      - box: {c: [0, 0.18, 0], half: [0.13, 0.01, 0.7146]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

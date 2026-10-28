@@ -1,0 +1,82 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: fence_h
+kind: prop
+view: topdown
+size: 32
+directions: 1
+mirror: false
+palette: "farm"
+# center x 0 -> pivot x = 16.0; center y 0.55837 -> pivot y = 16 + 0.55837*cos(38)/0.055 = 24.0 (integer pixels)
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.55837, 0]}
+shadow: {rx: 6, ry: 2, alpha: 90}
+
+# Horizontal fence TILE (one per 16 px tile, runs left-right). One post at the origin, two rails running
+# along x for exactly half a tile each way (0.44 = 8 px), so neighbours placed 16 px apart join seamlessly.
+brief:
+  summary: Farm RPG style red-brown wooden fence piece, horizontal run; a round-topped post with a small
+    orange cap in front of two flat horizontal rails; ~13 px tall on screen
+  must_keep: [round post top with orange cap, two rails, dark outline, rails continuous between tiles]
+  simplify: [no wood grain, no nails]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, camera.center [0, 0.55837, 0] (integer pivot).
+    The rail material has outline off so its ends at the tile border get no outline cap; the dark
+    top/bottom edge of the rails is a thin near-black plate (rail_edge) right behind each rail.
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot = ground point under the post centre (world origin) = frame pixel (16, 24) of the
+    32x32 frame. Rails span x in [-0.44, 0.44] = frame columns 8..23 (16 px), i.e. exactly one tile, so a
+    piece drawn every 16 px makes an unbroken rail. Rails sit behind the post (z -0.08) so the post reads
+    in front, as in the Farm RPG art. Static: 1-frame idle.
+
+ramps:
+  fence_wood: ["#1c0f1a", "#32131e", "#4a2123", "#8a3625", "#ae4924"]
+  fence_cap:  ["#1c0f1a", "#8f3317", "#c46120", "#e08a3a"]
+  fence_ink:  ["#1c0f1a"]
+
+materials:
+  wood:      {ramp: fence_wood, bands: [2, 3]}
+  rail:      {ramp: fence_wood, bands: [2, 3], outline: false}
+  rail_edge: {ramp: fence_ink, emissive: true, band: 0, outline: false, line: false}
+  cap:       {ramp: fence_cap, bands: [2, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  post:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.44, 0], half: [0.15, 0.44, 0.12], round: 0.09}
+  post_cap:
+    material: cap
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0.825, 0.08], r: [0.085, 0.075, 0.07]}
+  rails:
+    material: rail
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.655, -0.07], half: [0.44, 0.055, 0.025]}   # top rail
+      - box: {c: [0, 0.27, -0.07], half: [0.44, 0.08, 0.025]}     # bottom rail
+  rail_edges:
+    material: rail_edge
+    space: body
+    prims:
+      # thin plates just behind each rail, taller than it: a 1 px dark line above and below the rail
+      # (no outline cap at the rail ends, so neighbouring tiles join without a seam)
+      - box: {c: [0, 0.63, -0.1], half: [0.44, 0.145, 0.004]}
+      - box: {c: [0, 0.245, -0.1], half: [0.44, 0.17, 0.004]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

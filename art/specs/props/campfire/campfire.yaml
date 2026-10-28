@@ -1,0 +1,252 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: campfire
+kind: prop
+size: 64                 # prop drawn x4 on the character-selection screen: bigger frame, same density
+directions: 1            # always faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.62, 0]}
+shadow: null             # the fire lights the ground: no ground shadow
+
+# "Fogueira": centrepiece of the character-selection screen; the 4 heroes gather around it at night.
+brief:
+  summary: night campfire (~1.4 wide, flames ~1.5 tall) - a ring of 7 rough grey stones, 4 crossed logs
+    with charred inner ends, glowing ember bed and coals between the logs, and tall layered flames
+    (deep red outer -> orange -> yellow -> white-hot core) in 4 separate tongues
+  must_keep: [ring of 7 outlined stones, crossed logs with charred ends, glowing embers,
+    4 flame tongues with red/orange/yellow/white layers]
+  simplify: [stones are rounded boxes, log bark is flat colour, embers are 2-3 px dots]
+  exceptions: |
+    size 64, directions 1 (faces the camera), shadow off (the fire lights the ground), camera.center
+    raised to 0.62; camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+    Flames and embers are emissive without outline (they glow on the dark background).
+  decisions: |
+    Each tongue is its own bone (pos at its base, rot = sway) with 3 nested emissive chains, each inner
+    layer shorter, thinner and nearer the camera (+z) so the layers show as bands. Tongue height, sway and
+    tip wiggle are channels animated out of phase with sin/cos of p. Detached flame licks above tongues
+    a and c appear while their tongue is tall (the split). Embers pulse with per-coal phases.
+
+ramps:
+  campstone: ["#1c0f1a", "#3d3440", "#6b6070", "#a3969c"]
+  logwood:   ["#1c0f1a", "#4a2123", "#7a4a2a", "#a8703f", "#cf9c62"]
+  logcut:    ["#1c0f1a", "#8a5a30", "#c49a5c", "#e6c890"]
+  char:      ["#1c0f1a", "#24151c", "#3e2422", "#5e3226"]
+  flame:     ["#1c0f1a", "#5a0a12", "#a8160f", "#e0361a", "#fe6607", "#ffa12e", "#ffd65c", "#fff4c8", "#ffffff"]
+
+materials:
+  stone:      {ramp: campstone, bands: [1, 3]}
+  wood:       {ramp: logwood, bands: [1, 3]}
+  cut:        {ramp: logcut, bands: [1, 3], line: false}
+  char:       {ramp: char, bands: [1, 3]}
+  ember_bed:  {ramp: flame, emissive: true, band: 2, outline: false}
+  ember:      {ramp: flame, emissive: true, band: 4, outline: false, glow: {color: "#fe6607", mix: 0.4, radius: 1}}
+  ember_hot:  {ramp: flame, emissive: true, band: 6, outline: false}
+  flame_red:  {ramp: flame, emissive: true, band: 3, outline: false, glow: {color: "#e0361a", mix: 0.35, radius: 1}}
+  flame_or:   {ramp: flame, emissive: true, band: 5, outline: false}
+  flame_yel:  {ramp: flame, emissive: true, band: 6, outline: false}
+  flame_core: {ramp: flame, emissive: true, band: 7, outline: false}
+  white_hot:  {ramp: flame, emissive: true, band: 8, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  h_a: 1.0          # tongue heights (units)
+  h_b: 0.75
+  h_c: 0.8
+  h_d: 0.9
+  s_a: 0            # tongue sway (radians, z rotation)
+  s_b: 0.25
+  s_c: -0.25
+  s_d: 0
+  w_a: 0            # tip wiggle (S-curve amount)
+  w_b: 0
+  w_c: 0
+  w_d: 0
+  lick_a: 0         # detached lick above tongue a (0 = off, 1 = highest)
+  lick_c: 0
+  core: 1           # white-hot core size
+  ember: 1          # ember glow (pulse)
+
+bones:
+  fire:     {parent: root, pos: [0, 0.22, 0]}
+  tongue_a: {parent: fire, pos: [0.02, 0, 0.06], rot: "[0, 0, s_a]"}     # centre, tallest
+  tongue_b: {parent: fire, pos: [-0.17, -0.02, 0.08], rot: "[0, 0, s_b]"} # left
+  tongue_c: {parent: fire, pos: [0.19, -0.02, 0.05], rot: "[0, 0, s_c]"}  # right
+  tongue_d: {parent: fire, pos: [-0.04, 0, -0.14], rot: "[0, 0, s_d]"}   # back
+
+parts:
+  # ---------- stone ring (7 stones, radius ~0.66) ----------
+  stones:
+    material: stone
+    line: true
+    prims:
+      - box: {c: [0.23, 0.10, 0.62], half: [0.15, 0.10, 0.11], rot: [0.05, 0.35, 0.08], round: 0.06}
+      - box: {c: [0.63, 0.09, 0.21], half: [0.12, 0.09, 0.14], rot: [0, 1.25, -0.06], round: 0.06}
+      - box: {c: [0.56, 0.11, -0.36], half: [0.14, 0.11, 0.12], rot: [0.06, 2.1, 0], round: 0.06}
+      - box: {c: [0.07, 0.10, -0.66], half: [0.16, 0.10, 0.11], rot: [0, 3.0, 0.05], round: 0.06}
+      - box: {c: [-0.47, 0.12, -0.46], half: [0.13, 0.12, 0.12], rot: [-0.05, 3.9, 0], round: 0.06}
+      - box: {c: [-0.66, 0.09, 0.08], half: [0.11, 0.09, 0.14], rot: [0, 4.8, 0.07], round: 0.06}
+      - box: {c: [-0.35, 0.10, 0.56], half: [0.14, 0.10, 0.11], rot: [0.04, 5.7, -0.05], round: 0.06}
+
+  # ---------- ember bed (under the logs) ----------
+  ember_bed:
+    material: ember_bed
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0], r: [0.46, 0.05, 0.42]}
+
+  # ---------- logs (4 in a flat star, inner ends raised into the fire) ----------
+  log_front_L:
+    material: wood
+    line: true
+    prims:
+      - cylinder: {a: [0.58, 0.12, 0.47], b: [0.07, 0.24, 0.05], r: 0.1, round: 0.02}
+  log_back_L:
+    material: wood
+    line: true
+    prims:
+      - cylinder: {a: [0.63, 0.13, -0.35], b: [0.06, 0.27, -0.03], r: 0.095, round: 0.02}
+  char_front_L:
+    material: char
+    prims:
+      - cylinder: {a: [0.30, 0.16, 0.24], b: [0.04, 0.25, 0.03], r: 0.107, round: 0.02}
+  char_back_L:
+    material: char
+    prims:
+      - cylinder: {a: [0.32, 0.18, -0.18], b: [0.04, 0.28, -0.02], r: 0.102, round: 0.02}
+  logcut_front_L:
+    material: cut
+    prims:
+      - cylinder: {a: [0.585, 0.121, 0.474], b: [0.61, 0.123, 0.494], r: 0.08}
+
+  # ---------- coals between the logs ----------
+  coals:
+    material: ember
+    prims:
+      - sphere: {c: [0, 0.08, 0.30], r: "0.05*ember"}
+      - sphere: {c: [0.30, 0.07, 0.02], r: "0.045*(2 - ember)"}
+      - sphere: {c: [-0.29, 0.07, 0.05], r: "0.045*ember"}
+      - sphere: {c: [0.12, 0.07, 0.36], r: "0.035*(2 - ember)"}
+      - sphere: {c: [-0.15, 0.07, 0.33], r: "0.04*ember"}
+  coals_hot:
+    when: "ember > 1.05"
+    material: ember_hot
+    prims:
+      - sphere: {c: [0, 0.10, 0.33], r: 0.025}
+      - sphere: {c: [-0.29, 0.09, 0.08], r: 0.022}
+  coals_hot2:
+    when: "ember < 0.95"
+    material: ember_hot
+    prims:
+      - sphere: {c: [0.30, 0.09, 0.05], r: 0.022}
+      - sphere: {c: [0.12, 0.09, 0.39], r: 0.02}
+
+  # ---------- flames: 4 tongues x 3 layers ----------
+  tongue_a_red:
+    material: flame_red
+    space: tongue_a
+    prims:
+      - chain: {pts: [[0, 0, 0], "[-0.05*w_a, 0.35*h_a, 0]", "[0.06*w_a, 0.7*h_a, 0]", "[0.12*w_a, 1.15*h_a, 0]"], r: [0.26, 0.195, 0.104, 0.019]}
+  tongue_a_or:
+    material: flame_or
+    space: tongue_a
+    prims:
+      - chain: {pts: [[0, 0, 0.08], "[-0.04*w_a, 0.28*h_a, 0.08]", "[0.05*w_a, 0.55*h_a, 0.08]", "[0.09*w_a, 0.85*h_a, 0.08]"], r: [0.195, 0.143, 0.078, 0.016]}
+  tongue_a_yel:
+    material: flame_yel
+    space: tongue_a
+    prims:
+      - chain: {pts: [[0, 0, 0.15], "[-0.03*w_a, 0.2*h_a, 0.15]", "[0.04*w_a, 0.5*h_a, 0.15]"], r: [0.13, 0.091, 0.016]}
+  tongue_b_red:
+    material: flame_red
+    space: tongue_b
+    prims:
+      - chain: {pts: [[0, 0, 0], "[-0.05*w_b, 0.35*h_b, 0]", "[0.06*w_b, 0.7*h_b, 0]", "[0.12*w_b, 1.1*h_b, 0]"], r: [0.195, 0.143, 0.078, 0.016]}
+  tongue_b_or:
+    material: flame_or
+    space: tongue_b
+    prims:
+      - chain: {pts: [[0, 0, 0.07], "[-0.04*w_b, 0.28*h_b, 0.07]", "[0.08*w_b, 0.75*h_b, 0.07]"], r: [0.143, 0.091, 0.016]}
+  tongue_b_yel:
+    material: flame_yel
+    space: tongue_b
+    prims:
+      - chain: {pts: [[0, 0, 0.13], "[-0.03*w_b, 0.2*h_b, 0.13]", "[0.05*w_b, 0.45*h_b, 0.13]"], r: [0.09, 0.06, 0.012]}
+  tongue_c_red:
+    material: flame_red
+    space: tongue_c
+    prims:
+      - chain: {pts: [[0, 0, 0], "[-0.05*w_c, 0.35*h_c, 0]", "[0.06*w_c, 0.7*h_c, 0]", "[0.12*w_c, 1.1*h_c, 0]"], r: [0.195, 0.143, 0.078, 0.016]}
+  tongue_c_or:
+    material: flame_or
+    space: tongue_c
+    prims:
+      - chain: {pts: [[0, 0, 0.07], "[-0.04*w_c, 0.28*h_c, 0.07]", "[0.08*w_c, 0.75*h_c, 0.07]"], r: [0.143, 0.091, 0.016]}
+  tongue_c_yel:
+    material: flame_yel
+    space: tongue_c
+    prims:
+      - chain: {pts: [[0, 0, 0.13], "[-0.03*w_c, 0.2*h_c, 0.13]", "[0.05*w_c, 0.45*h_c, 0.13]"], r: [0.09, 0.06, 0.012]}
+  tongue_d_red:
+    material: flame_red
+    space: tongue_d
+    prims:
+      - chain: {pts: [[0, 0, 0], "[-0.05*w_d, 0.35*h_d, 0]", "[0.06*w_d, 0.7*h_d, 0]", "[0.12*w_d, 1.15*h_d, 0]"], r: [0.221, 0.156, 0.091, 0.016]}
+  tongue_d_or:
+    material: flame_or
+    space: tongue_d
+    prims:
+      - chain: {pts: [[0, 0, 0.08], "[-0.04*w_d, 0.3*h_d, 0.08]", "[0.06*w_d, 0.62*h_d, 0.08]", "[0.09*w_d, 0.9*h_d, 0.08]"], r: [0.156, 0.117, 0.065, 0.016]}
+
+  tongue_d_yel:
+    material: flame_yel
+    space: tongue_d
+    prims:
+      - chain: {pts: [[0, 0, 0.15], "[-0.03*w_d, 0.2*h_d, 0.15]", "[0.05*w_d, 0.55*h_d, 0.15]"], r: [0.09, 0.06, 0.012]}
+
+  # detached licks (the split): small flames above tongues a and c
+  lick_a:
+    when: "lick_a > 0.05"
+    material: flame_or
+    space: tongue_a
+    prims:
+      - ellipsoid: {c: "[0.14*w_a + 0.04, 1.18*h_a + 0.18*lick_a, 0.02]", r: "[0.07*lick_a + 0.02, 0.13*lick_a + 0.03, 0.05]"}
+  lick_c:
+    when: "lick_c > 0.05"
+    material: flame_red
+    space: tongue_c
+    prims:
+      - ellipsoid: {c: "[0.14*w_c, 1.12*h_c + 0.16*lick_c, 0.0]", r: "[0.065*lick_c + 0.02, 0.12*lick_c + 0.03, 0.05]"}
+
+  # white-hot core at the base of the flames
+  core_glow:
+    material: flame_core
+    space: fire
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0.26], r: "[0.17*core, 0.2*core, 0.05]"}
+  core_white:
+    material: white_hot
+    space: fire
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.30], r: "[0.09*core, 0.1*core, 0.04]"}
+
+animations:
+  idle:
+    frames: 8
+    ms: 90
+    channels:
+      h_a: "1.0 + 0.14*sin(p) + 0.05*sin(2*p + 1)"
+      h_b: "0.72 + 0.12*sin(p + 2.2)"
+      h_c: "0.78 + 0.12*sin(p + 4.1)"
+      h_d: "0.9 + 0.1*cos(p + 0.6)"
+      s_a: "0.08*sin(p + 1.2)"
+      s_b: "0.28 + 0.1*sin(p + 3.0)"
+      s_c: "-0.28 + 0.1*sin(p + 0.4)"
+      s_d: "0.1*cos(p + 2.4)"
+      w_a: "1.0*sin(p)"
+      w_b: "1.0*sin(p + 2.0)"
+      w_c: "1.0*cos(p + 1.0)"
+      w_d: "0.9*sin(p + 4.0)"
+      lick_a: "pos(sin(p - 0.6))"
+      lick_c: "pos(sin(p + 2.6))"
+      core: "1 + 0.12*sin(2*p) + 0.06*cos(3*p)"
+      ember: "1 + 0.25*sin(p + 0.8)"

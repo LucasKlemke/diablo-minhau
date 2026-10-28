@@ -27,11 +27,16 @@ const metas = new Map<string, KilnMeta>();
 export const SPRITES = [
   "barbarian", "archer", "mage", "sorcerer", "goblin", "goblin_hurt", "goblin_maimed", "bandit", "bandit_brute",
   "npc_elder", "npc_smith", "npc_hunter", "skeleton", "spider", "troll", "lich", "chest", "portal", "crypt",
+  "house", "barn", "fence_h", "fence_v", "tree_big", "tree_medium", "bush", "stump", "campfire",
+  "crypt_floor", "tombstone", "dead_tree", "grave_fence", "village_gate", "npc_marker",
 ] as const;
 /** Optional variants: when their export is missing they fall back to the base sprite instead of a placeholder. */
 const VARIANT_OF: Partial<Record<string, SpriteName>> = { goblin_hurt: "goblin", goblin_maimed: "goblin" };
 /** Props modelled in SpriteKiln; while missing, the game falls back to its older art. */
-const OPTIONAL = new Set<string>(["chest", "portal", "crypt"]);
+const OPTIONAL = new Set<string>([
+  "chest", "portal", "crypt", "house", "barn", "fence_h", "fence_v", "tree_big", "tree_medium", "bush", "stump", "campfire",
+  "crypt_floor", "tombstone", "dead_tree", "grave_fence", "village_gate", "npc_marker",
+]);
 const available = new Set<string>();
 export const hasSprite = (name: SpriteName) => available.has(name);
 export type SpriteName = (typeof SPRITES)[number];
@@ -46,6 +51,7 @@ export function preloadKiln(scene: Phaser.Scene) {
 
 /** Placeholder look per sprite while SpriteKiln renders are missing. */
 const PLACEHOLDER: Record<SpriteName, { body: number; head: number; h: number }> = {
+  campfire: { body: 0x5d351f, head: 0xfe6607, h: 12 },
   barbarian: { body: 0xc13a2b, head: 0xeaab86, h: 30 },
   archer: { body: 0x5dab3d, head: 0xeaab86, h: 30 },
   mage: { body: 0x2c60d5, head: 0xeaab86, h: 30 },
@@ -65,6 +71,20 @@ const PLACEHOLDER: Record<SpriteName, { body: number; head: number; h: number }>
   chest: { body: 0x9e6d32, head: 0x9e6d32, h: 10 },
   portal: { body: 0x6a6478, head: 0xc06bff, h: 40 },
   crypt: { body: 0x41344f, head: 0x41344f, h: 40 },
+  house: { body: 0xb5502a, head: 0xb5502a, h: 40 },
+  barn: { body: 0xb5502a, head: 0xb5502a, h: 40 },
+  fence_h: { body: 0x7a3a22, head: 0x7a3a22, h: 12 },
+  fence_v: { body: 0x7a3a22, head: 0x7a3a22, h: 12 },
+  tree_big: { body: 0x3f8a2e, head: 0x3f8a2e, h: 46 },
+  tree_medium: { body: 0x3f8a2e, head: 0x3f8a2e, h: 40 },
+  bush: { body: 0x3f8a2e, head: 0x3f8a2e, h: 12 },
+  stump: { body: 0x7a3a22, head: 0x7a3a22, h: 10 },
+  crypt_floor: { body: 0x41344f, head: 0x41344f, h: 4 },
+  tombstone: { body: 0x6a6480, head: 0x6a6480, h: 12 },
+  dead_tree: { body: 0x4a3a30, head: 0x4a3a30, h: 40 },
+  grave_fence: { body: 0x4b5266, head: 0x4b5266, h: 14 },
+  village_gate: { body: 0x7a3a22, head: 0x7a3a22, h: 20 },
+  npc_marker: { body: 0xffe14d, head: 0xffe14d, h: 10 },
 };
 
 function makePlaceholder(scene: Phaser.Scene, name: SpriteName) {
@@ -155,6 +175,14 @@ export interface PlayOpts {
   onEvent?: (event: string) => void;
   onComplete?: () => void;
   restart?: boolean;
+}
+
+/** A static SpriteKiln prop as a plain image (first `idle` frame), placed by its pivot.
+ * `texture` may be a biome skin of the atlas (see makeSkins). */
+export function kilnImage(scene: Phaser.Scene, x: number, y: number, name: SpriteName, texture: string = name) {
+  const m = metas.get(name)!;
+  const frame = m.animations.idle.directions.s!.frames[0];
+  return scene.add.image(x, y, texture, frame).setOrigin(m.pivot.x / m.frame_size, m.pivot.y / m.frame_size);
 }
 
 export class KilnSprite extends Phaser.GameObjects.Sprite {
@@ -260,4 +288,38 @@ export function portrait(scene: Phaser.Scene, name: SpriteName, scale = 2): HTML
   ctx.drawImage(frame.source.image as CanvasImageSource, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight,
     0, 0, frame.cutWidth * scale, frame.cutHeight * scale);
   return c;
+}
+
+/** Has a sprite's metadata (real export or placeholder) been registered? */
+export const kilnMeta = (name: string) => metas.get(name);
+
+/**
+ * Draws one frame of a clip onto a 2D canvas, outside Phaser (menus): the frame shown at time `t` (ms),
+ * its pivot at (x, y), scaled by `scale`. Left-facing directions are mirrored like in game.
+ */
+export function drawKiln(ctx: CanvasRenderingContext2D, textures: Phaser.Textures.TextureManager, name: string,
+  anim: string, dir: Dir, t: number, x: number, y: number, scale: number): boolean {
+  const meta = metas.get(name);
+  const a = meta?.animations[anim] ?? meta?.animations.idle;
+  if (!meta || !a) return false;
+  let d = dir;
+  let flip = false;
+  if (!a.directions[d]) {
+    const m = meta.mirrors?.[d];
+    if (m && a.directions[m]) { d = m; flip = true; } else d = Object.keys(a.directions)[0] as Dir;
+  }
+  const clip = a.directions[d]!;
+  const total = clip.durations.reduce((s, v) => s + v, 0);
+  let k = 0;
+  for (let acc = t % total; acc >= clip.durations[k] && k < clip.durations.length - 1; k++) acc -= clip.durations[k];
+  const f = textures.getFrame(name, clip.frames[k]);
+  if (!f) return false;
+  ctx.save();
+  ctx.imageSmoothingEnabled = false;
+  ctx.translate(Math.round(x), Math.round(y));
+  if (flip) ctx.scale(-1, 1);
+  ctx.drawImage(f.source.image as CanvasImageSource, f.cutX, f.cutY, f.cutWidth, f.cutHeight,
+    -meta.pivot.x * scale, -meta.pivot.y * scale, f.cutWidth * scale, f.cutHeight * scale);
+  ctx.restore();
+  return true;
 }

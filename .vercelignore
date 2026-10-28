@@ -6,3 +6,5 @@ node_modules
 Farm RPG FREE 16x16 - Tiny Asset Pack
 .claude
 .spritekiln
+.env*
+scripts

@@ -88,7 +88,22 @@ const pick = <T>(a: T[]) => a[Math.floor(Math.random() * a.length)];
 const roll = (min: number, max: number) => min + Math.random() * (max - min);
 const round = (k: StatKey, v: number) => (FLAT.includes(k) ? (k.endsWith("Regen") ? Math.round(v * 10) / 10 : Math.round(v)) : Math.round(v * 100) / 100);
 
-export function rollRarity(magicFind = 1): Rarity {
+/** Best rarity that can drop for a hero of this level: no legendary at level 1. */
+export function maxRarityFor(heroLevel: number): Rarity {
+  return heroLevel < 3 ? "magic" : heroLevel < 6 ? "rare" : heroLevel < 10 ? "epic" : heroLevel < 15 ? "legendary" : "unique";
+}
+
+/** Caps a rarity to what the hero's level allows. */
+export function capRarity(r: Rarity, heroLevel: number): Rarity {
+  const max = RARITIES.indexOf(maxRarityFor(heroLevel));
+  return RARITIES.indexOf(r) > max ? RARITIES[max] : r;
+}
+
+export function rollRarity(magicFind = 1, heroLevel = Infinity): Rarity {
+  return capRarity(rollRarityUncapped(magicFind), heroLevel);
+}
+
+function rollRarityUncapped(magicFind: number): Rarity {
   const w: Record<Rarity, number> = {
     normal: 50, magic: 30 * magicFind, rare: 12 * magicFind, epic: 4.5 * magicFind, legendary: 1.6 * magicFind, unique: 1 * magicFind,
   };

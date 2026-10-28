@@ -76,7 +76,7 @@ export function generateDungeon(seed: number, level: number, enemies: EnemyType[
     kind: "dungeon",
     grass: blocked.map((b) => !b), // the floor, used for the minimap
     blocked, props, chests, packs,
-    spawn: { x: start.cx, y: start.cy + 1 }, portal, dungeons: [],
+    spawn: { x: start.cx, y: start.cy + 1 }, gates: [], portal, dungeons: [],
     town: { x0: start.x, y0: start.y, x1: start.x + start.w - 1, y1: start.y + start.h - 2 },
     npcs: null,
   };

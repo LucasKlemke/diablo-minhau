@@ -1,0 +1,82 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: bush
+kind: prop
+view: topdown
+size: 32                 # ~15 x 13 px on screen at camera.scale 0.055, 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.26, 0]}
+shadow: {rx: 7, ry: 2.5, alpha: 110}
+
+# Small leafy bush (replaces the Farm RPG bush, tree.png x48 y32 w16 h16).
+brief:
+  summary: small round leafy bush, a tight bumpy cluster of leaf lumps in vivid greens lit from the top-left
+    with a dark green underside, sitting on the ground like a mound
+  reference: public/assets/farm/tree.png (frame x48 y32 w16 h16, seen from s)
+  must_keep: [bumpy round silhouette, light top-left / dark underside, dark outline]
+  simplify: [3-4 lumps only; at 15 px each lump is a few pixels]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false; camera.center [0, 0.30, 0]. camera.scale/pitch/light
+    untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT = world origin = ground point at the centre of the bush base (the game places the sprite by it).
+    Colour contract with the game's biome recolour (green > red+6 and green >= blue): every leaf tone is
+    green-dominant; the outline #1c0f1a is not green-dominant.
+    Same leaf ramp as the trees. No stem: in the reference it is 1 px and it made the bush read as a
+    tiny tree, so the bush is a low mound (body scaled 0.8 in y about the ground point).
+
+ramps:
+  tree_leaf: ["#1c0f1a", "#174438", "#0f6542", "#1a8321", "#38a129", "#6ebd3c"]
+
+materials:
+  leaf:      {ramp: tree_leaf, bands: [2, 5]}
+  leaf_dark: {ramp: tree_leaf, bands: [1, 2]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root, scale: [1.05, 0.80, 1.05]}   # a low mound, wider than tall
+
+# Layout (world units, +x = screen right, +z = towards the camera). Base at the origin; bush x +-0.38.
+parts:
+  bush_back:          # underside and back mass (dark teal-green)
+    material: leaf_dark
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.36, -0.06], r: [0.32, 0.26, 0.28]}
+      - sphere: {c: [-0.20, 0.17, 0.10], r: 0.14}
+      - sphere: {c: [0.20, 0.17, 0.10], r: 0.14}
+  bush_front:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [-0.15, 0.40, 0.12], r: 0.18}
+      - sphere: {c: [0.16, 0.38, 0.12], r: 0.17}
+  bush_top:
+    material: leaf
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.54, 0.02], r: 0.18}
+  bush_tufts:         # small tufts that make the silhouette bumpy
+    material: leaf
+    space: body
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.30, 0.38, -0.02], r: 0.09}
+      - sphere: {c: [0.30, 0.36, -0.02], r: 0.09}
+      - sphere: {c: [-0.14, 0.58, -0.10], r: 0.09}
+      - sphere: {c: [0.15, 0.57, -0.10], r: 0.09}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}
