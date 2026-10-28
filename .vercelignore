@@ -1,0 +1,8 @@
+# Only the game sources are needed to build; keep local renders, test profiles and art sources out.
+.tmp
+art
+dist
+node_modules
+Farm RPG FREE 16x16 - Tiny Asset Pack
+.claude
+.spritekiln
