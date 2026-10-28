@@ -92,7 +92,7 @@ export function makeWorldTextures(scene: Phaser.Scene) {
   });
 
   // Portal: a stone arch with a swirling core drawn separately.
-  canvas("portal", 24, 32, (ctx) => {
+  canvas("portal_stone", 24, 32, (ctx) => {
     ctx.fillStyle = "#1c0f1a";
     ctx.fillRect(1, 6, 22, 26);
     ctx.fillStyle = "#6a6478";

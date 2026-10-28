@@ -428,3 +428,16 @@ img.icon { image-rendering: pixelated; }
 }
 @keyframes spPulse { 50% { transform: translateX(-50%) translateY(-3px); box-shadow: 0 0 24px #ffd23d; } }
 .hud { position: absolute; }
+
+/* ---------- Item comparison ---------- */
+.cmp-mark { font-size: 12px; font-weight: 700; text-shadow: 1px 1px 0 var(--ink), -1px -1px 0 var(--ink); }
+.cmp-mark.up { color: #5dff5a; }
+.cmp-mark.down { color: #ff4a4a; }
+.slot .cmp-mark { position: absolute; left: 3px; bottom: 0; z-index: 1; font-size: 13px; }
+.label .cmp-mark { font-size: 11px; }
+.tooltip .thead { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
+.tooltip .ticon { width: 40px; height: 40px; image-rendering: pixelated; background: var(--panel); border: 2px solid var(--edge); flex: none; }
+.tooltip .ticon.r-magic { border-color: var(--magic); } .tooltip .ticon.r-rare { border-color: var(--rare); }
+.tooltip .ticon.r-epic { border-color: #c06bff; } .tooltip .ticon.r-legendary { border-color: #ff8a1f; } .tooltip .ticon.r-unique { border-color: var(--unique); }
+.tooltip .verdict { font-size: 13px; margin: 2px 0 4px; font-weight: 700; }
+.tooltip .verdict.up { color: #5dff5a; } .tooltip .verdict.down { color: #ff4a4a; }

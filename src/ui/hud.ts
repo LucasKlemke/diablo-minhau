@@ -1,5 +1,5 @@
 import { CLASSES, rankMult, SLOT_KEY, type ClassId, type SkillDef } from "../data/classes";
-import { itemLines, itemStats, itemValue, RARITIES, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Rarity, type Slot } from "../data/items";
+import { COMPARE_MARK, compareItem, itemLines, itemStats, itemValue, RARITIES, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Rarity, type Slot } from "../data/items";
 import { formatStat, STAT_LABEL, type Stats } from "../data/stats";
 import { isMuted, toggleMute } from "../game/audio";
 import { iconUrl } from "./icons";
@@ -266,6 +266,11 @@ export class Hud {
     if (item) {
       d.classList.add(`r-${item.rarity}`);
       d.innerHTML = `<img class="icon" src="${iconUrl(item.icon)}">`;
+      // Better/worse than what is equipped in that slot.
+      if (this.hero && !Object.values(this.hero.equipment).includes(item)) {
+        const c = compareItem(item, this.hero.equipment);
+        if (c !== "same") d.insertAdjacentHTML("beforeend", `<span class="cmp-mark ${c}">${COMPARE_MARK[c]}</span>`);
+      }
       d.onmouseenter = (e) => this.showTip(item, e.clientX, e.clientY);
       d.onmousemove = (e) => this.moveTip(e.clientX, e.clientY);
       d.onmouseleave = () => this.hideTip();
@@ -470,6 +475,15 @@ export class Hud {
     this.moveTip(x, y);
   }
 
+  /** Item tooltip, also used for items lying on the ground. */
+  showItemTip(item: Item, x: number, y: number) {
+    this.showTip(item, x, y);
+  }
+
+  moveItemTip(x: number, y: number) {
+    this.moveTip(x, y);
+  }
+
   private showTip(item: Item, x: number, y: number) {
     const lines = itemLines(item).map((l) => `<div>${l}</div>`).join("");
     const aff = item.affixes.map((a) => `<div class="aff">${formatStat(a.k, a.v)}</div>`).join("");
@@ -490,9 +504,12 @@ export class Hud {
     const inShop = this.shopStock.includes(item);
     const price = this.shopOpen
       ? `<div class="price">${inShop ? `Preço: ${itemValue(item)}` : `Venda: ${Math.round(itemValue(item) / 4)}`} ouro</div>` : "";
-    this.tip.innerHTML = `<div class="tname" style="color:${RARITY_COLOR[item.rarity]}">${esc(item.name)}</div>
+    const c = Object.values(this.hero.equipment).includes(item) ? "same" : compareItem(item, this.hero.equipment);
+    const verdict = c === "same" ? "" : `<div class="verdict ${c}">${COMPARE_MARK[c]} ${c === "up" ? (eq ? "Melhor que o equipado" : "Espaço vazio: melhor que nada") : "Pior que o equipado"}</div>`;
+    this.tip.innerHTML = `<div class="thead"><img class="ticon r-${item.rarity}" src="${iconUrl(item.icon)}"><div>
+      <div class="tname" style="color:${RARITY_COLOR[item.rarity]}">${esc(item.name)}</div>
       <div class="tbase">${item.rarity === "normal" ? "" : esc(item.base) + " · "}${RARITY_LABEL[item.rarity]} · ${SLOT_LABEL[item.slot]} · nv ${item.ilvl}</div>
-      ${lines}${aff}${cmp}${price}`;
+      </div></div>${verdict}${lines}${aff}${cmp}${price}`;
     this.tip.style.display = "block";
     this.moveTip(x, y);
   }

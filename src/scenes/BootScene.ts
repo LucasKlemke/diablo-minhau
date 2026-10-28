@@ -20,7 +20,7 @@ export class BootScene extends Phaser.Scene {
     this.load.image("fence", `${farm}/fence.png`);
     this.load.spritesheet("stones", `${farm}/stones.png`, { frameWidth: 16, frameHeight: 16 });
     this.load.spritesheet("crops", `${farm}/crops.png`, { frameWidth: 16, frameHeight: 16 });
-    this.load.spritesheet("chest", `${farm}/chest.png`, { frameWidth: 32, frameHeight: 16 });
+    this.load.spritesheet("chest_farm", `${farm}/chest.png`, { frameWidth: 32, frameHeight: 16 });
     preloadKiln(this);
     // A missing SpriteKiln export is not fatal: setupKiln draws a placeholder.
     this.load.on(Phaser.Loader.Events.FILE_LOAD_ERROR, (f: Phaser.Loader.File) => console.warn("missing asset", f.key));

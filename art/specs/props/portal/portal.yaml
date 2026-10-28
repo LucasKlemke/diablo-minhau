@@ -1,0 +1,212 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: portal
+kind: prop
+size: 64                 # prop taller than a hero: bigger frame, same density (camera.scale shared by the game)
+directions: 1            # always faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.12, 0]}
+shadow: {rx: 19, ry: 5.5, alpha: 110}
+
+# "Portal de Pedra": the stone arch players use to travel between zones and leave dungeons.
+brief:
+  summary: ancient standing stone arch (~2.3 tall, ~1.6 wide, taller than a hero), two weathered grey-violet
+    pillars with glowing violet runes, a lintel with a central rune gem, rubble at the base, and a swirling
+    emissive vortex (deep violet rim -> magenta arms -> white core) filling the opening
+  must_keep: [two pillars + lintel silhouette, glowing runes on the pillar fronts, keystone gem,
+    spiral vortex with a bright core, rubble at the base]
+  simplify: [runes are 2-3 px glyph slashes, weathering is a few chipped corners]
+  exceptions: |
+    size 64 (prop taller than a hero), directions 1 (faces the camera), camera.center raised to 1.12;
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    Vortex spiral arms are emissive chains whose points are computed from spin channels (3 outer arms
+    rotating 1/3 turn per idle loop, 2 inner arms rotating 1/2 turn the other way) so the loop is seamless.
+    Runes flicker by switching on a white-hot inner glyph per rune with phase offsets.
+    activate: anticipation squeeze, then the white core floods the disc, a ring of light bursts outward
+    and a ground ring expands; event `travel` on the brightest frame.
+
+ramps:
+  portal_stone: ["#1c0f1a", "#3e3650", "#655c7c", "#9890ae"]
+  portal_dark:  ["#1c0f1a", "#2c2638", "#463e58", "#655c7c"]
+  moss:         ["#1c0f1a", "#2c6226", "#5dab3d", "#8fcf62"]
+  vortex:       ["#1c0f1a", "#2a0b5c", "#5a17b8", "#9a2fe0", "#e04df0", "#ffb8f7", "#ffffff"]
+  rune:         ["#1c0f1a", "#7a0ff8", "#cb71ff", "#f6d8fd", "#ffffff"]
+
+materials:
+  stone:     {ramp: portal_stone, bands: [1, 3]}
+  stone_dk:  {ramp: portal_dark, bands: [1, 3]}
+  moss:      {ramp: moss, bands: [1, 3]}
+  void:      {ramp: vortex, emissive: true, band: 1, outline: false}
+  rim:       {ramp: vortex, emissive: true, band: 3, outline: false, glow: {color: "#9a2fe0", mix: 0.35, radius: 1}}
+  swirl:     {ramp: vortex, emissive: true, band: 3, outline: false}
+  swirl_hot: {ramp: vortex, emissive: true, band: 4, outline: false}
+  halo:      {ramp: vortex, emissive: true, band: 5, outline: false, glow: {color: "#ff5cf0", mix: 0.4, radius: 1}}
+  core:      {ramp: vortex, emissive: true, band: 6, outline: false}
+  rune:      {ramp: rune, emissive: true, band: 2, outline: false, glow: {color: "#b04dff", mix: 0.35, radius: 1}}
+  rune_hot:  {ramp: rune, emissive: true, band: 4, outline: false}
+  burst:     {ramp: vortex, emissive: true, band: 5, outline: false, glow: {color: "#ff9cf5", mix: 0.5, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  spin_a: 0         # outer spiral arms rotation (radians, 3 arms: period 2pi/3)
+  spin_b: 0         # inner spiral arms rotation (radians, 2 arms: period pi)
+  flare: 1          # vortex size
+  core: 1           # white core size (3 = floods the disc)
+  rune_glow: 0.6    # rune heat; a rune blazes when rune_glow + its flicker > 1
+  burst: 0          # ring of light expanding from the vortex (0 = off, 1 = widest)
+  gem: 1            # keystone gem size
+
+bones:
+  vortex: {parent: root, pos: [0, 1.02, 0], scale: "flare"}
+
+parts:
+  # ---------- stone ----------
+  plinth_L:
+    material: stone_dk
+    prims:
+      - box: {c: [0.63, 0.09, 0.01], half: [0.25, 0.09, 0.25], round: 0.03}
+  pillar_L:
+    material: stone
+    line: true
+    prims:
+      - box: {c: [0.63, 1.0, 0], half: [0.17, 0.84, 0.17], round: 0.035}
+    cut:
+      - sphere: {c: [0.80, 1.55, 0.17], r: 0.07}     # chipped corners (weathering)
+      - sphere: {c: [0.46, 0.45, 0.17], r: 0.06}
+      - sphere: {c: [0.80, 0.70, 0.18], r: 0.05}
+  capital_L:
+    material: stone_dk
+    prims:
+      - box: {c: [0.63, 1.87, 0], half: [0.21, 0.05, 0.20], round: 0.025}
+  lintel:
+    material: stone
+    line: true
+    prims:
+      - box: {c: [0, 2.06, 0], half: [0.93, 0.14, 0.21], rot: [0, 0, 0.025], round: 0.035}
+    cut:
+      - sphere: {c: [-0.88, 2.20, 0.2], r: 0.08}
+      - sphere: {c: [0.60, 1.93, 0.21], r: 0.05}
+  keystone:
+    material: stone_dk
+    line: true
+    prims:
+      - box: {c: [0, 2.10, 0.03], half: [0.17, 0.21, 0.23], round: 0.03}
+  moss:
+    material: moss
+    prims:
+      - ellipsoid: {c: [-0.70, 2.21, 0.06], r: [0.16, 0.05, 0.14]}
+      - ellipsoid: {c: [0.72, 0.19, 0.12], r: [0.13, 0.04, 0.12]}
+      - ellipsoid: {c: [-0.48, 0.20, 0.15], r: [0.10, 0.035, 0.09]}
+  rubble:
+    material: stone_dk
+    prims:
+      - box: {c: [1.00, 0.08, 0.22], half: [0.11, 0.08, 0.10], rot: [0, 0.5, 0.15], round: 0.03}
+      - sphere: {c: [0.94, 0.05, 0.42], r: 0.07}
+      - box: {c: [-1.00, 0.07, 0.28], half: [0.12, 0.07, 0.09], rot: [0, -0.4, -0.1], round: 0.03}
+      - sphere: {c: [-0.82, 0.05, 0.46], r: 0.06}
+      - sphere: {c: [0.28, 0.04, 0.42], r: 0.05}
+      - box: {c: [-1.05, 0.06, -0.20], half: [0.09, 0.06, 0.08], rot: [0, 0.7, 0], round: 0.025}
+
+  # ---------- runes (front face of the pillars, z = 0.17) ----------
+  runes_L:
+    material: rune
+    prims:
+      - box: {c: [0.63, 1.45, 0.175], half: [0.035, 0.09, 0.02]}
+      - box: {c: [0.63, 1.45, 0.175], half: [0.08, 0.025, 0.02]}
+      - box: {c: [0.63, 1.02, 0.175], half: [0.035, 0.11, 0.02], rot: [0, 0, 0.5]}
+      - box: {c: [0.63, 0.60, 0.175], half: [0.07, 0.03, 0.02], rot: [0, 0, -0.4]}
+      - box: {c: [0.63, 0.60, 0.175], half: [0.03, 0.08, 0.02]}
+  rune_hot_a_L:
+    when: "rune_glow + 0.6*sin(p) > 1.05"
+    material: rune_hot
+    prims:
+      - box: {c: [0.63, 1.45, 0.19], half: [0.025, 0.07, 0.02]}
+  rune_hot_b_L:
+    when: "rune_glow + 0.6*sin(p + 2.1) > 1.05"
+    material: rune_hot
+    prims:
+      - box: {c: [0.63, 1.02, 0.19], half: [0.025, 0.08, 0.02], rot: [0, 0, 0.5]}
+  rune_hot_c_L:
+    when: "rune_glow + 0.6*sin(p + 4.2) > 1.05"
+    material: rune_hot
+    prims:
+      - box: {c: [0.63, 0.60, 0.19], half: [0.025, 0.06, 0.02]}
+  gem:
+    material: rune
+    prims:
+      - ellipsoid: {c: [0, 2.10, 0.27], r: "[0.075*gem, 0.10*gem, 0.05]"}
+  gem_hot:
+    when: "rune_glow > 0.9 or gem > 1.2"
+    material: rune_hot
+    prims:
+      - ellipsoid: {c: [0, 2.12, 0.30], r: "[0.035*gem, 0.05*gem, 0.03]"}
+
+  # ---------- vortex (in the vortex bone: centre of the opening) ----------
+  vortex_rim:
+    material: rim
+    space: vortex
+    prims:
+      - ellipsoid: {c: [0, 0, -0.03], r: [0.45, 0.86, 0.02]}
+  vortex_void:
+    material: void
+    space: vortex
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.39, 0.79, 0.025]}
+  swirl_outer:      # 3 arms, from the rim spiralling in
+    material: swirl
+    space: vortex
+    prims:
+      - chain: {pts: ["[0.36*cos(spin_a), 0.74*sin(spin_a), 0.03]", "[0.30*cos(spin_a+0.7), 0.60*sin(spin_a+0.7), 0.035]", "[0.22*cos(spin_a+1.4), 0.43*sin(spin_a+1.4), 0.04]", "[0.12*cos(spin_a+2.1), 0.24*sin(spin_a+2.1), 0.045]"], r: [0.035, 0.05, 0.05, 0.035]}
+      - chain: {pts: ["[0.36*cos(spin_a+2.094), 0.74*sin(spin_a+2.094), 0.03]", "[0.30*cos(spin_a+2.794), 0.60*sin(spin_a+2.794), 0.035]", "[0.22*cos(spin_a+3.494), 0.43*sin(spin_a+3.494), 0.04]", "[0.12*cos(spin_a+4.194), 0.24*sin(spin_a+4.194), 0.045]"], r: [0.035, 0.05, 0.05, 0.035]}
+      - chain: {pts: ["[0.36*cos(spin_a+4.189), 0.74*sin(spin_a+4.189), 0.03]", "[0.30*cos(spin_a+4.889), 0.60*sin(spin_a+4.889), 0.035]", "[0.22*cos(spin_a+5.589), 0.43*sin(spin_a+5.589), 0.04]", "[0.12*cos(spin_a+6.289), 0.24*sin(spin_a+6.289), 0.045]"], r: [0.035, 0.05, 0.05, 0.035]}
+  swirl_inner:      # 2 hotter arms near the core
+    material: swirl_hot
+    space: vortex
+    prims:
+      - chain: {pts: ["[0.24*cos(spin_b), 0.50*sin(spin_b), 0.06]", "[0.17*cos(spin_b+0.8), 0.34*sin(spin_b+0.8), 0.065]", "[0.08*cos(spin_b+1.6), 0.17*sin(spin_b+1.6), 0.07]"], r: [0.025, 0.04, 0.03]}
+      - chain: {pts: ["[0.24*cos(spin_b+3.1416), 0.50*sin(spin_b+3.1416), 0.06]", "[0.17*cos(spin_b+3.94), 0.34*sin(spin_b+3.94), 0.065]", "[0.08*cos(spin_b+4.74), 0.17*sin(spin_b+4.74), 0.07]"], r: [0.025, 0.04, 0.03]}
+  core_halo:
+    material: halo
+    space: vortex
+    prims:
+      - ellipsoid: {c: [0, 0, 0.08], r: "[min(0.39, 0.12*core), min(0.79, 0.22*core), 0.03]"}
+  core:
+    material: core
+    space: vortex
+    prims:
+      - ellipsoid: {c: [0, 0, 0.10], r: "[min(0.36, 0.06*core), min(0.75, 0.11*core), 0.03]"}
+
+  # ---------- activate burst ----------
+  burst_ring:
+    when: "burst > 0.02"
+    material: burst
+    space: vortex
+    prims:
+      - torus: {c: [0, 0, 0.12], R: "0.5 + 0.75*burst", r: "0.04 + 0.04*(1 - burst)", rot: [1.5708, 0, 0]}
+  ground_ring:
+    when: "burst > 0.02"
+    material: burst
+    prims:
+      - torus: {c: [0, 0.03, 0.0], R: "0.7 + 0.45*burst", r: "0.035 + 0.035*(1 - burst)"}
+
+animations:
+  idle:
+    frames: 8
+    ms: 90
+    channels:
+      spin_a: "p/3"
+      spin_b: "-p/2"
+      core: "1 + 0.35*sin(2*p)"
+      rune_glow: 0.6
+      gem: "1 + 0.1*sin(p)"
+  activate:
+    loop: false
+    keys:
+      - {ms: 60, set: {spin_a: 0.3, spin_b: -0.4, flare: 0.92, core: 0.8, rune_glow: 0.9}}
+      - {ms: 70, set: {spin_a: 0.9, spin_b: -1.2, flare: 1.08, core: 2.0, rune_glow: 1.6, gem: 1.3}}
+      - {ms: 90, event: travel, set: {spin_a: 1.6, spin_b: -2.2, flare: 1.18, core: 7, rune_glow: 2, gem: 1.5, burst: 0.3}}
+      - {ms: 100, set: {spin_a: 2.2, spin_b: -3.0, flare: 1.12, core: 4, rune_glow: 1.8, gem: 1.4, burst: 0.65}}
+      - {ms: 90, set: {spin_a: 2.7, spin_b: -3.6, flare: 1.05, core: 2.0, rune_glow: 1.2, gem: 1.2, burst: 0.95}}
+      - {ms: 90, set: {spin_a: 3.1, spin_b: -4.0, flare: 1.0, core: 1.2, rune_glow: 0.7}}

@@ -161,3 +161,27 @@ export function itemLines(item: Item): string[] {
   }
   return lines;
 }
+
+/** Rough "how good is it" number used for the better/worse arrows. */
+const SCORE: Partial<Record<StatKey, number>> = {
+  dmgMin: 1.5, dmgMax: 1.5, dmgFlat: 2, dmgPct: 60, maxHp: 0.5, maxMana: 0.25, armor: 1, attackSpeed: 70,
+  moveSpeed: 40, crit: 110, lifeSteal: 120, hpRegen: 3, manaRegen: 2,
+};
+
+export function itemScore(item: Item): number {
+  let s = 0;
+  for (const [k, v] of Object.entries(itemStats(item))) s += (SCORE[k as StatKey] ?? 0) * (v as number);
+  return s;
+}
+
+/** Compares an item with what is equipped in its slot: "up" (better), "down" (worse) or "same". */
+export function compareItem(item: Item, equipment: Partial<Record<Slot, Item>>): "up" | "down" | "same" {
+  const eq = equipment[item.slot];
+  if (eq === item) return "same";
+  if (!eq) return "up";
+  const a = itemScore(item), b = itemScore(eq);
+  if (Math.abs(a - b) <= Math.max(1, b * 0.03)) return "same";
+  return a > b ? "up" : "down";
+}
+
+export const COMPARE_MARK = { up: "▲", down: "▼", same: "" } as const;

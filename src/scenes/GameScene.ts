@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { rankMult, skillAt, type ActiveSlot, type DeathKind, type SkillDef } from "../data/classes";
 import { ENEMIES, UNIQUES, type BossAbility, type EnemyDef, type EnemyRank, type EnemyType, type UniqueDef, type UniqueId } from "../data/enemies";
-import { BEAM_RARITIES, generateItem, itemValue, rollRarity, RARITY_COLOR, type Item, type Rarity } from "../data/items";
+import { BEAM_RARITIES, COMPARE_MARK, compareItem, generateItem, itemValue, rollRarity, RARITY_COLOR, type Item, type Rarity } from "../data/items";
 import { EPILOGUE, NPCS, PROLOGUE, type NpcId } from "../data/quests";
 import { ZONES, ZONE_ORDER, type CampKind, type ZoneDef, type ZoneId } from "../data/zones";
 import { sfx } from "../game/audio";
@@ -151,7 +151,7 @@ export class GameScene extends Phaser.Scene {
   private zone!: ZoneDef;
   private dungeonRef: { index: number } | null = null;
   private exitAt: number | null = null;
-  private portalSpr!: Phaser.GameObjects.Image;
+  private portalSpr!: Phaser.GameObjects.Image | KilnSprite;
   private portalSwirl!: Phaser.GameObjects.Image;
   private darkEl?: HTMLDivElement;
   private slowmoUntil = 0;
@@ -169,6 +169,7 @@ export class GameScene extends Phaser.Scene {
   private netAt = 0;
   private snapAt = 0;
   private sessionEl?: HTMLDivElement;
+  private tipLoot: Loot | null = null;
   private enemies: Enemy[] = [];
   private loot: Loot[] = [];
   private projectiles: Projectile[] = [];
@@ -454,7 +455,14 @@ export class GameScene extends Phaser.Scene {
           break;
         }
         case "ruin": {
-          // Abandoned house: the Farm RPG house, darkened, with a glowing doorway.
+          if (hasSprite("crypt")) {
+            // Crypt entrance modelled in SpriteKiln, centred on its 5x3 footprint.
+            const crypt = new KilnSprite(this, px + 2.5 * TILE, (p.y + 1) * TILE, "crypt");
+            crypt.play2("idle");
+            crypt.setDepth((p.y + 1) * TILE - 8);
+            break;
+          }
+          // Fallback: the Farm RPG house, darkened, with a glowing doorway.
           const bottom = (p.y + 2) * TILE;
           this.add.image(px, bottom, "house", "h1").setOrigin(0, 1).setDepth(bottom - 8).setTint(0x7a6a7a);
           const glow = this.add.image(px + 2.5 * TILE, (p.y + 1) * TILE - 4, "disc").setTint(0xc06bff).setScale(0.35, 0.25)
@@ -498,14 +506,24 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const c of m.chests) {
-      const spr = this.add.sprite(c.x * TILE + 8, c.y * TILE + TILE, "chest", 0).setOrigin(0.5, 1).setDepth(c.y * TILE + TILE - 2);
+      const spr = hasSprite("chest")
+        ? new KilnSprite(this, c.x * TILE + 8, c.y * TILE + TILE - 2, "chest").setDepth(c.y * TILE + TILE - 2)
+        : this.add.sprite(c.x * TILE + 8, c.y * TILE + TILE, "chest_farm", 0).setOrigin(0.5, 1).setDepth(c.y * TILE + TILE - 2);
+      if (spr instanceof KilnSprite) spr.play2("idle");
       this.chests.push({ spr, level: c.level, opened: false });
     }
 
     // Portal (travel between zones, or out of a dungeon).
     const pp = m.portal;
-    this.portalSpr = this.add.image(pp.x * TILE + 8, pp.y * TILE + TILE + 2, "portal").setOrigin(0.5, 1).setDepth(pp.y * TILE + TILE - 2);
-    const swirl = this.portalSwirl = this.add.image(pp.x * TILE + 8, pp.y * TILE + TILE - 11, "swirl").setBlendMode(Phaser.BlendModes.ADD).setDepth(pp.y * TILE + TILE - 1);
+    if (hasSprite("portal")) {
+      const portal = new KilnSprite(this, pp.x * TILE + 8, pp.y * TILE + TILE, "portal");
+      portal.play2("idle");
+      this.portalSpr = portal.setDepth(pp.y * TILE + TILE - 2);
+    } else {
+      this.portalSpr = this.add.image(pp.x * TILE + 8, pp.y * TILE + TILE + 2, "portal_stone").setOrigin(0.5, 1).setDepth(pp.y * TILE + TILE - 2);
+    }
+    const swirl = this.portalSwirl = this.add.image(pp.x * TILE + 8, pp.y * TILE + TILE - 11, "swirl").setBlendMode(Phaser.BlendModes.ADD)
+      .setDepth(pp.y * TILE + TILE - 1).setVisible(!hasSprite("portal"));
     this.tweens.add({ targets: swirl, scaleX: { from: 0.85, to: 1.05 }, alpha: { from: 0.7, to: 1 }, duration: 700, yoyo: true, repeat: -1 });
   }
 
@@ -751,6 +769,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.updateHover(pw.x, pw.y);
+    this.updateLootHover(pw.x, pw.y);
     if (!this.dead) this.updateHero(time, delta, pw);
     this.updateEnemies(time, delta);
     this.updateProjectiles(dt);
@@ -804,6 +823,17 @@ export class GameScene extends Phaser.Scene {
       if (n === this.hoveredNpc) n.spr.setTint(0xfff2b0);
       else n.spr.clearTint();
     }
+  }
+
+  /** Tooltip when the mouse is over an item icon lying on the ground. */
+  private updateLootHover(wx: number, wy: number) {
+    const l = this.loot.find((x) => x.ready && x.item && Phaser.Math.Distance.Between(x.img.x, x.img.y, wx, wy) < 9) ?? null;
+    const p = this.input.activePointer;
+    if (l !== this.tipLoot) {
+      if (l) this.hud.showItemTip(l.item!, p.x, p.y);
+      else if (this.tipLoot) this.hud.hideTip();
+      this.tipLoot = l;
+    } else if (l) this.hud.moveItemTip(p.x, p.y);
   }
 
   private restoreTint(e: Enemy) {
@@ -2207,6 +2237,7 @@ export class GameScene extends Phaser.Scene {
   /** Reloads the scene (new zone, dungeon or exit) keeping the hero in memory. */
   private restartAt(opts: { dungeon?: number; exitAt?: number }) {
     const d = this.data_;
+    if (this.portalSpr instanceof KilnSprite && this.portalSpr.has("activate")) this.portalSpr.play2("activate", { restart: true });
     d.save();
     if (this.isHost) {
       // The partner follows to the same map.
@@ -2527,7 +2558,8 @@ export class GameScene extends Phaser.Scene {
 
   private openChest(c: Chest) {
     c.opened = true;
-    c.spr.setFrame(1);
+    if (c.spr instanceof KilnSprite) c.spr.play2("open", { restart: true, onComplete: () => (c.spr as KilnSprite).play2("opened") });
+    else c.spr.setFrame(1);
     this.emitters.gold.explode(14, c.spr.x, c.spr.y - 8);
     const d = this.data_;
     const lvl = c.level + this.tierBonus;
@@ -2553,8 +2585,11 @@ export class GameScene extends Phaser.Scene {
         if (l.kind === "item") {
           const lab = document.createElement("div");
           lab.className = "label interactive";
-          lab.textContent = l.item!.name;
           lab.style.color = RARITY_COLOR[l.item!.rarity];
+          // Hovering the label shows the full tooltip (icon, stats, comparison).
+          lab.onmouseenter = (ev) => this.hud.showItemTip(l.item!, ev.clientX, ev.clientY);
+          lab.onmousemove = (ev) => this.hud.moveItemTip(ev.clientX, ev.clientY);
+          lab.onmouseleave = () => this.hud.hideTip();
           lab.onmousedown = (ev) => {
             ev.stopPropagation();
             if (!this.dead) this.order = { type: "pickup", loot };
@@ -2562,6 +2597,7 @@ export class GameScene extends Phaser.Scene {
           lab.oncontextmenu = (ev) => ev.preventDefault();
           this.hud.world.appendChild(lab);
           loot.label = lab;
+          this.labelLoot(loot);
           const rar = l.item!.rarity;
           if (rar !== "normal" && rar !== "magic") {
             this.emitters.gold.explode(12, tx, ty);
@@ -2616,11 +2652,20 @@ export class GameScene extends Phaser.Scene {
     }
     l.img.destroy();
     l.label?.remove();
+    this.hud.hideTip();
     l.beam?.destroy();
     this.loot = this.loot.filter((x) => x !== l);
   }
 
+  /** Ground label text with the better/worse arrow against the current equipment. */
+  private labelLoot(l: Loot) {
+    if (!l.label || !l.item) return;
+    const c = compareItem(l.item, this.data_.equipment);
+    l.label.innerHTML = `${c === "same" ? "" : `<span class="cmp-mark ${c}">${COMPARE_MARK[c]}</span> `}${l.item.name.replace(/[&<>]/g, "")}`;
+  }
+
   private afterItemsChanged() {
+    for (const l of this.loot) this.labelLoot(l);
     this.hud.markInventoryDirty();
     this.data_.save();
   }

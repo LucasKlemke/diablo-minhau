@@ -1,0 +1,149 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: chest
+kind: prop
+view: topdown
+size: 32
+directions: 1
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.42, 0]}
+shadow: {rx: 9, ry: 3, alpha: 120}
+
+# Treasure chest: 0.8 wide x 0.55 tall, faces the camera (s only). Lid hinged at the back top edge.
+brief:
+  summary: sturdy warm-wood treasure chest with an arched lid, two iron bands, iron corner caps,
+    gold lock plate on the front; opens with a snap and a golden glow
+  must_keep: [arched lid, iron bands, gold lock plate, golden glow when open]
+  simplify: [no planks or nails, keyhole as one dark pixel at most]
+  decisions: one direction (chests face the camera); interior is a darker wood so the opening reads;
+    glow and rays are emissive gold so they pop over dark dungeon stone
+
+# spec-local: the shared `wood` ramp pushed warmer and redder so the chest reads over grass and dirt
+ramps:
+  chest_wood: ["#1c0f1a", "#4f2416", "#8a4424", "#bf6e34", "#e09a52"]
+
+materials:
+  wood:    {ramp: chest_wood, bands: [2, 4]}
+  wood_in: {ramp: chest_wood, bands: [1, 2], line: false}
+  steel:   {ramp: steel, bands: [1, 3]}
+  gold:    {ramp: gold, bands: [2, 4]}
+  keyhole: {ramp: mouth, emissive: true, band: 0, outline: false, line: false}
+  glint:   {ramp: fx_core, emissive: true, outline: false, line: false, glow: {color: "#fff6b0", mix: 0.5, radius: 1}}
+  glow:    {ramp: gold, emissive: true, band: 3, outline: false, line: false, glow: {color: "#eddc83", mix: 0.5, radius: 1}}
+  ray:     {ramp: fx_mid, emissive: true, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  squash: 1         # body squash (anticipation)
+  lid: 0            # lid opening angle (radians, 0 closed, ~1.9 past vertical)
+  glint: 0          # gold spark on the lock (0 off, 1 on)
+  glint_x: 0        # spark position across the plate
+  glint_y: 0.29     # spark height on the plate
+  glow: 0           # inner glow strength (0..1)
+  rays: 0           # light rays length (0..1)
+
+bones:
+  body: {parent: root, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  lid:  {parent: body, pos: [0, 0.33, -0.25], rot: "[-lid, 0, 0]"}
+
+parts:
+  box:
+    material: wood
+    space: body
+    prims:
+      - box: {c: [0, 0.165, 0], half: [0.38, 0.165, 0.24], round: 0.02}
+    cut:
+      - box: {c: [0, 0.33, 0], half: [0.33, 0.07, 0.19]}
+  inside:
+    material: wood_in
+    space: body
+    prims:
+      - box: {c: [0, 0.24, 0], half: [0.335, 0.02, 0.195]}
+  box_bands:
+    material: steel
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.25, 0.165, 0], half: [0.035, 0.168, 0.25]}
+      - box: {c: [-0.25, 0.165, 0], half: [0.035, 0.168, 0.25]}
+      - box: {c: [0.36, 0.06, 0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [-0.36, 0.06, 0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [0.36, 0.06, -0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [-0.36, 0.06, -0.22], half: [0.045, 0.06, 0.045]}
+  lock:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.25, 0.25], half: [0.075, 0.075, 0.02], round: 0.01}
+  keyhole:
+    material: keyhole
+    space: body
+    prims:
+      - box: {c: [0, 0.24, 0.272], half: [0.018, 0.03, 0.01]}
+  spark:
+    material: glint
+    space: body
+    when: "glint > 0"
+    prims:
+      - sphere: {c: "[glint_x, glint_y, 0.28]", r: 0.04}
+  lid_wood:
+    material: wood
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [-0.39, -0.04, 0.26], b: [0.39, -0.04, 0.26], r: 0.275, round: 0.02}
+    cut:
+      - box: {c: [0, -0.2, 0.25], half: [0.5, 0.2, 0.4]}
+  lid_bands:
+    material: steel
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [0.215, -0.04, 0.26], b: [0.285, -0.04, 0.26], r: 0.29}
+      - cylinder: {a: [-0.285, -0.04, 0.26], b: [-0.215, -0.04, 0.26], r: 0.29}
+    cut:
+      - box: {c: [0, -0.2, 0.25], half: [0.5, 0.2, 0.4]}
+  lid_lining:
+    material: wood_in
+    space: lid
+    prims:
+      - box: {c: [0, -0.005, 0.26], half: [0.34, 0.006, 0.22]}
+  hasp:
+    material: gold
+    space: lid
+    line: true
+    prims:
+      - box: {c: [0, 0.03, 0.54], half: [0.045, 0.05, 0.02]}
+  glow_core:
+    material: glow
+    space: body
+    when: "glow > 0"
+    prims:
+      - ellipsoid: {c: [0, 0.3, 0], r: "[0.3*glow, 0.06 + 0.06*glow, 0.17*glow]"}
+  light_rays:
+    material: ray
+    space: body
+    when: "rays > 0.05"
+    prims:
+      - cone: {a: [0, 0.3, 0], b: "[0, 0.3 + 0.55*rays, 0]", r: [0.09, 0.03]}
+      - cone: {a: [0.12, 0.3, 0], b: "[0.24, 0.3 + 0.42*rays, -0.03]", r: [0.07, 0.025]}
+      - cone: {a: [-0.12, 0.3, 0], b: "[-0.24, 0.3 + 0.42*rays, -0.03]", r: [0.07, 0.025]}
+
+animations:
+  idle:
+    frames: 4
+    ms: 200
+    channels: {glint: "1.0*(f < 3)", glint_x: "-0.055 + 0.055*f", glint_y: "0.31 - 0.04*f"}   # spark sweeps the plate, then rests
+  open:
+    loop: false
+    keys:
+      - {ms: 90, set: {squash: 0.93, lid: 0.1, glow: 0.3}}                                 # anticipation: crouch, lid cracks
+      - {ms: 60, set: {squash: 1.06, lid: 1.15, glow: 0.7, rays: 0.4}}                     # snap
+      - {ms: 100, event: open, set: {squash: 1, lid: 2.05, glow: 1, rays: 1}}              # fully up, overshoot
+      - {ms: 90, set: {lid: 1.8, glow: 0.9, rays: 0.8}}                                    # settle back
+      - {ms: 110, set: {lid: 1.88, glow: 0.8, rays: 0.6}}                                  # rest (= opened)
+  opened:
+    frames: 2
+    ms: 220
+    channels: {lid: 1.88, glow: "0.8 + 0.15*cos(p)", rays: "0.6 + 0.12*cos(p)"}

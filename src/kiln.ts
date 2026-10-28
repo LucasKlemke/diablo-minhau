@@ -26,10 +26,12 @@ const metas = new Map<string, KilnMeta>();
 
 export const SPRITES = [
   "barbarian", "archer", "mage", "sorcerer", "goblin", "goblin_hurt", "goblin_maimed", "bandit", "bandit_brute",
-  "npc_elder", "npc_smith", "npc_hunter", "skeleton", "spider", "troll", "lich",
+  "npc_elder", "npc_smith", "npc_hunter", "skeleton", "spider", "troll", "lich", "chest", "portal", "crypt",
 ] as const;
 /** Optional variants: when their export is missing they fall back to the base sprite instead of a placeholder. */
 const VARIANT_OF: Partial<Record<string, SpriteName>> = { goblin_hurt: "goblin", goblin_maimed: "goblin" };
+/** Props modelled in SpriteKiln; while missing, the game falls back to its older art. */
+const OPTIONAL = new Set<string>(["chest", "portal", "crypt"]);
 const available = new Set<string>();
 export const hasSprite = (name: SpriteName) => available.has(name);
 export type SpriteName = (typeof SPRITES)[number];
@@ -60,6 +62,9 @@ const PLACEHOLDER: Record<SpriteName, { body: number; head: number; h: number }>
   spider: { body: 0x2a2038, head: 0x8d44ac, h: 14 },
   troll: { body: 0x4f6a5a, head: 0x7a9a80, h: 46 },
   lich: { body: 0x1e2978, head: 0xe6d6ad, h: 40 },
+  chest: { body: 0x9e6d32, head: 0x9e6d32, h: 10 },
+  portal: { body: 0x6a6478, head: 0xc06bff, h: 40 },
+  crypt: { body: 0x41344f, head: 0x41344f, h: 40 },
 };
 
 function makePlaceholder(scene: Phaser.Scene, name: SpriteName) {
@@ -115,7 +120,7 @@ export function setupKiln(scene: Phaser.Scene): SpriteName[] {
     if (json?.spritekiln && scene.textures.exists(name)) {
       metas.set(name, json.spritekiln as KilnMeta);
       available.add(name);
-    } else if (VARIANT_OF[name]) {
+    } else if (VARIANT_OF[name] || OPTIONAL.has(name)) {
       continue;
     } else {
       if (scene.textures.exists(name)) scene.textures.remove(name);
