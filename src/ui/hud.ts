@@ -1,7 +1,7 @@
 import { CLASSES, rankMult, SLOT_KEY, type ClassId, type SkillDef } from "../data/classes";
 import { COMPARE_MARK, compareItem, itemLines, itemStats, itemValue, RARITIES, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Rarity, type Slot } from "../data/items";
 import { formatStat, STAT_LABEL, type Stats } from "../data/stats";
-import { isMuted, toggleMute } from "../game/audio";
+import { isMuted, sfx, toggleMute } from "../game/audio";
 import { iconUrl } from "./icons";
 
 const root = () => document.getElementById("ui")!;
@@ -175,7 +175,9 @@ export class Hud {
       this.closeShop();
       (which === "tree" ? this.chr : this.tree).classList.remove("open");
     }
+    const was = p.classList.contains("open");
     p.classList.toggle("open", force);
+    if (p.classList.contains("open") !== was) sfx.panel(!was);
     this.invDirty = true;
     this.hideTip();
   }

@@ -28,7 +28,7 @@ function el<K extends keyof HTMLElementTagNameMap>(tag: K, cls = "", html = ""):
 function button(label: string, onClick: () => void, cls = "mbtn") {
   const b = el("button", cls, label);
   b.onclick = () => {
-    sfx.coin();
+    sfx.click();
     onClick();
   };
   return b;

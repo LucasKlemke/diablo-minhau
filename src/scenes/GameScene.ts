@@ -4,7 +4,7 @@ import { ENEMIES, UNIQUES, type BossAbility, type EnemyDef, type EnemyRank, type
 import { BEAM_RARITIES, COMPARE_MARK, compareItem, generateItem, itemValue, rollRarity, RARITY_COLOR, type Item, type Rarity } from "../data/items";
 import { EPILOGUE, NPCS, PROLOGUE, type NpcId } from "../data/quests";
 import { ZONES, ZONE_ORDER, type CampKind, type ZoneDef, type ZoneId } from "../data/zones";
-import { sfx } from "../game/audio";
+import { setAmbience, sfx } from "../game/audio";
 import { DIFFICULTIES } from "../data/difficulty";
 import { settings } from "../game/settings";
 import { openMainMenu, showPauseMenu } from "../ui/menu";
@@ -193,6 +193,7 @@ export class GameScene extends Phaser.Scene {
   private order: Order | null = null;
   private path: [number, number][] = [];
   private stuckT = 0;
+  private stepT = 0;
   private lastPos = new Phaser.Math.Vector2();
   private cooldowns: Record<string, number> = {};
   private hovered: Enemy | null = null;
@@ -302,9 +303,10 @@ export class GameScene extends Phaser.Scene {
 
     const d = this.data_;
     this.hud = new Hud({
-      equipFromInventory: (i) => { d.equipFromInventory(i); this.afterItemsChanged(); },
+      equipFromInventory: (i) => { d.equipFromInventory(i); sfx.equip(); this.afterItemsChanged(); },
       unequip: (slot) => {
         if (!d.unequip(slot)) this.hud.message("Mochila cheia!", "#ff6a5a");
+        else sfx.equip();
         this.afterItemsChanged();
       },
       discard: (i) => {
@@ -374,6 +376,7 @@ export class GameScene extends Phaser.Scene {
 
     this.setupInput();
     this.setupNet();
+    setAmbience(this.map.kind === "dungeon" ? "amb_dungeon" : "amb_town");
     this.game.events.on(Phaser.Core.Events.POST_RENDER, this.updateOverlay, this);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.game.events.off(Phaser.Core.Events.POST_RENDER, this.updateOverlay, this);
@@ -972,6 +975,11 @@ export class GameScene extends Phaser.Scene {
       }
       this.hero.face(vx, vy);
       this.hero.play2("walk", { timeScale: 1 + d.stats.moveSpeed });
+      this.stepT -= delta;
+      if (this.stepT <= 0) {
+        this.stepT = 330 / (1 + d.stats.moveSpeed);
+        sfx.step(this.map.kind === "dungeon");
+      }
     } else {
       this.hero.play2("idle");
     }
@@ -995,6 +1003,7 @@ export class GameScene extends Phaser.Scene {
     this.path = [];
     this.dashCd = DASH_COOLDOWN;
     this.dashUntil = this.time.now + 170;
+    sfx.dash();
     this.invulnUntil = this.time.now + 260;
     this.heroBody.setVelocity((dx / len) * speed, (dy / len) * speed);
     this.hero.face(dx, dy);
@@ -1082,6 +1091,7 @@ export class GameScene extends Phaser.Scene {
   private applySkill(sk: SkillDef, tx: number, ty: number, target: Enemy | undefined, mult: number) {
     const h = this.hero;
     const now = this.time.now;
+    sfx.skill(sk.id, sk.kind === "melee" ? "swing" : sk.projectile?.tex === "fx_arrow" ? "bow" : "cast");
     switch (sk.kind) {
       case "melee": {
         const ang = Phaser.Math.Angle.Between(h.x, h.y - 8, tx, ty);
@@ -1373,6 +1383,7 @@ export class GameScene extends Phaser.Scene {
   private killEnemy(e: Enemy, blow: Blow, overkill = false) {
     const d = this.data_;
     e.state = "dead";
+    sfx.die(e.def.sprite);
     e.body.setVelocity(0, 0);
     e.body.enable = false;
     if (e.def.maimed) e.spr.setSprite(e.def.maimed);
@@ -2192,6 +2203,7 @@ export class GameScene extends Phaser.Scene {
       onQuit: () => {
         net.leave();
         d.save();
+        setAmbience(null);
         // The shutdown handler clears the UI layer: show the menu after it.
         this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.setTimeout(openMainMenu));
         this.scene.stop();
@@ -2558,6 +2570,7 @@ export class GameScene extends Phaser.Scene {
 
   private openChest(c: Chest) {
     c.opened = true;
+    sfx.chest();
     if (c.spr instanceof KilnSprite) c.spr.play2("open", { restart: true, onComplete: () => (c.spr as KilnSprite).play2("opened") });
     else c.spr.setFrame(1);
     this.emitters.gold.explode(14, c.spr.x, c.spr.y - 8);
@@ -2676,6 +2689,7 @@ export class GameScene extends Phaser.Scene {
     if (k === "hp" && d.hp >= d.stats.maxHp) return;
     if (k === "mp" && d.mana >= d.stats.maxMana) return;
     d.potions[k]--;
+    sfx.potion();
     if (k === "hp") {
       const amt = Math.round(d.stats.maxHp * 0.45);
       d.hp = Math.min(d.stats.maxHp, d.hp + amt);

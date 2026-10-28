@@ -1,4 +1,5 @@
-// Tiny WebAudio synth for game feedback: no audio files needed.
+// Game sound effects: ElevenLabs samples from public/assets/sfx (scripts/gen-sfx.mjs),
+// with a tiny WebAudio synth as fallback while a sample is missing or still loading.
 import { onSettingsChange, settings } from "./settings";
 
 let ctx: AudioContext | null = null;
@@ -18,14 +19,84 @@ function ac() {
     master.gain.value = 0.5 * settings.volume;
     onSettingsChange(() => master && (master.gain.value = 0.5 * settings.volume));
     master.connect(ctx.destination);
+    loadSamples(ctx);
   }
   if (ctx.state === "suspended") void ctx.resume();
   return ctx;
 }
 
+const SAMPLE_NAMES = [
+  "hit_01", "hit_02", "hit_03", "hit_crit", "hurt_01", "hurt_02", "hurt_03", "coin_01", "coin_02", "buy",
+  "drop_rare", "drop_epic", "drop_legendary", "drop_unique", "levelUp", "quest", "portal", "boss",
+  ...[1, 2, 3, 4].flatMap((i) => [`step_grass_0${i}`, `step_stone_0${i}`]),
+  "swing_01", "swing_02", "swing_03", "bow_shot", "cast", "potion", "chest_open",
+  "die_goblin", "die_skeleton", "die_spider", "die_troll", "die_lich", "die_bandit",
+  ...["cleave", "warcry", "leap", "berserk", "quake", "arrow", "multishot", "explosive", "rain", "piercing",
+    "firebolt", "frostnova", "chain", "shield", "meteor", "shadowbolt", "drain", "plague", "corpse", "bloodpact"].map((s) => `skill_${s}`),
+  "dash", "ui_click", "ui_open", "ui_close", "equip", "amb_town", "amb_dungeon",
+];
+const STEPS = (surface: string) => [1, 2, 3, 4].map((i) => `step_${surface}_0${i}`);
+const DEATH: Record<string, string> = { bandit_brute: "die_bandit" };
+const samples: Record<string, AudioBuffer> = {};
+
+function loadSamples(a: AudioContext) {
+  for (const name of SAMPLE_NAMES) {
+    fetch(`${import.meta.env.BASE_URL}assets/sfx/${name}.mp3`)
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+      .then((b) => a.decodeAudioData(b))
+      .then((buf) => {
+        samples[name] = buf;
+        if (name === wantAmbience) playAmbience();
+      })
+      .catch(() => {});
+  }
+}
+
+/** Plays one of the named samples at random; false when none is loaded yet (caller falls back to the synth). */
+function sample(names: string[], vol = 1) {
+  if (muted) return true;
+  const a = ac();
+  const loaded = names.filter((n) => samples[n]);
+  if (!loaded.length) return false;
+  const src = a.createBufferSource();
+  src.buffer = samples[loaded[Math.floor(Math.random() * loaded.length)]];
+  src.playbackRate.value = 0.95 + Math.random() * 0.1;
+  const g = a.createGain();
+  g.gain.value = vol;
+  src.connect(g).connect(master!);
+  src.start();
+  return true;
+}
+
+// Looping background ambience; switches with the zone and follows the mute toggle.
+let wantAmbience: string | null = null;
+let ambience: { name: string; src: AudioBufferSourceNode } | null = null;
+
+function playAmbience() {
+  if (ambience?.name === wantAmbience && !muted) return;
+  ambience?.src.stop();
+  ambience = null;
+  if (muted || !wantAmbience || !samples[wantAmbience]) return;
+  const a = ac();
+  const src = a.createBufferSource();
+  src.buffer = samples[wantAmbience];
+  src.loop = true;
+  const g = a.createGain();
+  g.gain.value = 0.35;
+  src.connect(g).connect(master!);
+  src.start();
+  ambience = { name: wantAmbience, src };
+}
+
+export function setAmbience(name: "amb_town" | "amb_dungeon" | null) {
+  wantAmbience = name;
+  playAmbience();
+}
+
 export const isMuted = () => muted;
 export function toggleMute() {
   muted = !muted;
+  playAmbience();
   try {
     localStorage.setItem("diablo-minhau:mute", muted ? "1" : "0");
   } catch {
@@ -69,6 +140,7 @@ function noise(start: number, dur: number, vol = 0.2, lowpass = 800) {
 
 export const sfx = {
   levelUp() {
+    if (sample(["levelUp"])) return;
     // Rising arpeggio + shimmering chord.
     [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.07, 0.25, "square", 0.12));
     [1047, 1319, 1568].forEach((f) => tone(f, 0.38, 0.9, "triangle", 0.1));
@@ -76,35 +148,81 @@ export const sfx = {
     noise(0.35, 0.5, 0.08, 4000);
   },
   drop(rarity: string) {
+    if (["rare", "epic", "legendary", "unique"].includes(rarity) && sample([`drop_${rarity}`])) return;
     const tiers: Record<string, number[]> = {
       rare: [880, 1175], epic: [784, 988, 1319], legendary: [659, 880, 1109, 1480], unique: [523, 784, 1047, 1568],
     };
     (tiers[rarity] ?? []).forEach((f, i) => tone(f, i * 0.09, 0.45, "triangle", 0.14));
   },
   coin() {
+    if (sample(["coin_01", "coin_02"], 0.7)) return;
     tone(1568, 0, 0.06, "square", 0.06);
     tone(2093, 0.05, 0.1, "square", 0.05);
   },
   hit(crit = false) {
+    if (sample(crit ? ["hit_crit"] : ["hit_01", "hit_02", "hit_03"], crit ? 0.9 : 0.6)) return;
     noise(0, crit ? 0.12 : 0.06, crit ? 0.18 : 0.08, crit ? 1800 : 900);
     if (crit) tone(220, 0, 0.12, "sawtooth", 0.08, 110);
   },
   hurt() {
+    if (sample(["hurt_01", "hurt_02", "hurt_03"], 0.7)) return;
     tone(180, 0, 0.12, "sawtooth", 0.1, 90);
   },
   portal() {
+    if (sample(["portal"])) return;
     tone(220, 0, 0.6, "sine", 0.12, 880);
     noise(0, 0.5, 0.06, 2500);
   },
   boss() {
+    if (sample(["boss"])) return;
     tone(70, 0, 1.2, "sawtooth", 0.18, 45);
     noise(0, 1.0, 0.15, 400);
   },
   quest() {
+    if (sample(["quest"])) return;
     [784, 988, 1175, 1568].forEach((f, i) => tone(f, i * 0.1, 0.3, "triangle", 0.12));
   },
   buy() {
+    if (sample(["buy"], 0.8)) return;
     tone(1319, 0, 0.08, "square", 0.07);
     tone(1760, 0.07, 0.12, "square", 0.07);
+  },
+  // Sample-only sounds: silent until their file loads.
+  step(stone: boolean) {
+    sample(STEPS(stone ? "stone" : "grass"), 0.25);
+  },
+  swing() {
+    sample(["swing_01", "swing_02", "swing_03"], 0.5);
+  },
+  bow() {
+    sample(["bow_shot"], 0.6);
+  },
+  cast() {
+    sample(["cast"], 0.5);
+  },
+  potion() {
+    sample(["potion"], 0.7);
+  },
+  chest() {
+    sample(["chest_open"], 0.8);
+  },
+  /** A skill's own sound, or the generic swing/bow/cast one until it loads. */
+  skill(id: string, generic: "swing" | "bow" | "cast") {
+    if (!sample([`skill_${id}`], 0.6)) sfx[generic]();
+  },
+  dash() {
+    sample(["dash"], 0.5);
+  },
+  click() {
+    if (!sample(["ui_click"], 0.6)) sfx.coin();
+  },
+  panel(open: boolean) {
+    sample([open ? "ui_open" : "ui_close"], 0.5);
+  },
+  equip() {
+    sample(["equip"], 0.6);
+  },
+  die(sprite: string) {
+    sample([DEATH[sprite] ?? `die_${sprite}`], 0.7);
   },
 };
