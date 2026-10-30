@@ -1231,7 +1231,10 @@ export class GameScene extends Phaser.Scene {
 
     if (!this.hud.dialogActive) {
       if (this.held.left && time - this.leftHeldAt > 180 && !this.keys.SHIFT.isDown) {
-        if (!this.order || this.order.type === "move") {
+        if ((!this.order || this.order.type === "move") && this.hovered && this.hovered.state !== "dead") {
+          // Holding to walk and sweeping over an enemy starts attacking it.
+          this.order = { type: "attack", enemy: this.hovered };
+        } else if (!this.order || this.order.type === "move") {
           if (time > this.moveRepathAt) {
             this.moveRepathAt = time + 160;
             this.moveTo(pw.x, pw.y);
