@@ -20,7 +20,7 @@ export type Msg =
   | { t: "welcome"; zone: string; dungeon: number | null; seed: number; x: number; y: number; difficulty: string; tier: number }
   | { t: "state"; player: PlayerState }
   | { t: "snap"; e: EnemyRow[] }
-  | { t: "hit"; id: number; dmg: number; crit: boolean; kind: string; angle: number; slow?: number; stun?: number; fire?: number }
+  | { t: "hit"; id: number; dmg: number; crit: boolean; kind: string; angle: number; slow?: number; stun?: number; elem?: Partial<Record<"fire" | "cold" | "lightning" | "poison", number>> }
   | { t: "die"; id: number; kind: string; angle: number; big: boolean; overkill: boolean }
   | { t: "hurt"; raw: number; level: number; poison?: [number, number]; stun?: number; slow?: [number, number] }
   | { t: "cast"; skill: string; tx: number; ty: number }

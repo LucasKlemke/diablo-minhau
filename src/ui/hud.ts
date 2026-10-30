@@ -607,8 +607,8 @@ export class Hud {
       [STAT_LABEL.hpRegen, s.hpRegen.toFixed(1)],
       [STAT_LABEL.manaRegen, s.manaRegen.toFixed(1)],
       // Item-only stats: listed when the hero has some.
-      ...(["fireDmg", "thorns", "dmgBeast", "dmgUndead", "statusRes", "goldFind", "magicFind"] as const).filter((k) => s[k] > 0)
-        .map((k): [string, string] => [STAT_LABEL[k], k === "fireDmg" || k === "thorns" ? String(Math.round(s[k])) : `${Math.round(s[k] * 100)}%`]),
+      ...(["fireDmg", "coldDmg", "lightningDmg", "poisonDmg", "thorns", "dmgBeast", "dmgUndead", "statusRes", "goldFind", "magicFind"] as const).filter((k) => s[k] > 0)
+        .map((k): [string, string] => [STAT_LABEL[k], k.endsWith("Dmg") || k === "thorns" ? String(Math.round(s[k])) : `${Math.round(s[k] * 100)}%`]),
     ];
     this.chr.innerHTML = `<h3>${esc(c.name)}</h3><div class="stats">${rows
       .map(([a, b]) => `<div class="row"><span>${a}</span><span>${b}</span></div>`).join("")}</div>`;

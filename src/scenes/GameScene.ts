@@ -19,6 +19,7 @@ import { playDeath } from "../game/deaths";
 import { Minimap, type MapMarker } from "../game/minimap";
 import { PropHover } from "../game/propHover";
 import { drawIcon, type IconId } from "../ui/icons";
+import { ELEM_STAT, ELEMENT_OF, ElementFx, weaponElements, type ElemDmg, type Element } from "../game/elements";
 import { hasSprite, kilnImage, kilnMeta, KilnSprite, portrait, type Dir, type SpriteName } from "../kiln";
 import { Hud } from "../ui/hud";
 import { CinematicUi } from "../ui/cinematic";
@@ -79,6 +80,8 @@ interface Enemy {
   revealUntil?: number;
   /** Last fire damage taken: regeneration waits a few seconds after it. */
   burnedAt?: number;
+  /** Until when each elemental status shows its particles (burning, electrified, poisoned...). */
+  elemUntil?: Partial<Record<Element, number>>;
   /** Mimic: the chest level it pretended to be (drops that chest's loot). */
   chestLevel?: number;
   announced?: boolean;
@@ -128,6 +131,8 @@ interface Projectile {
   mult: number;
   /** The co-op partner's projectile: drawn only, its hits are reported by its owner. */
   ghost?: boolean;
+  /** Element whose particles trail the projectile. */
+  el?: Element;
 }
 
 /** Damage over time on the ground: arrow rain, plague cloud, burning meteor crater. */
@@ -272,6 +277,7 @@ export class GameScene extends Phaser.Scene {
 
   private busy = false;
   private castToken = 0;
+  private elemFx!: ElementFx;
   /** Next basic-attack variation (attack, attack2, attack3...). */
   private comboIdx = 0;
   private dead = false;
@@ -428,6 +434,7 @@ export class GameScene extends Phaser.Scene {
       dust: em([0xc9a06a, 0xa87a4f], { speed: { min: 10, max: 40 }, gravityY: -20, lifespan: { min: 250, max: 450 } }),
       smoke: em([0x3a3438, 0x5a5258], { speed: { min: 5, max: 20 }, gravityY: -40, lifespan: { min: 500, max: 900 }, scale: { start: 1.5, end: 0.5 }, alpha: { start: 0.8, end: 0 } }),
     };
+    this.elemFx = new ElementFx(this);
 
     const cam = this.cameras.main;
     cam.setBounds(0, 0, MAP_W * TILE, MAP_H * TILE);
@@ -1121,6 +1128,7 @@ export class GameScene extends Phaser.Scene {
     this.updateGather(time);
     if (!this.dead) this.updateHeroStatus(time);
     this.updateEnemies(time, delta);
+    this.updateElementStatus(time);
     this.updateTraps(time);
     this.updateExits(time);
     this.updateTownPortal(time);
@@ -1536,7 +1544,8 @@ export class GameScene extends Phaser.Scene {
           const img = this.add.image(ox, oy, p.tex).setRotation(a).setDepth(1e5);
           if (p.tex !== "fx_arrow") img.setBlendMode(Phaser.BlendModes.ADD);
           if (sk.id === "piercing") img.setScale(1.6).setTint(0xfff0b8);
-          this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: p.pierce ?? 0, hit: new Set(), skill: sk, mult });
+          this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: p.pierce ?? 0, hit: new Set(), skill: sk, mult,
+            el: this.projectileElement(sk, weaponElements(this.data_.stats)) });
         }
         break;
       }
@@ -1728,18 +1737,59 @@ export class GameScene extends Phaser.Scene {
     this.zones = this.zones.filter((z) => time < z.until);
   }
 
+  /** Particles of an elemental hit (the skill's element and the gear's) and the statuses it leaves. */
+  private elementalHit(e: Enemy, blow: Blow, elem: ElemDmg, quiet: boolean) {
+    const now = this.time.now;
+    const els = new Set<Element>(Object.keys(elem) as Element[]);
+    const own = ELEMENT_OF[blow.kind];
+    if (own) els.add(own);
+    if (!els.size) return;
+    const x = e.spr.x, y = e.spr.y - 12 * e.spr.scaleY;
+    const until = (e.elemUntil ??= {});
+    for (const el of els) {
+      if (!quiet || Math.random() < 0.35) this.elemFx.impact(el, x, y, !!blow.big);
+      until[el] = Math.max(until[el] ?? 0, now + (el === "fire" ? 2500 : el === "poison" ? 3000 : el === "lightning" ? 900 : 1500));
+    }
+    // Cold from gear chills: a short slow.
+    if (elem.cold) e.slowUntil = Math.max(e.slowUntil, now + 1500);
+  }
+
+  /** Burning, chilled, electrified and poisoned bodies (enemies and the hero) keep shedding particles. */
+  private updateElementStatus(time: number) {
+    for (const e of this.enemies) {
+      if (e.state === "dead" || !e.spr.visible) continue;
+      const w = 12 * e.spr.scaleX, hgt = 20 * e.spr.scaleY;
+      const u = e.elemUntil;
+      if (u) for (const el in u) if (time < u[el as Element]!) this.elemFx.status(el as Element, e.spr.x, e.spr.y, w, hgt);
+      if (time < e.slowUntil && !(u?.cold && time < u.cold)) this.elemFx.status("cold", e.spr.x, e.spr.y, w, hgt, 0.6);
+    }
+    if (this.dead) return;
+    const h = this.hero;
+    if (this.heroPoison) this.elemFx.status("poison", h.x, h.y, 12, 22);
+    if (time < this.heroSlow.until) this.elemFx.status("cold", h.x, h.y, 12, 22, 0.6);
+    const gear = weaponElements(this.data_.stats);
+    if (gear.length) {
+      const sock = h.socket("hit") ?? h.socket("muzzle") ?? h.socket("hand_R");
+      this.elemFx.weapon(gear, h.x + (sock?.x ?? 6), h.y + (sock?.y ?? -14));
+    }
+  }
+
   private heroHits(e: Enemy, sk: SkillDef, mult = 1, quiet = false, angle?: number) {
     const d = this.data_;
     const vs = e.def.faction === "beast" ? d.stats.dmgBeast : e.def.faction === "undead" ? d.stats.dmgUndead : 0;
     const { dmg, crit } = d.rollDamage(sk.dmgMult * mult * (1 + vs));
-    const fire = d.stats.fireDmg > 0 ? Math.max(1, Math.round(d.stats.fireDmg * sk.dmgMult * mult * (0.8 + Math.random() * 0.4))) : 0;
+    const elem: ElemDmg = {};
+    for (const k of Object.keys(ELEM_STAT) as (keyof ElemDmg)[]) {
+      const v = d.stats[ELEM_STAT[k]];
+      if (v > 0) elem[k] = Math.max(1, Math.round(v * sk.dmgMult * mult * (0.8 + Math.random() * 0.4)));
+    }
     const blow: Blow = {
       kind: sk.death,
       angle: angle ?? Phaser.Math.Angle.Between(this.hero.x, this.hero.y, e.spr.x, e.spr.y),
       big: sk.id === "piercing" || sk.id === "meteor" || sk.id === "explosive",
       toHero: !!sk.heal,
     };
-    this.damageEnemy(e, dmg, crit, quiet, blow, fire);
+    this.damageEnemy(e, dmg, crit, quiet, blow, elem);
     const heal = dmg * (d.stats.lifeSteal + (sk.heal ?? 0));
     if (heal >= 1) {
       d.hp = Math.min(d.stats.maxHp, d.hp + heal);
@@ -1749,8 +1799,8 @@ export class GameScene extends Phaser.Scene {
     this.lastHit = { e, t: this.time.now };
   }
 
-  /** `fire`: extra fire damage from items, added after physical resistance. */
-  private damageEnemy(e: Enemy, dmg: number, crit: boolean, quiet = false, blow: Blow = { kind: "normal", angle: 0 }, fire = 0) {
+  /** `elem`: extra elemental damage from items, added after physical resistance. */
+  private damageEnemy(e: Enemy, dmg: number, crit: boolean, quiet = false, blow: Blow = { kind: "normal", angle: 0 }, elem: ElemDmg = {}) {
     if (e.state === "dead") return;
     const tr = e.def.traits;
     if (e.dormant) {
@@ -1766,15 +1816,14 @@ export class GameScene extends Phaser.Scene {
       dmg = Math.max(1, Math.round(dmg * (1 - tr.physRes)));
       if (!quiet && Math.random() < 0.3) this.emitters.dust.explode(4, e.spr.x, e.spr.y - 14 * e.spr.scaleY);
     }
+    const fire = elem.fire ?? 0;
     if (blow.kind === "burn" || blow.kind === "melt" || fire > 0) e.burnedAt = this.time.now;
-    if (fire > 0) {
-      dmg += fire;
-      if (!quiet || Math.random() < 0.3) this.emitters.fire.explode(4, e.spr.x, e.spr.y - 12 * e.spr.scaleY);
-    }
+    this.elementalHit(e, blow, elem, quiet);
+    for (const v of Object.values(elem)) dmg += v ?? 0;
     if (tr?.stealth) e.revealUntil = this.time.now + 1500;
     if (e.proxy) {
       // Guest: the host owns enemy life. Report the hit and show the feedback locally.
-      net.send({ t: "hit", id: e.id, dmg: raw, crit, kind: blow.kind, angle: blow.angle, fire });
+      net.send({ t: "hit", id: e.id, dmg: raw, crit, kind: blow.kind, angle: blow.angle, elem });
       e.hp = Math.max(1, e.hp - dmg);
       if (settings.damageNumbers) this.floatAt(e.spr.x, e.spr.y - 22 * e.spr.scaleY, crit ? `${dmg}!` : String(dmg), crit ? "crit" : "");
       this.emitters.blood.explode(crit ? 14 : 6, e.spr.x, e.spr.y - 12 * e.spr.scaleY);
@@ -2528,7 +2577,7 @@ export class GameScene extends Phaser.Scene {
         e.aggro = true;
         if (m.slow) e.slowUntil = this.time.now + m.slow;
         if (m.stun) e.stunUntil = this.time.now + m.stun;
-        if (m.dmg > 0) this.damageEnemy(e, m.dmg, m.crit, false, { kind: m.kind as DeathKind, angle: m.angle }, m.fire ?? 0);
+        if (m.dmg > 0) this.damageEnemy(e, m.dmg, m.crit, false, { kind: m.kind as DeathKind, angle: m.angle }, m.elem ?? {});
       });
     } else {
       net.on("snap", (m) => this.onSnap(m.e));
@@ -2696,7 +2745,8 @@ export class GameScene extends Phaser.Scene {
             const a = base + (n > 1 ? Phaser.Math.DegToRad(-p.spread! / 2 + (p.spread! * i) / (n - 1)) : 0);
             const img = this.add.image(x, y - 12, p.tex).setRotation(a).setDepth(1e5);
             if (p.tex !== "fx_arrow") img.setBlendMode(Phaser.BlendModes.ADD);
-            this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: 99, hit: new Set(), skill: sk, mult: 1, ghost: true });
+            this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: 99, hit: new Set(), skill: sk, mult: 1, ghost: true,
+              el: this.projectileElement(sk, []) });
           }
           break;
         }
@@ -4290,9 +4340,15 @@ export class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- projectiles
 
+  /** The skill's own element, else the first element of the hero's gear (a fire bow's arrows trail embers). */
+  private projectileElement(sk: SkillDef, gear: Element[]): Element | undefined {
+    return ELEMENT_OF[sk.death] ?? (sk.projectile?.tex === "fx_fire" ? "fire" : gear[0]);
+  }
+
   private updateProjectiles(dt: number) {
     // Sub-steps of at most ~6 px so fast shots (or a slow frame) never skip over a target.
     for (const p of this.projectiles) {
+      if (p.el) this.elemFx.trail(p.el, p.img.x, p.img.y);
       const n = Math.max(1, Math.ceil((Math.hypot(p.vx, p.vy) * dt) / 6));
       for (let i = 0; i < n && p.left > 0; i++) this.projectileStep(p, dt / n);
     }

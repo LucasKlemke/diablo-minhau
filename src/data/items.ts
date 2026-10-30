@@ -155,6 +155,9 @@ const AFFIXES: AffixDef[] = [
   { k: "dmgBeast", slots: ["weapon", "gloves", "ring", "amulet"], min: () => 0.1, max: () => 0.3, suffix: L("do Caçador", "of the Hunter") },
   { k: "dmgUndead", slots: ["weapon", "gloves", "ring", "amulet"], min: () => 0.1, max: () => 0.3, suffix: L("do Exorcista", "of the Exorcist") },
   { k: "fireDmg", slots: ["weapon", "gloves", "ring"], min: (l) => 1 + l * 0.5, max: (l) => 3 + l, suffix: L("das Chamas", "of Flames") },
+  { k: "coldDmg", slots: ["weapon", "gloves", "ring"], min: (l) => 1 + l * 0.4, max: (l) => 2 + l * 0.8, suffix: L("do Inverno", "of Winter") },
+  { k: "lightningDmg", slots: ["weapon", "gloves", "ring"], min: () => 1, max: (l) => 4 + l * 1.3, suffix: L("dos Relâmpagos", "of Lightning") },
+  { k: "poisonDmg", slots: ["weapon", "gloves", "ring"], min: (l) => 1 + l * 0.5, max: (l) => 3 + l, suffix: L("da Peçonha", "of Venom") },
   { k: "thorns", slots: ["armor", "helm", "gloves"], min: (l) => 2 + l, max: (l) => 5 + l * 2, suffix: L("dos Espinhos", "of Thorns") },
   { k: "goldFind", slots: ["helm", "boots", "ring", "amulet"], min: () => 0.1, max: () => 0.3, suffix: L("da Ganância", "of Greed") },
   { k: "magicFind", slots: ["helm", "boots", "ring", "amulet"], min: () => 0.05, max: () => 0.2, suffix: L("da Fortuna", "of Fortune") },
@@ -171,12 +174,12 @@ const UNIQUE_ITEMS: UniqueItem[] = [
   // weapons
   { name: L("Racha-Goblins", "Goblinsplitter"), slot: "weapon", icon: "axe", cls: "barbarian", affixes: [{ k: "dmgPct", v: 0.6 }, { k: "dmgFlat", v: 6 }, { k: "attackSpeed", v: 0.15 }, { k: "lifeSteal", v: 0.05 }] },
   { name: L("Fúria do Açougueiro", "Butcher's Fury"), slot: "weapon", icon: "executioner", cls: "barbarian", boss: "butcher", affixes: [{ k: "dmgPct", v: 0.5 }, { k: "lifeSteal", v: 0.06 }, { k: "attackSpeed", v: 0.1 }, { k: "maxHp", v: 30 }, { k: "dmgBeast", v: 0.3 }] },
-  { name: L("Sussurro do Vento", "Whisper of the Wind"), slot: "weapon", icon: "shortbow", cls: "archer", affixes: [{ k: "attackSpeed", v: 0.25 }, { k: "moveSpeed", v: 0.1 }, { k: "dmgFlat", v: 5 }, { k: "crit", v: 0.06 }] },
+  { name: L("Sussurro do Vento", "Whisper of the Wind"), slot: "weapon", icon: "shortbow", cls: "archer", affixes: [{ k: "attackSpeed", v: 0.25 }, { k: "moveSpeed", v: 0.1 }, { k: "dmgFlat", v: 5 }, { k: "crit", v: 0.06 }, { k: "coldDmg", v: 5 }] },
   { name: L("Ferrão da Mantícora", "Manticore's Sting"), slot: "weapon", icon: "dragonbow", cls: "archer", boss: "manticore", affixes: [{ k: "dmgPct", v: 0.55 }, { k: "crit", v: 0.1 }, { k: "dmgFlat", v: 7 }] },
-  { name: L("Olho da Tempestade", "Eye of the Storm"), slot: "weapon", icon: "runestaff", cls: "mage", affixes: [{ k: "dmgPct", v: 0.45 }, { k: "maxMana", v: 40 }, { k: "manaRegen", v: 3 }, { k: "crit", v: 0.05 }] },
+  { name: L("Olho da Tempestade", "Eye of the Storm"), slot: "weapon", icon: "runestaff", cls: "mage", affixes: [{ k: "dmgPct", v: 0.45 }, { k: "maxMana", v: 40 }, { k: "manaRegen", v: 3 }, { k: "crit", v: 0.05 }, { k: "lightningDmg", v: 8 }] },
   { name: L("Cajado de Malakar", "Malakar's Staff"), slot: "weapon", icon: "archstaff", cls: "mage", boss: "malakar", affixes: [{ k: "dmgPct", v: 0.6 }, { k: "maxMana", v: 60 }, { k: "manaRegen", v: 4 }] },
   { name: L("Osso de Vargas", "Vargas' Bone"), slot: "weapon", icon: "bonewand", cls: "sorcerer", boss: "necro", affixes: [{ k: "dmgPct", v: 0.5 }, { k: "lifeSteal", v: 0.06 }, { k: "maxMana", v: 30 }] },
-  { name: L("Lua Negra", "Black Moon"), slot: "weapon", icon: "moonwand", cls: "sorcerer", affixes: [{ k: "dmgPct", v: 0.45 }, { k: "crit", v: 0.1 }, { k: "manaRegen", v: 2.5 }] },
+  { name: L("Lua Negra", "Black Moon"), slot: "weapon", icon: "moonwand", cls: "sorcerer", affixes: [{ k: "dmgPct", v: 0.45 }, { k: "crit", v: 0.1 }, { k: "manaRegen", v: 2.5 }, { k: "poisonDmg", v: 6 }] },
   // helms
   { name: L("Coroa do Rei Goblin", "Crown of the Goblin King"), slot: "helm", icon: "horned_helm", boss: "grumm", affixes: [{ k: "maxHp", v: 60 }, { k: "crit", v: 0.08 }, { k: "armor", v: 20 }, { k: "hpRegen", v: 3 }] },
   { name: L("Coroa de Vargas", "Crown of Vargas"), slot: "helm", icon: "bone_crown", boss: "necro", affixes: [{ k: "maxMana", v: 50 }, { k: "manaRegen", v: 3 }, { k: "crit", v: 0.06 }, { k: "armor", v: 10 }, { k: "dmgUndead", v: 0.3 }] },
@@ -203,7 +206,7 @@ const UNIQUE_ITEMS: UniqueItem[] = [
   { name: L("Dente do Ogro", "Ogre's Tooth"), slot: "amulet", icon: "amulet_tooth", boss: "ogre", affixes: [{ k: "dmgFlat", v: 12 }, { k: "maxHp", v: 50 }, { k: "dmgPct", v: 0.15 }] },
 ];
 
-const FLAT: StatKey[] = ["dmgFlat", "maxHp", "maxMana", "armor", "hpRegen", "manaRegen", "fireDmg", "thorns"];
+const FLAT: StatKey[] = ["dmgFlat", "maxHp", "maxMana", "armor", "hpRegen", "manaRegen", "fireDmg", "coldDmg", "lightningDmg", "poisonDmg", "thorns"];
 
 let nextUid = 1;
 export const setNextUid = (n: number) => (nextUid = Math.max(nextUid, n));
@@ -314,7 +317,7 @@ export function itemLines(item: Item): string[] {
 const SCORE: Partial<Record<StatKey, number>> = {
   dmgMin: 1.5, dmgMax: 1.5, dmgFlat: 2, dmgPct: 60, maxHp: 0.5, maxMana: 0.25, armor: 1, attackSpeed: 70,
   moveSpeed: 40, crit: 110, lifeSteal: 120, hpRegen: 3, manaRegen: 2,
-  statusRes: 30, dmgBeast: 25, dmgUndead: 25, fireDmg: 2, thorns: 0.5, goldFind: 10, magicFind: 30,
+  statusRes: 30, dmgBeast: 25, dmgUndead: 25, fireDmg: 2, coldDmg: 2.2, lightningDmg: 1.8, poisonDmg: 2, thorns: 0.5, goldFind: 10, magicFind: 30,
 };
 
 export function itemScore(item: Item): number {
