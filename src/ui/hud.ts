@@ -897,11 +897,14 @@ export class Hud {
 
   /** A floating text at screen coordinates. */
   float(x: number, y: number, text: string, cls = "") {
-    const f = el("div", `float ${cls}`, esc(text));
+    // Damage numbers (plain, crit, hurt) bounce off to one side; heals and quest notes just rise.
+    const bounce = cls === "" || cls === "crit" || cls === "hurt";
+    const f = el("div", `float ${cls}${bounce ? " dmg" : ""}`, esc(text));
     f.style.left = `${x}px`;
     f.style.top = `${y}px`;
+    if (bounce) f.style.setProperty("--dx", `${Math.round((Math.random() < 0.5 ? -1 : 1) * (10 + Math.random() * 16))}px`);
     this.world.appendChild(f);
-    setTimeout(() => f.remove(), 900);
+    setTimeout(() => f.remove(), bounce ? 1000 : 900);
     return f;
   }
 }

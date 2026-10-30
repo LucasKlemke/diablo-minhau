@@ -82,6 +82,9 @@ interface Enemy {
   burnedAt?: number;
   /** Until when each elemental status shows its particles (burning, electrified, poisoned...). */
   elemUntil?: Partial<Record<Element, number>>;
+  /** Life bar: the trailing "lost life" chunk (fraction of max life) and when the last hit landed. */
+  barLag?: number;
+  barHitAt?: number;
   /** Mimic: the chest level it pretended to be (drops that chest's loot). */
   chestLevel?: number;
   announced?: boolean;
@@ -1056,7 +1059,29 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       this.moveTo(w.x, w.y);
+      this.clickMarker(w.x, w.y);
     });
+  }
+
+  /** Where a click sent the hero: a ring that closes in on the spot with four arrows, then fades. */
+  private clickMarker(x: number, y: number) {
+    const g = this.add.graphics({ x, y }).setDepth(-0.5);
+    const draw = (t: number) => {
+      g.clear();
+      const r = 9 - 5 * t, a = 1 - t * t;
+      g.lineStyle(1.5, 0x1c0f1a, 0.6 * a).strokeEllipse(0, 1, r * 2 + 1, r * 1.2 + 1);
+      g.lineStyle(1, 0xffe14d, a).strokeEllipse(0, 0, r * 2, r * 1.2);
+      // Four chevrons pointing at the centre, sliding in with the ring.
+      const d = r + 4;
+      g.fillStyle(0xffe14d, a);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const cx = dx * d, cy = dy * d * 0.6;
+        g.fillTriangle(cx, cy, cx + dx * 3 + dy * 2.5, cy + dy * 2 + dx * 2, cx + dx * 3 - dy * 2.5, cy + dy * 2 - dx * 2);
+      }
+      g.fillStyle(0xfff6c0, a).fillRect(-0.5, -0.5, 1, 1);
+    };
+    draw(0);
+    this.tweens.addCounter({ from: 0, to: 1, duration: 420, ease: "Quad.easeOut", onUpdate: (tw) => draw(tw.getValue() ?? 1), onComplete: () => g.destroy() });
   }
 
   private pointerWorld() {
@@ -1141,7 +1166,7 @@ export class GameScene extends Phaser.Scene {
     this.updateLoot();
     this.updateTrees();
     this.updateAura(time);
-    this.drawBars();
+    this.drawBars(delta);
     this.objPts = this.objectivePoints();
     this.updateObjectiveArrows(time);
     this.updateDecor(time);
@@ -1824,6 +1849,8 @@ export class GameScene extends Phaser.Scene {
     if (e.proxy) {
       // Guest: the host owns enemy life. Report the hit and show the feedback locally.
       net.send({ t: "hit", id: e.id, dmg: raw, crit, kind: blow.kind, angle: blow.angle, elem });
+      e.barLag = Math.max(e.barLag ?? 1, e.hp / e.maxHp);
+      e.barHitAt = this.time.now;
       e.hp = Math.max(1, e.hp - dmg);
       if (settings.damageNumbers) this.floatAt(e.spr.x, e.spr.y - 22 * e.spr.scaleY, crit ? `${dmg}!` : String(dmg), crit ? "crit" : "");
       this.emitters.blood.explode(crit ? 14 : 6, e.spr.x, e.spr.y - 12 * e.spr.scaleY);
@@ -1832,6 +1859,8 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(70, () => e.state !== "dead" && this.restoreTint(e));
       return;
     }
+    e.barLag = Math.max(e.barLag ?? 1, e.hp / e.maxHp);
+    e.barHitAt = this.time.now;
     e.hp -= dmg;
     e.aggro = true;
     const cy = e.spr.y - 12 * e.spr.scaleY;
@@ -4707,17 +4736,31 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private drawBars() {
+  private drawBars(dt: number) {
     const g = this.bars;
+    const now = this.time.now;
     g.clear();
     for (const e of this.enemies) {
       if (e.state === "dead" || !e.active || e.dormant || e.hp >= e.maxHp) continue;
       const w = e.rank === "boss" ? 24 : e.type === "brute" ? 18 : 14;
       const top = e.type === "brute" ? 40 : Math.max(26, e.def.height * 0.85);
-      const x = Math.round(e.spr.x - w / 2), y = Math.round(e.spr.y - top * e.spr.scaleY);
+      const ratio = Math.max(0, e.hp / e.maxHp);
+      const since = now - (e.barHitAt ?? -1e9);
+      // The lost chunk holds for a moment, then drains down to the life left.
+      let lag = Math.max(ratio, e.barLag ?? ratio);
+      if (since > 280) lag = Math.max(ratio, lag - (dt / 1000) * Math.max(0.6, (lag - ratio) * 4));
+      e.barLag = lag;
+      // A hit jolts the bar: a short shake and a white flash.
+      const shake = since < 160 ? Math.round(Math.sin(since * 0.12) * (1 - since / 160) * 2) : 0;
+      const x = Math.round(e.spr.x - w / 2) + shake, y = Math.round(e.spr.y - top * e.spr.scaleY) - (since < 90 ? 1 : 0);
       g.fillStyle(0x1c0f1a).fillRect(x - 1, y - 1, w + 2, 4);
-      g.fillStyle(e.rank === "boss" ? 0xe1a227 : e.rank === "champion" ? 0x6f8cff : 0xc13a2b)
-        .fillRect(x, y, Math.max(1, Math.round((w * e.hp) / e.maxHp)), 2);
+      g.fillStyle(0x4a0712).fillRect(x, y, w, 2);
+      const lw = Math.round(w * lag), cw = Math.max(1, Math.round(w * ratio));
+      if (lw > cw) g.fillStyle(since < 280 ? 0xffffff : 0xffd36b).fillRect(x + cw, y, lw - cw, 2);
+      const low = ratio < 0.25 && Math.floor(now / 180) % 2 === 0;
+      const color = since < 70 ? 0xffffff : e.rank === "boss" ? 0xe1a227 : e.rank === "champion" ? 0x6f8cff : low ? 0xff5a4a : 0xc13a2b;
+      g.fillStyle(color).fillRect(x, y, cw, 2);
+      if (since >= 70) g.fillStyle(0xffffff, 0.35).fillRect(x, y, cw, 1); // highlight on the top row
     }
   }
 
