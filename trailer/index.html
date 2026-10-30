@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diablo Minhau — Trailer</title>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;700&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+<style>
+  html, body { margin: 0; height: 100%; background: #000; color: #ddd; font-family: "Pixelify Sans", system-ui, sans-serif; }
+  body { display: grid; place-items: center; }
+  canvas { width: min(100vw, 177.78vh); aspect-ratio: 16 / 9; image-rendering: pixelated; background: #000; }
+  #bar { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; align-items: center;
+    background: #0009; padding: 6px 12px; border-radius: 8px; font-size: 14px; }
+  #bar button { font: inherit; background: #c8462a; color: #fff; border: 0; border-radius: 6px; padding: 4px 14px; cursor: pointer; }
+  #bar input { width: 320px; }
+  body.capture #bar { display: none; }
+</style>
+</head>
+<body>
+<canvas id="c" width="1920" height="1080"></canvas>
+<div id="bar"><button id="play">▶ Play</button><input id="seek" type="range" min="0" max="54" step="0.01" value="0" /><span id="clock">0.0s</span></div>
+<script type="module">
+// Diablo Minhau trailer: every frame is a pure function of time (render(T)), so the preview plays in real
+// time with audio and ?capture renders frame by frame to the local server (serve.mjs) for an exact video.
+// Scenes are drawn at low resolution with the game's SpriteKiln sprites and scaled up with no smoothing,
+// so the pixel art stays crisp; text, glows and particles go on top at full resolution.
+
+const W = 1920, H = 1080, FPS = 30, DUR = 54;
+const ASSETS = "../public/assets";
+const cv = document.getElementById("c");
+const ctx = cv.getContext("2d");
+const lo = document.createElement("canvas");
+const g = lo.getContext("2d");
+
+// ---------- helpers ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const easeOut = (k) => 1 - Math.pow(1 - clamp(k), 3);
+const easeIn = (k) => Math.pow(clamp(k), 3);
+const easeOutBack = (k) => { k = clamp(k); const c = 1.9; return 1 + (c + 1) * Math.pow(k - 1, 3) + c * Math.pow(k - 1, 2); };
+/** 0→1 over [a, a+fi], 1, then 1→0 over [b-fo, b]. */
+const fade = (t, a, b, fi = 0.4, fo = 0.4) => clamp((t - a) / fi) * clamp((b - t) / fo);
+const rand = (i) => { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
+
+// ---------- sprites ----------
+const SPR = {};
+const NAMES = ["ant", "archer", "armor", "barbarian", "bat", "beetle", "boar", "bush", "campfire", "centipede", "chest", "crypt_floor",
+  "cultist", "dead_tree", "dragon", "ent", "fence_h", "gargoyle", "ghost", "ghoul", "goblin", "hobgoblin", "house", "kobold", "leech",
+  "lich", "lizardman", "mage", "manticore", "mimic", "npc_elder", "orc", "skeleton", "slime", "sorcerer", "spider", "tombstone",
+  "tree_big", "tree_medium", "troll", "village_gate", "wasp", "wisp", "wolf", "worg_rider", "zombie", "barn", "stump", "grave_fence"];
+
+async function loadSprite(n) {
+  const j = await (await fetch(`${ASSETS}/sprites/${n}/${n}.json`)).json();
+  const img = new Image();
+  img.src = `${ASSETS}/sprites/${n}/${n}.png`;
+  await img.decode();
+  const keys = Object.keys(j.frames);
+  const tags = {};
+  for (const t of j.meta.frameTags) tags[t.name] = keys.slice(t.from, t.to + 1).map((k) => j.frames[k]);
+  SPR[n] = { img, tags, size: j.frames[keys[0]].sourceSize.w };
+}
+
+const MIRROR = { w: "e", sw: "se", nw: "ne" };
+/** Draws a sprite with its feet at (x, y) on the low-res canvas. */
+function spr(name, anim, dir, t, x, y, o = {}) {
+  const s = SPR[name];
+  if (!s) return;
+  let d = dir, flip = false;
+  if (MIRROR[d]) { d = MIRROR[d]; flip = true; }
+  const fr = s.tags[`${anim}_${d}`] ?? s.tags[`${anim}_s`] ?? s.tags[`idle_${d}`] ?? s.tags.idle_s ?? Object.values(s.tags)[0];
+  const total = fr.reduce((a, f) => a + (f.duration || 100), 0);
+  let ms = Math.max(0, t * 1000 * (o.speed ?? 1));
+  ms = o.loop === false ? Math.min(ms, total - 1) : ms % total;
+  let f = fr[0];
+  for (const c of fr) { f = c; ms -= c.duration || 100; if (ms < 0) break; }
+  const { x: fx, y: fy, w, h } = f.frame;
+  const sc = o.scale ?? 1;
+  const dx = Math.round(x - (w * sc) / 2), dy = Math.round(y - h * sc * (o.anchor ?? 0.82));
+  g.save();
+  g.globalAlpha = o.alpha ?? 1;
+  if (o.filter) g.filter = o.filter;
+  if (flip) { g.translate(dx + w * sc, dy); g.scale(-1, 1); g.drawImage(s.img, fx, fy, w, h, 0, 0, w * sc, h * sc); }
+  else g.drawImage(s.img, fx, fy, w, h, dx, dy, w * sc, h * sc);
+  g.restore();
+}
+/** Draws a list of [name, anim, dir, t, x, y, opts] sorted by y (depth). */
+const drawAll = (list) => list.sort((a, b) => a[5] - b[5]).forEach((e) => spr(...e));
+
+// ---------- grounds (cached low-res tiles) ----------
+function makeGround(w, h, base, specks, seed) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d");
+  x.fillStyle = base; x.fillRect(0, 0, w, h);
+  for (let i = 0; i < w * h * 0.06; i++) {
+    x.fillStyle = specks[i % specks.length];
+    const px = Math.floor(rand(seed + i) * w), py = Math.floor(rand(seed + i * 3.1) * h);
+    x.fillRect(px, py, rand(i * 7) > 0.85 ? 2 : 1, 1);
+  }
+  // tufts
+  for (let i = 0; i < w * h * 0.004; i++) {
+    const px = Math.floor(rand(seed * 2 + i) * w), py = Math.floor(rand(seed * 5 + i * 1.7) * h);
+    x.fillStyle = specks[0]; x.fillRect(px, py, 1, 2); x.fillRect(px + 2, py + 1, 1, 2); x.fillStyle = specks[1]; x.fillRect(px + 1, py - 1, 1, 2);
+  }
+  return c;
+}
+let GRASS, DARKGRASS, CRYPT, LAIR;
+function makeTiled(src, w, h, tint, base) {
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const x = c.getContext("2d");
+  if (base) { x.fillStyle = base; x.fillRect(0, 0, w, h); }
+  for (let yy = 0; yy < h; yy += src.height) for (let xx = 0; xx < w; xx += src.width) x.drawImage(src, xx, yy);
+  if (tint) { x.globalCompositeOperation = "multiply"; x.fillStyle = tint; x.fillRect(0, 0, w, h); }
+  return c;
+}
+const ground = (c, ox = 0, oy = 0) => {
+  const w = c.width, h = c.height;
+  ox = ((Math.round(ox) % w) + w) % w; oy = ((Math.round(oy) % h) + h) % h;
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0);
+  for (let yy = -oy; yy < lo.height; yy += h) for (let xx = -ox; xx < lo.width; xx += w) g.drawImage(c, xx, yy);
+  g.restore();
+};
+
+// ---------- low-res lighting ----------
+function tint(color, mode = "multiply", a = 1) { g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = mode; g.globalAlpha = a; g.fillStyle = color; g.fillRect(0, 0, lo.width, lo.height); g.restore(); }
+function vgrad(top, bottom, mode = "multiply") {
+  g.save(); g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = mode;
+  const gr = g.createLinearGradient(0, 0, 0, lo.height); gr.addColorStop(0, top); gr.addColorStop(1, bottom);
+  g.fillStyle = gr; g.fillRect(0, 0, lo.width, lo.height); g.restore();
+}
+function glow(x, y, r, color, a = 1) {
+  g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = a;
+  const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, color); gr.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.restore();
+}
+function px(x, y, color, s = 1) { g.fillStyle = color; g.fillRect(Math.round(x), Math.round(y), s, s); }
+
+// ---------- full-res overlay helpers ----------
+let S = 6; // pixel scale of the current scene
+let SHX = 0, SHY = 0;
+const BLEED = 12, BK = (W + BLEED * 2) / W;
+let CAMX = 0, CAMY = 0;
+const toHi = (x, y) => [(x - CAMX) * S * BK + SHX - BLEED, (y - CAMY) * S * BK + SHY - BLEED];
+/** Moves the low-res camera so world (x, y) is the top-left corner. */
+const cam = (x, y) => { CAMX = x; CAMY = y; g.setTransform(1, 0, 0, 1, -x, -y); };
+
+function text(str, x, y, o = {}) {
+  ctx.save();
+  ctx.globalAlpha = o.alpha ?? 1;
+  ctx.font = `${o.weight ?? 400} ${o.size ?? 48}px ${o.font ?? '"Silkscreen", monospace'}`;
+  ctx.textAlign = o.align ?? "center";
+  ctx.textBaseline = "middle";
+  if (o.spacing) ctx.letterSpacing = `${o.spacing}px`;
+  if (o.scale && o.scale !== 1) { ctx.translate(x, y); ctx.scale(o.scale, o.scale); x = 0; y = 0; }
+  const sh = o.shadow ?? Math.max(3, Math.round((o.size ?? 48) / 14));
+  ctx.fillStyle = "#07050a";
+  ctx.fillText(str, x + sh, y + sh);
+  if (o.stroke) { ctx.lineWidth = o.stroke; ctx.strokeStyle = "#07050a"; ctx.lineJoin = "round"; ctx.strokeText(str, x, y); }
+  if (o.grad) {
+    const m = ctx.measureText(str), half = (o.size ?? 48) / 2;
+    const gr = ctx.createLinearGradient(0, y - half, 0, y + half);
+    o.grad.forEach((c, i) => gr.addColorStop(i / (o.grad.length - 1), c));
+    ctx.fillStyle = gr; void m;
+  } else ctx.fillStyle = o.color ?? "#f4e6c8";
+  if (o.glow) { ctx.shadowColor = o.glow; ctx.shadowBlur = o.glowBlur ?? 30; }
+  ctx.fillText(str, x, y);
+  ctx.restore();
+}
+/** Narration line: letters fade in one by one. */
+function narrate(str, t, a, b, y = H - 150) {
+  const k = t - a;
+  if (k < 0 || t > b) return;
+  const out = clamp((b - t) / 0.5);
+  const n = Math.floor(k * 38);
+  const shown = str.slice(0, n);
+  ctx.save();
+  ctx.font = `400 46px "Pixelify Sans", sans-serif`;
+  const full = ctx.measureText(str).width;
+  ctx.restore();
+  // text aligned left from the centered start so it does not jump while typing
+  text(shown, W / 2 - full / 2, y, { size: 46, font: '"Pixelify Sans", sans-serif', align: "left", alpha: out, color: "#f1e2c2", shadow: 3 });
+}
+function caption(str, t, a, b, o = {}) {
+  const k = easeOutBack((t - a) / 0.35);
+  const al = fade(t, a, b, 0.15, 0.25);
+  if (al <= 0) return;
+  const y = o.y ?? H - 140;
+  // band
+  ctx.save(); ctx.globalAlpha = al * 0.75;
+  const gr = ctx.createLinearGradient(0, y - 80, 0, y + 80);
+  gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(0.5, "rgba(0,0,0,0.85)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+  ctx.fillStyle = gr; ctx.fillRect(0, y - 80, W, 160); ctx.restore();
+  text(str, W / 2 + (1 - k) * -120, y, { size: o.size ?? 64, alpha: al, color: o.color ?? "#ffe7b0", glow: o.glow ?? "#ff5a1e", glowBlur: 24, spacing: 4 });
+}
+
+// ---------- particles (deterministic, full-res) ----------
+function embers(t, count, o = {}) {
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < count; i++) {
+    const life = 3 + rand(i) * 4, ph = (t + rand(i + 9) * life) % life, k = ph / life;
+    const x = (rand(i + 3) * W + Math.sin(t * 1.3 + i) * 40 + (o.wind ?? 30) * ph) % W;
+    const y = H + 20 - k * (H + 80) * (o.rise ?? 1);
+    const s = (o.size ?? 5) * (1 - k * 0.6);
+    ctx.globalAlpha = Math.sin(k * Math.PI) * (o.alpha ?? 0.9);
+    ctx.fillStyle = i % 3 ? (o.c1 ?? "#ffb347") : (o.c2 ?? "#ff5a1e");
+    ctx.fillRect(Math.round(x), Math.round(y), s, s);
+  }
+  ctx.restore();
+}
+function burst(cx, cy, t, t0, n, color, o = {}) {
+  const k = t - t0;
+  if (k < 0 || k > (o.life ?? 0.9)) return;
+  ctx.save(); ctx.globalCompositeOperation = "lighter";
+  for (let i = 0; i < n; i++) {
+    const a = rand(i + t0 * 13) * Math.PI * 2, sp = (o.speed ?? 700) * (0.3 + rand(i * 3 + t0) * 0.7);
+    const x = cx + Math.cos(a) * sp * k, y = cy + Math.sin(a) * sp * k + 300 * k * k * (o.grav ?? 1);
+    ctx.globalAlpha = 1 - k / (o.life ?? 0.9);
+    ctx.fillStyle = i % 2 ? color : (o.c2 ?? "#fff3c0");
+    const s = (o.size ?? 8) * (1 - k);
+    ctx.fillRect(Math.round(x), Math.round(y), s, s);
+  }
+  ctx.restore();
+}
+function damage(str, x, y, t, t0, color = "#ffd84a", size = 54) {
+  const k = t - t0;
+  if (k < 0 || k > 0.9) return;
+  text(str, x, y - k * 120, { size, color, alpha: 1 - easeIn(k / 0.9), scale: 1 + 0.6 * (1 - easeOut(k * 5)), glow: color, glowBlur: 12 });
+}
+
+// ---------- timeline: shakes, flashes, audio ----------
+const SHAKES = [];
+const FLASHES = [];
+const AUDIO = [];
+const shake = (t, amp, dec = 6) => SHAKES.push({ t, amp, dec });
+const flash = (t, color = "#fff", dur = 0.25, a = 1) => FLASHES.push({ t, color, dur, a });
+const sfx = (file, t, vol = 1, extra = {}) => AUDIO.push({ file: `${ASSETS}/${file}`, t, vol, ...extra });
+
+function shakeAt(T) {
+  let x = 0, y = 0;
+  for (const s of SHAKES) {
+    const k = T - s.t;
+    if (k < 0 || k > 2) continue;
+    const a = s.amp * Math.exp(-k * s.dec);
+    x += Math.sin(k * 71 + s.t) * a; y += Math.cos(k * 53 + s.t * 2) * a;
+  }
+  return [Math.round(x), Math.round(y)];
+}
+
+// ---------- scene schedule ----------
+const SC = {
+  village: [0, 7.5], horde: [7.5, 14], heroes: [14, 20],
+  fight: [20, 22.3], spell: [22.3, 24.6], hunt: [24.6, 26.9], loot: [26.9, 29],
+  bestiary: [29, 35], dragon: [35, 43], coop: [43, 47], title: [47, 54],
+};
+
+// audio + hit events (built once, used by both the visuals and the mux)
+sfx("sfx/cine_night.mp3", 0, 0.8, { fadeOut: [6.5, 8] });
+sfx("sfx/cine_bell.mp3", 1.6, 0.45);
+sfx("sfx/cine_fire.mp3", 0.5, 0.5, { fadeOut: [6, 7.5] });
+sfx("sfx/cine_drums.mp3", 7.5, 1);
+sfx("music/boss.mp3", 7.5, 0.7, { fadeOut: [51.5, 54] });
+sfx("sfx/cine_laugh_01.mp3", 11.4, 0.9);
+for (let b = 0; b < 6; b++) shake(7.6 + b * 1.05, 5, 8);
+
+const HERO_T = [14, 15.5, 17, 18.5];
+["sfx/skill_warcry.mp3", "sfx/skill_multishot.mp3", "sfx/skill_firebolt.mp3", "sfx/skill_shadowbolt.mp3"].forEach((f, i) => { sfx(f, HERO_T[i] + 0.15, 0.9); flash(HERO_T[i], "#fff", 0.2, 0.7); shake(HERO_T[i] + 0.15, 8); });
+
+const FIGHT_KILLS = [0.45, 0.85, 1.25, 1.65].map((k) => SC.fight[0] + k);
+FIGHT_KILLS.forEach((t, i) => { sfx(`sfx/hit_0${(i % 3) + 1}.mp3`, t, 0.9); sfx(`sfx/swing_0${(i % 3) + 1}.mp3`, t - 0.12, 0.6); shake(t, 6); });
+sfx("sfx/die_goblin.mp3", FIGHT_KILLS[1] + 0.05, 0.7); sfx("sfx/die_goblin.mp3", FIGHT_KILLS[3] + 0.05, 0.7);
+flash(SC.fight[0], "#fff", 0.15, 0.8);
+
+const SPELL_SHOTS = [0.2, 0.7, 1.2].map((k) => SC.spell[0] + k);
+const SPELL_TRAVEL = 0.38;
+SPELL_SHOTS.forEach((t) => { sfx("sfx/skill_firebolt.mp3", t, 0.7); sfx("sfx/skill_explosive.mp3", t + SPELL_TRAVEL, 0.8); shake(t + SPELL_TRAVEL, 7); });
+sfx("sfx/die_skeleton.mp3", SPELL_SHOTS[1] + SPELL_TRAVEL + 0.05, 0.7);
+sfx("sfx/skill_frostnova.mp3", SC.spell[0] + 1.7, 0.8); shake(SC.spell[0] + 1.7, 9);
+flash(SC.spell[0], "#fff", 0.15, 0.8);
+
+const WOLF_SPAWN = (i) => SC.hunt[0] + i * 0.32;
+const WOLF_DIE = (i) => WOLF_SPAWN(i) + 0.95;
+for (let i = 0; i < 5; i++) { sfx("sfx/skill_arrow.mp3", WOLF_DIE(i) - 0.22, 0.6); if (i % 2 === 0) sfx("sfx/die_wolf.mp3", WOLF_DIE(i), 0.55); }
+flash(SC.hunt[0], "#fff", 0.15, 0.8);
+
+const DROPS = [
+  { t: 0.25, x: 172, y: 112, c: "#ff8a1e", name: "Lâmina de Grumm", tier: "LENDÁRIO", s: "drop_legendary" },
+  { t: 0.55, x: 214, y: 96, c: "#c86bff", name: "Manto do Vazio", tier: "ÉPICO", s: "drop_epic" },
+  { t: 0.85, x: 146, y: 132, c: "#e8c35a", name: "Anel de Bento", tier: "ÚNICO", s: "drop_unique" },
+  { t: 1.1, x: 226, y: 134, c: "#4aa8ff", name: "Elmo Rúnico", tier: "RARO", s: "drop_rare" },
+];
+DROPS.forEach((d) => sfx(`sfx/${d.s}.mp3`, SC.loot[0] + d.t, 0.75));
+sfx("sfx/chest_open.mp3", SC.loot[0] + 0.05, 0.8);
+flash(SC.loot[0], "#fff", 0.15, 0.8);
+
+sfx("sfx/cine_ambush.mp3", SC.bestiary[0] + 0.1, 0.8); flash(SC.bestiary[0], "#fff", 0.2, 0.6);
+const DRAGON_REVEAL = 37.2, DRAGON_BREATH = 38.7;
+sfx("sfx/skill_quake.mp3", 35.6, 0.7); shake(35.6, 4, 2);
+sfx("sfx/boss.mp3", DRAGON_REVEAL, 1); sfx("sfx/skill_quake.mp3", DRAGON_REVEAL, 0.9); shake(DRAGON_REVEAL, 18, 3); flash(DRAGON_REVEAL, "#ffd0a0", 0.5, 0.9);
+sfx("sfx/skill_meteor.mp3", DRAGON_BREATH + 0.35, 1); sfx("sfx/cine_fire.mp3", DRAGON_BREATH + 0.3, 0.8, { fadeOut: [41.5, 43] }); shake(DRAGON_BREATH + 0.4, 22, 1.4); flash(DRAGON_BREATH + 0.4, "#ff7a2a", 0.6, 0.6);
+sfx("sfx/cine_cheer.mp3", 43.3, 0.6); sfx("sfx/portal.mp3", 43.05, 0.6); flash(43, "#fff", 0.25, 0.7);
+sfx("sfx/cine_title.mp3", 47.35, 1); shake(47.6, 16, 4); flash(47.6, "#fff", 0.35, 0.8);
+
+// ---------- scenes ----------
+function setLo(scale) { S = scale; lo.width = W / scale; lo.height = H / scale; g.imageSmoothingEnabled = false; CAMX = CAMY = 0; }
+
+function village(t, T) {
+  setLo(6);
+  const cx = t * 4;
+  ground(GRASS, cx, 0);
+  g.save(); g.translate(-Math.round(cx), 0);
+  // dirt path
+  g.fillStyle = "#8a6a44"; for (let x = -20; x < 380; x += 2) { const y = 150 + Math.sin(x / 40) * 6; g.fillRect(x, y, 2, 12 + Math.round(Math.sin(x / 11) * 1.5)); }
+  g.fillStyle = "#a07c50"; for (let x = -20; x < 380; x += 7) px(x, 154 + Math.sin(x / 40) * 6, "#a07c50", 2);
+  drawAll([
+    ["tree_big", "idle", "s", t, 22, 62], ["tree_big", "idle", "s", t, 330, 70], ["tree_medium", "idle", "s", t, 260, 48],
+    ["tree_big", "idle", "s", t, -6, 175], ["tree_medium", "idle", "s", t, 352, 172], ["bush", "idle", "s", t, 60, 120], ["bush", "idle", "s", t, 240, 122],
+    ["house", "idle", "s", t, 112, 112], ["barn", "idle", "s", t, 228, 104],
+    ["fence_h", "idle", "s", t, 30, 136], ["fence_h", "idle", "s", t, 58, 136], ["fence_h", "idle", "s", t, 290, 136], ["fence_h", "idle", "s", t, 318, 136],
+    ["campfire", "idle", "s", t, 178, 140], ["npc_elder", "idle", "e", t, 156, 138], ["stump", "idle", "s", t, 196, 146],
+  ]);
+  g.restore();
+  // dusk
+  vgrad("#ff9a5a", "#4a3a7a");
+  tint("#2a1a3a", "multiply", 0.35);
+  glow(178 - cx, 128, 60, "rgba(255,150,60,0.55)", 1);
+  glow(112 - cx, 92, 14, "rgba(255,200,90,0.6)", 0.6 + 0.2 * Math.sin(T * 7));
+}
+function villageOver(t) {
+  embers(t, 26, { alpha: 0.6, size: 4, rise: 0.7 });
+  text("DIABLO MINHAU apresenta", W / 2, 120, { size: 26, alpha: fade(t, 0.8, 3.2, 0.6, 0.6) * 0.8, color: "#d9c7a6", spacing: 6 });
+  narrate("Há gerações, a vila Minhau vivia em paz entre campos e florestas.", t, 2.4, 7.2);
+}
+
+const HORDE = (() => {
+  const u = [];
+  for (let i = 0; i < 26; i++) u.push({ n: i % 7 === 3 ? "hobgoblin" : i % 9 === 5 ? "kobold" : "goblin", x0: 150 - i * 13 - rand(i) * 10, y: 64 + (i % 6) * 19 + rand(i + 1) * 6, v: 21 + rand(i + 2) * 3, torch: i % 4 === 0 });
+  u.push({ n: "orc", x0: 40, y: 84, v: 20, torch: true }, { n: "orc", x0: -60, y: 140, v: 20 });
+  u.push({ n: "worg_rider", x0: -20, y: 112, v: 34 }, { n: "worg_rider", x0: -110, y: 70, v: 36 });
+  u.push({ n: "troll", x0: -120, y: 108, v: 19, big: true });
+  return u;
+})();
+function horde(t, T) {
+  setLo(6);
+  ground(DARKGRASS, 0, 0);
+  const list = [];
+  for (const u of HORDE) list.push([u.n, "walk", "e", t + u.x0 * 0.01, u.x0 + u.v * t, u.y]);
+  [[14, 40], [70, 30], [130, 36], [200, 28], [260, 42], [310, 34], [30, 186], [110, 190], [180, 184], [250, 192], [320, 188]].forEach(([x, y], i) => list.push([i % 2 ? "tree_medium" : "tree_big", "idle", "s", 0, x, y]));
+  list.push(["dead_tree", "idle", "s", 0, 290, 120]);
+  drawAll(list);
+  vgrad("#8a9ae0", "#c07068");
+  tint("#30305a", "multiply", 0.25);
+  // burning glow from the camp behind them
+  g.save(); g.globalCompositeOperation = "lighter";
+  const gr = g.createLinearGradient(0, 0, 170, 0); gr.addColorStop(0, "rgba(255,80,20,0.45)"); gr.addColorStop(1, "rgba(0,0,0,0)");
+  g.fillStyle = gr; g.fillRect(0, 0, lo.width, lo.height); g.restore();
+  for (const u of HORDE) if (u.torch) { const x = u.x0 + u.v * t + 4, y = u.y - 26; glow(x, y, 26 + Math.sin(T * 13 + u.y) * 2, "rgba(255,140,50,0.6)"); px(x, y, "#ffe08a", 2); }
+}
+function hordeOver(t) {
+  embers(t + 30, 60, { wind: 120, size: 6 });
+  narrate("Até que, numa noite sem lua, tambores de guerra ecoaram na mata.", t, 0.6, 3.6);
+  narrate("Grumm, o Rei Goblin, reuniu sua horda... e escolheu seu alvo.", t, 3.8, 6.4);
+}
+
+const HEROES = [
+  { n: "barbarian", name: "BÁRBARO", sub: "Fúria corpo a corpo", c: "#ff4a2a", bg: "#2a0806", anim: "attack" },
+  { n: "archer", name: "ARQUEIRO", sub: "Precisão à distância", c: "#7bd34a", bg: "#0a1c08", anim: "attack" },
+  { n: "mage", name: "MAGO", sub: "Fogo, gelo e raio", c: "#4ab0ff", bg: "#06122a", anim: "cast" },
+  { n: "sorcerer", name: "FEITICEIRO", sub: "Pactos de sangue e sombra", c: "#c05cff", bg: "#16062a", anim: "cast" },
+];
+function heroes(t, T) {
+  setLo(10);
+  const i = clamp(Math.floor(t / 1.5), 0, 3), h = HEROES[i], k = t - i * 1.5;
+  g.fillStyle = h.bg; g.fillRect(0, 0, lo.width, lo.height);
+  // rune floor
+  g.save(); g.globalAlpha = 0.5; g.strokeStyle = h.c; g.lineWidth = 1;
+  g.beginPath(); g.ellipse(124, 84, 34, 10, 0, 0, Math.PI * 2); g.stroke();
+  g.beginPath(); g.ellipse(124, 84, 26 + Math.sin(T * 4) * 2, 7, 0, 0, Math.PI * 2); g.stroke(); g.restore();
+  glow(124, 70, 70, h.c + "88", 0.9);
+  const x = 124 + 50 * (1 - easeOut(k * 3));
+  spr(h.n, k < 0.18 ? "walk" : h.anim, "sw", k < 0.18 ? k : k - 0.18, x, 86, { loop: true });
+  // speed lines
+  g.save(); g.globalAlpha = 0.35 * (1 - clamp(k * 2)); g.fillStyle = "#fff";
+  for (let j = 0; j < 14; j++) g.fillRect(0, Math.floor(rand(j + i * 20) * lo.height), Math.floor(rand(j * 2) * 120), 1); g.restore();
+}
+function heroesOver(t) {
+  const i = clamp(Math.floor(t / 1.5), 0, 3), h = HEROES[i], k = t - i * 1.5;
+  if (t < 1.5) text("ESCOLHA SEU HERÓI", W / 2, 110, { size: 40, alpha: fade(t, 0, 1.5, 0.2, 0.3), color: "#e9dcc0", spacing: 8 });
+  else text("ESCOLHA SEU HERÓI", W / 2, 110, { size: 40, alpha: 0.85 * fade(t, 1.5, 6, 0.01, 0.3), color: "#e9dcc0", spacing: 8 });
+  const sx = 170 - 260 * (1 - easeOutBack(k * 3.5));
+  text(h.name, sx, H / 2 - 30, { size: 120, align: "left", color: h.c, glow: h.c, glowBlur: 40, alpha: clamp(k * 5), spacing: 6 });
+  text(h.sub, sx + 8, H / 2 + 70, { size: 40, align: "left", font: '"Pixelify Sans", sans-serif', alpha: clamp((k - 0.2) * 4), color: "#efe2c6" });
+  text(`${i + 1} / 4`, sx + 8, H / 2 + 140, { size: 26, align: "left", alpha: clamp((k - 0.3) * 4) * 0.6, color: "#bba" });
+  burst(1240, 640, t, i * 1.5 + 0.18, 40, h.c, { speed: 900, size: 12 });
+  embers(t, 30, { c1: h.c, c2: "#fff", size: 5, alpha: 0.5 });
+}
+
+const GOBS = [[150, 92], [158, 116], [178, 102], [194, 84]];
+function fight(t, T) {
+  setLo(8);
+  ground(GRASS, 40, 30);
+  cam(46 + t * 4, 40);
+  const list = [["barbarian", "attack", "e", t, 128, 106, { speed: 1.2 }], ["tree_big", "idle", "s", 0, 30, 70], ["tree_big", "idle", "s", 0, 300, 180], ["bush", "idle", "s", 0, 260, 60]];
+  GOBS.forEach(([x, y], i) => {
+    const dk = SC.fight[0] + t - FIGHT_KILLS[i];
+    if (dk < 0) list.push(["goblin", dk > -0.15 ? "hit" : "attack", "w", t + i * 0.2, x, y]);
+    else list.push(["goblin", "death", "w", dk, x + Math.min(dk, 0.2) * 40, y, { loop: false, filter: dk < 0.08 ? "brightness(4)" : "" }]);
+  });
+  drawAll(list);
+  vgrad("#fff0d8", "#b8a0c0"); tint("#382830", "multiply", 0.2);
+}
+function fightOver(t) {
+  GOBS.forEach(([x, y], i) => {
+    const [hx, hy] = toHi(x, y - 30);
+    damage(i === 3 ? "CRÍTICO! 212" : `${48 + i * 17}`, hx, hy, SC.fight[0] + t, FIGHT_KILLS[i], i === 3 ? "#ff5a3a" : "#ffd84a", i === 3 ? 60 : 50);
+    burst(hx, hy + 60, SC.fight[0] + t, FIGHT_KILLS[i], 24, "#ff3a2a", { speed: 500, size: 10, life: 0.6 });
+  });
+  caption("COMBATE BRUTAL", t, 0.15, 2.3);
+}
+
+const SKELS = [[214, 84], [232, 118], [250, 100]];
+function spell(t, T) {
+  setLo(6);
+  ground(CRYPT, 0, 0);
+  const TT = SC.spell[0] + t;
+  const list = [["mage", "cast", "e", t, 92, 108], ["lich", "cast", "w", t, 292, 92], ["tombstone", "idle", "s", 0, 40, 60], ["tombstone", "idle", "s", 0, 300, 160], ["grave_fence", "idle", "s", 0, 160, 44], ["grave_fence", "idle", "s", 0, 208, 44]];
+  SKELS.forEach(([x, y], i) => {
+    const dk = TT - (SPELL_SHOTS[i] + SPELL_TRAVEL);
+    if (dk < 0) list.push(["skeleton", "walk", "w", t + i * 0.3, x - t * 10, y]);
+    else list.push(["skeleton", "death", "w", dk, x - (SPELL_SHOTS[i] + SPELL_TRAVEL - SC.spell[0]) * 10, y, { loop: false, filter: dk < 0.1 ? "brightness(5) sepia(1) saturate(5)" : "" }]);
+  });
+  drawAll(list);
+  tint("#1a1830", "multiply", 0.55);
+  glow(92, 92, 40, "rgba(80,160,255,0.45)");
+  glow(292, 70, 36, "rgba(120,255,160,0.35)", 0.8 + 0.2 * Math.sin(TT * 9));
+  // fireballs
+  SPELL_SHOTS.forEach((s, i) => {
+    const k = (TT - s) / SPELL_TRAVEL;
+    const [tx, ty] = SKELS[i];
+    const ex = tx - (s + SPELL_TRAVEL - SC.spell[0]) * 10, ey = ty - 18;
+    if (k >= 0 && k < 1) {
+      const x = lerp(104, ex, k), y = lerp(88, ey, k);
+      glow(x, y, 16, "rgba(255,140,40,0.9)");
+      for (let j = 0; j < 6; j++) px(x - j * 3, y + Math.sin(j + TT * 30), j < 2 ? "#fff6c0" : "#ff8a2a", j < 2 ? 3 : 2);
+    } else if (k >= 1 && k < 1.6) glow(ex, ey, 40 * (1.6 - k), "rgba(255,120,30,0.9)");
+  });
+  // frost nova at the end
+  const nk = TT - (SC.spell[0] + 1.7);
+  if (nk > 0) {
+    g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = clamp(1 - nk * 1.4); g.strokeStyle = "#bfe8ff"; g.lineWidth = 3;
+    g.beginPath(); g.ellipse(92, 104, nk * 260, nk * 90, 0, 0, Math.PI * 2); g.stroke(); g.restore();
+    tint("#5aa0ff", "screen", 0.25 * clamp(1 - nk * 2));
+  }
+}
+function spellOver(t) {
+  const TT = SC.spell[0] + t;
+  SPELL_SHOTS.forEach((s, i) => {
+    const [x, y] = SKELS[i];
+    const [hx, hy] = toHi(x - (s + SPELL_TRAVEL - SC.spell[0]) * 10, y - 20);
+    burst(hx, hy, TT, s + SPELL_TRAVEL, 40, "#ff8a2a", { speed: 800, size: 10, life: 0.7, grav: 0.4 });
+    damage(`${120 + i * 33}`, hx, hy - 60, TT, s + SPELL_TRAVEL, "#ff9a3a");
+  });
+  caption("MAGIAS DEVASTADORAS", t, 0.15, 2.3, { glow: "#3a8aff" });
+}
+
+function hunt(t, T) {
+  setLo(6);
+  ground(DARKGRASS, 80, 10);
+  const TT = SC.hunt[0] + t;
+  const list = [["archer", "attack", "e", t, 92, 104, { speed: 1.4 }], ["tree_big", "idle", "s", 0, 40, 50], ["tree_medium", "idle", "s", 0, 150, 40], ["tree_big", "idle", "s", 0, 230, 190], ["tree_medium", "idle", "s", 0, 300, 52], ["ent", "idle", "w", t, 290, 160], ["bush", "idle", "s", 0, 60, 170]];
+  for (let i = 0; i < 5; i++) {
+    const ls = TT - WOLF_SPAWN(i), dk = TT - WOLF_DIE(i), y = 74 + (i * 37) % 70;
+    if (ls < 0) continue;
+    const x = 340 - 80 * Math.min(ls, 0.95);
+    list.push(dk < 0 ? ["wolf", "walk", "w", ls, x, y, { speed: 2 }] : ["wolf", "death", "w", dk, x, y, { loop: false, filter: dk < 0.08 ? "brightness(4)" : "" }]);
+    // arrow
+    const ak = (TT - (WOLF_DIE(i) - 0.22)) / 0.22;
+    if (ak >= 0 && ak < 1) {
+      const ax = lerp(104, 340 - 80 * 0.95, ak), ay = lerp(88, y - 16, ak);
+      g.save(); g.strokeStyle = "#f4e2b0"; g.lineWidth = 1; g.beginPath(); g.moveTo(ax - 8, ay - (y - 16 - 88) / (340 - 80 * 0.95 - 104) * 8); g.lineTo(ax, ay); g.stroke(); g.restore();
+      glow(ax, ay, 8, "rgba(255,240,180,0.7)");
+    }
+  }
+  drawAll(list);
+  vgrad("#c8ffd0", "#3a5a6a"); tint("#202a30", "multiply", 0.25);
+  // light shafts
+  g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.12; g.fillStyle = "#fff6c8";
+  for (let j = 0; j < 4; j++) { g.beginPath(); const x = 40 + j * 90; g.moveTo(x, 0); g.lineTo(x + 20, 0); g.lineTo(x + 80, lo.height); g.lineTo(x + 50, lo.height); g.fill(); } g.restore();
+}
+function huntOver(t) {
+  const TT = SC.hunt[0] + t;
+  for (let i = 0; i < 5; i++) {
+    const [hx, hy] = toHi(340 - 80 * 0.95, 74 + (i * 37) % 70 - 24);
+    damage(`${60 + i * 11}`, hx, hy, TT, WOLF_DIE(i));
+    burst(hx, hy + 40, TT, WOLF_DIE(i), 16, "#d02a2a", { speed: 400, size: 8, life: 0.5 });
+  }
+  caption("3 ZONAS PARA EXPLORAR", t, 0.15, 2.3, { glow: "#4aff7a" });
+}
+
+function loot(t, T) {
+  setLo(8);
+  ground(GRASS, 120, 60);
+  cam(56, 42);
+  const TT = SC.loot[0] + t;
+  drawAll([["sorcerer", "cast", "se", t, 110, 108], ["chest", t < 0.05 ? "idle" : "open", "s", t - 0.05, 186, 120, { loop: false }], ["goblin", "death", "w", 5, 250, 110, { loop: false }], ["tree_big", "idle", "s", 0, 34, 180], ["tree_medium", "idle", "s", 0, 300, 50]]);
+  tint("#3a2a4a", "multiply", 0.45);
+  for (const d of DROPS) {
+    const k = TT - (SC.loot[0] + d.t);
+    if (k < 0) continue;
+    const hop = k < 0.4 ? Math.sin(k / 0.4 * Math.PI) * 26 : 0;
+    const x = lerp(186, d.x, clamp(k / 0.4)), y = lerp(110, d.y, clamp(k / 0.4)) - hop;
+    if (k > 0.35) {
+      g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = 0.55 * clamp((k - 0.35) * 4) * (0.85 + 0.15 * Math.sin(TT * 8 + d.x));
+      const gr = g.createLinearGradient(0, 0, 0, d.y); gr.addColorStop(0, "rgba(0,0,0,0)"); gr.addColorStop(1, d.c);
+      g.fillStyle = gr; g.fillRect(d.x - 3, 0, 6, d.y); g.fillRect(d.x - 1, 0, 2, d.y); g.restore();
+    }
+    glow(x, y, 12, d.c, 0.9);
+    px(x - 2, y - 2, "#fff", 2); px(x, y - 4, d.c, 2); px(x + 2, y - 2, d.c, 2); px(x, y, d.c, 2);
+  }
+}
+function lootOver(t) {
+  const TT = SC.loot[0] + t;
+  for (const d of DROPS) {
+    const k = TT - (SC.loot[0] + d.t);
+    if (k < 0.4) continue;
+    const [hx, hy] = toHi(d.x, d.y - 14);
+    const a = clamp((k - 0.4) * 5);
+    text(d.tier, hx, hy - 86, { size: 28, color: d.c, alpha: a, spacing: 3 });
+    text(d.name, hx, hy - 46, { size: 42, font: '"Pixelify Sans", sans-serif', weight: 700, color: d.c, alpha: a, glow: d.c, glowBlur: 14 });
+  }
+  caption("LOOT EM 6 RARIDADES", t, 0.15, 2.1, { color: "#ffd27a", glow: "#ff8a1e" });
+}
+
+const ROWS = [
+  ["wolf", "boar", "slime", "wasp", "bat", "ghost", "gargoyle", "ghoul", "zombie", "lizardman"],
+  ["kobold", "orc", "cultist", "ent", "manticore", "centipede", "beetle", "armor", "mimic"],
+  ["ant", "leech", "wisp", "spider", "skeleton", "hobgoblin", "worg_rider", "troll", "lich"],
+];
+function bestiary(t, T) {
+  setLo(5);
+  const gr = g.createLinearGradient(0, 0, 0, lo.height); gr.addColorStop(0, "#0d0a14"); gr.addColorStop(1, "#1c0d10");
+  g.fillStyle = gr; g.fillRect(0, 0, lo.width, lo.height);
+  ROWS.forEach((row, r) => {
+    const y = 64 + r * 70, dir = r % 2 ? 1 : -1, v = 26 + r * 4;
+    g.fillStyle = "rgba(255,255,255,0.04)"; g.fillRect(0, y - 4, lo.width, 6);
+    const span = row.length * 62;
+    row.forEach((n, i) => {
+      let x = i * 62 + (dir > 0 ? t * v : -t * v) + (r === 1 ? 30 : 0);
+      x = ((x % span) + span) % span - 40;
+      spr(n, "walk", dir > 0 ? "e" : "w", t + i * 0.13, x, y);
+    });
+  });
+  tint("#ffb070", "multiply", 0.15);
+}
+function bestiaryOver(t) {
+  const k = easeOutBack((t - 0.6) / 0.5);
+  ctx.save(); ctx.globalAlpha = 0.7 * fade(t, 0.5, 6, 0.4, 0.5);
+  ctx.fillStyle = "#000"; ctx.fillRect(0, H / 2 - 110, W, 220); ctx.restore();
+  text("+30 INIMIGOS", W / 2, H / 2 - 30, { size: 110, scale: 0.6 + 0.4 * k, alpha: fade(t, 0.6, 6, 0.2, 0.5), grad: ["#fff1c8", "#ff9a3a", "#c8281a"], glow: "#ff4a1e", glowBlur: 30, spacing: 6 });
+  text("Floresta  ·  Pântano  ·  Picos Gelados  ·  Masmorras", W / 2, H / 2 + 60, { size: 38, font: '"Pixelify Sans", sans-serif', alpha: fade(t, 1.2, 6, 0.4, 0.5), color: "#e8d8b8" });
+}
+
+function dragon(t, T) {
+  setLo(8);
+  ground(LAIR, 0, 0);
+  cam(40, 28 - clamp((T - DRAGON_REVEAL) / 3) * 6);
+  const lava = 0.7 + 0.3 * Math.sin(T * 2);
+  // lava cracks
+  g.save(); g.globalCompositeOperation = "lighter"; g.strokeStyle = `rgba(255,${90 + 40 * lava},20,0.7)`; g.lineWidth = 1;
+  for (let i = 0; i < 9; i++) { g.beginPath(); let x = rand(i) * 320, y = rand(i + 4) * 180; g.moveTo(x, y); for (let j = 0; j < 6; j++) { x += 10 + rand(i * 9 + j) * 14; y += (rand(i * 7 + j) - 0.5) * 18; g.lineTo(x, y); } g.stroke(); } g.restore();
+  const TT = SC.dragon[0] + t;
+  const revealed = TT >= DRAGON_REVEAL;
+  let anim = "idle", at = TT;
+  if (TT >= DRAGON_BREATH) { anim = "cast"; at = TT - DRAGON_BREATH; }
+  if (TT >= DRAGON_BREATH + 2.4) { anim = "attack"; at = TT - DRAGON_BREATH - 2.4; }
+  const zoom = revealed ? 1 : 1;
+  spr("tombstone", "idle", "s", 0, 40, 160); spr("tombstone", "idle", "s", 0, 290, 70); spr("dead_tree", "idle", "s", 0, 30, 70); spr("dead_tree", "idle", "s", 0, 300, 176);
+  spr("dragon", anim, "s", at, 160, 132, { loop: anim !== "cast", scale: zoom, filter: revealed ? "" : "brightness(0.05)" });
+  if (!revealed) {
+    tint("#000", "multiply", 0.6);
+    // eyes
+    const ea = clamp((TT - 35.8) * 2) * (0.7 + 0.3 * Math.sin(TT * 5));
+    glow(155, 53, 6, `rgba(255,60,20,${ea})`); glow(165, 53, 6, `rgba(255,60,20,${ea})`);
+  } else {
+    tint("#3a0c0a", "multiply", 0.35);
+    glow(160, 120, 120, `rgba(255,80,20,${0.25 * lava})`);
+  }
+  if (TT > DRAGON_BREATH + 0.3 && TT < DRAGON_BREATH + 2.4) {
+    const k = TT - DRAGON_BREATH - 0.3;
+    glow(160, 150, 90 + Math.sin(k * 30) * 8, "rgba(255,120,30,0.7)");
+    tint("#ff7a2a", "screen", 0.18);
+  }
+}
+function dragonOver(t) {
+  const TT = SC.dragon[0] + t;
+  // fire breath toward the camera
+  const k = TT - DRAGON_BREATH - 0.3;
+  if (k > 0 && k < 2.1) {
+    const [mx, my] = toHi(160, 95);
+    ctx.save(); ctx.globalCompositeOperation = "lighter";
+    for (let i = 0; i < 220; i++) {
+      const life = 0.5 + rand(i) * 0.4, ph = ((k + rand(i + 2) * life) % life), q = ph / life;
+      if (k < ph) continue;
+      const spread = (rand(i + 5) - 0.5) * 1.3;
+      const d = q * 1100;
+      const x = mx + Math.sin(spread) * d, y = my + Math.cos(spread) * d * 0.8;
+      const s = 10 + q * 60;
+      ctx.globalAlpha = (1 - q) * 0.55 * clamp((2.1 - k) * 2);
+      ctx.fillStyle = q < 0.25 ? "#fff3b0" : q < 0.55 ? "#ffa030" : "#e0401a";
+      ctx.fillRect(x - s / 2, y - s / 2, s, s);
+    }
+    ctx.restore();
+  }
+  embers(t, 70, { size: 6, wind: 60, alpha: TT > DRAGON_REVEAL ? 0.9 : 0.3 });
+  narrate("Nas profundezas, algo antigo despertou.", t, 0.4, 2.2);
+  if (TT > DRAGON_BREATH + 1.2) {
+    const a = fade(TT, DRAGON_BREATH + 1.2, SC.dragon[1], 0.3, 0.4);
+    text("ENFRENTE", W / 2, 150, { size: 54, alpha: a, color: "#ffe2b0", spacing: 14 });
+    text("CHEFES LENDÁRIOS", W / 2, 240, { size: 110, alpha: a, scale: 0.85 + 0.15 * easeOutBack((TT - DRAGON_BREATH - 1.2) / 0.4), grad: ["#fff1c8", "#ff8a2a", "#a8180e"], glow: "#ff3a0e", glowBlur: 40, spacing: 4 });
+  }
+}
+
+function coop(t, T) {
+  setLo(6);
+  const sy = t * 22;
+  ground(GRASS, 0, -sy);
+  g.fillStyle = "#8a6a44"; for (let y = 0; y < 180; y += 2) { const x = 150 + Math.sin((y - sy) / 30) * 10; g.fillRect(x - 22, y, 44, 2); }
+  const list = [["barbarian", "walk", "s", t, 146, 112], ["mage", "walk", "s", t + 0.2, 176, 104], ["wisp", "idle", "s", t, 206, 70, { alpha: 0.9 }]];
+  [[40, 30], [270, 70], [30, 140], [290, 180], [80, 230], [250, 260], [50, 330], [280, 360]].forEach(([x, y], i) => {
+    const yy = ((y + sy) % 360) - 20;
+    list.push([i % 2 ? "tree_medium" : "tree_big", "idle", "s", 0, x, yy]);
+  });
+  drawAll(list);
+  vgrad("#ffd8a0", "#6a5a9a"); tint("#2a1a3a", "multiply", 0.15);
+  glow(206, 56, 26, "rgba(160,220,255,0.6)");
+}
+function coopOver(t) {
+  embers(t, 20, { c1: "#bfe8ff", c2: "#fff", alpha: 0.4, size: 4 });
+  text("JOGUE COM UM AMIGO", W / 2, 150, { size: 84, alpha: fade(t, 0.3, 4, 0.3, 0.4), scale: 0.9 + 0.1 * easeOutBack((t - 0.3) / 0.4), color: "#fff1d0", glow: "#4ab0ff", glowBlur: 30, spacing: 4 });
+  text("Co-op online para 2 jogadores · direto no navegador", W / 2, 240, { size: 38, font: '"Pixelify Sans", sans-serif', alpha: fade(t, 0.9, 4, 0.4, 0.4), color: "#e8dcc8" });
+}
+
+function title(t, T) {
+  setLo(8);
+  g.fillStyle = "#05040a"; g.fillRect(0, 0, lo.width, lo.height);
+  glow(120, 94, 70, "rgba(255,110,40,0.5)", 0.8 + 0.2 * Math.sin(T * 9));
+  spr("campfire", "idle", "s", t, 120, 100);
+  spr("barbarian", "idle", "ne", t, 92, 102); spr("archer", "idle", "ne", t + 0.3, 104, 114);
+  spr("mage", "idle", "nw", t + 0.6, 148, 102); spr("sorcerer", "idle", "nw", t + 0.9, 136, 114);
+}
+function titleOver(t) {
+  embers(t, 80, { size: 6 });
+  const k = (t - 0.3) / 0.3;
+  if (k > 0) {
+    const sc = 1 + 1.2 * (1 - easeOut(k));
+    text("DIABLO", W / 2, 240, { size: 92, scale: sc, alpha: clamp(k * 3), color: "#d8c8a8", spacing: 30 });
+    text("MINHAU", W / 2, 380, { size: 210, scale: sc, alpha: clamp(k * 3), grad: ["#fff4cc", "#ffb040", "#e0401a", "#7a0e08"], glow: "#ff3a0e", glowBlur: 50, stroke: 10, spacing: 10 });
+  }
+  text("Um RPG de ação no navegador", W / 2, 520, { size: 40, font: '"Pixelify Sans", sans-serif', alpha: clamp((t - 1.4) * 2), color: "#efe2c6" });
+  const blink = 0.65 + 0.35 * Math.sin(t * 5);
+  text("JOGUE AGORA · GRÁTIS", W / 2, H - 70, { size: 44, alpha: clamp((t - 2.2) * 2) * blink, color: "#ffd27a", glow: "#ff8a1e", glowBlur: 20, spacing: 6 });
+}
+
+const SCENES = [
+  [SC.village, village, villageOver], [SC.horde, horde, hordeOver], [SC.heroes, heroes, heroesOver],
+  [SC.fight, fight, fightOver], [SC.spell, spell, spellOver], [SC.hunt, hunt, huntOver], [SC.loot, loot, lootOver],
+  [SC.bestiary, bestiary, bestiaryOver], [SC.dragon, dragon, dragonOver], [SC.coop, coop, coopOver], [SC.title, title, titleOver],
+];
+/** Dips to black around these cuts. */
+const DIPS = [[7.5, 0.35], [14, 0.2], [29, 0.15], [35, 0.4], [43, 0.2], [47, 0.3]];
+
+// ---------- frame ----------
+let grain;
+function render(T) {
+  const sc = SCENES.find(([[a, b]]) => T >= a && T < b) ?? SCENES[SCENES.length - 1];
+  const [[a], draw, over] = sc;
+  const t = T - a;
+  g.clearRect(0, 0, lo.width, lo.height);
+  draw(t, T);
+  [SHX, SHY] = shakeAt(T);
+  ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H);
+  ctx.imageSmoothingEnabled = false;
+  // 12px bleed on each side keeps the shaken image covering the frame
+  ctx.drawImage(lo, SHX - BLEED, SHY - BLEED, W + BLEED * 2, H + BLEED * 2);
+  over(t, T);
+  // flashes
+  for (const f of FLASHES) { const k = (T - f.t) / f.dur; if (k >= 0 && k < 1) { ctx.globalAlpha = f.a * (1 - k); ctx.fillStyle = f.color; ctx.fillRect(0, 0, W, H); } }
+  ctx.globalAlpha = 1;
+  // vignette
+  const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.95);
+  vg.addColorStop(0, "rgba(0,0,0,0)"); vg.addColorStop(1, "rgba(0,0,0,0.7)");
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  // grain
+  ctx.globalAlpha = 0.05; ctx.drawImage(grain, -Math.floor(rand(Math.floor(T * FPS)) * 256), -Math.floor(rand(Math.floor(T * FPS) + 1) * 256)); ctx.globalAlpha = 1;
+  // letterbox (not on the title card)
+  if (T < SC.title[0]) { ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, 54); ctx.fillRect(0, H - 54, W, 54); }
+  // dips + intro/outro fades
+  let black = Math.max(clamp(1 - T / 1.5), clamp((T - (DUR - 1.2)) / 1.2));
+  for (const [c, d] of DIPS) black = Math.max(black, clamp(1 - Math.abs(T - c) / d));
+  if (black > 0) { ctx.globalAlpha = black; ctx.fillStyle = "#000"; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
+}
+
+function makeGrain() {
+  const c = document.createElement("canvas"); c.width = W + 256; c.height = H + 256;
+  const x = c.getContext("2d"); const id = x.createImageData(c.width, c.height);
+  for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  x.putImageData(id, 0, 0); return c;
+}
+
+// ---------- boot ----------
+await Promise.all(NAMES.map(loadSprite));
+await document.fonts.load('400 40px "Silkscreen"'); await document.fonts.load('400 40px "Pixelify Sans"'); await document.fonts.load('700 40px "Pixelify Sans"');
+GRASS = makeGround(160, 120, "#5f9e3e", ["#4e8a34", "#77b84c", "#6aab44"], 3);
+DARKGRASS = makeGround(160, 120, "#3f6e34", ["#335c2c", "#4f8240", "#2c5026"], 7);
+CRYPT = makeTiled(SPR.crypt_floor.img, 384, 256, null, "#1c1a24");
+LAIR = makeTiled(SPR.crypt_floor.img, 384, 256, "#8a3a2a", "#140808");
+grain = makeGrain();
+
+const capture = new URLSearchParams(location.search).has("capture");
+const sheet = new URLSearchParams(location.search).get("sheet");
+if (sheet) {
+  // contact sheet for review: ?sheet=1.5,4,7.2
+  const q = new URLSearchParams(location.search), times = sheet.split(",").map(Number), cols = Number(q.get("cols") ?? 4), w = 1920 / cols, h = 1080 / cols;
+  const s = document.createElement("canvas"); s.width = w * cols; s.height = h * Math.ceil(times.length / cols);
+  const x = s.getContext("2d");
+  times.forEach((t, i) => { render(t); x.drawImage(cv, (i % cols) * w, Math.floor(i / cols) * h, w, h); x.fillStyle = "#ff0"; x.font = "20px monospace"; x.fillText(t.toFixed(1), (i % cols) * w + 6, Math.floor(i / cols) * h + 22); });
+  cv.width = s.width; cv.height = s.height; cv.getContext("2d").drawImage(s, 0, 0);
+  cv.style.aspectRatio = `${s.width} / ${s.height}`; cv.style.width = "100vw";
+  document.body.classList.add("capture");
+} else if (capture) {
+  document.body.classList.add("capture");
+  await fetch("/timeline", { method: "POST", body: JSON.stringify({ duration: DUR, fps: FPS, audio: AUDIO }) });
+  const from = Number(new URLSearchParams(location.search).get("from") ?? 0);
+  const total = DUR * FPS;
+  for (let f = from; f < total; f++) {
+    render(f / FPS);
+    const blob = await new Promise((r) => cv.toBlob(r, "image/png"));
+    await fetch(`/frame/${f}`, { method: "POST", body: blob });
+    document.title = `${f + 1}/${total}`;
+  }
+  await fetch("/done", { method: "POST", body: String(total) });
+  document.title = "done";
+} else {
+  // preview with audio
+  const seek = document.getElementById("seek"), clock = document.getElementById("clock"), btn = document.getElementById("play");
+  const clips = AUDIO.map((a) => ({ ...a, el: Object.assign(new Audio(a.file), { preload: "auto" }) }));
+  let playing = false, start = 0, T = Number(new URLSearchParams(location.search).get("t") ?? 0);
+  const stopAll = () => clips.forEach((c) => { c.el.pause(); clearTimeout(c.timer); });
+  const play = () => {
+    playing = true; btn.textContent = "❚❚ Pause"; start = performance.now() / 1000 - T;
+    clips.forEach((c) => {
+      const off = T - c.t;
+      const go = () => { c.el.currentTime = Math.max(0, T - c.t); c.el.volume = c.vol; c.el.play().catch(() => {}); };
+      if (off >= 0 && off < (c.el.duration || 999)) go();
+      else if (off < 0) c.timer = setTimeout(() => { T = performance.now() / 1000 - start; go(); }, -off * 1000);
+    });
+  };
+  const pause = () => { playing = false; btn.textContent = "▶ Play"; stopAll(); };
+  btn.onclick = () => (playing ? pause() : (T >= DUR && (T = 0), play()));
+  seek.oninput = () => { T = Number(seek.value); if (playing) { stopAll(); play(); } };
+  window.renderAt = (t) => { T = t; render(t); };
+  const loop = () => {
+    if (playing) {
+      T = performance.now() / 1000 - start;
+      for (const c of clips) if (c.fadeOut && !c.el.paused) { const [a, b] = c.fadeOut; c.el.volume = c.vol * clamp((b - T) / (b - a)); }
+      if (T >= DUR) { T = DUR; pause(); }
+    }
+    render(Math.min(T, DUR - 0.001));
+    seek.value = T; clock.textContent = `${T.toFixed(1)}s`;
+    requestAnimationFrame(loop);
+  };
+  loop();
+}
+</script>
+</body>
+</html>
