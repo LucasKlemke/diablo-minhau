@@ -31,10 +31,17 @@ const SAMPLE_NAMES = [
   ...[1, 2, 3, 4].flatMap((i) => [`step_grass_0${i}`, `step_stone_0${i}`]),
   "swing_01", "swing_02", "swing_03", "bow_shot", "cast", "potion", "chest_open",
   "die_goblin", "die_skeleton", "die_spider", "die_troll", "die_lich", "die_bandit",
+  ...["wolf", "boar", "wasp", "slime", "worg_rider", "ent", "mimic", "kobold", "zombie", "ghoul", "lizardman", "cultist", "leech",
+    "wisp", "ghost", "gargoyle", "orc", "hobgoblin", "armor", "bat", "ant", "beetle", "centipede", "manticore", "dragon"].map((m) => `die_${m}`),
+  ...["howl", "wisp_burst", "mimic", "trap", "wake_tree", "wake_stone", "burrow", "split", "poison", "stun", "fire_breath", "acid",
+    "spikes", "growl"].map((m) => `mon_${m}`),
   ...["cleave", "warcry", "leap", "berserk", "quake", "arrow", "multishot", "explosive", "rain", "piercing",
     "firebolt", "frostnova", "chain", "shield", "meteor", "shadowbolt", "drain", "plague", "corpse", "bloodpact"].map((s) => `skill_${s}`),
   "dash", "ui_click", "ui_open", "ui_close", "equip", "amb_town", "amb_dungeon",
-  ...["drums", "fire", "night", "laugh_01", "laugh_02", "laugh_03", "cheer", "grumm", "bell", "ambush", "title"].map((s) => `cine_${s}`),
+  ...["drums", "fire", "night", "laugh_01", "laugh_02", "laugh_03", "cheer", "grumm", "bell", "ambush", "title",
+    // Act I prologue
+    "bark", "pee", "thunder", "gate_break", "roar", "choke", "glass", "chains", "blaze", "hearth", "heartbeat",
+    "gore", "rend", "column_fall", "fire_whoosh", "scream"].map((s) => `cine_${s}`),
 ];
 const STEPS = (surface: string) => [1, 2, 3, 4].map((i) => `step_${surface}_0${i}`);
 const DEATH: Record<string, string> = { bandit_brute: "die_bandit" };
@@ -96,11 +103,18 @@ export function setAmbience(name: "amb_town" | "amb_dungeon" | null) {
 
 // Background music (public/assets/music, scripts/gen-music.mjs): one track at a time, cross-faded on change.
 // A track with several files plays them in turn.
-type Track = "town" | "dungeon" | "boss";
+export type Track = "menu" | "town" | "dungeon" | "boss" | "court" | "attack" | "aldo" | "village_ruin" | "forest";
 const TRACK_FILES: Record<Track, string[]> = {
+  menu: ["menu"],
   town: ["town_01", "town_02"],
   dungeon: ["dungeon"],
   boss: ["boss"],
+  // Act I: the prologue (court lute, Jimmynelson's attack, Aldo's hut), the besieged village and the woods.
+  court: ["court"],
+  attack: ["attack"],
+  aldo: ["aldo"],
+  village_ruin: ["village_ruin"],
+  forest: ["forest"],
 };
 const MUSIC_VOL = 0.35;
 const tracks: Partial<Record<Track, HTMLAudioElement>> = {};
@@ -144,6 +158,14 @@ export function setMusic(name: Track | null) {
   if (name === "boss") el.currentTime = 0;
   fade(el, musicVolume());
 }
+
+// Browsers block audio until the first click or key: start the wanted track then.
+const unlock = () => {
+  const el = wantMusic && tracks[wantMusic];
+  if (el?.paused && !muted) void el.play().catch(() => {});
+};
+window.addEventListener("pointerdown", unlock, { once: true });
+window.addEventListener("keydown", unlock, { once: true });
 
 onSettingsChange(() => {
   const el = wantMusic && tracks[wantMusic];
@@ -313,5 +335,9 @@ export const sfx = {
   },
   die(sprite: string) {
     sample([DEATH[sprite] ?? `die_${sprite}`], 0.7);
+  },
+  /** Monster mechanics (mon_* samples): howl, ambush, trap, poison... */
+  monster(name: string, vol = 0.7) {
+    sample([`mon_${name}`], vol);
   },
 };
