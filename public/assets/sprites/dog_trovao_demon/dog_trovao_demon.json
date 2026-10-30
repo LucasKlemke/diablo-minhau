@@ -1,0 +1,9148 @@
+{
+ "frames": {
+  "idle_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_3": {
+   "frame": {
+    "x": 192,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_4": {
+   "frame": {
+    "x": 256,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_se_5": {
+   "frame": {
+    "x": 320,
+    "y": 64,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_3": {
+   "frame": {
+    "x": 192,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_4": {
+   "frame": {
+    "x": 256,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_e_5": {
+   "frame": {
+    "x": 320,
+    "y": 128,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_3": {
+   "frame": {
+    "x": 192,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_4": {
+   "frame": {
+    "x": 256,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_ne_5": {
+   "frame": {
+    "x": 320,
+    "y": 192,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_3": {
+   "frame": {
+    "x": 192,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_4": {
+   "frame": {
+    "x": 256,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "idle_n_5": {
+   "frame": {
+    "x": 320,
+    "y": 256,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "walk_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 320,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_3": {
+   "frame": {
+    "x": 192,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_4": {
+   "frame": {
+    "x": 256,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_se_5": {
+   "frame": {
+    "x": 320,
+    "y": 384,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_3": {
+   "frame": {
+    "x": 192,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_4": {
+   "frame": {
+    "x": 256,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_e_5": {
+   "frame": {
+    "x": 320,
+    "y": 448,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_3": {
+   "frame": {
+    "x": 192,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_4": {
+   "frame": {
+    "x": 256,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_ne_5": {
+   "frame": {
+    "x": 320,
+    "y": 512,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_3": {
+   "frame": {
+    "x": 192,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_4": {
+   "frame": {
+    "x": 256,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "walk_n_5": {
+   "frame": {
+    "x": 320,
+    "y": 576,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 160
+  },
+  "attack_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 60
+  },
+  "attack_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "attack_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 640,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 160
+  },
+  "attack_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 60
+  },
+  "attack_se_3": {
+   "frame": {
+    "x": 192,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "attack_se_4": {
+   "frame": {
+    "x": 256,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_se_5": {
+   "frame": {
+    "x": 320,
+    "y": 704,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 160
+  },
+  "attack_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 60
+  },
+  "attack_e_3": {
+   "frame": {
+    "x": 192,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "attack_e_4": {
+   "frame": {
+    "x": 256,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_e_5": {
+   "frame": {
+    "x": 320,
+    "y": 768,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 160
+  },
+  "attack_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 60
+  },
+  "attack_ne_3": {
+   "frame": {
+    "x": 192,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "attack_ne_4": {
+   "frame": {
+    "x": 256,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_ne_5": {
+   "frame": {
+    "x": 320,
+    "y": 832,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "attack_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 160
+  },
+  "attack_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 60
+  },
+  "attack_n_3": {
+   "frame": {
+    "x": 192,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "attack_n_4": {
+   "frame": {
+    "x": 256,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "attack_n_5": {
+   "frame": {
+    "x": 320,
+    "y": 896,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 180
+  },
+  "howl_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 300
+  },
+  "howl_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 260
+  },
+  "howl_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_s_6": {
+   "frame": {
+    "x": 384,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_s_7": {
+   "frame": {
+    "x": 448,
+    "y": 960,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "howl_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 180
+  },
+  "howl_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_se_3": {
+   "frame": {
+    "x": 192,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 300
+  },
+  "howl_se_4": {
+   "frame": {
+    "x": 256,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 260
+  },
+  "howl_se_5": {
+   "frame": {
+    "x": 320,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_se_6": {
+   "frame": {
+    "x": 384,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_se_7": {
+   "frame": {
+    "x": 448,
+    "y": 1024,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "howl_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 180
+  },
+  "howl_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_e_3": {
+   "frame": {
+    "x": 192,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 300
+  },
+  "howl_e_4": {
+   "frame": {
+    "x": 256,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 260
+  },
+  "howl_e_5": {
+   "frame": {
+    "x": 320,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_e_6": {
+   "frame": {
+    "x": 384,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_e_7": {
+   "frame": {
+    "x": 448,
+    "y": 1088,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "howl_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 180
+  },
+  "howl_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_ne_3": {
+   "frame": {
+    "x": 192,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 300
+  },
+  "howl_ne_4": {
+   "frame": {
+    "x": 256,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 260
+  },
+  "howl_ne_5": {
+   "frame": {
+    "x": 320,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_ne_6": {
+   "frame": {
+    "x": 384,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_ne_7": {
+   "frame": {
+    "x": 448,
+    "y": 1152,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "howl_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 180
+  },
+  "howl_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_n_3": {
+   "frame": {
+    "x": 192,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 300
+  },
+  "howl_n_4": {
+   "frame": {
+    "x": 256,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 260
+  },
+  "howl_n_5": {
+   "frame": {
+    "x": 320,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 140
+  },
+  "howl_n_6": {
+   "frame": {
+    "x": 384,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "howl_n_7": {
+   "frame": {
+    "x": 448,
+    "y": 1216,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 150
+  },
+  "hit_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1280,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 70
+  },
+  "hit_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 1280,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 80
+  },
+  "hit_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 1280,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 100
+  },
+  "hit_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1344,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 70
+  },
+  "hit_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 1344,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 80
+  },
+  "hit_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 1344,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 100
+  },
+  "hit_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1408,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 70
+  },
+  "hit_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 1408,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 80
+  },
+  "hit_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 1408,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 100
+  },
+  "hit_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1472,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 70
+  },
+  "hit_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 1472,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 80
+  },
+  "hit_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 1472,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 100
+  },
+  "hit_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1536,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 70
+  },
+  "hit_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 1536,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 80
+  },
+  "hit_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 1536,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 100
+  },
+  "death_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_s_1": {
+   "frame": {
+    "x": 64,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_s_2": {
+   "frame": {
+    "x": 128,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "death_s_3": {
+   "frame": {
+    "x": 192,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_s_4": {
+   "frame": {
+    "x": 256,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_s_5": {
+   "frame": {
+    "x": 320,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_s_6": {
+   "frame": {
+    "x": 384,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_s_7": {
+   "frame": {
+    "x": 448,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "death_s_8": {
+   "frame": {
+    "x": 512,
+    "y": 1600,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 700
+  },
+  "death_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_se_1": {
+   "frame": {
+    "x": 64,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_se_2": {
+   "frame": {
+    "x": 128,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "death_se_3": {
+   "frame": {
+    "x": 192,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_se_4": {
+   "frame": {
+    "x": 256,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_se_5": {
+   "frame": {
+    "x": 320,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_se_6": {
+   "frame": {
+    "x": 384,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_se_7": {
+   "frame": {
+    "x": 448,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "death_se_8": {
+   "frame": {
+    "x": 512,
+    "y": 1664,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 700
+  },
+  "death_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_e_1": {
+   "frame": {
+    "x": 64,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_e_2": {
+   "frame": {
+    "x": 128,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "death_e_3": {
+   "frame": {
+    "x": 192,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_e_4": {
+   "frame": {
+    "x": 256,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_e_5": {
+   "frame": {
+    "x": 320,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_e_6": {
+   "frame": {
+    "x": 384,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_e_7": {
+   "frame": {
+    "x": 448,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "death_e_8": {
+   "frame": {
+    "x": 512,
+    "y": 1728,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 700
+  },
+  "death_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_ne_1": {
+   "frame": {
+    "x": 64,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_ne_2": {
+   "frame": {
+    "x": 128,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "death_ne_3": {
+   "frame": {
+    "x": 192,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_ne_4": {
+   "frame": {
+    "x": 256,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_ne_5": {
+   "frame": {
+    "x": 320,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_ne_6": {
+   "frame": {
+    "x": 384,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_ne_7": {
+   "frame": {
+    "x": 448,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "death_ne_8": {
+   "frame": {
+    "x": 512,
+    "y": 1792,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 700
+  },
+  "death_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_n_1": {
+   "frame": {
+    "x": 64,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_n_2": {
+   "frame": {
+    "x": 128,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 120
+  },
+  "death_n_3": {
+   "frame": {
+    "x": 192,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 110
+  },
+  "death_n_4": {
+   "frame": {
+    "x": 256,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_n_5": {
+   "frame": {
+    "x": 320,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_n_6": {
+   "frame": {
+    "x": 384,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 90
+  },
+  "death_n_7": {
+   "frame": {
+    "x": 448,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 130
+  },
+  "death_n_8": {
+   "frame": {
+    "x": 512,
+    "y": 1856,
+    "w": 64,
+    "h": 64
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 64,
+    "h": 64
+   },
+   "sourceSize": {
+    "w": 64,
+    "h": 64
+   },
+   "duration": 700
+  }
+ },
+ "meta": {
+  "app": "spritekiln",
+  "version": "0.2.0",
+  "image": "dog_trovao_demon.png",
+  "format": "RGBA8888",
+  "size": {
+   "w": 576,
+   "h": 1920
+  },
+  "scale": "1",
+  "frameTags": [
+   {
+    "name": "idle_s",
+    "from": 0,
+    "to": 5,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_se",
+    "from": 6,
+    "to": 11,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_e",
+    "from": 12,
+    "to": 17,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_ne",
+    "from": 18,
+    "to": 23,
+    "direction": "forward"
+   },
+   {
+    "name": "idle_n",
+    "from": 24,
+    "to": 29,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_s",
+    "from": 30,
+    "to": 35,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_se",
+    "from": 36,
+    "to": 41,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_e",
+    "from": 42,
+    "to": 47,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_ne",
+    "from": 48,
+    "to": 53,
+    "direction": "forward"
+   },
+   {
+    "name": "walk_n",
+    "from": 54,
+    "to": 59,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_s",
+    "from": 60,
+    "to": 65,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_se",
+    "from": 66,
+    "to": 71,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_e",
+    "from": 72,
+    "to": 77,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_ne",
+    "from": 78,
+    "to": 83,
+    "direction": "forward"
+   },
+   {
+    "name": "attack_n",
+    "from": 84,
+    "to": 89,
+    "direction": "forward"
+   },
+   {
+    "name": "howl_s",
+    "from": 90,
+    "to": 97,
+    "direction": "forward"
+   },
+   {
+    "name": "howl_se",
+    "from": 98,
+    "to": 105,
+    "direction": "forward"
+   },
+   {
+    "name": "howl_e",
+    "from": 106,
+    "to": 113,
+    "direction": "forward"
+   },
+   {
+    "name": "howl_ne",
+    "from": 114,
+    "to": 121,
+    "direction": "forward"
+   },
+   {
+    "name": "howl_n",
+    "from": 122,
+    "to": 129,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_s",
+    "from": 130,
+    "to": 132,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_se",
+    "from": 133,
+    "to": 135,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_e",
+    "from": 136,
+    "to": 138,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_ne",
+    "from": 139,
+    "to": 141,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_n",
+    "from": 142,
+    "to": 144,
+    "direction": "forward"
+   },
+   {
+    "name": "death_s",
+    "from": 145,
+    "to": 153,
+    "direction": "forward"
+   },
+   {
+    "name": "death_se",
+    "from": 154,
+    "to": 162,
+    "direction": "forward"
+   },
+   {
+    "name": "death_e",
+    "from": 163,
+    "to": 171,
+    "direction": "forward"
+   },
+   {
+    "name": "death_ne",
+    "from": 172,
+    "to": 180,
+    "direction": "forward"
+   },
+   {
+    "name": "death_n",
+    "from": 181,
+    "to": 189,
+    "direction": "forward"
+   }
+  ]
+ },
+ "spritekiln": {
+  "format": 1,
+  "generator": "spritekiln 0.2.0",
+  "name": "dog_trovao_demon",
+  "frame_size": 64,
+  "pivot": {
+   "x": 32.0,
+   "y": 42.25
+  },
+  "directions": [
+   "s",
+   "se",
+   "e",
+   "ne",
+   "n"
+  ],
+  "direction_yaw": {
+   "s": 0,
+   "se": 45,
+   "e": 90,
+   "ne": 135,
+   "n": 180,
+   "nw": -135,
+   "w": -90,
+   "sw": -45
+  },
+  "view": "topdown",
+  "camera": {
+   "projection": "orthographic",
+   "pitch_deg": 38.0,
+   "world_units_per_px": 0.055,
+   "px_per_unit": 18.1818,
+   "ground_k": 0.6157,
+   "height_k": 0.788,
+   "center": [
+    0.0,
+    0.7,
+    -0.02
+   ]
+  },
+  "normal_map": "dog_trovao_demon_normal.png",
+  "emissive_map": "dog_trovao_demon_emissive.png",
+  "animations": {
+   "idle": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 0,
+      "frames": [
+       "idle_s_0",
+       "idle_s_1",
+       "idle_s_2",
+       "idle_s_3",
+       "idle_s_4",
+       "idle_s_5"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         1.91,
+         26.32
+        ],
+        [
+         0.0,
+         1.66,
+         26.0
+        ],
+        [
+         0.0,
+         1.89,
+         25.93
+        ],
+        [
+         0.0,
+         2.39,
+         26.19
+        ],
+        [
+         0.0,
+         2.64,
+         26.52
+        ],
+        [
+         0.0,
+         2.39,
+         26.57
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -17.01,
+         14.33
+        ],
+        [
+         0.0,
+         -17.26,
+         14.76
+        ],
+        [
+         0.0,
+         -17.0,
+         15.12
+        ],
+        [
+         0.0,
+         -16.52,
+         15.05
+        ],
+        [
+         0.0,
+         -16.27,
+         14.63
+        ],
+        [
+         0.0,
+         -16.51,
+         14.27
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         0.11,
+         25.11
+        ],
+        [
+         0.0,
+         -0.14,
+         24.87
+        ],
+        [
+         0.0,
+         0.09,
+         24.83
+        ],
+        [
+         0.0,
+         0.59,
+         25.06
+        ],
+        [
+         0.0,
+         0.85,
+         25.32
+        ],
+        [
+         0.0,
+         0.6,
+         25.33
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -5.9,
+         11.64
+        ],
+        [
+         0.0,
+         -6.48,
+         11.46
+        ],
+        [
+         0.0,
+         -6.48,
+         11.46
+        ],
+        [
+         0.0,
+         -5.9,
+         11.64
+        ],
+        [
+         0.0,
+         -5.32,
+         11.82
+        ],
+        [
+         0.0,
+         -5.32,
+         11.82
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 1,
+      "frames": [
+       "idle_se_0",
+       "idle_se_1",
+       "idle_se_2",
+       "idle_se_3",
+       "idle_se_4",
+       "idle_se_5"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         18.61,
+         -2.84,
+         18.61
+        ],
+        [
+         18.39,
+         -3.03,
+         18.39
+        ],
+        [
+         18.33,
+         -2.79,
+         18.33
+        ],
+        [
+         18.52,
+         -2.34,
+         18.52
+        ],
+        [
+         18.75,
+         -2.14,
+         18.75
+        ],
+        [
+         18.79,
+         -2.4,
+         18.79
+        ]
+       ],
+       "head": [
+        [
+         10.13,
+         -19.59,
+         10.13
+        ],
+        [
+         10.44,
+         -19.92,
+         10.44
+        ],
+        [
+         10.69,
+         -19.73,
+         10.69
+        ],
+        [
+         10.64,
+         -19.24,
+         10.64
+        ],
+        [
+         10.34,
+         -18.91,
+         10.34
+        ],
+        [
+         10.09,
+         -19.08,
+         10.09
+        ]
+       ],
+       "howl": [
+        [
+         17.76,
+         -4.42,
+         17.76
+        ],
+        [
+         17.58,
+         -4.63,
+         17.58
+        ],
+        [
+         17.56,
+         -4.39,
+         17.56
+        ],
+        [
+         17.72,
+         -3.93,
+         17.72
+        ],
+        [
+         17.9,
+         -3.72,
+         17.9
+        ],
+        [
+         17.91,
+         -3.97,
+         17.91
+        ]
+       ],
+       "throat": [
+        [
+         8.23,
+         -8.0,
+         8.23
+        ],
+        [
+         8.11,
+         -8.54,
+         8.11
+        ],
+        [
+         8.11,
+         -8.54,
+         8.11
+        ],
+        [
+         8.23,
+         -8.0,
+         8.23
+        ],
+        [
+         8.36,
+         -7.46,
+         8.36
+        ],
+        [
+         8.36,
+         -7.46,
+         8.36
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 2,
+      "frames": [
+       "idle_e_0",
+       "idle_e_1",
+       "idle_e_2",
+       "idle_e_3",
+       "idle_e_4",
+       "idle_e_5"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         26.32,
+         -14.3,
+         0.0
+        ],
+        [
+         26.0,
+         -14.35,
+         0.0
+        ],
+        [
+         25.93,
+         -14.07,
+         0.0
+        ],
+        [
+         26.19,
+         -13.74,
+         0.0
+        ],
+        [
+         26.52,
+         -13.68,
+         0.0
+        ],
+        [
+         26.57,
+         -13.96,
+         0.0
+        ]
+       ],
+       "head": [
+        [
+         14.33,
+         -25.83,
+         0.0
+        ],
+        [
+         14.76,
+         -26.34,
+         0.0
+        ],
+        [
+         15.12,
+         -26.31,
+         0.0
+        ],
+        [
+         15.05,
+         -25.79,
+         0.0
+        ],
+        [
+         14.63,
+         -25.28,
+         0.0
+        ],
+        [
+         14.27,
+         -25.29,
+         0.0
+        ]
+       ],
+       "howl": [
+        [
+         25.11,
+         -15.35,
+         0.0
+        ],
+        [
+         24.87,
+         -15.45,
+         0.0
+        ],
+        [
+         24.83,
+         -15.2,
+         0.0
+        ],
+        [
+         25.06,
+         -14.84,
+         0.0
+        ],
+        [
+         25.32,
+         -14.74,
+         0.0
+        ],
+        [
+         25.33,
+         -15.0,
+         0.0
+        ]
+       ],
+       "throat": [
+        [
+         11.64,
+         -13.07,
+         0.0
+        ],
+        [
+         11.46,
+         -13.53,
+         0.0
+        ],
+        [
+         11.46,
+         -13.53,
+         0.0
+        ],
+        [
+         11.64,
+         -13.07,
+         0.0
+        ],
+        [
+         11.82,
+         -12.6,
+         0.0
+        ],
+        [
+         11.82,
+         -12.6,
+         0.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 3,
+      "frames": [
+       "idle_ne_0",
+       "idle_ne_1",
+       "idle_ne_2",
+       "idle_ne_3",
+       "idle_ne_4",
+       "idle_ne_5"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         18.61,
+         -25.75,
+         -18.61
+        ],
+        [
+         18.39,
+         -25.67,
+         -18.39
+        ],
+        [
+         18.33,
+         -25.36,
+         -18.33
+        ],
+        [
+         18.52,
+         -25.14,
+         -18.52
+        ],
+        [
+         18.75,
+         -25.22,
+         -18.75
+        ],
+        [
+         18.79,
+         -25.53,
+         -18.79
+        ]
+       ],
+       "head": [
+        [
+         10.13,
+         -32.07,
+         -10.13
+        ],
+        [
+         10.44,
+         -32.77,
+         -10.44
+        ],
+        [
+         10.69,
+         -32.89,
+         -10.69
+        ],
+        [
+         10.64,
+         -32.34,
+         -10.64
+        ],
+        [
+         10.34,
+         -31.65,
+         -10.34
+        ],
+        [
+         10.09,
+         -31.5,
+         -10.09
+        ]
+       ],
+       "howl": [
+        [
+         17.76,
+         -26.28,
+         -17.76
+        ],
+        [
+         17.58,
+         -26.28,
+         -17.58
+        ],
+        [
+         17.56,
+         -26.01,
+         -17.56
+        ],
+        [
+         17.72,
+         -25.75,
+         -17.72
+        ],
+        [
+         17.9,
+         -25.76,
+         -17.9
+        ],
+        [
+         17.91,
+         -26.02,
+         -17.91
+        ]
+       ],
+       "throat": [
+        [
+         8.23,
+         -18.13,
+         -8.23
+        ],
+        [
+         8.11,
+         -18.52,
+         -8.11
+        ],
+        [
+         8.11,
+         -18.52,
+         -8.11
+        ],
+        [
+         8.23,
+         -18.13,
+         -8.23
+        ],
+        [
+         8.36,
+         -17.74,
+         -8.36
+        ],
+        [
+         8.36,
+         -17.74,
+         -8.36
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 4,
+      "frames": [
+       "idle_n_0",
+       "idle_n_1",
+       "idle_n_2",
+       "idle_n_3",
+       "idle_n_4",
+       "idle_n_5"
+      ],
+      "durations": [
+       150,
+       150,
+       150,
+       150,
+       150,
+       150
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         -30.5,
+         -26.32
+        ],
+        [
+         0.0,
+         -30.36,
+         -26.0
+        ],
+        [
+         0.0,
+         -30.04,
+         -25.93
+        ],
+        [
+         0.0,
+         -29.86,
+         -26.19
+        ],
+        [
+         0.0,
+         -30.01,
+         -26.52
+        ],
+        [
+         0.0,
+         -30.32,
+         -26.57
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -34.66,
+         -14.33
+        ],
+        [
+         0.0,
+         -35.43,
+         -14.76
+        ],
+        [
+         0.0,
+         -35.62,
+         -15.12
+        ],
+        [
+         0.0,
+         -35.05,
+         -15.05
+        ],
+        [
+         0.0,
+         -34.29,
+         -14.63
+        ],
+        [
+         0.0,
+         -34.08,
+         -14.27
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         -30.81,
+         -25.11
+        ],
+        [
+         0.0,
+         -30.76,
+         -24.87
+        ],
+        [
+         0.0,
+         -30.48,
+         -24.83
+        ],
+        [
+         0.0,
+         -30.27,
+         -25.06
+        ],
+        [
+         0.0,
+         -30.33,
+         -25.32
+        ],
+        [
+         0.0,
+         -30.59,
+         -25.33
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -20.23,
+         -11.64
+        ],
+        [
+         0.0,
+         -20.59,
+         -11.46
+        ],
+        [
+         0.0,
+         -20.59,
+         -11.46
+        ],
+        [
+         0.0,
+         -20.23,
+         -11.64
+        ],
+        [
+         0.0,
+         -19.88,
+         -11.82
+        ],
+        [
+         0.0,
+         -19.88,
+         -11.82
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "walk": {
+    "loop": true,
+    "directions": {
+     "s": {
+      "row": 5,
+      "frames": [
+       "walk_s_0",
+       "walk_s_1",
+       "walk_s_2",
+       "walk_s_3",
+       "walk_s_4",
+       "walk_s_5"
+      ],
+      "durations": [
+       130,
+       130,
+       130,
+       130,
+       130,
+       130
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "3": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         2.06,
+         25.73
+        ],
+        [
+         0.34,
+         3.19,
+         26.18
+        ],
+        [
+         0.29,
+         2.72,
+         26.34
+        ],
+        [
+         0.0,
+         2.06,
+         25.73
+        ],
+        [
+         -0.34,
+         3.19,
+         26.18
+        ],
+        [
+         -0.29,
+         2.72,
+         26.34
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -16.74,
+         15.87
+        ],
+        [
+         -0.3,
+         -15.67,
+         15.64
+        ],
+        [
+         -0.29,
+         -16.19,
+         14.9
+        ],
+        [
+         0.0,
+         -16.74,
+         15.87
+        ],
+        [
+         0.3,
+         -15.67,
+         15.64
+        ],
+        [
+         0.29,
+         -16.19,
+         14.9
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         0.26,
+         24.72
+        ],
+        [
+         0.28,
+         1.39,
+         25.1
+        ],
+        [
+         0.24,
+         0.92,
+         25.18
+        ],
+        [
+         0.0,
+         0.26,
+         24.72
+        ],
+        [
+         -0.28,
+         1.39,
+         25.1
+        ],
+        [
+         -0.24,
+         0.92,
+         25.18
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -6.76,
+         11.47
+        ],
+        [
+         0.46,
+         -5.47,
+         11.72
+        ],
+        [
+         0.46,
+         -5.47,
+         11.72
+        ],
+        [
+         0.0,
+         -6.76,
+         11.47
+        ],
+        [
+         -0.46,
+         -5.47,
+         11.72
+        ],
+        [
+         -0.46,
+         -5.47,
+         11.72
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 6,
+      "frames": [
+       "walk_se_0",
+       "walk_se_1",
+       "walk_se_2",
+       "walk_se_3",
+       "walk_se_4",
+       "walk_se_5"
+      ],
+      "durations": [
+       130,
+       130,
+       130,
+       130,
+       130,
+       130
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "3": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         18.2,
+         -2.58,
+         18.2
+        ],
+        [
+         18.75,
+         -1.67,
+         18.27
+        ],
+        [
+         18.83,
+         -2.16,
+         18.42
+        ],
+        [
+         18.2,
+         -2.58,
+         18.2
+        ],
+        [
+         18.27,
+         -1.38,
+         18.75
+        ],
+        [
+         18.42,
+         -1.9,
+         18.83
+        ]
+       ],
+       "head": [
+        [
+         11.22,
+         -19.6,
+         11.22
+        ],
+        [
+         10.85,
+         -18.36,
+         11.27
+        ],
+        [
+         10.33,
+         -18.75,
+         10.74
+        ],
+        [
+         11.22,
+         -19.6,
+         11.22
+        ],
+        [
+         11.27,
+         -18.62,
+         10.85
+        ],
+        [
+         10.74,
+         -19.01,
+         10.33
+        ]
+       ],
+       "howl": [
+        [
+         17.48,
+         -4.19,
+         17.48
+        ],
+        [
+         17.95,
+         -3.25,
+         17.55
+        ],
+        [
+         17.98,
+         -3.73,
+         17.64
+        ],
+        [
+         17.48,
+         -4.19,
+         17.48
+        ],
+        [
+         17.55,
+         -3.01,
+         17.95
+        ],
+        [
+         17.64,
+         -3.52,
+         17.98
+        ]
+       ],
+       "throat": [
+        [
+         8.11,
+         -8.83,
+         8.11
+        ],
+        [
+         8.61,
+         -7.79,
+         7.96
+        ],
+        [
+         8.61,
+         -7.79,
+         7.96
+        ],
+        [
+         8.11,
+         -8.83,
+         8.11
+        ],
+        [
+         7.96,
+         -7.38,
+         8.61
+        ],
+        [
+         7.96,
+         -7.38,
+         8.61
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 7,
+      "frames": [
+       "walk_e_0",
+       "walk_e_1",
+       "walk_e_2",
+       "walk_e_3",
+       "walk_e_4",
+       "walk_e_5"
+      ],
+      "durations": [
+       130,
+       130,
+       130,
+       130,
+       130,
+       130
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "3": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         25.73,
+         -13.78,
+         0.0
+        ],
+        [
+         26.18,
+         -13.13,
+         -0.34
+        ],
+        [
+         26.34,
+         -13.68,
+         -0.29
+        ],
+        [
+         25.73,
+         -13.78,
+         0.0
+        ],
+        [
+         26.18,
+         -12.72,
+         0.34
+        ],
+        [
+         26.34,
+         -13.32,
+         0.29
+        ]
+       ],
+       "head": [
+        [
+         15.87,
+         -26.51,
+         0.0
+        ],
+        [
+         15.64,
+         -25.11,
+         0.3
+        ],
+        [
+         14.9,
+         -25.19,
+         0.29
+        ],
+        [
+         15.87,
+         -26.51,
+         0.0
+        ],
+        [
+         15.64,
+         -25.48,
+         -0.3
+        ],
+        [
+         14.9,
+         -25.54,
+         -0.29
+        ]
+       ],
+       "howl": [
+        [
+         24.72,
+         -14.96,
+         0.0
+        ],
+        [
+         25.1,
+         -14.23,
+         -0.28
+        ],
+        [
+         25.18,
+         -14.74,
+         -0.24
+        ],
+        [
+         24.72,
+         -14.96,
+         0.0
+        ],
+        [
+         25.1,
+         -13.89,
+         0.28
+        ],
+        [
+         25.18,
+         -14.44,
+         0.24
+        ]
+       ],
+       "throat": [
+        [
+         11.47,
+         -13.82,
+         0.0
+        ],
+        [
+         11.72,
+         -12.97,
+         -0.46
+        ],
+        [
+         11.72,
+         -12.97,
+         -0.46
+        ],
+        [
+         11.47,
+         -13.82,
+         0.0
+        ],
+        [
+         11.72,
+         -12.4,
+         0.46
+        ],
+        [
+         11.72,
+         -12.4,
+         0.46
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 8,
+      "frames": [
+       "walk_ne_0",
+       "walk_ne_1",
+       "walk_ne_2",
+       "walk_ne_3",
+       "walk_ne_4",
+       "walk_ne_5"
+      ],
+      "durations": [
+       130,
+       130,
+       130,
+       130,
+       130,
+       130
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "3": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         18.2,
+         -24.98,
+         -18.2
+        ],
+        [
+         18.27,
+         -24.46,
+         -18.75
+        ],
+        [
+         18.42,
+         -25.09,
+         -18.83
+        ],
+        [
+         18.2,
+         -24.98,
+         -18.2
+        ],
+        [
+         18.75,
+         -24.17,
+         -18.27
+        ],
+        [
+         18.83,
+         -24.84,
+         -18.42
+        ]
+       ],
+       "head": [
+        [
+         11.22,
+         -33.41,
+         -11.22
+        ],
+        [
+         11.27,
+         -31.98,
+         -10.85
+        ],
+        [
+         10.74,
+         -31.73,
+         -10.33
+        ],
+        [
+         11.22,
+         -33.41,
+         -11.22
+        ],
+        [
+         10.85,
+         -32.24,
+         -11.27
+        ],
+        [
+         10.33,
+         -31.98,
+         -10.74
+        ]
+       ],
+       "howl": [
+        [
+         17.48,
+         -25.72,
+         -17.48
+        ],
+        [
+         17.55,
+         -25.11,
+         -17.95
+        ],
+        [
+         17.64,
+         -25.65,
+         -17.98
+        ],
+        [
+         17.48,
+         -25.72,
+         -17.48
+        ],
+        [
+         17.95,
+         -24.87,
+         -17.55
+        ],
+        [
+         17.98,
+         -25.44,
+         -17.64
+        ]
+       ],
+       "throat": [
+        [
+         8.11,
+         -18.81,
+         -8.11
+        ],
+        [
+         7.96,
+         -17.99,
+         -8.61
+        ],
+        [
+         7.96,
+         -17.99,
+         -8.61
+        ],
+        [
+         8.11,
+         -18.81,
+         -8.11
+        ],
+        [
+         8.61,
+         -17.59,
+         -7.96
+        ],
+        [
+         8.61,
+         -17.59,
+         -7.96
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 9,
+      "frames": [
+       "walk_n_0",
+       "walk_n_1",
+       "walk_n_2",
+       "walk_n_3",
+       "walk_n_4",
+       "walk_n_5"
+      ],
+      "durations": [
+       130,
+       130,
+       130,
+       130,
+       130,
+       130
+      ],
+      "events": {
+       "0": [
+        "step_l"
+       ],
+       "3": [
+        "step_r"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         -29.62,
+         -25.73
+        ],
+        [
+         -0.34,
+         -29.04,
+         -26.18
+        ],
+        [
+         -0.29,
+         -29.71,
+         -26.34
+        ],
+        [
+         0.0,
+         -29.62,
+         -25.73
+        ],
+        [
+         0.34,
+         -29.04,
+         -26.18
+        ],
+        [
+         0.29,
+         -29.71,
+         -26.34
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -36.28,
+         -15.87
+        ],
+        [
+         0.3,
+         -34.93,
+         -15.64
+        ],
+        [
+         0.29,
+         -34.54,
+         -14.9
+        ],
+        [
+         0.0,
+         -36.28,
+         -15.87
+        ],
+        [
+         -0.3,
+         -34.93,
+         -15.64
+        ],
+        [
+         -0.29,
+         -34.54,
+         -14.9
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         -30.18,
+         -24.72
+        ],
+        [
+         -0.28,
+         -29.52,
+         -25.1
+        ],
+        [
+         -0.24,
+         -30.09,
+         -25.18
+        ],
+        [
+         0.0,
+         -30.18,
+         -24.72
+        ],
+        [
+         0.28,
+         -29.52,
+         -25.1
+        ],
+        [
+         0.24,
+         -30.09,
+         -25.18
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -20.88,
+         -11.47
+        ],
+        [
+         -0.46,
+         -19.9,
+         -11.72
+        ],
+        [
+         -0.46,
+         -19.9,
+         -11.72
+        ],
+        [
+         0.0,
+         -20.88,
+         -11.47
+        ],
+        [
+         0.46,
+         -19.9,
+         -11.72
+        ],
+        [
+         0.46,
+         -19.9,
+         -11.72
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "attack": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 10,
+      "frames": [
+       "attack_s_0",
+       "attack_s_1",
+       "attack_s_2",
+       "attack_s_3",
+       "attack_s_4",
+       "attack_s_5"
+      ],
+      "durations": [
+       120,
+       160,
+       60,
+       110,
+       130,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         -2.57,
+         -3.07,
+         25.63
+        ],
+        [
+         -4.37,
+         -7.84,
+         24.02
+        ],
+        [
+         3.93,
+         6.66,
+         24.38
+        ],
+        [
+         5.04,
+         5.56,
+         24.86
+        ],
+        [
+         1.56,
+         3.59,
+         25.92
+        ],
+        [
+         0.0,
+         2.71,
+         26.16
+        ]
+       ],
+       "head": [
+        [
+         -1.04,
+         -21.18,
+         10.34
+        ],
+        [
+         -1.22,
+         -23.94,
+         6.69
+        ],
+        [
+         3.05,
+         -10.97,
+         18.9
+        ],
+        [
+         3.58,
+         -12.61,
+         17.67
+        ],
+        [
+         0.96,
+         -15.21,
+         15.92
+        ],
+        [
+         0.0,
+         -16.19,
+         15.2
+        ]
+       ],
+       "howl": [
+        [
+         -2.42,
+         -4.76,
+         24.12
+        ],
+        [
+         -4.07,
+         -9.32,
+         22.34
+        ],
+        [
+         3.84,
+         4.95,
+         23.78
+        ],
+        [
+         4.88,
+         3.81,
+         24.1
+        ],
+        [
+         1.5,
+         1.8,
+         24.9
+        ],
+        [
+         0.0,
+         0.91,
+         25.04
+        ]
+       ],
+       "throat": [
+        [
+         -1.14,
+         -7.91,
+         11.38
+        ],
+        [
+         -2.0,
+         -9.46,
+         10.97
+        ],
+        [
+         1.83,
+         -3.75,
+         11.32
+        ],
+        [
+         2.31,
+         -4.27,
+         11.4
+        ],
+        [
+         0.7,
+         -5.24,
+         11.62
+        ],
+        [
+         0.0,
+         -5.68,
+         11.64
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 11,
+      "frames": [
+       "attack_se_0",
+       "attack_se_1",
+       "attack_se_2",
+       "attack_se_3",
+       "attack_se_4",
+       "attack_se_5"
+      ],
+      "durations": [
+       120,
+       160,
+       60,
+       110,
+       130,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         15.53,
+         -6.37,
+         19.94
+        ],
+        [
+         12.61,
+         -9.94,
+         20.08
+        ],
+        [
+         22.08,
+         0.03,
+         14.46
+        ],
+        [
+         22.81,
+         -1.54,
+         14.01
+        ],
+        [
+         20.2,
+         -1.95,
+         17.23
+        ],
+        [
+         18.75,
+         -2.08,
+         18.5
+        ]
+       ],
+       "head": [
+        [
+         5.8,
+         -22.39,
+         8.04
+        ],
+        [
+         2.58,
+         -24.29,
+         5.59
+        ],
+        [
+         17.58,
+         -16.23,
+         11.21
+        ],
+        [
+         16.7,
+         -17.78,
+         9.96
+        ],
+        [
+         12.71,
+         -18.69,
+         10.58
+        ],
+        [
+         11.0,
+         -19.0,
+         10.75
+        ]
+       ],
+       "howl": [
+        [
+         14.58,
+         -7.86,
+         18.77
+        ],
+        [
+         11.64,
+         -11.25,
+         18.67
+        ],
+        [
+         21.58,
+         -1.53,
+         14.1
+        ],
+        [
+         22.16,
+         -3.08,
+         13.59
+        ],
+        [
+         19.43,
+         -3.54,
+         16.55
+        ],
+        [
+         17.97,
+         -3.68,
+         17.71
+        ]
+       ],
+       "throat": [
+        [
+         6.47,
+         -9.27,
+         8.85
+        ],
+        [
+         5.06,
+         -10.24,
+         9.17
+        ],
+        [
+         11.35,
+         -7.11,
+         6.71
+        ],
+        [
+         11.37,
+         -7.76,
+         6.43
+        ],
+        [
+         9.48,
+         -7.84,
+         7.72
+        ],
+        [
+         8.49,
+         -7.84,
+         8.23
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 12,
+      "frames": [
+       "attack_e_0",
+       "attack_e_1",
+       "attack_e_2",
+       "attack_e_3",
+       "attack_e_4",
+       "attack_e_5"
+      ],
+      "durations": [
+       120,
+       160,
+       60,
+       110,
+       130,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         24.54,
+         -16.59,
+         2.57
+        ],
+        [
+         22.2,
+         -18.81,
+         4.37
+        ],
+        [
+         27.29,
+         -12.56,
+         -3.93
+        ],
+        [
+         27.22,
+         -14.3,
+         -5.04
+        ],
+        [
+         27.01,
+         -13.99,
+         -1.56
+        ],
+        [
+         26.52,
+         -13.62,
+         0.0
+        ]
+       ],
+       "head": [
+        [
+         9.25,
+         -26.23,
+         1.04
+        ],
+        [
+         4.87,
+         -26.19,
+         1.22
+        ],
+        [
+         21.81,
+         -26.27,
+         -3.05
+        ],
+        [
+         20.04,
+         -27.15,
+         -3.58
+        ],
+        [
+         17.01,
+         -26.27,
+         -0.96
+        ],
+        [
+         15.56,
+         -25.77,
+         0.0
+        ]
+       ],
+       "howl": [
+        [
+         23.03,
+         -17.45,
+         2.42
+        ],
+        [
+         20.53,
+         -19.46,
+         4.07
+        ],
+        [
+         26.69,
+         -13.84,
+         -3.84
+        ],
+        [
+         26.46,
+         -15.48,
+         -4.88
+        ],
+        [
+         25.99,
+         -15.12,
+         -1.5
+        ],
+        [
+         25.41,
+         -14.74,
+         0.0
+        ]
+       ],
+       "throat": [
+        [
+         10.29,
+         -13.54,
+         1.14
+        ],
+        [
+         9.15,
+         -13.87,
+         2.0
+        ],
+        [
+         14.22,
+         -13.64,
+         -1.83
+        ],
+        [
+         13.76,
+         -14.17,
+         -2.31
+        ],
+        [
+         12.71,
+         -13.5,
+         -0.7
+        ],
+        [
+         12.0,
+         -13.07,
+         0.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 13,
+      "frames": [
+       "attack_ne_0",
+       "attack_ne_1",
+       "attack_ne_2",
+       "attack_ne_3",
+       "attack_ne_4",
+       "attack_ne_5"
+      ],
+      "durations": [
+       120,
+       160,
+       60,
+       110,
+       130,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         19.17,
+         -27.73,
+         -16.3
+        ],
+        [
+         18.79,
+         -29.27,
+         -13.89
+        ],
+        [
+         16.51,
+         -23.73,
+         -20.02
+        ],
+        [
+         15.68,
+         -25.24,
+         -21.14
+        ],
+        [
+         18.0,
+         -25.47,
+         -19.43
+        ],
+        [
+         18.75,
+         -25.17,
+         -18.5
+        ]
+       ],
+       "head": [
+        [
+         7.27,
+         -30.44,
+         -6.58
+        ],
+        [
+         4.3,
+         -28.53,
+         -3.87
+        ],
+        [
+         13.26,
+         -35.22,
+         -15.52
+        ],
+        [
+         11.63,
+         -35.23,
+         -15.03
+        ],
+        [
+         11.35,
+         -33.51,
+         -11.94
+        ],
+        [
+         11.0,
+         -32.55,
+         -10.75
+        ]
+       ],
+       "howl": [
+        [
+         18.0,
+         -27.92,
+         -15.35
+        ],
+        [
+         17.39,
+         -29.12,
+         -12.92
+        ],
+        [
+         16.16,
+         -24.77,
+         -19.53
+        ],
+        [
+         15.26,
+         -26.12,
+         -20.49
+        ],
+        [
+         17.32,
+         -26.17,
+         -18.66
+        ],
+        [
+         17.97,
+         -25.8,
+         -17.71
+        ]
+       ],
+       "throat": [
+        [
+         8.08,
+         -18.23,
+         -7.24
+        ],
+        [
+         7.88,
+         -18.21,
+         -6.34
+        ],
+        [
+         8.77,
+         -19.5,
+         -9.29
+        ],
+        [
+         8.1,
+         -19.75,
+         -9.69
+        ],
+        [
+         8.49,
+         -18.9,
+         -8.71
+        ],
+        [
+         8.49,
+         -18.29,
+         -8.23
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 14,
+      "frames": [
+       "attack_n_0",
+       "attack_n_1",
+       "attack_n_2",
+       "attack_n_3",
+       "attack_n_4",
+       "attack_n_5"
+      ],
+      "durations": [
+       120,
+       160,
+       60,
+       110,
+       130,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "hit"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         2.57,
+         -33.28,
+         -25.63
+        ],
+        [
+         4.37,
+         -35.17,
+         -24.02
+        ],
+        [
+         -3.93,
+         -26.94,
+         -24.38
+        ],
+        [
+         -5.04,
+         -27.96,
+         -24.86
+        ],
+        [
+         -1.56,
+         -29.66,
+         -25.92
+        ],
+        [
+         0.0,
+         -29.95,
+         -26.16
+        ]
+       ],
+       "head": [
+        [
+         1.04,
+         -32.56,
+         -10.34
+        ],
+        [
+         1.22,
+         -29.94,
+         -6.69
+        ],
+        [
+         -3.05,
+         -37.82,
+         -18.9
+        ],
+        [
+         -3.58,
+         -37.28,
+         -17.67
+        ],
+        [
+         -0.96,
+         -36.16,
+         -15.92
+        ],
+        [
+         0.0,
+         -35.35,
+         -15.2
+        ]
+       ],
+       "howl": [
+        [
+         2.42,
+         -33.12,
+         -24.12
+        ],
+        [
+         4.07,
+         -34.6,
+         -22.34
+        ],
+        [
+         -3.84,
+         -27.91,
+         -23.78
+        ],
+        [
+         -4.88,
+         -28.77,
+         -24.1
+        ],
+        [
+         -1.5,
+         -30.2,
+         -24.9
+        ],
+        [
+         0.0,
+         -30.38,
+         -25.04
+        ]
+       ],
+       "throat": [
+        [
+         1.14,
+         -20.58,
+         -11.38
+        ],
+        [
+         2.0,
+         -20.73,
+         -10.97
+        ],
+        [
+         -1.83,
+         -21.27,
+         -11.32
+        ],
+        [
+         -2.31,
+         -21.22,
+         -11.4
+        ],
+        [
+         -0.7,
+         -20.89,
+         -11.62
+        ],
+        [
+         0.0,
+         -20.45,
+         -11.64
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "howl": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 15,
+      "frames": [
+       "howl_s_0",
+       "howl_s_1",
+       "howl_s_2",
+       "howl_s_3",
+       "howl_s_4",
+       "howl_s_5",
+       "howl_s_6",
+       "howl_s_7"
+      ],
+      "durations": [
+       140,
+       180,
+       120,
+       300,
+       260,
+       140,
+       120,
+       150
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "howl"
+       ],
+       "6": [
+        "land"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         6.15,
+         25.6
+        ],
+        [
+         0.0,
+         -8.07,
+         23.34
+        ],
+        [
+         0.0,
+         -19.71,
+         15.91
+        ],
+        [
+         0.0,
+         -21.13,
+         14.81
+        ],
+        [
+         0.96,
+         -21.63,
+         14.27
+        ],
+        [
+         0.0,
+         -3.58,
+         25.17
+        ],
+        [
+         0.0,
+         6.3,
+         26.09
+        ],
+        [
+         0.0,
+         2.56,
+         26.13
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -11.9,
+         18.98
+        ],
+        [
+         0.0,
+         -23.74,
+         5.34
+        ],
+        [
+         0.0,
+         -26.31,
+         -2.12
+        ],
+        [
+         0.0,
+         -26.47,
+         -2.78
+        ],
+        [
+         -0.93,
+         -26.04,
+         -2.87
+        ],
+        [
+         0.0,
+         -21.39,
+         9.17
+        ],
+        [
+         0.0,
+         -12.05,
+         18.41
+        ],
+        [
+         0.0,
+         -16.33,
+         15.32
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         4.41,
+         24.89
+        ],
+        [
+         0.0,
+         -9.51,
+         21.6
+        ],
+        [
+         0.0,
+         -20.26,
+         14.23
+        ],
+        [
+         0.0,
+         -21.55,
+         13.17
+        ],
+        [
+         0.78,
+         -21.97,
+         12.68
+        ],
+        [
+         0.0,
+         -5.25,
+         23.6
+        ],
+        [
+         0.0,
+         4.53,
+         25.28
+        ],
+        [
+         0.0,
+         0.76,
+         25.03
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -4.27,
+         12.13
+        ],
+        [
+         0.0,
+         -8.77,
+         10.55
+        ],
+        [
+         0.0,
+         -11.92,
+         9.12
+        ],
+        [
+         0.0,
+         -12.43,
+         8.91
+        ],
+        [
+         0.0,
+         -12.39,
+         8.97
+        ],
+        [
+         0.0,
+         -7.6,
+         11.07
+        ],
+        [
+         0.0,
+         -3.89,
+         12.16
+        ],
+        [
+         0.0,
+         -5.9,
+         11.64
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 16,
+      "frames": [
+       "howl_se_0",
+       "howl_se_1",
+       "howl_se_2",
+       "howl_se_3",
+       "howl_se_4",
+       "howl_se_5",
+       "howl_se_6",
+       "howl_se_7"
+      ],
+      "durations": [
+       140,
+       180,
+       120,
+       300,
+       260,
+       140,
+       120,
+       150
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "howl"
+       ],
+       "6": [
+        "land"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         18.1,
+         1.53,
+         18.1
+        ],
+        [
+         16.51,
+         -12.28,
+         16.51
+        ],
+        [
+         11.25,
+         -22.58,
+         11.25
+        ],
+        [
+         10.47,
+         -23.8,
+         10.47
+        ],
+        [
+         10.77,
+         -24.62,
+         9.41
+        ],
+        [
+         17.8,
+         -8.12,
+         17.8
+        ],
+        [
+         18.45,
+         1.6,
+         18.45
+        ],
+        [
+         18.48,
+         -2.15,
+         18.48
+        ]
+       ],
+       "head": [
+        [
+         13.42,
+         -15.32,
+         13.42
+        ],
+        [
+         3.78,
+         -24.71,
+         3.78
+        ],
+        [
+         -1.5,
+         -25.93,
+         -1.5
+        ],
+        [
+         -1.97,
+         -25.97,
+         -1.97
+        ],
+        [
+         -2.68,
+         -25.12,
+         -1.37
+        ],
+        [
+         6.48,
+         -23.05,
+         6.48
+        ],
+        [
+         13.02,
+         -15.37,
+         13.02
+        ],
+        [
+         10.83,
+         -19.09,
+         10.83
+        ]
+       ],
+       "howl": [
+        [
+         17.6,
+         -0.08,
+         17.6
+        ],
+        [
+         15.28,
+         -13.41,
+         15.28
+        ],
+        [
+         10.06,
+         -22.82,
+         10.06
+        ],
+        [
+         9.31,
+         -23.93,
+         9.31
+        ],
+        [
+         9.52,
+         -24.59,
+         8.41
+        ],
+        [
+         16.69,
+         -9.5,
+         16.69
+        ],
+        [
+         17.87,
+         -0.02,
+         17.87
+        ],
+        [
+         17.7,
+         -3.75,
+         17.7
+        ]
+       ],
+       "throat": [
+        [
+         8.58,
+         -6.46,
+         8.58
+        ],
+        [
+         7.46,
+         -10.67,
+         7.46
+        ],
+        [
+         6.45,
+         -13.57,
+         6.45
+        ],
+        [
+         6.3,
+         -14.03,
+         6.3
+        ],
+        [
+         6.35,
+         -14.0,
+         6.35
+        ],
+        [
+         7.83,
+         -9.59,
+         7.83
+        ],
+        [
+         8.6,
+         -6.08,
+         8.6
+        ],
+        [
+         8.23,
+         -8.0,
+         8.23
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 17,
+      "frames": [
+       "howl_e_0",
+       "howl_e_1",
+       "howl_e_2",
+       "howl_e_3",
+       "howl_e_4",
+       "howl_e_5",
+       "howl_e_6",
+       "howl_e_7"
+      ],
+      "durations": [
+       140,
+       180,
+       120,
+       300,
+       260,
+       140,
+       120,
+       150
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "howl"
+       ],
+       "6": [
+        "land"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         25.6,
+         -9.62,
+         0.0
+        ],
+        [
+         23.34,
+         -22.44,
+         0.0
+        ],
+        [
+         15.91,
+         -29.51,
+         0.0
+        ],
+        [
+         14.81,
+         -30.24,
+         0.0
+        ],
+        [
+         14.27,
+         -31.01,
+         -0.96
+        ],
+        [
+         25.17,
+         -19.08,
+         0.0
+        ],
+        [
+         26.09,
+         -9.76,
+         0.0
+        ],
+        [
+         26.13,
+         -13.52,
+         0.0
+        ]
+       ],
+       "head": [
+        [
+         18.98,
+         -23.58,
+         0.0
+        ],
+        [
+         5.34,
+         -27.03,
+         0.0
+        ],
+        [
+         -2.12,
+         -25.0,
+         -0.0
+        ],
+        [
+         -2.78,
+         -24.76,
+         -0.0
+        ],
+        [
+         -2.87,
+         -23.7,
+         0.93
+        ],
+        [
+         9.17,
+         -27.04,
+         0.0
+        ],
+        [
+         18.41,
+         -23.39,
+         0.0
+        ],
+        [
+         15.32,
+         -25.76,
+         0.0
+        ]
+       ],
+       "howl": [
+        [
+         24.89,
+         -10.92,
+         0.0
+        ],
+        [
+         21.6,
+         -22.81,
+         0.0
+        ],
+        [
+         14.23,
+         -29.02,
+         0.0
+        ],
+        [
+         13.17,
+         -29.66,
+         0.0
+        ],
+        [
+         12.68,
+         -30.25,
+         -0.78
+        ],
+        [
+         23.6,
+         -19.78,
+         0.0
+        ],
+        [
+         25.28,
+         -11.03,
+         0.0
+        ],
+        [
+         25.03,
+         -14.65,
+         0.0
+        ]
+       ],
+       "throat": [
+        [
+         12.13,
+         -11.74,
+         0.0
+        ],
+        [
+         10.55,
+         -15.26,
+         0.0
+        ],
+        [
+         9.12,
+         -17.54,
+         0.0
+        ],
+        [
+         8.91,
+         -17.91,
+         0.0
+        ],
+        [
+         8.97,
+         -17.91,
+         0.0
+        ],
+        [
+         11.07,
+         -14.41,
+         0.0
+        ],
+        [
+         12.16,
+         -11.38,
+         0.0
+        ],
+        [
+         11.64,
+         -13.07,
+         0.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 18,
+      "frames": [
+       "howl_ne_0",
+       "howl_ne_1",
+       "howl_ne_2",
+       "howl_ne_3",
+       "howl_ne_4",
+       "howl_ne_5",
+       "howl_ne_6",
+       "howl_ne_7"
+      ],
+      "durations": [
+       140,
+       180,
+       120,
+       300,
+       260,
+       140,
+       120,
+       150
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "howl"
+       ],
+       "6": [
+        "land"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         18.1,
+         -20.76,
+         -18.1
+        ],
+        [
+         16.51,
+         -32.6,
+         -16.51
+        ],
+        [
+         11.25,
+         -36.44,
+         -11.25
+        ],
+        [
+         10.47,
+         -36.69,
+         -10.47
+        ],
+        [
+         9.41,
+         -37.05,
+         -10.77
+        ],
+        [
+         17.8,
+         -30.04,
+         -17.8
+        ],
+        [
+         18.45,
+         -21.12,
+         -18.45
+        ],
+        [
+         18.48,
+         -24.9,
+         -18.48
+        ]
+       ],
+       "head": [
+        [
+         13.42,
+         -31.84,
+         -13.42
+        ],
+        [
+         3.78,
+         -29.35,
+         -3.78
+        ],
+        [
+         -1.5,
+         -24.08,
+         1.5
+        ],
+        [
+         -1.97,
+         -23.54,
+         1.97
+        ],
+        [
+         -1.37,
+         -22.62,
+         2.68
+        ],
+        [
+         6.48,
+         -31.03,
+         -6.48
+        ],
+        [
+         13.02,
+         -31.4,
+         -13.02
+        ],
+        [
+         10.83,
+         -32.43,
+         -10.83
+        ]
+       ],
+       "howl": [
+        [
+         17.6,
+         -21.76,
+         -17.6
+        ],
+        [
+         15.28,
+         -32.22,
+         -15.28
+        ],
+        [
+         10.06,
+         -35.21,
+         -10.06
+        ],
+        [
+         9.31,
+         -35.39,
+         -9.31
+        ],
+        [
+         8.41,
+         -35.63,
+         -9.52
+        ],
+        [
+         16.69,
+         -30.05,
+         -16.69
+        ],
+        [
+         17.87,
+         -22.03,
+         -17.87
+        ],
+        [
+         17.7,
+         -25.54,
+         -17.7
+        ]
+       ],
+       "throat": [
+        [
+         8.58,
+         -17.02,
+         -8.58
+        ],
+        [
+         7.46,
+         -19.86,
+         -7.46
+        ],
+        [
+         6.45,
+         -21.51,
+         -6.45
+        ],
+        [
+         6.3,
+         -21.79,
+         -6.3
+        ],
+        [
+         6.35,
+         -21.82,
+         -6.35
+        ],
+        [
+         7.83,
+         -19.23,
+         -7.83
+        ],
+        [
+         8.6,
+         -16.67,
+         -8.6
+        ],
+        [
+         8.23,
+         -18.13,
+         -8.23
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 19,
+      "frames": [
+       "howl_n_0",
+       "howl_n_1",
+       "howl_n_2",
+       "howl_n_3",
+       "howl_n_4",
+       "howl_n_5",
+       "howl_n_6",
+       "howl_n_7"
+      ],
+      "durations": [
+       140,
+       180,
+       120,
+       300,
+       260,
+       140,
+       120,
+       150
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "howl"
+       ],
+       "6": [
+        "land"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         -25.38,
+         -25.6
+        ],
+        [
+         0.0,
+         -36.81,
+         -23.34
+        ],
+        [
+         0.0,
+         -39.31,
+         -15.91
+        ],
+        [
+         0.0,
+         -39.36,
+         -14.81
+        ],
+        [
+         -0.96,
+         -39.2,
+         -14.27
+        ],
+        [
+         0.0,
+         -34.57,
+         -25.17
+        ],
+        [
+         0.0,
+         -25.82,
+         -26.09
+        ],
+        [
+         0.0,
+         -29.61,
+         -26.13
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -35.26,
+         -18.98
+        ],
+        [
+         0.0,
+         -30.32,
+         -5.34
+        ],
+        [
+         0.0,
+         -23.7,
+         2.12
+        ],
+        [
+         0.0,
+         -23.04,
+         2.78
+        ],
+        [
+         0.93,
+         -22.51,
+         2.87
+        ],
+        [
+         0.0,
+         -32.68,
+         -9.17
+        ],
+        [
+         0.0,
+         -34.72,
+         -18.41
+        ],
+        [
+         0.0,
+         -35.2,
+         -15.32
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         -26.25,
+         -24.89
+        ],
+        [
+         0.0,
+         -36.11,
+         -21.6
+        ],
+        [
+         0.0,
+         -37.77,
+         -14.23
+        ],
+        [
+         0.0,
+         -37.77,
+         -13.17
+        ],
+        [
+         -0.78,
+         -37.58,
+         -12.68
+        ],
+        [
+         0.0,
+         -34.31,
+         -23.6
+        ],
+        [
+         0.0,
+         -26.59,
+         -25.28
+        ],
+        [
+         0.0,
+         -30.06,
+         -25.03
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -19.21,
+         -12.13
+        ],
+        [
+         0.0,
+         -21.76,
+         -10.55
+        ],
+        [
+         0.0,
+         -23.15,
+         -9.12
+        ],
+        [
+         0.0,
+         -23.4,
+         -8.91
+        ],
+        [
+         0.0,
+         -23.43,
+         -8.97
+        ],
+        [
+         0.0,
+         -21.23,
+         -11.07
+        ],
+        [
+         0.0,
+         -18.87,
+         -12.16
+        ],
+        [
+         0.0,
+         -20.23,
+         -11.64
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "hit": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 20,
+      "frames": [
+       "hit_s_0",
+       "hit_s_1",
+       "hit_s_2"
+      ],
+      "durations": [
+       70,
+       80,
+       100
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         -0.32,
+         -3.46,
+         26.09
+        ],
+        [
+         0.0,
+         -0.44,
+         26.49
+        ],
+        [
+         0.0,
+         2.23,
+         26.13
+        ]
+       ],
+       "head": [
+        [
+         -1.83,
+         -20.45,
+         9.18
+        ],
+        [
+         0.0,
+         -19.01,
+         12.18
+        ],
+        [
+         0.0,
+         -16.66,
+         15.32
+        ]
+       ],
+       "howl": [
+        [
+         -0.46,
+         -5.04,
+         24.45
+        ],
+        [
+         0.0,
+         -2.19,
+         25.08
+        ],
+        [
+         0.0,
+         0.43,
+         25.03
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -6.87,
+         11.94
+        ],
+        [
+         0.0,
+         -6.6,
+         11.79
+        ],
+        [
+         0.0,
+         -6.24,
+         11.64
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 21,
+      "frames": [
+       "hit_se_0",
+       "hit_se_1",
+       "hit_se_2"
+      ],
+      "durations": [
+       70,
+       80,
+       100
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         16.94,
+         -7.7,
+         18.68
+        ],
+        [
+         17.71,
+         -4.96,
+         18.73
+        ],
+        [
+         18.09,
+         -2.39,
+         18.48
+        ]
+       ],
+       "head": [
+        [
+         3.91,
+         -20.98,
+         7.79
+        ],
+        [
+         7.59,
+         -20.94,
+         8.61
+        ],
+        [
+         10.45,
+         -19.33,
+         10.83
+        ]
+       ],
+       "howl": [
+        [
+         15.68,
+         -8.92,
+         17.61
+        ],
+        [
+         16.7,
+         -6.45,
+         17.73
+        ],
+        [
+         17.31,
+         -3.99,
+         17.7
+        ]
+       ],
+       "throat": [
+        [
+         7.16,
+         -8.7,
+         8.45
+        ],
+        [
+         7.31,
+         -8.46,
+         8.33
+        ],
+        [
+         7.84,
+         -8.24,
+         8.23
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 22,
+      "frames": [
+       "hit_e_0",
+       "hit_e_1",
+       "hit_e_2"
+      ],
+      "durations": [
+       70,
+       80,
+       100
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         24.28,
+         -18.21,
+         0.32
+        ],
+        [
+         25.04,
+         -15.86,
+         0.0
+        ],
+        [
+         25.58,
+         -13.52,
+         0.0
+        ]
+       ],
+       "head": [
+        [
+         7.36,
+         -23.85,
+         1.83
+        ],
+        [
+         10.73,
+         -25.61,
+         0.0
+        ],
+        [
+         14.78,
+         -25.76,
+         0.0
+        ]
+       ],
+       "howl": [
+        [
+         22.63,
+         -18.69,
+         0.46
+        ],
+        [
+         23.62,
+         -16.73,
+         0.0
+        ],
+        [
+         24.49,
+         -14.65,
+         0.0
+        ]
+       ],
+       "throat": [
+        [
+         10.12,
+         -13.1,
+         0.0
+        ],
+        [
+         10.33,
+         -12.96,
+         0.0
+        ],
+        [
+         11.09,
+         -13.07,
+         0.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 23,
+      "frames": [
+       "hit_ne_0",
+       "hit_ne_1",
+       "hit_ne_2"
+      ],
+      "durations": [
+       70,
+       80,
+       100
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         17.39,
+         -28.84,
+         -18.22
+        ],
+        [
+         17.71,
+         -26.76,
+         -18.73
+        ],
+        [
+         18.09,
+         -24.66,
+         -18.48
+        ]
+       ],
+       "head": [
+        [
+         6.5,
+         -27.38,
+         -5.19
+        ],
+        [
+         7.59,
+         -30.28,
+         -8.61
+        ],
+        [
+         10.45,
+         -32.2,
+         -10.83
+        ]
+       ],
+       "howl": [
+        [
+         16.32,
+         -28.63,
+         -16.96
+        ],
+        [
+         16.7,
+         -27.02,
+         -17.73
+        ],
+        [
+         17.31,
+         -25.31,
+         -17.7
+        ]
+       ],
+       "throat": [
+        [
+         7.16,
+         -17.51,
+         -8.45
+        ],
+        [
+         7.31,
+         -17.46,
+         -8.33
+        ],
+        [
+         7.84,
+         -17.89,
+         -8.23
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 24,
+      "frames": [
+       "hit_n_0",
+       "hit_n_1",
+       "hit_n_2"
+      ],
+      "durations": [
+       70,
+       80,
+       100
+      ],
+      "events": {},
+      "sockets": {
+       "hit": [
+        [
+         0.32,
+         -33.35,
+         -26.09
+        ],
+        [
+         0.0,
+         -31.27,
+         -26.49
+        ],
+        [
+         0.0,
+         -29.27,
+         -26.13
+        ]
+       ],
+       "head": [
+        [
+         1.83,
+         -29.51,
+         -9.18
+        ],
+        [
+         0.0,
+         -32.22,
+         -12.18
+        ],
+        [
+         0.0,
+         -34.86,
+         -15.32
+        ]
+       ],
+       "howl": [
+        [
+         0.46,
+         -32.91,
+         -24.45
+        ],
+        [
+         0.0,
+         -31.28,
+         -25.08
+        ],
+        [
+         0.0,
+         -29.72,
+         -25.03
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -19.34,
+         -11.94
+        ],
+        [
+         0.0,
+         -19.32,
+         -11.79
+        ],
+        [
+         0.0,
+         -19.89,
+         -11.64
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "death": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 25,
+      "frames": [
+       "death_s_0",
+       "death_s_1",
+       "death_s_2",
+       "death_s_3",
+       "death_s_4",
+       "death_s_5",
+       "death_s_6",
+       "death_s_7",
+       "death_s_8"
+      ],
+      "durations": [
+       110,
+       110,
+       120,
+       110,
+       90,
+       90,
+       90,
+       130,
+       700
+      ],
+      "events": {
+       "3": [
+        "fall"
+       ],
+       "8": [
+        "dead"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         -13.25,
+         21.31
+        ],
+        [
+         -4.64,
+         0.64,
+         25.95
+        ],
+        [
+         -2.67,
+         9.69,
+         25.97
+        ],
+        [
+         -0.11,
+         12.47,
+         25.45
+        ],
+        [
+         -3.83,
+         12.56,
+         26.54
+        ],
+        [
+         0.45,
+         12.3,
+         25.14
+        ],
+        [
+         -3.22,
+         12.59,
+         26.41
+        ],
+        [
+         -0.18,
+         12.43,
+         25.38
+        ],
+        [
+         0.38,
+         12.49,
+         25.07
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -25.09,
+         2.39
+        ],
+        [
+         -10.24,
+         -16.16,
+         10.36
+        ],
+        [
+         -17.64,
+         -1.06,
+         15.95
+        ],
+        [
+         -17.79,
+         7.41,
+         18.82
+        ],
+        [
+         -18.69,
+         4.01,
+         14.97
+        ],
+        [
+         -17.58,
+         8.47,
+         19.41
+        ],
+        [
+         -18.67,
+         4.7,
+         15.6
+        ],
+        [
+         -17.88,
+         7.64,
+         18.75
+        ],
+        [
+         -17.63,
+         8.24,
+         19.33
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         -14.31,
+         19.51
+        ],
+        [
+         -5.13,
+         -0.94,
+         24.42
+        ],
+        [
+         -4.05,
+         8.63,
+         24.94
+        ],
+        [
+         -1.76,
+         11.94,
+         24.74
+        ],
+        [
+         -5.19,
+         11.71,
+         25.37
+        ],
+        [
+         -1.24,
+         11.88,
+         24.51
+        ],
+        [
+         -4.64,
+         11.8,
+         25.31
+        ],
+        [
+         -1.83,
+         11.92,
+         24.67
+        ],
+        [
+         -1.3,
+         12.04,
+         24.44
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -10.2,
+         10.66
+        ],
+        [
+         -1.88,
+         -4.75,
+         11.44
+        ],
+        [
+         -2.71,
+         0.85,
+         11.64
+        ],
+        [
+         -2.73,
+         4.05,
+         12.0
+        ],
+        [
+         -2.77,
+         3.63,
+         11.88
+        ],
+        [
+         -2.73,
+         4.16,
+         12.0
+        ],
+        [
+         -2.78,
+         3.67,
+         11.88
+        ],
+        [
+         -2.76,
+         4.05,
+         11.94
+        ],
+        [
+         -2.76,
+         4.28,
+         11.94
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 26,
+      "frames": [
+       "death_se_0",
+       "death_se_1",
+       "death_se_2",
+       "death_se_3",
+       "death_se_4",
+       "death_se_5",
+       "death_se_6",
+       "death_se_7",
+       "death_se_8"
+      ],
+      "durations": [
+       110,
+       110,
+       120,
+       110,
+       90,
+       90,
+       90,
+       130,
+       700
+      ],
+      "events": {
+       "3": [
+        "fall"
+       ],
+       "8": [
+        "dead"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         14.3,
+         -16.89,
+         15.07
+        ],
+        [
+         14.04,
+         -1.76,
+         21.63
+        ],
+        [
+         15.44,
+         6.43,
+         20.25
+        ],
+        [
+         16.89,
+         8.2,
+         18.08
+        ],
+        [
+         15.03,
+         9.7,
+         21.47
+        ],
+        [
+         17.06,
+         7.83,
+         17.46
+        ],
+        [
+         15.37,
+         9.49,
+         20.95
+        ],
+        [
+         16.79,
+         8.19,
+         18.07
+        ],
+        [
+         16.97,
+         8.06,
+         17.45
+        ]
+       ],
+       "head": [
+        [
+         0.92,
+         -25.32,
+         1.69
+        ],
+        [
+         -0.95,
+         -13.31,
+         14.57
+        ],
+        [
+         -2.22,
+         4.0,
+         23.75
+        ],
+        [
+         -0.3,
+         12.02,
+         25.89
+        ],
+        [
+         -3.66,
+         9.71,
+         23.8
+        ],
+        [
+         0.26,
+         12.89,
+         26.16
+        ],
+        [
+         -3.2,
+         10.28,
+         24.23
+        ],
+        [
+         -0.41,
+         12.3,
+         25.9
+        ],
+        [
+         0.18,
+         12.69,
+         26.13
+        ]
+       ],
+       "howl": [
+        [
+         13.02,
+         -17.63,
+         13.8
+        ],
+        [
+         12.61,
+         -2.85,
+         20.89
+        ],
+        [
+         13.74,
+         6.16,
+         20.5
+        ],
+        [
+         15.22,
+         8.51,
+         18.74
+        ],
+        [
+         13.24,
+         9.65,
+         21.61
+        ],
+        [
+         15.43,
+         8.27,
+         18.21
+        ],
+        [
+         13.59,
+         9.51,
+         21.18
+        ],
+        [
+         15.12,
+         8.54,
+         18.73
+        ],
+        [
+         15.33,
+         8.46,
+         18.2
+        ]
+       ],
+       "throat": [
+        [
+         6.76,
+         -11.92,
+         7.54
+        ],
+        [
+         5.73,
+         -5.73,
+         9.42
+        ],
+        [
+         5.28,
+         0.2,
+         10.15
+        ],
+        [
+         5.53,
+         3.33,
+         10.42
+        ],
+        [
+         5.41,
+         2.96,
+         10.36
+        ],
+        [
+         5.52,
+         3.44,
+         10.42
+        ],
+        [
+         5.4,
+         3.0,
+         10.36
+        ],
+        [
+         5.46,
+         3.36,
+         10.39
+        ],
+        [
+         5.46,
+         3.59,
+         10.39
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 27,
+      "frames": [
+       "death_e_0",
+       "death_e_1",
+       "death_e_2",
+       "death_e_3",
+       "death_e_4",
+       "death_e_5",
+       "death_e_6",
+       "death_e_7",
+       "death_e_8"
+      ],
+      "durations": [
+       110,
+       110,
+       120,
+       110,
+       90,
+       90,
+       90,
+       130,
+       700
+      ],
+      "events": {
+       "3": [
+        "fall"
+       ],
+       "8": [
+        "dead"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         20.22,
+         -25.69,
+         0.0
+        ],
+        [
+         24.49,
+         -11.59,
+         4.64
+        ],
+        [
+         24.51,
+         -3.76,
+         2.67
+        ],
+        [
+         24.0,
+         -2.23,
+         0.11
+        ],
+        [
+         25.08,
+         -0.53,
+         3.83
+        ],
+        [
+         23.69,
+         -2.56,
+         -0.45
+        ],
+        [
+         24.96,
+         -0.8,
+         3.22
+        ],
+        [
+         23.92,
+         -2.19,
+         0.18
+        ],
+        [
+         23.61,
+         -2.28,
+         -0.38
+        ]
+       ],
+       "head": [
+        [
+         1.3,
+         -25.89,
+         0.0
+        ],
+        [
+         8.91,
+         -15.34,
+         10.24
+        ],
+        [
+         14.5,
+         0.87,
+         17.64
+        ],
+        [
+         17.37,
+         7.67,
+         17.79
+        ],
+        [
+         13.52,
+         7.2,
+         18.69
+        ],
+        [
+         17.95,
+         8.24,
+         17.58
+        ],
+        [
+         14.15,
+         7.48,
+         18.67
+        ],
+        [
+         17.29,
+         8.0,
+         17.88
+        ],
+        [
+         17.88,
+         8.08,
+         17.63
+        ]
+       ],
+       "howl": [
+        [
+         18.42,
+         -25.65,
+         0.0
+        ],
+        [
+         22.96,
+         -11.92,
+         5.13
+        ],
+        [
+         23.49,
+         -3.33,
+         4.05
+        ],
+        [
+         23.29,
+         -1.31,
+         1.76
+        ],
+        [
+         23.92,
+         0.18,
+         5.19
+        ],
+        [
+         23.06,
+         -1.55,
+         1.24
+        ],
+        [
+         23.86,
+         -0.04,
+         4.64
+        ],
+        [
+         23.21,
+         -1.24,
+         1.83
+        ],
+        [
+         22.99,
+         -1.31,
+         1.3
+        ]
+       ],
+       "throat": [
+        [
+         9.57,
+         -16.09,
+         0.0
+        ],
+        [
+         9.99,
+         -9.74,
+         1.88
+        ],
+        [
+         10.18,
+         -3.75,
+         2.71
+        ],
+        [
+         10.55,
+         -0.77,
+         2.73
+        ],
+        [
+         10.42,
+         -1.08,
+         2.77
+        ],
+        [
+         10.55,
+         -0.65,
+         2.73
+        ],
+        [
+         10.42,
+         -1.03,
+         2.78
+        ],
+        [
+         10.48,
+         -0.7,
+         2.76
+        ],
+        [
+         10.48,
+         -0.47,
+         2.76
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 28,
+      "frames": [
+       "death_ne_0",
+       "death_ne_1",
+       "death_ne_2",
+       "death_ne_3",
+       "death_ne_4",
+       "death_ne_5",
+       "death_ne_6",
+       "death_ne_7",
+       "death_ne_8"
+      ],
+      "durations": [
+       110,
+       110,
+       120,
+       110,
+       90,
+       90,
+       90,
+       130,
+       700
+      ],
+      "events": {
+       "3": [
+        "fall"
+       ],
+       "8": [
+        "dead"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         14.3,
+         -34.5,
+         -15.07
+        ],
+        [
+         20.6,
+         -23.09,
+         -15.07
+        ],
+        [
+         19.22,
+         -14.91,
+         -16.47
+        ],
+        [
+         17.05,
+         -12.7,
+         -17.92
+        ],
+        [
+         20.45,
+         -12.14,
+         -16.06
+        ],
+        [
+         16.43,
+         -12.79,
+         -18.09
+        ],
+        [
+         19.92,
+         -12.24,
+         -16.4
+        ],
+        [
+         17.04,
+         -12.64,
+         -17.82
+        ],
+        [
+         16.43,
+         -12.49,
+         -17.99
+        ]
+       ],
+       "head": [
+        [
+         0.92,
+         -26.45,
+         -1.69
+        ],
+        [
+         13.54,
+         -21.07,
+         -0.08
+        ],
+        [
+         22.72,
+         -8.62,
+         1.19
+        ],
+        [
+         24.86,
+         -3.1,
+         -0.73
+        ],
+        [
+         22.78,
+         -2.06,
+         2.63
+        ],
+        [
+         25.13,
+         -2.74,
+         -1.29
+        ],
+        [
+         23.21,
+         -2.04,
+         2.17
+        ],
+        [
+         24.87,
+         -2.76,
+         -0.62
+        ],
+        [
+         25.11,
+         -2.88,
+         -1.21
+        ]
+       ],
+       "howl": [
+        [
+         13.02,
+         -33.66,
+         -13.8
+        ],
+        [
+         19.87,
+         -22.84,
+         -13.64
+        ],
+        [
+         19.47,
+         -14.29,
+         -14.77
+        ],
+        [
+         17.71,
+         -11.76,
+         -16.25
+        ],
+        [
+         20.58,
+         -11.17,
+         -14.27
+        ],
+        [
+         17.18,
+         -11.81,
+         -16.46
+        ],
+        [
+         20.15,
+         -11.26,
+         -14.62
+        ],
+        [
+         17.71,
+         -11.67,
+         -16.15
+        ],
+        [
+         17.17,
+         -11.55,
+         -16.36
+        ]
+       ],
+       "throat": [
+        [
+         6.76,
+         -20.25,
+         -7.54
+        ],
+        [
+         8.39,
+         -14.43,
+         -6.76
+        ],
+        [
+         9.12,
+         -8.67,
+         -6.31
+        ],
+        [
+         9.39,
+         -5.85,
+         -6.56
+        ],
+        [
+         9.33,
+         -6.12,
+         -6.44
+        ],
+        [
+         9.39,
+         -5.74,
+         -6.55
+        ],
+        [
+         9.33,
+         -6.07,
+         -6.43
+        ],
+        [
+         9.37,
+         -5.77,
+         -6.49
+        ],
+        [
+         9.37,
+         -5.54,
+         -6.49
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 29,
+      "frames": [
+       "death_n_0",
+       "death_n_1",
+       "death_n_2",
+       "death_n_3",
+       "death_n_4",
+       "death_n_5",
+       "death_n_6",
+       "death_n_7",
+       "death_n_8"
+      ],
+      "durations": [
+       110,
+       110,
+       120,
+       110,
+       90,
+       90,
+       90,
+       130,
+       700
+      ],
+      "events": {
+       "3": [
+        "fall"
+       ],
+       "8": [
+        "dead"
+       ]
+      },
+      "sockets": {
+       "hit": [
+        [
+         0.0,
+         -38.14,
+         -21.31
+        ],
+        [
+         4.64,
+         -29.52,
+         -25.95
+        ],
+        [
+         2.67,
+         -20.5,
+         -25.97
+        ],
+        [
+         0.11,
+         -17.07,
+         -25.45
+        ],
+        [
+         3.83,
+         -18.33,
+         -26.54
+        ],
+        [
+         -0.45,
+         -16.87,
+         -25.14
+        ],
+        [
+         3.22,
+         -18.14,
+         -26.41
+        ],
+        [
+         0.18,
+         -17.03,
+         -25.38
+        ],
+        [
+         -0.38,
+         -16.58,
+         -25.07
+        ]
+       ],
+       "head": [
+        [
+         0.0,
+         -26.69,
+         -2.39
+        ],
+        [
+         10.24,
+         -27.13,
+         -10.36
+        ],
+        [
+         17.64,
+         -18.91,
+         -15.95
+        ],
+        [
+         17.79,
+         -13.98,
+         -18.82
+        ],
+        [
+         18.69,
+         -12.63,
+         -14.97
+        ],
+        [
+         17.58,
+         -13.63,
+         -19.41
+        ],
+        [
+         18.67,
+         -12.72,
+         -15.6
+        ],
+        [
+         17.88,
+         -13.66,
+         -18.75
+        ],
+        [
+         17.63,
+         -13.78,
+         -19.33
+        ]
+       ],
+       "howl": [
+        [
+         0.0,
+         -36.98,
+         -19.51
+        ],
+        [
+         5.13,
+         -29.22,
+         -24.42
+        ],
+        [
+         4.05,
+         -20.29,
+         -24.94
+        ],
+        [
+         1.76,
+         -16.73,
+         -24.74
+        ],
+        [
+         5.19,
+         -17.74,
+         -25.37
+        ],
+        [
+         1.24,
+         -16.51,
+         -24.51
+        ],
+        [
+         4.64,
+         -17.58,
+         -25.31
+        ],
+        [
+         1.83,
+         -16.66,
+         -24.67
+        ],
+        [
+         1.3,
+         -16.27,
+         -24.44
+        ]
+       ],
+       "throat": [
+        [
+         0.0,
+         -21.98,
+         -10.66
+        ],
+        [
+         1.88,
+         -17.05,
+         -11.44
+        ],
+        [
+         2.71,
+         -11.68,
+         -11.64
+        ],
+        [
+         2.73,
+         -8.94,
+         -12.0
+        ],
+        [
+         2.77,
+         -9.2,
+         -11.88
+        ],
+        [
+         2.73,
+         -8.83,
+         -12.0
+        ],
+        [
+         2.78,
+         -9.16,
+         -11.88
+        ],
+        [
+         2.76,
+         -8.86,
+         -11.94
+        ],
+        [
+         2.76,
+         -8.63,
+         -11.94
+        ]
+       ]
+      }
+     }
+    }
+   }
+  },
+  "sockets": [
+   "hit",
+   "head",
+   "howl",
+   "throat"
+  ],
+  "mirrors": {
+   "nw": "ne",
+   "w": "e",
+   "sw": "se"
+  }
+ }
+}
