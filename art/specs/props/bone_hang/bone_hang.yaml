@@ -1,0 +1,167 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: bone_hang
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3959, 0]}   # 20 px above the pivot -> pivot (32, 52)
+shadow: {rx: 6, ry: 2.5, alpha: 120}
+
+# Bosque dos Goblins: goblin warning totem - bones and little skulls hung from a dry branch.
+brief:
+  summary: goblin warning totem; a crooked dead sapling stuck in the ground with one long dry branch reaching
+    sideways, and from it, on dark cords, a row of dangling trophies - a small goblin skull, a long bone, a
+    bird skull with beak, a bundle of finger bones and a little horned skull - all swaying in the wind
+  must_keep: [crooked dry branch silhouette, 5 hanging cords, pale bones and small skulls with dark eye
+    sockets, gentle out-of-phase sway]
+  simplify: [cords as 1 px dark lines (outline only), skulls as a sphere + jaw]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.3959, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,52) is the ground point at the foot of the
+    sapling. Footprint 1 tile, blocking only at the foot (the hanging bones overhang and do not block).
+    idle: 8 frames at 140 ms, loop; each trophy hangs from its own bone at the cord's knot and swings about
+    z with a sin of a different phase and amplitude (0.12-0.22 rad); the branch tip bobs 1 px.
+
+ramps:
+  bh_wood: ["#1c0f1a", "#2f2428", "#4a3c3c", "#665650", "#857262"]
+  bh_bone: ["#1c0f1a", "#7a6a58", "#b4a488", "#ddd0b0", "#f2ead2"]
+  bh_cord: ["#1c0f1a", "#3a2a22", "#5a4030"]
+  bh_hole: ["#1c0f1a", "#120a10"]
+
+materials:
+  wood: {ramp: bh_wood, bands: [1, 4]}
+  bone: {ramp: bh_bone, bands: [1, 4]}
+  cord: {ramp: bh_cord, bands: [1, 2], line: false}
+  hole: {ramp: bh_hole, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  w1: 0             # sway angles of the 5 trophies (rad)
+  w2: 0
+  w3: 0
+  w4: 0
+  w5: 0
+  tip: 0            # branch tip bob (units)
+
+# Branch: from the sapling top (0.25, 2.05) out to the left tip (-1.05, 2.15). Knots along it.
+bones:
+  body: {parent: root}
+  k1: {parent: body, pos: "[-1.00, 2.16 + tip, 0.02]", rot: "[0, 0, w1]", scale: 1.25}
+  k2: {parent: body, pos: "[-0.72, 2.10 + 0.7*tip, 0.02]", rot: "[0, 0, w2]", scale: 1.25}
+  k3: {parent: body, pos: "[-0.44, 2.07 + 0.35*tip, 0.02]", rot: "[0, 0, w3]", scale: 1.25}
+  k4: {parent: body, pos: "[-0.16, 2.09 + 0.1*tip, 0.02]", rot: "[0, 0, w4]", scale: 1.25}
+  k5: {parent: body, pos: [0.60, 1.86, 0.04], rot: "[0, 0, w5]", scale: 1.25}
+
+parts:
+  sapling:
+    material: wood
+    space: body
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.10, 0.60, 0], [0.02, 1.20, 0], [0.18, 1.70, 0], [0.24, 2.05, 0]], r: [0.11, 0.09, 0.08, 0.07, 0.06]}
+      - cone: {a: [0, 0.08, 0], b: [0.30, 0.02, 0.10], r: [0.08, 0.03]}
+      - cone: {a: [0, 0.08, 0], b: [-0.28, 0.02, 0.08], r: [0.08, 0.03]}
+  branch:
+    material: wood
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0.24, 2.05, 0], [0.0, 2.12, 0.02], "[-0.40, 2.08 + 0.3*tip, 0.02]", "[-0.80, 2.14 + 0.7*tip, 0.02]", "[-1.10, 2.24 + tip, 0.02]"], r: [0.06, 0.05, 0.045, 0.035, 0.025]}
+      - chain: {pts: [[0.18, 1.70, 0], [0.42, 1.80, 0.02], [0.66, 1.92, 0.02], [0.80, 2.12, 0]], r: [0.05, 0.04, 0.03, 0.022]}   # side branch
+      - cone: {a: [0.24, 2.05, 0], b: [0.36, 2.38, 0], r: [0.04, 0.02]}
+      - cone: {a: ["-0.80", 2.14, 0.02], b: [-0.86, 2.40, 0], r: [0.03, 0.02]}
+
+  cords:
+    material: cord
+    prims:
+      - cylinder: {a: {at: k1, off: [0, 0, 0]}, b: {at: k1, off: [0, -0.40, 0]}, r: 0.018}
+      - cylinder: {a: {at: k2, off: [0, 0, 0]}, b: {at: k2, off: [0, -0.62, 0]}, r: 0.018}
+      - cylinder: {a: {at: k3, off: [0, 0, 0]}, b: {at: k3, off: [0, -0.32, 0]}, r: 0.018}
+      - cylinder: {a: {at: k4, off: [0, 0, 0]}, b: {at: k4, off: [0, -0.52, 0]}, r: 0.018}
+      - cylinder: {a: {at: k5, off: [0, 0, 0]}, b: {at: k5, off: [0, -0.36, 0]}, r: 0.018}
+
+  # 1: small goblin skull
+  skull1:
+    material: bone
+    space: k1
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, -0.52, 0], r: 0.13}
+      - box: {c: [0, -0.64, 0.06], half: [0.08, 0.04, 0.06], round: 0.02}
+  skull1_eyes:
+    material: hole
+    space: k1
+    prims:
+      - sphere: {c: [-0.05, -0.53, 0.11], r: 0.035}
+      - sphere: {c: [0.05, -0.53, 0.11], r: 0.035}
+  # 2: long bone
+  bone2:
+    material: bone
+    space: k2
+    line: true
+    prims:
+      - cylinder: {a: [0, -0.62, 0], b: [0, -1.02, 0.0], r: 0.035}
+      - sphere: {c: [-0.03, -0.62, 0], r: 0.05}
+      - sphere: {c: [0.03, -0.62, 0], r: 0.05}
+      - sphere: {c: [-0.03, -1.02, 0], r: 0.05}
+      - sphere: {c: [0.03, -1.02, 0], r: 0.05}
+  # 3: bird skull with beak
+  skull3:
+    material: bone
+    space: k3
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, -0.40, 0], r: 0.09}
+      - cone: {a: [0, -0.44, 0.02], b: [0.0, -0.66, 0.06], r: [0.05, 0.012]}
+  skull3_eyes:
+    material: hole
+    space: k3
+    prims:
+      - sphere: {c: [0, -0.39, 0.08], r: 0.03}
+  # 4: bundle of finger bones
+  fingers4:
+    material: bone
+    space: k4
+    line: true
+    prims:
+      - cylinder: {a: [0, -0.52, 0], b: [-0.08, -0.74, 0.02], r: 0.025}
+      - cylinder: {a: [0, -0.52, 0], b: [0.0, -0.78, 0.04], r: 0.025}
+      - cylinder: {a: [0, -0.52, 0], b: [0.08, -0.72, 0.02], r: 0.025}
+      - sphere: {c: [0, -0.52, 0.02], r: 0.04}
+  # 5: little horned skull
+  skull5:
+    material: bone
+    space: k5
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, -0.48, 0], r: 0.12}
+      - box: {c: [0, -0.59, 0.05], half: [0.07, 0.04, 0.06], round: 0.02}
+      - cone: {a: [-0.08, -0.40, 0], b: [-0.20, -0.28, 0], r: [0.035, 0.012]}
+      - cone: {a: [0.08, -0.40, 0], b: [0.20, -0.28, 0], r: [0.035, 0.012]}
+  skull5_eyes:
+    material: hole
+    space: k5
+    prims:
+      - sphere: {c: [-0.045, -0.49, 0.10], r: 0.032}
+      - sphere: {c: [0.045, -0.49, 0.10], r: 0.032}
+
+animations:
+  idle:
+    frames: 8
+    ms: 140
+    channels:
+      w1: "0.20*sin(p)"
+      w2: "0.12*sin(p + 1.1)"
+      w3: "0.22*sin(p + 2.3)"
+      w4: "0.16*sin(p + 3.6)"
+      w5: "0.18*sin(p + 4.8)"
+      tip: "0.018*sin(p - 0.5)"

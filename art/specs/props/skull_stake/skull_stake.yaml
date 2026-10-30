@@ -1,0 +1,109 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: skull_stake
+kind: prop
+view: topdown
+size: 48
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}   # 12 px above the pivot -> pivot (24, 36)
+shadow: {rx: 5, ry: 2, alpha: 120}
+
+# Clareira do Rei Goblin (ring of stakes) and goblin camps: wooden stake crowned with a boar skull.
+brief:
+  summary: tall crooked wooden stake rammed into the ground, rope-lashed near the top, crowned with a big
+    bleached boar skull whose long snout faces the viewer, curved tusks jutting up and black eye sockets,
+    dark old stains running down the wood and a tuft of ragged feathers tied under the skull
+  must_keep: [boar skull silhouette (long snout, upturned tusks), dark eye sockets, crooked stake,
+    rope lashing, stains]
+  simplify: [skull as 3-4 blended prims, teeth omitted, feathers as two dark slivers]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false; camera.center [0, 0.8376, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,36) is the ground point at the foot of the
+    stake. Footprint 1 tile, blocking. Built to repeat around the Goblin King's clearing: the skull is
+    centred over the pivot and symmetric, so a ring of them reads as one fence of trophies.
+
+ramps:
+  ss_wood:  ["#1c0f1a", "#33261f", "#4e3c2e", "#6a543e", "#86704e"]
+  ss_bone:  ["#1c0f1a", "#54463a", "#7c6c58", "#a29276", "#bfb194"]
+  ss_tusk:  ["#1c0f1a", "#8a7a4a", "#c8b478", "#ece0b0"]
+  ss_hole:  ["#1c0f1a", "#120a10"]
+  ss_rope:  ["#1c0f1a", "#5e4a30", "#8a7048"]
+  ss_stain: ["#1c0f1a", "#2e1414", "#421c18"]
+  ss_feather: ["#1c0f1a", "#24202a", "#3a3442"]
+
+materials:
+  wood:    {ramp: ss_wood, bands: [1, 4]}
+  bone:    {ramp: ss_bone, bands: [1, 4], gamma: 1.2}
+  tusk:    {ramp: ss_tusk, bands: [1, 3]}
+  hole:    {ramp: ss_hole, bands: [1, 1], outline: false, line: false}
+  rope:    {ramp: ss_rope, bands: [1, 2], line: false}
+  stain:   {ramp: ss_stain, bands: [1, 2], outline: false, line: false}
+  feather: {ramp: ss_feather, bands: [1, 2]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  stake:
+    material: wood
+    space: body
+    blend: 0.04
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.04, 0.50, 0], [-0.02, 1.00, 0], [0.02, 1.50, 0]], r: [0.085, 0.075, 0.07, 0.06]}
+      - cone: {a: [0, 0.04, 0], b: [0.16, 0.0, 0.10], r: [0.06, 0.02]}     # splinters at the foot
+      - cone: {a: [0, 0.04, 0], b: [-0.15, 0.0, 0.06], r: [0.06, 0.02]}
+  stains:
+    material: stain
+    space: body
+    prims:
+      - box: {c: [0.0, 1.10, 0.07], half: [0.03, 0.22, 0.01]}
+      - box: {c: [-0.03, 0.82, 0.07], half: [0.02, 0.14, 0.01]}
+  rope:
+    material: rope
+    space: body
+    prims:
+      - cylinder: {a: [-0.01, 1.22, 0], b: [0.0, 1.34, 0], r: 0.085}
+  feathers:
+    material: feather
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-0.04, 1.28, 0.06], b: [-0.22, 0.98, 0.10], r: [0.04, 0.012]}
+      - cone: {a: [0.04, 1.28, 0.06], b: [0.16, 1.02, 0.12], r: [0.035, 0.012]}
+  skull:             # boar skull, snout down towards the viewer
+    material: bone
+    space: body
+    line: true
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0.02, 1.66, -0.04], r: [0.27, 0.12, 0.20]}        # cranium (wide, flat)
+      - cone: {a: [0.02, 1.60, 0.08], b: [0.02, 1.44, 0.32], r: [0.15, 0.10]}  # broad snout
+      - ellipsoid: {c: [0.02, 1.76, -0.12], r: [0.16, 0.06, 0.10]}        # brow crest
+  tusks:
+    material: tusk
+    space: body
+    line: true
+    prims:
+      - chain: {pts: [[-0.10, 1.47, 0.34], [-0.28, 1.46, 0.42], [-0.36, 1.62, 0.42]], r: [0.045, 0.035, 0.015]}
+      - chain: {pts: [[0.14, 1.47, 0.34], [0.32, 1.46, 0.42], [0.40, 1.62, 0.42]], r: [0.045, 0.035, 0.015]}
+  holes:             # eye sockets and nostrils
+    material: hole
+    space: body
+    prims:
+      - sphere: {c: [-0.10, 1.70, 0.13], r: 0.07}
+      - sphere: {c: [0.14, 1.70, 0.13], r: 0.07}
+      - sphere: {c: [-0.02, 1.40, 0.44], r: 0.028}
+      - sphere: {c: [0.06, 1.40, 0.44], r: 0.028}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

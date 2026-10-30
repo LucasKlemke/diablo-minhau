@@ -1,0 +1,146 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: guano_pile
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.2792, 0]}   # 4 px above the pivot -> pivot (24, 28)
+shadow: null             # flat, sits on the floor
+
+# Caverna dos Morcegos: heaps of bat droppings under the roosts, with picked bones.
+brief:
+  summary: low lumpy mound of grey-olive bat guano with paler crusted tops, a ring of splatter around it on
+    the floor, small picked bones (a rodent skull, a rib, a femur) half sunk in it
+  must_keep: [low lumpy mound, pale crust, splatter specks, a couple of bones]
+  simplify: [specks as 1-2 px flat dots, bones as 2-3 prims]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null; camera.center [0, 0.2792, 0] (integer
+    pivot). The splatter has no outline (decal). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 28) = the ground point under the centre of the mound. Floor-decal-ish:
+    draw it on the floor layer or just above it; it never blocks (walkable, ~1.5x1 tiles).
+    VARIANTS: `variants` has 2 frames: 0 mound with bones, 1 flatter spread with a bat wing bone;
+    `idle` = variant 0.
+
+ramps:
+  gp_guano:  ["#1c0f1a", "#34302a", "#4c4738", "#68624a", "#8a8262"]
+  gp_crust:  ["#1c0f1a", "#7e7860", "#a29c80", "#c2bc9e"]
+  gp_splat:  ["#1c0f1a", "#4e4a3c"]
+  gp_bone:   ["#1c0f1a", "#7a6a58", "#b4a488", "#ddd0b0"]
+  gp_dark:   ["#1c0f1a", "#1a1214"]
+
+materials:
+  guano: {ramp: gp_guano, bands: [1, 4], line: false}
+  crust: {ramp: gp_crust, bands: [1, 3], outline: false, line: false}
+  splat: {ramp: gp_splat, emissive: true, band: 1, outline: false, line: false}
+  bone:  {ramp: gp_bone, bands: [1, 3]}
+  dark:  {ramp: gp_dark, emissive: true, band: 1, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  var: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  # ---------------- 0: mound with bones ----------------
+  splat0:
+    when: "var < 0.5"
+    material: splat
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.02], r: [0.62, 0.004, 0.42]}
+      - ellipsoid: {c: [0.72, 0.004, 0.20], r: [0.06, 0.004, 0.05]}
+      - ellipsoid: {c: [-0.74, 0.004, 0.05], r: [0.07, 0.004, 0.05]}
+      - ellipsoid: {c: [0.40, 0.004, 0.58], r: [0.05, 0.004, 0.04]}
+      - ellipsoid: {c: [-0.35, 0.004, 0.55], r: [0.06, 0.004, 0.04]}
+      - ellipsoid: {c: [0.62, 0.004, -0.35], r: [0.05, 0.004, 0.04]}
+      - ellipsoid: {c: [-0.55, 0.004, -0.40], r: [0.05, 0.004, 0.04]}
+  mound0:
+    when: "var < 0.5"
+    material: guano
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.10, 0], r: [0.48, 0.16, 0.32]}
+      - ellipsoid: {c: [-0.12, 0.22, -0.04], r: [0.26, 0.14, 0.20]}
+      - ellipsoid: {c: [0.22, 0.16, 0.06], r: [0.20, 0.10, 0.16]}
+      - ellipsoid: {c: [-0.38, 0.06, 0.12], r: [0.18, 0.07, 0.14]}
+  crust0:
+    when: "var < 0.5"
+    material: crust
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.14, 0.33, -0.06], r: [0.12, 0.04, 0.09]}
+      - ellipsoid: {c: [0.22, 0.24, 0.08], r: [0.08, 0.03, 0.06]}
+      - ellipsoid: {c: [0.05, 0.22, 0.20], r: [0.06, 0.03, 0.05]}
+      - ellipsoid: {c: [-0.40, 0.11, 0.18], r: [0.06, 0.03, 0.05]}
+  bones0:
+    when: "var < 0.5"
+    material: bone
+    space: body
+    prims:
+      - cylinder: {a: [0.18, 0.05, 0.34], b: [0.60, 0.05, 0.26], r: 0.036}      # femur sticking out
+      - sphere: {c: [0.62, 0.06, 0.26], r: 0.055}
+      - ellipsoid: {c: [-0.30, 0.16, 0.26], r: [0.11, 0.08, 0.12]}               # rodent skull
+      - cone: {a: [-0.30, 0.13, 0.32], b: [-0.30, 0.09, 0.42], r: [0.05, 0.025]}
+      - torus: {c: [0.30, 0.20, -0.12], R: 0.10, r: 0.018, rot: [0, 0.4, 1.57]}   # rib arc
+  eyes0:
+    when: "var < 0.5"
+    material: dark
+    space: body
+    prims:
+      - sphere: {c: [-0.34, 0.17, 0.34], r: 0.025}
+      - sphere: {c: [-0.26, 0.17, 0.34], r: 0.025}
+
+  # ---------------- 1: flatter spread ----------------
+  splat1:
+    when: "var > 0.5"
+    material: splat
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.05, 0.004, 0.0], r: [0.70, 0.004, 0.36], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [0.40, 0.004, 0.30], r: [0.30, 0.004, 0.20]}
+      - ellipsoid: {c: [0.82, 0.004, 0.05], r: [0.06, 0.004, 0.05]}
+      - ellipsoid: {c: [-0.80, 0.004, -0.25], r: [0.06, 0.004, 0.05]}
+      - ellipsoid: {c: [-0.30, 0.004, 0.50], r: [0.05, 0.004, 0.04]}
+      - ellipsoid: {c: [0.15, 0.004, -0.45], r: [0.05, 0.004, 0.04]}
+  mound1:
+    when: "var > 0.5"
+    material: guano
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [-0.25, 0.06, -0.05], r: [0.36, 0.10, 0.24], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [0.30, 0.05, 0.18], r: [0.24, 0.08, 0.18]}
+      - ellipsoid: {c: [0.05, 0.05, 0.05], r: [0.16, 0.06, 0.14]}
+  crust1:
+    when: "var > 0.5"
+    material: crust
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.28, 0.15, -0.06], r: [0.10, 0.03, 0.08]}
+      - ellipsoid: {c: [0.32, 0.12, 0.18], r: [0.08, 0.03, 0.06]}
+  bones1:
+    when: "var > 0.5"
+    material: bone
+    space: body
+    prims:
+      - cylinder: {a: [-0.10, 0.09, 0.30], b: [0.20, 0.06, 0.42], r: 0.022}    # bat wing bones (fan)
+      - cylinder: {a: [-0.10, 0.09, 0.30], b: [0.12, 0.05, 0.55], r: 0.02}
+      - cylinder: {a: [-0.10, 0.09, 0.30], b: [-0.02, 0.05, 0.60], r: 0.02}
+      - sphere: {c: [-0.55, 0.08, 0.18], r: 0.06}                                # small skull
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 2
+    ms: 1000
+    channels: {var: "f"}

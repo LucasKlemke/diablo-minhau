@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cellar_beam
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 1.5354 = 22 px above the pivot -> pivot (32, 54), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.5354, 0]}
+shadow: {rx: 9, ry: 3, alpha: 100}
+
+# Act I dungeon "Casa Abandonada": a structural column of the cellar.
+brief:
+  summary: a thick squared dark oak post on a rough stone footing, holding up a ceiling cross beam with two
+    diagonal braces (a T), an iron strap and big nails at the joint, a dusty cobweb in one brace corner, a
+    patch of dark mould and a crack running down the post
+  must_keep: [tall post taller than a human, cross beam with braces at the top, stone footing, cobweb]
+  simplify: [grain as one dark line, cobweb as a flat pale triangle]
+  exceptions: |
+    kind prop, size 64 (tall), directions 1, mirror false, camera.center [0, 1.5354, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local web and mould.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,54) is the ground point under the post.
+    Post 0.34 square, 2.3 tall (the ceiling, ~1.3x a human); cross beam 1.5 long at the top. Footprint 1x1
+    tile, blocking (only the post and footing are on the floor; the beam overhangs as a ceiling element and
+    should draw above actors that walk behind it - y-sort on the pivot is fine). Static: idle 1 frame.
+
+ramps:
+  cb_web:   ["#1c0f1a", "#8a8488", "#b4aeac", "#d6d0c8"]
+  cb_mould: ["#1c0f1a", "#1e2a16", "#2e401e", "#46582a"]
+
+materials:
+  post:   {ramp: hbeam, bands: [2, 4]}
+  beam:   {ramp: rwood, bands: [2, 4]}
+  grain:  {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  stone:  {ramp: rstone, bands: [2, 4]}
+  iron:   {ramp: riron, bands: [1, 3]}
+  web:    {ramp: cb_web, bands: [2, 3], outline: false, line: false}
+  mould:  {ramp: cb_mould, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  footing:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.1, 0], half: [0.3, 0.1, 0.28], rot: [0, 0.15, 0], round: 0.05}
+      - box: {c: [0.28, 0.05, 0.2], half: [0.1, 0.05, 0.08], rot: [0, 0.6, 0], round: 0.03}
+  post:
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.2, 0], half: [0.17, 1.05, 0.17], round: 0.02}
+  beam:
+    material: beam
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.37, 0], half: [0.78, 0.13, 0.16], round: 0.02}
+      - box: {c: [0.38, 2.05, 0], half: [0.06, 0.3, 0.08], rot: [0, 0, 0.785]}
+      - box: {c: [-0.38, 2.05, 0], half: [0.06, 0.3, 0.08], rot: [0, 0, -0.785]}
+  grain:
+    material: grain
+    space: body
+    prims:
+      - box: {c: [0.05, 1.0, 0.172], half: [0.012, 0.45, 0.004], rot: [0, 0, 0.04]}
+      - box: {c: [-0.06, 1.75, 0.172], half: [0.01, 0.2, 0.004]}
+  iron:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [0, 2.05, 0.0], half: [0.19, 0.06, 0.19]}
+      - sphere: {c: [0.08, 2.38, 0.17], r: 0.035}
+      - sphere: {c: [-0.08, 2.38, 0.17], r: 0.035}
+  web:
+    material: web
+    space: body
+    prims:
+      - tri: {a: [-0.17, 2.24, 0.1], b: [-0.6, 2.24, 0.1], c: [-0.17, 1.72, 0.1], th: 0.01}
+  mould:
+    material: mould
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.05, 0.4, 0.17], r: [0.12, 0.18, 0.02]}
+      - ellipsoid: {c: [0.1, 0.25, 0.17], r: [0.07, 0.07, 0.02]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

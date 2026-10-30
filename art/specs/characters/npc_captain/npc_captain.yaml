@@ -1,0 +1,231 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_captain
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10, ry: 3.6, alpha: 120}
+
+# Act III village NPC "Capita Helena" (Forte da Montanha). Project style: topdown, 32 px, dark outline,
+# flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi fort commander - upright, squared shoulders, polished steel breastplate with round pauldrons,
+    royal-blue tabard hanging front and back to the knees with a gold belt, long navy cape lined with a
+    thick white fur collar, short bright red-orange hair, dark pants and steel-capped boots, sword in a
+    dark scabbard on the left hip with a gold crossguard.
+  must_keep: [steel breastplate + pauldrons, blue tabard, navy cape with white fur collar, short red hair, sword at the hip]
+  simplify: [no fingers, tabard is one front and one back panel, emblem left out, scabbard is one cylinder]
+  decisions: >
+    Head scale 1.75 (chibi), hunter-like proportions but squarer shoulders. Cape is dark navy (not
+    blue like the tabard) so the silhouette stays dark and reads against snow; the white fur collar and
+    the red hair are the bright accents up top. Sword lives on the left hip in pelvis space (the mirror
+    swaps it in w/sw/nw, accepted like the other NPCs' tools). Idle: left hand rests on the hilt, right
+    hand on the hip-ish at the side, chin up. Talk: right arm sweeps forward in a commanding gesture.
+
+ramps:
+  hair_red: ["#1c0f1a", "#5e1414", "#a82a1c", "#d8452a", "#f07a4a"]
+  cape_navy: ["#1c0f1a", "#141a3c", "#232d5e", "#36437e"]
+  fur_white: ["#1c0f1a", "#8f98ad", "#d6dce8", "#f6f8fc"]
+  scabbard: ["#1c0f1a", "#2a1a22", "#45283a", "#5e3a4e"]
+
+materials:
+  skin:  {ramp: skin, bands: [2, 4], line_band: 2}
+  plate: {ramp: steel, bands: [1, 3]}
+  tabard: {ramp: cloth_blue, bands: [1, 3]}
+  cape:  {ramp: cape_navy, bands: [1, 3]}
+  fur:   {ramp: fur_white, bands: [1, 3]}
+  gold:  {ramp: gold, bands: [1, 3]}
+  pants: {ramp: cloth, bands: [1, 3]}
+  boots: {ramp: leather, bands: [1, 2]}
+  hair:  {ramp: hair_red, bands: [1, 3]}
+  sheath: {ramp: scabbard, bands: [1, 3]}
+  ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: -0.02
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.04
+  head_yaw: 0
+  hand_L: [0.18, 0.12, 0.12]
+  foot_L: [0.11, 0, 0.02]
+  pitch_foot_L: 0
+  cape: 0                       # cape sway (-1..1)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.56 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.42, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.75}
+  shoulder_L: {parent: pelvis, pos: [0.20, 0.31, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.09, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  capebase:   {parent: pelvis, pos: [0, 0.34, -0.10], rot: "[-cape*0.3, 0, 0]"}
+  sword:      {parent: pelvis, pos: [0.19, 0.02, 0.05], rot: [0.5, 0, -0.15]}   # hilt on the left hip, tilted forward
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.4, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.26, 0.24],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # padded body under the plate (blue, shows as tabard sides)
+    material: tabard
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.15, 0.11, 0.115]}
+      - cone: {a: [0, 0.02, 0], b: [0, -0.14, 0], r: [0.14, 0.16]}
+  breastplate:     # steel cuirass, broad at the chest
+    material: plate
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.23, 0.01], r: [0.18, 0.13, 0.135]}
+      - ellipsoid: {c: [0, 0.19, 0.06], r: [0.14, 0.10, 0.10]}
+  tabard:          # blue panels front and back, down to the knees
+    material: tabard
+    space: pelvis
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.08, 0.16], half: [0.075, 0.09, 0.025], round: 0.02, rot: [-0.05, 0, 0]}
+      - box: {c: [0, -0.15, 0.15], half: [0.10, 0.14, 0.025], round: 0.02, rot: [0.10, 0, 0]}
+      - box: {c: [0, 0.00, -0.125], half: [0.10, 0.25, 0.025], round: 0.02, rot: [-0.06, 0, 0]}
+  belt:            # gold belt with a buckle
+    material: gold
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.04, 0], b: [0, 0.08, 0], r: 0.16}
+      - box: {c: [0, 0.06, 0.16], half: [0.04, 0.035, 0.02], round: 0.01}
+  pauldron_L:      # round steel shoulder plate
+    material: plate
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0.21, 0.33, 0.0], r: [0.10, 0.075, 0.10], rot: [0, 0, -0.35]}
+  collar:          # thick white fur around the shoulders
+    material: fur
+    space: pelvis
+    blend: 0.05
+    prims:
+      - torus: {c: [0, 0.36, -0.02], R: 0.14, r: 0.075}
+      - ellipsoid: {c: [0, 0.35, -0.10], r: [0.22, 0.09, 0.11]}
+  cape:            # long navy cape to the calves
+    material: cape
+    space: capebase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.58, -0.08], r: [0.18, 0.25]}
+    cut:
+      - box: {c: [0, -0.2, 0.18], half: [0.4, 0.7, 0.14]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.32, 0], b: [0, 0.42, 0.02], r: [0.05, 0.045]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.145, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.10, 0.08, 0.10]}
+      - sphere: {c: [0, 0.11, 0.142], r: 0.02}
+  hair:            # short red-orange crop with a side-swept fringe
+    material: hair
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.20, -0.03], r: [0.16, 0.12, 0.15]}
+      - ellipsoid: {c: [0, 0.12, -0.08], r: [0.156, 0.11, 0.10]}
+      - ellipsoid: {c: [0.04, 0.235, 0.10], r: [0.10, 0.04, 0.045], rot: [0, 0, 0.3]}   # fringe
+      - ellipsoid: {c: [0.135, 0.12, 0.02], r: [0.035, 0.065, 0.055]}                  # sideburn
+    cut:
+      - box: {c: [0, 0.07, 0.15], half: [0.3, 0.115, 0.1]}
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.055, 0.115, 0.135], r: [0.024, 0.03, 0.02]}
+  arm_L:           # blue sleeve
+    material: tabard
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.065}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.06, 0.055]}
+  vambrace_L:      # steel forearm
+    material: plate
+    blend: 0.02
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.058, 0.052]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.05}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.08, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.065, 0.055]}
+  boot_L:          # tall boots with a steel knee cap
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.20, 0], b: [0, -0.02, 0.0], r: [0.075, 0.068]}
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.068, 0.045, 0.11]}
+  knee_L:
+    material: plate
+    prims:
+      - sphere: {c: {at: knee_L, off: [0, 0, 0.03]}, r: 0.06}
+  scabbard:        # dark scabbard angled down and back from the hip
+    material: sheath
+    space: sword
+    prims:
+      - cylinder: {a: [0, -0.02, 0], b: [0, -0.50, 0], r: 0.035, round: 0.01}
+  guard:           # gold crossguard + pommel
+    material: gold
+    space: sword
+    blend: 0.01
+    prims:
+      - box: {c: [0, 0.0, 0], half: [0.03, 0.028, 0.10], round: 0.01}
+      - sphere: {c: [0, 0.18, 0], r: 0.042}
+  grip:
+    material: boots
+    space: sword
+    prims:
+      - cylinder: {a: [0, 0.01, 0], b: [0, 0.15, 0], r: 0.025}
+
+animations:
+  idle:            # chin up, slow breath, hand on the hilt, cape settles
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04 - 0.03*sin(p - 0.5)"
+      hand_L: "[0.18, 0.12 + 0.01*sin(p - 0.6), 0.12]"
+      hand_R: "[0.26, 0.04 + 0.02*sin(p - 0.6), 0.04]"
+      cape: "0.15*sin(p - 1.0)"
+  talk:            # right arm sweeps forward giving orders, head nods
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.015*sin(2*p)"
+      head_pitch: "-0.04 - 0.06*sin(2*p)"
+      hand_L: "[0.18, 0.12, 0.12]"
+      hand_R: "[0.26 + 0.06*sin(p), 0.32 + 0.08*sin(p), 0.24]"
+      cape: "0.10*sin(p - 1.0)"

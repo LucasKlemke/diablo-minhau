@@ -1,0 +1,312 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: cultist
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 9.5, ry: 3.3, alpha: 120}
+
+# Cultist: Act II human caster. Same skeleton and height as the bandit (pelvis 0.50, head 1.9x), legs
+# hidden by a long robe. Project style: flat 2-3 tones, dark outline, chibi, snappy.
+# A tinted, scaled-up (1.5x) copy is the Swamp Witch and the Necromancer bosses: shapes are kept big and
+# few (pointed hood, robe bell, wide sleeves, orb) so they hold up when enlarged.
+brief:
+  summary: chibi human cultist - long dark crimson robe and pointed hood, the face lost in shadow with two
+    glowing violet eyes, gold rope belt and hem trim, wide sleeves with gold cuffs, pale hands, a glowing
+    purple orb floating over the left palm
+  must_keep: [pointed crimson hood, black face with glowing eyes, glowing purple orb, robe bell silhouette]
+  simplify: [no visible face features besides the eyes, feet are dark boot tips under the hem, no fingers]
+  decisions:
+    - crimson robe follows the game's placeholder colour (#7a1420); gold trim is the readable second colour
+    - the face is an unlit near-black hollow (void, emissive band 0) so the eyes pop at any tint
+    - orb and eyes share the palette's arcane ramp (emissive + glow), the only saturated accent besides the robe;
+      the boss copies retint the whole sprite, the emissive map keeps them glowing
+    - orb lives in its own frame (orbb) over the left wrist; `orb` scales it (0 = gone, after the bolt leaves)
+    - attack is a two-hand shove with a small arcane burst at the palms on the hit frame
+    - cast thrusts the orb hand forward; the orb swells, then vanishes on the release frame; `muzzle`
+      socket at the orb for the game's projectile spawn
+    - death crumples into a robe pile; eyes and orb go out
+    - mirrored directions swap the orb to the right hand (project mirror style)
+
+ramps:
+  robe:     ["#1c0f1a", "#480e1c", "#7a1420", "#a52a36"]   # dark crimson
+  robe_in:  ["#1c0f1a", "#230a14", "#34101c", "#4a1626"]   # robe lining / inner shadow
+  void:     ["#1c0f1a", "#0e0710", "#160b18"]               # face hollow
+  boots:    ["#1c0f1a", "#24181e", "#362630", "#4a3842"]
+  palehand: ["#1c0f1a", "#8a6a6a", "#c9a59a", "#e8cbbc"]   # pale hands
+
+materials:
+  robe:    {ramp: robe, bands: [1, 3]}
+  robe_in: {ramp: robe_in, bands: [1, 3]}
+  trim:    {ramp: gold, bands: [1, 3]}
+  hand:    {ramp: palehand, bands: [1, 3]}
+  boots:   {ramp: boots, bands: [1, 2]}
+  void:    {ramp: void, emissive: true, band: 1, outline: false, line: false}
+  eye:     {ramp: arcane, emissive: true, band: 2, outline: false, glow: {color: "#cb71ff", mix: 0.35, radius: 1}}
+  orb:     {ramp: arcane, emissive: true, band: 1, outline: false, glow: {color: "#b24dff", mix: 0.45, radius: 1}}
+  orb_core: {ramp: arcane, emissive: true, band: 3, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.05
+  head_yaw: 0
+  hand_L: [0.24, 0.06, 0.18]
+  hand_R: [0.26, -0.02, 0.08]
+  foot_L: [0.08, 0, 0.02]
+  pitch_foot_L: 0
+  coat: 0           # robe hem sway (-1..1)
+  hood: 0           # hood tip sway (-1..1)
+  orb: 1            # orb size (0 = gone)
+  ofloat: 0         # orb float offset above the palm
+  burst: 0          # arcane burst at the palms (shove)
+  eyes: 1           # eye glow (0 = dead)
+  pile: 0           # robe pile on the ground (death)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.36, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.9}
+  hoodtip:   {parent: head, pos: [0, 0.25, -0.12], rot: "[-1.75 - hood*0.35, 0, 0]"}
+  coatbase:  {parent: pelvis, rot: "[-coat*0.18, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.27, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  orbb:       {parent: root, at: wrist_L}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.18, 0.17],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.14, 0.11, 0.11]}
+      - ellipsoid: {c: [0, 0.21, -0.005], r: [0.16, 0.10, 0.115]}
+  skirt:           # long robe bell down to the ground
+    material: robe
+    space: coatbase
+    blend: 0.04
+    prims:
+      - cone: {a: [0, 0.04, 0], b: [0, -0.42, -0.01], r: [0.15, 0.26]}
+    cut:
+      - box: {c: [0, -0.78, 0], half: [0.6, 0.30, 0.6]}               # flat bottom at the ground
+  slit:            # dark front opening of the robe
+    material: robe_in
+    space: coatbase
+    prims:
+      - box: {c: [0, -0.24, 0.215], half: [0.035, 0.20, 0.02], rot: [-0.2, 0, 0], round: 0.01}
+  hem:
+    material: trim
+    space: coatbase
+    prims:
+      - cylinder: {a: [0, -0.475, -0.01], b: [0, -0.425, -0.01], r: 0.268, round: 0.01}
+  belt:            # gold rope belt with hanging ends
+    material: trim
+    space: pelvis
+    blend: 0.01
+    prims:
+      - torus: {c: [0, 0.03, 0], R: 0.15, r: 0.02, rot: [0, 0, 0]}
+      - cone: {a: [0.06, 0.02, 0.14], b: [0.08, -0.14, 0.17], r: [0.018, 0.014]}
+  mantle:          # short cape over the shoulders
+    material: robe
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.27, -0.03], r: [0.19, 0.07, 0.14]}
+  hood:            # big hood with a pointed tip drooping back
+    material: robe
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.16, -0.02], r: [0.17, 0.165, 0.165]}
+      - ellipsoid: {c: [0, 0.03, -0.06], r: [0.16, 0.08, 0.12]}
+    cut:
+      - ellipsoid: {c: [0, 0.11, 0.175], r: [0.11, 0.115, 0.10]}       # face opening
+  hood_tip:
+    material: robe
+    space: hoodtip
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0, 0], b: [0, 0.16, 0.02], r: [0.08, 0.015]}
+  face:            # shadowed face hollow
+    material: void
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.11, 0.06], r: [0.12, 0.12, 0.10]}
+  eye_L:
+    when: "eyes > 0.05"
+    material: eye
+    space: head
+    prims:
+      - ellipsoid: {c: "[0.045, 0.12, 0.16 - 0.015*pulse(yaw, 90, 35)]", r: ["0.032*eyes", "0.024*eyes", 0.014]}
+  arm_L:
+    material: robe
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.065}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.062, 0.058]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.058, 0.085]}       # wide sleeve
+  cuff_L:
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.03], b: [0, 0, -0.005], r: 0.085}
+  hand_L:
+    material: hand
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.045}
+  leg_L:           # hidden under the robe; only the boots show
+    material: robe_in
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.07, 0.06]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.06, 0.05]}
+  boot_L:
+    material: boots
+    space: sole_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.06, 0.042, 0.09]}
+  orb:             # glowing orb over the left palm
+    when: "orb > 0.05"
+    material: orb
+    space: orbb
+    prims:
+      - sphere: {c: "[0, 0.12 + ofloat, 0.06]", r: "0.10*orb"}
+  orb_core:
+    when: "orb > 0.05"
+    material: orb_core
+    space: orbb
+    prims:
+      - sphere: {c: "[0.0, 0.13 + ofloat, 0.11]", r: "0.045*orb"}
+  burst_L:         # arcane burst at the palms (shove)
+    when: "burst > 0.05"
+    material: orb
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.09], r: "0.07*burst"}
+  pile:            # robe heap on the ground (death)
+    when: "pile > 0.05"
+    material: robe
+    space: root
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.04], r: ["0.30*pile", 0.07, "0.26*pile"]}
+
+sockets:
+  muzzle: {bone: orbb, offset: [0, 0.12, 0.06]}     # orb centre: bolt spawn (cast)
+  hit: {bone: torso_rot, offset: [0, 0.22, 0.42]}   # in front of the palms (shove)
+  head: {bone: head, offset: [0, 0.40, 0]}
+
+timing: {attack: {hit: 200ms, total: 420ms}, cast: {release: 330ms, total: 600ms}}
+
+animations:
+  idle:            # breathing, orb bobbing and pulsing, robe and hood swaying
+    frames: 4
+    ms: 170
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "-0.05 - 0.04*sin(p - 0.5)"
+      hand_L: "[0.24, 0.06 + 0.02*sin(p - 0.6), 0.18]"
+      hand_R: "[0.26, -0.02 + 0.015*sin(p - 0.6), 0.08]"
+      coat: "0.3*sin(p - 1.0)"
+      hood: "0.4*sin(p - 1.2)"
+      orb: "1 + 0.12*sin(2*p)"
+      ofloat: "0.025*sin(p + 0.8)"
+  walk:            # 6-frame glide-walk: boots peek under the hem, robe and hood swing
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.10
+      bob: "-0.025*cos(2*p) + 0.01"
+      twist: "0.07*cos(p)"
+      foot_L: "[0.08, 0.06*pos(-sin(p)), 0.02 + 0.14*cos(p)]"
+      foot_R: "[0.08, 0.06*pos(sin(p)), 0.02 - 0.14*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.24, 0.07, 0.16 - 0.03*cos(p)]"
+      hand_R: "[0.26, -0.01 + 0.02*pos(-cos(p)), 0.06 + 0.10*cos(p)]"
+      coat: "0.5*sin(p - 0.8)"
+      hood: "0.6 + 0.3*sin(2*p - 0.8)"
+      orb: "1 + 0.1*sin(2*p)"
+      ofloat: "0.02*sin(2*p + 0.8)"
+  attack:          # two-hand shove: draw back (held), push with an arcane burst, impact, recover
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {lean: -0.12, twist: -0.15, bob: -0.02, squash: 0.94, head_pitch: -0.10, hand_L: [0.20, 0.16, -0.02],
+              hand_R: [0.20, 0.14, -0.02], foot_L: [0.08, 0, 0.08], foot_R: [0.08, 0, -0.04], coat: -0.4, hood: -0.3, orb: 0.7}
+      - ms: 70
+        set: {root: [0, 0, 0.08], lean: 0.22, twist: 0.05, squash: 1.05, hand_L: [0.14, 0.20, 0.34], hand_R: [0.14, 0.18, 0.34],
+              foot_L: [0.08, 0, 0.16], foot_R: [0.08, 0, -0.06], coat: 0.4, hood: 0.5, orb: 0.7, burst: 0.6}
+      - ms: 100
+        event: hit
+        set: {root: [0, 0, 0.12], lean: 0.30, twist: 0.08, squash: 0.98, hand_L: [0.12, 0.20, 0.40], hand_R: [0.12, 0.18, 0.40],
+              foot_L: [0.08, 0, 0.18], foot_R: [0.08, 0, -0.08], coat: 0.6, hood: 0.8, orb: 0.8, burst: 1.0}
+      - ms: 60
+        set: {root: [0, 0, 0.10], lean: 0.24, hand_L: [0.14, 0.18, 0.36], hand_R: [0.14, 0.16, 0.36],
+              foot_L: [0.08, 0, 0.16], foot_R: [0.08, 0, -0.06], coat: 0.3, hood: 0.5, orb: 0.9, burst: 0.4}
+      - ms: 60
+        set: {root: [0, 0, 0.04], lean: 0.10, hand_L: [0.22, 0.08, 0.22], hand_R: [0.24, 0.0, 0.12], coat: 0.1, hood: 0.2}
+  cast:            # orb hand draws back and up (held), thrusts forward, the bolt leaves (release), recover
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {lean: -0.08, twist: 0.30, bob: -0.02, squash: 0.95, head_pitch: -0.08, hand_L: [0.28, 0.30, -0.06],
+              hand_R: [0.20, 0.10, 0.24], coat: -0.3, hood: -0.3, orb: 1.3, ofloat: 0.02}
+      - ms: 150
+        set: {lean: -0.12, twist: 0.38, bob: -0.03, squash: 0.94, head_pitch: -0.10, hand_L: [0.28, 0.36, -0.10],
+              hand_R: [0.20, 0.12, 0.26], coat: -0.4, hood: -0.4, orb: 1.6, ofloat: 0.04}
+      - ms: 60
+        set: {root: [0, 0, 0.06], lean: 0.18, twist: -0.10, squash: 1.05, hand_L: [0.16, 0.24, 0.38],
+              hand_R: [0.26, 0.0, 0.0], coat: 0.4, hood: 0.4, orb: 1.8, ofloat: 0.0}
+      - ms: 110
+        event: release
+        set: {root: [0, 0, 0.08], lean: 0.24, twist: -0.18, hand_L: [0.12, 0.22, 0.42],
+              hand_R: [0.28, -0.02, -0.04], coat: 0.6, hood: 0.7, orb: 0, burst: 0.8}
+      - ms: 160
+        set: {root: [0, 0, 0.03], lean: 0.10, twist: -0.06, hand_L: [0.22, 0.10, 0.24], hand_R: [0.26, -0.02, 0.06],
+              coat: 0.2, hood: 0.3, orb: 0.5}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.30, hand_L: [0.32, 0.14, 0.02],
+                       hand_R: [0.30, 0.12, 0.0], coat: -0.6, hood: 0.8, orb: 0.6, eyes: 1.3, foot_R: [0.08, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.10, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.15, hand_L: [0.28, 0.10, 0.10],
+                       hand_R: [0.28, 0.04, 0.04], coat: -0.3, hood: 0.4, orb: 0.8, foot_R: [0.08, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.04, root: [0, 0, -0.02], coat: 0.1, hood: 0.1}}
+  death:           # clutches, sinks to the knees, crumples into a robe pile; eyes and orb go out
+    loop: false
+    keys:
+      - {ms: 110, set: {lean: -0.22, squash: 0.95, head_pitch: -0.35, root: [0, 0, -0.04], hand_L: [0.30, 0.20, 0.04],
+                        hand_R: [0.28, 0.18, 0.04], coat: -0.5, hood: 0.8, orb: 1.4, eyes: 1.3}}
+      - {ms: 120, set: {bob: -0.14, lean: 0.25, squash: 0.90, head_pitch: 0.15, hand_L: [0.20, 0.06, 0.20],
+                        hand_R: [0.20, 0.04, 0.20], foot_L: [0.10, 0, -0.06], foot_R: [0.10, 0, -0.08], coat: 0.4, hood: 0.4, orb: 0.6, eyes: 0.9}}
+      - {ms: 120, set: {bob: -0.28, lean: 0.55, squash: 0.80, head_pitch: 0.3, hand_L: [0.26, -0.04, 0.26],
+                        hand_R: [0.26, -0.06, 0.26], foot_L: [0.12, 0, -0.10], foot_R: [0.12, 0, -0.12], coat: 0.6, hood: 0.2, orb: 0.2, eyes: 0.6, pile: 0.7}}
+      - {ms: 130, set: {bob: -0.36, lean: 0.85, squash: 0.70, head_pitch: 0.3, root: [0, 0, -0.02], hand_L: [0.32, -0.02, 0.30],
+                        hand_R: [0.32, -0.04, 0.30], foot_L: [0.12, 0, -0.12], foot_R: [0.12, 0, -0.14], coat: 0.4, orb: 0, eyes: 0.3, pile: 1.0}}
+      - {ms: 700, set: {bob: -0.38, lean: 0.90, squash: 0.68, head_pitch: 0.3, root: [0, 0, -0.02], hand_L: [0.34, -0.02, 0.30],
+                        hand_R: [0.34, -0.04, 0.30], foot_L: [0.12, 0, -0.12], foot_R: [0.12, 0, -0.14], coat: 0.3, orb: 0, eyes: 0, pile: 1.0}}

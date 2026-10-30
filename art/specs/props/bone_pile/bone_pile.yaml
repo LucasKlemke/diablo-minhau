@@ -1,0 +1,258 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: bone_pile
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.4188 = 6 px above the pivot -> pivot (24, 30), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4188, 0]}
+shadow: {rx: 15, ry: 5, alpha: 80}
+
+# Act I dungeon "Porao do Acougueiro" (also usable in any lair): heaps of gnawed bones and skulls.
+brief:
+  summary: heaps of old yellowed bones and skulls on a dark dried-blood stain; three looks - a big heap with
+    three skulls, a small scatter with one skull, and a heap with a ribcage and a skull
+  must_keep: [knobbed long bones, round skulls with dark eye sockets, dark stain under them, low silhouette]
+  simplify: [bones as rods with two knobs, skull as a sphere plus a jaw box, ribs as half rings]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.4188, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local bone and stain.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,30) is the ground point at the centre of the
+    heap. v0 ~1.4 wide (2x1 tiles), v1 ~1.1 wide (1x1, low: could be walkable), v2 ~1.3 wide (2x1), blocking.
+    Clips: idle (= variant 0) and `variants` (3 frames, frame i = variant i). Layout generated once from a
+    seeded script.
+
+ramps:
+  bp_bone:  ["#1c0f1a", "#7a6a50", "#b0a080", "#d8ccaa", "#f0e8cc"]
+  bp_stain: ["#1c0f1a", "#2e0a10"]
+
+materials:
+  bone:   {ramp: bp_bone, bands: [1, 3]}
+  skull:  {ramp: bp_bone, bands: [2, 4]}
+  socket: {ramp: riron, bands: [1, 1], outline: false, line: false}
+  stain:  {ramp: bp_stain, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  stain0:
+    material: stain
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.05], r: [0.75, 0.004, 0.5]}
+  bones0:
+    material: bone
+    space: body
+    line: true
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - cylinder: {a: [-0.170, 0.030, -0.574], b: [-0.571, 0.205, -0.147], r: 0.035}
+      - cylinder: {a: [0.648, 0.249, -0.005], b: [0.157, 0.030, 0.153], r: 0.035}
+      - cylinder: {a: [-0.541, 0.248, 0.047], b: [-0.044, 0.078, 0.068], r: 0.035}
+      - cylinder: {a: [0.054, 0.160, 0.446], b: [-0.266, 0.030, 0.683], r: 0.035}
+      - cylinder: {a: [-0.383, 0.241, -0.318], b: [0.067, 0.071, 0.030], r: 0.035}
+      - cylinder: {a: [0.593, 0.030, -0.355], b: [0.521, 0.108, 0.231], r: 0.035}
+      - cylinder: {a: [0.443, 0.108, 0.462], b: [-0.116, 0.030, 0.656], r: 0.035}
+      - cylinder: {a: [-0.267, 0.126, 0.035], b: [-0.047, 0.188, 0.340], r: 0.035}
+      - cylinder: {a: [0.677, 0.085, -0.107], b: [0.311, 0.073, 0.128], r: 0.035}
+      - cylinder: {a: [0.019, 0.264, 0.367], b: [-0.353, 0.030, 0.396], r: 0.035}
+      - cylinder: {a: [-0.113, 0.031, -0.802], b: [0.111, 0.078, -0.301], r: 0.035}
+      - cylinder: {a: [-0.111, 0.121, -0.163], b: [0.370, 0.275, 0.178], r: 0.035}
+      - cylinder: {a: [0.544, 0.030, -0.471], b: [0.509, 0.129, -0.027], r: 0.035}
+      - cylinder: {a: [0.123, 0.030, 0.293], b: [0.685, 0.211, 0.358], r: 0.035}
+      - cylinder: {a: [0.154, 0.030, -0.064], b: [0.434, 0.273, 0.444], r: 0.035}
+      - cylinder: {a: [-0.517, 0.241, -0.143], b: [-0.127, 0.031, -0.045], r: 0.035}
+      - sphere: {c: [-0.170, 0.030, -0.574], r: 0.055}
+      - sphere: {c: [-0.571, 0.205, -0.147], r: 0.055}
+      - sphere: {c: [0.648, 0.249, -0.005], r: 0.055}
+      - sphere: {c: [0.157, 0.030, 0.153], r: 0.055}
+      - sphere: {c: [-0.541, 0.248, 0.047], r: 0.055}
+      - sphere: {c: [-0.044, 0.078, 0.068], r: 0.055}
+      - sphere: {c: [0.054, 0.160, 0.446], r: 0.055}
+      - sphere: {c: [-0.266, 0.030, 0.683], r: 0.055}
+      - sphere: {c: [-0.383, 0.241, -0.318], r: 0.055}
+      - sphere: {c: [0.067, 0.071, 0.030], r: 0.055}
+      - sphere: {c: [0.593, 0.030, -0.355], r: 0.055}
+      - sphere: {c: [0.521, 0.108, 0.231], r: 0.055}
+      - sphere: {c: [0.443, 0.108, 0.462], r: 0.055}
+      - sphere: {c: [-0.116, 0.030, 0.656], r: 0.055}
+      - sphere: {c: [-0.267, 0.126, 0.035], r: 0.055}
+      - sphere: {c: [-0.047, 0.188, 0.340], r: 0.055}
+      - sphere: {c: [0.677, 0.085, -0.107], r: 0.055}
+      - sphere: {c: [0.311, 0.073, 0.128], r: 0.055}
+      - sphere: {c: [0.019, 0.264, 0.367], r: 0.055}
+      - sphere: {c: [-0.353, 0.030, 0.396], r: 0.055}
+      - sphere: {c: [-0.113, 0.031, -0.802], r: 0.055}
+      - sphere: {c: [0.111, 0.078, -0.301], r: 0.055}
+      - sphere: {c: [-0.111, 0.121, -0.163], r: 0.055}
+      - sphere: {c: [0.370, 0.275, 0.178], r: 0.055}
+      - sphere: {c: [0.544, 0.030, -0.471], r: 0.055}
+      - sphere: {c: [0.509, 0.129, -0.027], r: 0.055}
+      - sphere: {c: [0.123, 0.030, 0.293], r: 0.055}
+      - sphere: {c: [0.685, 0.211, 0.358], r: 0.055}
+      - sphere: {c: [0.154, 0.030, -0.064], r: 0.055}
+      - sphere: {c: [0.434, 0.273, 0.444], r: 0.055}
+      - sphere: {c: [-0.517, 0.241, -0.143], r: 0.055}
+      - sphere: {c: [-0.127, 0.031, -0.045], r: 0.055}
+  skulls0:
+    material: skull
+    space: body
+    line: true
+    blend: 0.03
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - sphere: {c: [-0.120, 0.410, 0.000], r: 0.15}
+      - box: {c: [-0.090, 0.310, 0.096], half: [0.09, 0.05, 0.08], rot: [0, 0.30, 0], round: 0.03}
+      - sphere: {c: [0.300, 0.250, 0.250], r: 0.15}
+      - box: {c: [0.252, 0.150, 0.338], half: [0.09, 0.05, 0.08], rot: [0, -0.50, 0], round: 0.03}
+      - sphere: {c: [-0.450, 0.180, 0.300], r: 0.15}
+      - box: {c: [-0.394, 0.080, 0.383], half: [0.09, 0.05, 0.08], rot: [0, 0.60, 0], round: 0.03}
+  eyes0:
+    material: socket
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - sphere: {c: [-0.144, 0.410, 0.143], r: 0.042}
+      - sphere: {c: [-0.019, 0.410, 0.105], r: 0.042}
+      - sphere: {c: [0.181, 0.250, 0.333], r: 0.042}
+      - sphere: {c: [0.295, 0.250, 0.395], r: 0.042}
+      - sphere: {c: [-0.430, 0.180, 0.444], r: 0.042}
+      - sphere: {c: [-0.323, 0.180, 0.371], r: 0.042}
+  stain1:
+    material: stain
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.05, 0.004, 0.05], r: [0.5, 0.004, 0.3]}
+  bones1:
+    material: bone
+    space: body
+    line: true
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [-0.019, 0.030, -0.467], b: [-0.390, 0.050, -0.452], r: 0.035}
+      - cylinder: {a: [-0.261, 0.085, -0.077], b: [-0.184, 0.038, 0.476], r: 0.035}
+      - cylinder: {a: [0.704, 0.152, 0.114], b: [0.285, 0.030, 0.347], r: 0.035}
+      - cylinder: {a: [-0.321, 0.061, -0.573], b: [0.198, 0.030, -0.392], r: 0.035}
+      - cylinder: {a: [0.533, 0.030, 0.457], b: [0.065, 0.149, 0.458], r: 0.035}
+      - cylinder: {a: [0.349, 0.116, -0.273], b: [0.384, 0.030, 0.261], r: 0.035}
+      - cylinder: {a: [0.123, 0.030, 0.132], b: [-0.469, 0.101, 0.207], r: 0.035}
+      - sphere: {c: [-0.019, 0.030, -0.467], r: 0.055}
+      - sphere: {c: [-0.390, 0.050, -0.452], r: 0.055}
+      - sphere: {c: [-0.261, 0.085, -0.077], r: 0.055}
+      - sphere: {c: [-0.184, 0.038, 0.476], r: 0.055}
+      - sphere: {c: [0.704, 0.152, 0.114], r: 0.055}
+      - sphere: {c: [0.285, 0.030, 0.347], r: 0.055}
+      - sphere: {c: [-0.321, 0.061, -0.573], r: 0.055}
+      - sphere: {c: [0.198, 0.030, -0.392], r: 0.055}
+      - sphere: {c: [0.533, 0.030, 0.457], r: 0.055}
+      - sphere: {c: [0.065, 0.149, 0.458], r: 0.055}
+      - sphere: {c: [0.349, 0.116, -0.273], r: 0.055}
+      - sphere: {c: [0.384, 0.030, 0.261], r: 0.055}
+      - sphere: {c: [0.123, 0.030, 0.132], r: 0.055}
+      - sphere: {c: [-0.469, 0.101, 0.207], r: 0.055}
+  skulls1:
+    material: skull
+    space: body
+    line: true
+    blend: 0.03
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - sphere: {c: [0.150, 0.130, 0.100], r: 0.15}
+      - box: {c: [0.120, 0.030, 0.196], half: [0.09, 0.05, 0.08], rot: [0, -0.30, 0], round: 0.03}
+  eyes1:
+    material: socket
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - sphere: {c: [0.049, 0.130, 0.205], r: 0.042}
+      - sphere: {c: [0.174, 0.130, 0.243], r: 0.042}
+  stain2:
+    material: stain
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.05], r: [0.7, 0.004, 0.45]}
+  bones2:
+    material: bone
+    space: body
+    line: true
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - cylinder: {a: [-0.276, 0.030, -0.083], b: [-0.606, 0.203, 0.186], r: 0.035}
+      - cylinder: {a: [-0.306, 0.030, 0.160], b: [-0.565, 0.139, 0.618], r: 0.035}
+      - cylinder: {a: [-0.246, 0.030, 0.210], b: [-0.603, 0.120, 0.525], r: 0.035}
+      - cylinder: {a: [-0.532, 0.031, 0.509], b: [-0.033, 0.059, 0.527], r: 0.035}
+      - cylinder: {a: [-0.028, 0.030, 0.211], b: [-0.276, 0.158, 0.708], r: 0.035}
+      - cylinder: {a: [-0.508, 0.030, 0.129], b: [-0.255, 0.178, 0.627], r: 0.035}
+      - cylinder: {a: [0.151, 0.065, -0.547], b: [0.117, 0.083, 0.042], r: 0.035}
+      - cylinder: {a: [0.214, 0.030, 0.250], b: [-0.054, 0.123, 0.641], r: 0.035}
+      - cylinder: {a: [-0.051, 0.171, -0.372], b: [-0.300, 0.123, 0.061], r: 0.035}
+      - cylinder: {a: [-0.729, 0.162, -0.282], b: [-0.198, 0.030, -0.236], r: 0.035}
+      - sphere: {c: [-0.276, 0.030, -0.083], r: 0.055}
+      - sphere: {c: [-0.606, 0.203, 0.186], r: 0.055}
+      - sphere: {c: [-0.306, 0.030, 0.160], r: 0.055}
+      - sphere: {c: [-0.565, 0.139, 0.618], r: 0.055}
+      - sphere: {c: [-0.246, 0.030, 0.210], r: 0.055}
+      - sphere: {c: [-0.603, 0.120, 0.525], r: 0.055}
+      - sphere: {c: [-0.532, 0.031, 0.509], r: 0.055}
+      - sphere: {c: [-0.033, 0.059, 0.527], r: 0.055}
+      - sphere: {c: [-0.028, 0.030, 0.211], r: 0.055}
+      - sphere: {c: [-0.276, 0.158, 0.708], r: 0.055}
+      - sphere: {c: [-0.508, 0.030, 0.129], r: 0.055}
+      - sphere: {c: [-0.255, 0.178, 0.627], r: 0.055}
+      - sphere: {c: [0.151, 0.065, -0.547], r: 0.055}
+      - sphere: {c: [0.117, 0.083, 0.042], r: 0.055}
+      - sphere: {c: [0.214, 0.030, 0.250], r: 0.055}
+      - sphere: {c: [-0.054, 0.123, 0.641], r: 0.055}
+      - sphere: {c: [-0.051, 0.171, -0.372], r: 0.055}
+      - sphere: {c: [-0.300, 0.123, 0.061], r: 0.055}
+      - sphere: {c: [-0.729, 0.162, -0.282], r: 0.055}
+      - sphere: {c: [-0.198, 0.030, -0.236], r: 0.055}
+  ribs2:
+    material: bone
+    space: body
+    line: true
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - cylinder: {a: [0.2, 0.08, -0.15], b: [0.62, 0.08, -0.15], r: 0.04}
+      - torus: {c: [0.27, 0.14, -0.05], R: 0.140, r: 0.022, rot: [0, 0, 1.5708]}
+      - torus: {c: [0.37, 0.14, -0.05], R: 0.128, r: 0.022, rot: [0, 0, 1.5708]}
+      - torus: {c: [0.47, 0.14, -0.05], R: 0.116, r: 0.022, rot: [0, 0, 1.5708]}
+      - torus: {c: [0.57, 0.14, -0.05], R: 0.104, r: 0.022, rot: [0, 0, 1.5708]}
+  skulls2:
+    material: skull
+    space: body
+    line: true
+    blend: 0.03
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - sphere: {c: [-0.200, 0.330, 0.050], r: 0.15}
+      - box: {c: [-0.180, 0.230, 0.148], half: [0.09, 0.05, 0.08], rot: [0, 0.20, 0], round: 0.03}
+  eyes2:
+    material: socket
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - sphere: {c: [-0.238, 0.330, 0.190], r: 0.042}
+      - sphere: {c: [-0.110, 0.330, 0.164], r: 0.042}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {v: "f"}

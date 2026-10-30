@@ -1,0 +1,334 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: butcher_entrance
+kind: prop
+view: topdown
+size: 96                 # ~4.4 units wide (80 px) at camera.scale 0.055, 2+ px margins
+directions: 1            # faces the camera (s)
+mirror: false
+palette: ["farm", "ruin"]
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3956, 0]}   # 20 px above the pivot -> pivot (48, 68)
+shadow: {rx: 40, ry: 11, alpha: 100}
+
+# Overworld entrance of the dungeon "Porão do Açougueiro" (replaces the generic crypt there).
+brief:
+  summary: the ruin of a small stone customs shed of the old royal road - cold grey block walls broken at
+    the top, a sagging lean-to plank roof with holes, a worn royal crown plaque over the front, a hanging
+    lantern; in FRONT, centred, a stone-framed trapdoor flung open (the hatch standing up against the wall,
+    a bloody handprint on it) with steps going down into black, blood smeared on the steps and a dragged
+    blood trail leading in; at the right a wooden rack with chains and iron meat hooks (one with a raw
+    carcass), at the left a chopping stump with a cleaver
+  must_keep: [stone shed ruin, open trapdoor with steps into black at bottom-centre, blood trail and smears,
+    meat hooks with a carcass, lantern, cleaver in the stump]
+  simplify: [blood as flat 1-tone shapes (like blood_splat), blocks as grooves, chains as 2-3 links]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false; camera.center [0, 1.3956, 0] (integer pivot); flat shadow.
+    Ramps from palettes/ruin.yaml + spec-local ones (index 0 = #1c0f1a). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT (like crypt): world origin (= exported pivot, frame px 48,68) is the ground point at the
+    centre of the 5x3-tile footprint. The shed fills the back two rows (z -1.35..-0.25); the trapdoor sits on
+    the front row, centred, opening x -0.42..0.42, z 0.05..0.80 (about 1..9 px below the pivot): the hero
+    walks in there. The hook rack (x 1.2..2.1) and the stump (x -1.4) flank it on the front row and block.
+    Clips: idle (6 frames: the lantern flickers, the carcass sways slowly) and hover (the lantern flares,
+    the hooks swing harder).
+
+ramps:
+  be_blood:   ["#1c0f1a", "#5a0a14"]
+  be_blood2:  ["#1c0f1a", "#86121c"]
+  be_meat:    ["#1c0f1a", "#5a1418", "#8a2a2a", "#b44a40", "#d07a62"]
+  be_fat:     ["#1c0f1a", "#a08a72", "#d2bfa0"]
+  be_void:    ["#1c0f1a", "#100a0e", "#1a1216"]
+  be_crown:   ["#1c0f1a", "#6a5020", "#8e7030"]
+
+materials:
+  stone:   {ramp: rstone, bands: [1, 3]}
+  stone_dk: {ramp: rstone, bands: [1, 2]}
+  groove:  {ramp: rchar, bands: [1, 1], outline: false, line: false}
+  plank:   {ramp: rwood, bands: [1, 3]}
+  beam:    {ramp: rwood, bands: [1, 2]}
+  iron:    {ramp: riron, bands: [1, 3]}
+  void:    {ramp: be_void, emissive: true, band: 1, outline: false, line: false}
+  deep:    {ramp: rchar, bands: [1, 2], outline: false}
+  step:    {ramp: rstone, bands: [1, 2], outline: false}
+  blood:   {ramp: be_blood, bands: [1, 1], outline: false, line: false}
+  blood2:  {ramp: be_blood2, bands: [1, 1], outline: false, line: false}
+  meat:    {ramp: be_meat, bands: [1, 4]}
+  fat:     {ramp: be_fat, bands: [1, 2], line: false}
+  crown:   {ramp: be_crown, bands: [1, 2], line: false}
+  stump:   {ramp: rwood, bands: [1, 3]}
+  cut:     {ramp: rplank, bands: [3, 4], line: false}
+  blade:   {ramp: steel, bands: [1, 3]}
+  flame:   {ramp: rfire, emissive: true, band: 5, outline: false, line: false, glow: {color: "#fe8a2a", mix: 0.4, radius: 1}}
+  flame_core: {ramp: rfire, emissive: true, band: 7, outline: false, line: false}
+  dirt:    {ramp: rmud, bands: [1, 2], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  flicker: 1         # lantern flame size
+  sway: 0            # carcass / hook swing (radians)
+
+# Layout: shed x -1.45..1.45, z -1.35..-0.25 (front face z -0.25), walls to y ~1.5; trapdoor opening
+# x +-0.42, z 0.05..0.80; hook rack posts at x 1.25 / 2.05, z 0.45, bar y 1.75.
+bones:
+  body:    {parent: root}
+  hatch:   {parent: body, pos: [0, 0.10, 0.02], rot: [1.35, 0, 0]}           # hinged at the back edge, standing up
+  hook_a:  {parent: body, pos: [1.45, 1.72, 0.45], rot: ["0.0", 0, "sway"]}
+  hook_b:  {parent: body, pos: [1.85, 1.72, 0.45], rot: [0, 0, "-0.6*sway"]}
+  lantern: {parent: body, pos: [-0.78, 1.30, -0.10]}
+  flame:   {parent: lantern, pos: [0, -0.12, 0], scale: "[1, flicker, 1]"}
+
+parts:
+  yard:
+    material: dirt
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.55], r: [1.50, 0.02, 0.55]}
+  shed:              # block walls, broken at the top
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.75, -0.80], half: [1.45, 0.75, 0.55], round: 0.02}
+    cut:
+      - box: {c: [1.15, 1.55, -0.30], half: [0.50, 0.25, 0.8], rot: [0, 0, 0.45]}
+      - sphere: {c: [-1.50, 1.60, -0.25], r: 0.30}
+      - box: {c: [0.70, 0.75, -0.24], half: [0.22, 0.30, 0.04]}             # window recess
+  window:
+    material: void
+    space: body
+    prims:
+      - box: {c: [0.70, 0.75, -0.27], half: [0.22, 0.30, 0.02]}
+  bars:
+    material: iron
+    space: body
+    prims:
+      - cylinder: {a: [0.62, 0.45, -0.24], b: [0.62, 1.05, -0.24], r: 0.022}
+      - cylinder: {a: [0.78, 0.45, -0.24], b: [0.78, 1.05, -0.24], r: 0.022}
+  courses:           # mortar lines of the block courses
+    material: groove
+    space: body
+    prims:
+      - box: {c: [0, 0.38, -0.245], half: [1.43, 0.012, 0.01]}
+      - box: {c: [0, 0.76, -0.245], half: [1.43, 0.012, 0.01]}
+      - box: {c: [-0.2, 1.14, -0.245], half: [1.23, 0.012, 0.01]}
+      - box: {c: [-1.05, 0.57, -0.245], half: [0.012, 0.18, 0.01]}
+      - box: {c: [-0.35, 0.19, -0.245], half: [0.012, 0.18, 0.01]}
+      - box: {c: [0.25, 0.95, -0.245], half: [0.012, 0.18, 0.01]}
+      - box: {c: [-0.55, 1.33, -0.245], half: [0.012, 0.18, 0.01]}
+      - box: {c: [1.20, 0.19, -0.245], half: [0.012, 0.18, 0.01]}
+    cut:
+      - box: {c: [0.70, 0.75, -0.24], half: [0.24, 0.32, 0.1]}
+      - box: {c: [1.15, 1.55, -0.30], half: [0.50, 0.25, 0.8], rot: [0, 0, 0.45]}
+  roof:              # sagging lean-to plank roof, holed and broken off at the right
+    material: plank
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.25, 1.68, -0.78], half: [1.35, 0.05, 0.72], rot: [0.30, 0, 0.04]}
+    cut:
+      - sphere: {c: [0.30, 1.70, -0.95], r: 0.32}
+      - box: {c: [1.25, 1.7, -0.8], half: [0.30, 0.5, 1.0], rot: [0, 0.4, 0]}
+  roof_seams:
+    material: groove
+    space: body
+    prims:
+      - box: {c: [-0.95, 1.73, -0.78], half: [0.012, 0.01, 0.70], rot: [0.30, 0, 0.04]}
+      - box: {c: [-0.55, 1.74, -0.78], half: [0.012, 0.01, 0.70], rot: [0.30, 0, 0.04]}
+      - box: {c: [-0.15, 1.76, -0.78], half: [0.012, 0.01, 0.70], rot: [0.30, 0, 0.04]}
+      - box: {c: [0.65, 1.78, -0.78], half: [0.012, 0.01, 0.70], rot: [0.30, 0, 0.04]}
+    cut:
+      - sphere: {c: [0.30, 1.70, -0.95], r: 0.32}
+      - box: {c: [1.25, 1.7, -0.8], half: [0.30, 0.5, 1.0], rot: [0, 0.4, 0]}
+  roof_hole:
+    material: void
+    space: body
+    prims:
+      - ellipsoid: {c: [0.30, 1.40, -0.95], r: [0.26, 0.02, 0.24]}
+  plaque:            # worn royal crest over the front
+    material: stone_dk
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.15, 1.22, -0.22], half: [0.26, 0.17, 0.03], round: 0.02}
+  crown:
+    material: crown
+    space: body
+    prims:
+      - box: {c: [-0.15, 1.16, -0.18], half: [0.15, 0.04, 0.015]}
+      - cone: {a: [-0.27, 1.18, -0.18], b: [-0.29, 1.32, -0.18], r: [0.035, 0.01]}
+      - cone: {a: [-0.15, 1.18, -0.18], b: [-0.15, 1.35, -0.18], r: [0.035, 0.01]}
+      - cone: {a: [-0.03, 1.18, -0.18], b: [-0.01, 1.32, -0.18], r: [0.035, 0.01]}
+  # ---------------- the trapdoor (the entrance) ----------------
+  frame:             # stone curb around the opening
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.52, 0.07, 0.42], half: [0.11, 0.07, 0.48], round: 0.02}
+      - box: {c: [-0.52, 0.07, 0.42], half: [0.11, 0.07, 0.48], round: 0.02}
+      - box: {c: [0, 0.07, 0.88], half: [0.63, 0.07, 0.08], round: 0.02}
+      - box: {c: [0, 0.07, -0.03], half: [0.63, 0.07, 0.08], round: 0.02}
+  void:
+    material: void
+    space: body
+    prims:
+      - box: {c: [0, 0.02, 0.24], half: [0.42, 0.02, 0.20]}
+  step_1:
+    material: step
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.06, 0.70], half: [0.42, 0.04, 0.10]}
+  step_2:
+    material: deep
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.04, 0.50], half: [0.42, 0.03, 0.09]}
+  blood_steps:       # smears on the steps and over the curb
+    material: blood2
+    space: body
+    prims:
+      - ellipsoid: {c: [0.08, 0.105, 0.72], r: [0.20, 0.004, 0.07], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [-0.12, 0.075, 0.52], r: [0.14, 0.004, 0.06]}
+      - ellipsoid: {c: [0.05, 0.145, 0.88], r: [0.16, 0.004, 0.06]}
+  blood_trail:       # dragged trail coming from the front-left into the hole, and a pool at the lip
+    material: blood
+    space: body
+    prims:
+      - ellipsoid: {c: [0.05, 0.004, 1.05], r: [0.24, 0.004, 0.14]}
+      - ellipsoid: {c: [-0.25, 0.004, 1.20], r: [0.16, 0.004, 0.10], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [-0.55, 0.004, 1.30], r: [0.14, 0.004, 0.08], rot: [0, 0.4, 0]}
+      - ellipsoid: {c: [-0.85, 0.004, 1.36], r: [0.12, 0.004, 0.06], rot: [0, 0.2, 0]}
+      - ellipsoid: {c: [0.45, 0.004, 1.25], r: [0.05, 0.004, 0.04]}
+      - ellipsoid: {c: [-1.10, 0.004, 1.42], r: [0.05, 0.004, 0.04]}
+  hatch:             # the trapdoor leaf, standing up against the wall
+    material: plank
+    space: hatch
+    line: true
+    prims:
+      - box: {c: [0, 0.03, -0.38], half: [0.44, 0.035, 0.38]}
+  hatch_iron:
+    material: iron
+    space: hatch
+    prims:
+      - box: {c: [0, 0.07, -0.12], half: [0.42, 0.012, 0.035]}
+      - box: {c: [0, 0.07, -0.62], half: [0.42, 0.012, 0.035]}
+      - torus: {c: [-0.22, 0.075, -0.40], R: 0.06, r: 0.016}
+  hatch_hand:        # bloody handprint on the underside facing us
+    material: blood2
+    space: hatch
+    prims:
+      - ellipsoid: {c: [0.20, 0.072, -0.36], r: [0.08, 0.004, 0.09]}
+      - cone: {a: [0.20, 0.072, -0.44], b: [0.12, 0.072, -0.60], r: [0.025, 0.02]}
+      - cone: {a: [0.20, 0.072, -0.44], b: [0.22, 0.072, -0.62], r: [0.025, 0.02]}
+      - cone: {a: [0.20, 0.072, -0.44], b: [0.30, 0.072, -0.58], r: [0.025, 0.02]}
+  # ---------------- hook rack (right) ----------------
+  rack:
+    material: beam
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.25, 0.90, 0.45], half: [0.07, 0.90, 0.07]}
+      - box: {c: [2.05, 0.90, 0.45], half: [0.07, 0.90, 0.07]}
+      - box: {c: [1.65, 1.76, 0.45], half: [0.52, 0.07, 0.07]}
+      - cylinder: {a: [1.25, 1.35, 0.45], b: [1.55, 1.70, 0.45], r: 0.03}     # brace
+  chain_a:
+    material: iron
+    space: hook_a
+    prims:
+      - torus: {c: [0, -0.08, 0], R: 0.04, r: 0.014, rot: [1.5708, 0, 0]}
+      - torus: {c: [0, -0.18, 0], R: 0.04, r: 0.014, rot: [0, 0, 1.5708]}
+      - cone: {a: [0, -0.22, 0], b: [0, -0.40, 0], r: [0.02, 0.02]}
+  carcass:           # raw haunch on hook a
+    material: meat
+    space: hook_a
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, -0.72, 0], r: [0.17, 0.30, 0.13]}
+      - ellipsoid: {c: [0.03, -0.48, 0], r: [0.10, 0.12, 0.09]}
+  carcass_fat:
+    material: fat
+    space: hook_a
+    prims:
+      - ellipsoid: {c: [-0.06, -0.62, 0.09], r: [0.06, 0.16, 0.04]}
+      - sphere: {c: [0.04, -0.38, 0.0], r: 0.05}                              # bone end
+  hook_b_iron:       # empty hook
+    material: iron
+    space: hook_b
+    prims:
+      - torus: {c: [0, -0.08, 0], R: 0.04, r: 0.014, rot: [1.5708, 0, 0]}
+      - cone: {a: [0, -0.12, 0], b: [0, -0.40, 0], r: [0.018, 0.018]}
+      - torus: {c: [0.07, -0.44, 0], R: 0.07, r: 0.02, rot: [1.5708, 0, 0]}
+    cut:
+      - box: {c: [0.10, -0.38, 0], half: [0.06, 0.06, 0.1]}
+  drips:             # blood under the carcass
+    material: blood
+    space: body
+    prims:
+      - ellipsoid: {c: [1.45, 0.004, 0.50], r: [0.22, 0.004, 0.14]}
+      - ellipsoid: {c: [1.70, 0.004, 0.62], r: [0.06, 0.004, 0.05]}
+  # ---------------- chopping stump (left) ----------------
+  stump:
+    material: stump
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.45, 0, 0.45], b: [-1.45, 0.42, 0.45], r: 0.24, round: 0.02}
+  stump_top:
+    material: cut
+    space: body
+    prims:
+      - cylinder: {a: [-1.45, 0.40, 0.45], b: [-1.45, 0.43, 0.45], r: 0.21}
+  stump_blood:
+    material: blood2
+    space: body
+    prims:
+      - ellipsoid: {c: [-1.40, 0.44, 0.48], r: [0.12, 0.004, 0.08]}
+  cleaver:           # cleaver blade buried in the stump top
+    material: blade
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.48, 0.58, 0.45], half: [0.20, 0.15, 0.02], rot: [0, 0.3, 0.12]}
+  cleaver_handle:
+    material: beam
+    space: body
+    prims:
+      - cylinder: {a: [-1.30, 0.66, 0.40], b: [-1.05, 0.72, 0.32], r: 0.04}
+  # ---------------- lantern on the wall ----------------
+  lantern_iron:
+    material: iron
+    space: lantern
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.12, -0.12], b: [0, 0.12, 0], r: 0.02}             # wall arm
+      - box: {c: [0, -0.10, 0], half: [0.08, 0.02, 0.08]}
+      - box: {c: [0, -0.32, 0], half: [0.09, 0.02, 0.09]}
+      - cone: {a: [0, 0.06, 0], b: [0, -0.06, 0], r: [0.02, 0.09]}
+      - cylinder: {a: [0.075, -0.30, 0.075], b: [0.075, -0.12, 0.075], r: 0.015}
+      - cylinder: {a: [-0.075, -0.30, 0.075], b: [-0.075, -0.12, 0.075], r: 0.015}
+  flame:
+    material: flame
+    space: flame
+    prims:
+      - ellipsoid: {c: [0, -0.10, 0], r: [0.065, 0.10, 0.065]}
+  flame_core:
+    material: flame_core
+    space: flame
+    prims:
+      - ellipsoid: {c: [0, -0.12, 0.04], r: [0.03, 0.05, 0.03]}
+
+animations:
+  idle:              # lantern flicker, slow carcass sway (seamless)
+    frames: 6
+    ms: 140
+    channels:
+      flicker: "1 + 0.18*sin(p) + 0.08*sin(2*p + 1.0)"
+      sway: "0.06*sin(p)"
+  hover:             # cursor over the trapdoor: the lantern flares, the hooks swing harder (seamless)
+    frames: 6
+    ms: 100
+    channels:
+      flicker: "1.5 + 0.2*sin(p) + 0.1*sin(2*p + 1.0)"
+      sway: "0.16*sin(p)"

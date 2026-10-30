@@ -1,0 +1,223 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_dwarf
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.80, 0]}
+shadow: {rx: 11.5, ry: 4.0, alpha: 120}
+
+# Act III village NPC "Brum", dwarf blacksmith and shopkeeper of the Forte da Montanha.
+# Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi dwarf smith - short, very wide barrel body on stubby legs, huge bushy ginger beard to the belt
+    split into two braids with gold beads, forest-green shirt with rolled sleeves, light tan leather apron,
+    dark pants, chunky boots, steel cap with two curved horns, heavy two-faced iron hammer held up beside the
+    right shoulder.
+  must_keep: [short + wide silhouette, big ginger braided beard, horned steel cap, tan leather apron, hammer raised by the shoulder]
+  simplify: [no fingers, braids are two tapered chains with one gold bead each, eyes under the cap rim]
+  decisions: >
+    Head scale 1.8 (chibi), pelvis at 0.34 and short legs so the top of the head sits ~0.25 below the
+    human NPCs. Distinct from Ferreira Marta (red shirt, dark apron, hammer hanging by the leg): green
+    shirt, light tan apron, hammer held up and tilted out beside the right shoulder so its iron head shows next to the horns. Ginger beard is the
+    big bright shape, readable against snow; the dark boots/pants anchor the bottom. Idle: chest heaves,
+    hammer bobs on the shoulder. Talk: the free left fist pumps while he haggles, head nods.
+
+ramps:
+  beard_ginger: ["#1c0f1a", "#8a3a10", "#d26a1c", "#f29a3a", "#ffd07a"]
+  shirt_green: ["#1c0f1a", "#1d3d2a", "#2f6340", "#4a8a58"]
+  apron_tan: ["#1c0f1a", "#6a4122", "#a26a3a", "#c99258", "#e6bf86"]
+  boot_dark: ["#1c0f1a", "#2a1810", "#46281a", "#643c26"]
+  iron: ["#1c0f1a", "#2c2f3d", "#4a4f63", "#6c7389"]
+
+materials:
+  skin:  {ramp: skin, bands: [2, 4], line_band: 2}
+  shirt: {ramp: shirt_green, bands: [1, 3]}
+  apron: {ramp: apron_tan, bands: [1, 3]}
+  pants: {ramp: cloth, bands: [1, 3]}
+  boots: {ramp: boot_dark, bands: [1, 3]}
+  beard: {ramp: beard_ginger, bands: [2, 4]}
+  helm:  {ramp: steel, bands: [1, 3]}
+  horn:  {ramp: bone, bands: [2, 4]}
+  gold:  {ramp: gold, bands: [1, 3]}
+  steel: {ramp: iron, bands: [1, 3]}
+  wood:  {ramp: wood, bands: [1, 3]}
+  ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.02
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.05
+  head_yaw: 0
+  hand_L: [0.32, 0.04, 0.08]
+  foot_L: [0.13, 0, 0.02]
+  pitch_foot_L: 0
+  ham_rot: [-0.55, 0, 0.7]   # hammer orientation in torso space (haft up and back over the right shoulder)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.34 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.37, 0.04], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  shoulder_L: {parent: pelvis, pos: [0.27, 0.27, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.13, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.10, 0]"}
+  hammer:     {parent: torso_rot, at: wrist_R, rot: ham_rot}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.16, 0.15],
+          pole: [0.4, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.14, 0.13],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # barrel body, very wide
+    material: shirt
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0], r: [0.25, 0.14, 0.19]}
+      - ellipsoid: {c: [0, 0.20, 0.01], r: [0.27, 0.15, 0.19]}
+      - ellipsoid: {c: [0, 0.30, 0.0], r: [0.29, 0.09, 0.16]}
+  apron:           # tan leather apron: bib + skirt to the boots
+    material: apron
+    space: pelvis
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.14, 0.18], half: [0.15, 0.12, 0.035], round: 0.03, rot: [-0.15, 0, 0]}
+      - box: {c: [0, -0.14, 0.19], half: [0.22, 0.18, 0.035], round: 0.03, rot: [0.08, 0, 0]}
+  belt:
+    material: boots
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.03, 0], b: [0, 0.08, 0], r: 0.255}
+      - box: {c: [0, 0.055, 0.25], half: [0.045, 0.04, 0.02], round: 0.01}
+  buckle:
+    material: gold
+    space: pelvis
+    prims:
+      - box: {c: [0, 0.055, 0.27], half: [0.028, 0.025, 0.01], round: 0.005}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.15, 0.15, 0.14]}
+      - sphere: {c: [0, 0.10, 0.15], r: 0.035}                  # big round nose
+  beard:           # bushy ginger beard from the cheeks down over the chest
+    material: beard
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.08], r: [0.16, 0.075, 0.09]}
+      - ellipsoid: {c: [0, -0.04, 0.10], r: [0.13, 0.09, 0.07]}
+      - ellipsoid: {c: [0, 0.07, 0.13], r: [0.10, 0.022, 0.035]}   # moustache
+  braid_L:         # one of two braids hanging from the beard
+    material: beard
+    space: head
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0.055, -0.06, 0.12], [0.06, -0.14, 0.12], [0.055, -0.22, 0.10]], r: [0.045, 0.035, 0.028]}
+  bead_L:
+    material: gold
+    space: head
+    prims:
+      - sphere: {c: [0.055, -0.25, 0.10], r: 0.03}
+  hair_back:       # ginger hair at the back below the cap
+    material: beard
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.12, -0.07], r: [0.155, 0.10, 0.10]}
+  cap:             # steel cap with a rim
+    material: helm
+    space: head
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0.21, -0.02], r: [0.158, 0.12, 0.152]}
+      - cylinder: {a: [0, 0.19, -0.02], b: [0, 0.215, -0.02], r: 0.166, round: 0.01}
+    cut:
+      - box: {c: [0, 0.01, 0], half: [0.4, 0.18, 0.4]}
+  horn_L:          # curved horn rising out of the cap's side
+    material: horn
+    space: head
+    prims:
+      - chain: {pts: [[0.14, 0.22, 0.0], [0.22, 0.26, 0.0], [0.27, 0.34, 0.02], [0.26, 0.41, 0.05]],
+                r: [0.045, 0.038, 0.028, 0.014]}
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.055, 0.13, 0.135], r: [0.022, 0.026, 0.02]}
+  sleeve_L:        # rolled green sleeve
+    material: shirt
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.10}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.095, 0.085]}
+  arm_L:           # thick bare forearm
+    material: skin
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.08, 0.072]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.07}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.11, 0.095]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.095, 0.085]}
+  boot_L:          # chunky boots
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.10, 0.095]}
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.095, 0.055, 0.13]}
+  haft:            # hammer haft (right hand only)
+    material: wood
+    space: hammer
+    prims:
+      - cylinder: {a: [0, -0.10, 0.0], b: [0, 0.44, 0.0], r: 0.034}
+  hammerhead:      # heavy two-faced head
+    material: steel
+    space: hammer
+    blend: 0.01
+    prims:
+      - box: {c: [0, 0.46, 0.0], half: [0.085, 0.08, 0.16], round: 0.02}
+      - cylinder: {a: [0, 0.46, -0.17], b: [0, 0.46, 0.17], r: 0.10, round: 0.015}
+
+animations:
+  idle:            # chest heaves, hammer bobs on the shoulder
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      head_pitch: "-0.05 - 0.04*sin(p - 0.5)"
+      hand_L: "[0.32, 0.04 + 0.02*sin(p - 0.6), 0.08]"
+      hand_R: "[0.30, 0.26 + 0.015*sin(p - 0.6), 0.14]"
+      ham_rot: "[-0.55 + 0.04*sin(p - 1.0), 0, 0.7]"
+  talk:            # left fist pumps while haggling, head nods
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.02*sin(2*p)"
+      head_pitch: "-0.05 - 0.07*sin(2*p)"
+      hand_L: "[0.26, 0.22 + 0.08*sin(p), 0.24]"
+      hand_R: "[0.30, 0.26, 0.14]"
+      ham_rot: "[-0.55 + 0.06*sin(p), 0, 0.7]"

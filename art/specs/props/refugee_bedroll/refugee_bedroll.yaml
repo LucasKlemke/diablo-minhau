@@ -1,0 +1,103 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: refugee_bedroll
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.2792 = 4 px above the pivot -> pivot (24, 28), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.2792, 0]}
+shadow: {rx: 18, ry: 5, alpha: 60}
+
+# Act I, Minhau: where a refugee sleeps in the open.
+brief:
+  summary: a refugee's bed on the mud - a thin bedroll of dull rust wool laid across the screen on a mat
+    of old straw, the head end rolled up as a pillow, the blanket thrown back; beside it a bundle (trouxa)
+    of blue-grey cloth tied with rope round a walking stick, and a small wooden bowl
+  must_keep: [rust wool bedroll lying across, rolled head end, straw mat edges, tied cloth bundle on a stick]
+  simplify: [straw as a flat ragged mat, folds as one turned-back flap]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.2792, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,28) is the centre of the bedroll on the
+    ground. Bedroll 1.9 x 0.8 units (head on the LEFT, like straw_bed), bundle to the right ->
+    ~38 x 20 px, footprint 2x1 tiles, NOT blocking (a sleeping NPC can lie on it). Static: 1-frame idle.
+
+materials:
+  straw:  {ramp: rstraw, bands: [1, 3]}
+  wool:   {ramp: rwool, bands: [2, 4]}
+  lining: {ramp: rcanvas, bands: [2, 4]}
+  bundle: {ramp: rblue, bands: [1, 3]}
+  rope:   {ramp: rrope, bands: [2, 3], outline: false}
+  wood:   {ramp: rwood, bands: [2, 4]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  mat:
+    material: straw
+    space: body
+    blend: 0.03
+    prims:
+      - box: {c: [-0.15, 0.02, 0.05], half: [0.82, 0.02, 0.42], round: 0.02}
+      - ellipsoid: {c: [-0.9, 0.02, 0.25], r: [0.16, 0.03, 0.16]}
+      - ellipsoid: {c: [0.6, 0.02, 0.35], r: [0.18, 0.03, 0.14]}
+  roll:           # rolled-up head end (pillow)
+    material: wool
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.72, 0.13, -0.3], b: [-0.72, 0.13, 0.4], r: 0.13, round: 0.04}
+  blanket:
+    material: wool
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.05, 0.07, 0.05], half: [0.58, 0.05, 0.34], round: 0.04}
+      - ellipsoid: {c: [0.05, 0.12, 0.05], r: [0.32, 0.07, 0.22]}
+  flap:           # blanket corner thrown back, showing the pale lining
+    material: lining
+    space: body
+    line: true
+    prims:
+      - tri: {a: [-0.55, 0.14, 0.38], b: [-0.2, 0.14, 0.38], c: [-0.55, 0.14, 0.0], th: 0.02}
+  stick:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.55, 0.04, -0.05], b: [1.15, 0.36, -0.75], r: 0.035}
+  bundle:
+    material: bundle
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0.88, 0.2, -0.45], r: [0.24, 0.19, 0.2]}
+      - cone: {a: [0.98, 0.34, -0.55], b: [1.08, 0.46, -0.62], r: [0.07, 0.03]}
+  knot:
+    material: rope
+    space: body
+    prims:
+      - torus: {c: [0.95, 0.33, -0.5], R: 0.09, r: 0.025, rot: [0.4, 0, 0.5]}
+  bowl:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.95, 0.0, -0.5], b: [-0.95, 0.07, -0.5], r: 0.12, round: 0.03}
+    cut:
+      - cylinder: {a: [-0.95, 0.04, -0.5], b: [-0.95, 0.12, -0.5], r: 0.08}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

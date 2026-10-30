@@ -1,0 +1,125 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_banner
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s): hangs on the hall's north wall
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.6751, 0]}   # 24 px above the pivot -> pivot (32, 56)
+shadow: null             # hangs on the wall
+
+# Prologue: narrow hanging pennants between the tapestries of the castle hall.
+brief:
+  summary: long narrow crimson pennant hanging from a short gold rod with spear-tip finials and two small gold
+    tassels; a gold stripe runs down its middle, a gold star near the top, white edging, and the bottom is a
+    swallowtail (two points)
+  must_keep: [crimson cloth, gold stripe and star, swallowtail, gold rod with spear tips]
+  simplify: [one pleat shadow, tassels as 2 px drops]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, shadow null, camera.center [0, 1.6751, 0] (integer
+    pivot). camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,56) is the ground point under the pennant on
+    the wall line, the same convention as castle_tapestry and castle_window (the pivot row = the floor line
+    of castle_wall_back). 0.62 units wide (11 px), rod at y 3.3, tips at y 1.0. Footprint 0 (the wall
+    blocks). Red instead of the tapestry's blue so the two alternate along the wall.
+    Static: 1-frame idle (the lower half has its own bone `low` with a `sway` channel kept at 0: a sway
+    clip broke the cloth at the hinge, so none is exported).
+
+ramps:
+  bn_red:   ["#1c0f1a", "#6e1d24", "#a82a28", "#c13a2b", "#e0664a"]
+  bn_gold:  ["#1c0f1a", "#804a19", "#e1a227", "#eddc83", "#f8f4dd"]
+  bn_white: ["#1c0f1a", "#d6ccc0", "#f4f0ea", "#ffffff"]
+
+materials:
+  cloth: {ramp: bn_red, bands: [2, 3]}
+  pleat: {ramp: bn_red, bands: [1, 1], outline: false, line: false}
+  gold:  {ramp: bn_gold, bands: [2, 4]}
+  stripe: {ramp: bn_gold, bands: [2, 3], outline: false, line: false}
+  edge:  {ramp: bn_white, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  sway: 0            # swing of the lower half (radians around the rod)
+
+bones:
+  body: {parent: root}
+  low: {parent: body, pos: [0, 2.2, 0.06], rot: "[0, 0, sway]"}
+
+parts:
+  cloth_top:
+    material: cloth
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.75, 0.06], half: [0.31, 0.57, 0.025]}
+  cloth_low:
+    material: cloth
+    space: low
+    line: true
+    prims:
+      - box: {c: [0, -0.5, 0], half: [0.31, 0.62, 0.025]}
+    cut:
+      - tri: {a: [-0.12, -1.25, 0], b: [0.12, -1.25, 0], c: [0, -0.88, 0], th: 0.1}
+  edging:
+    material: edge
+    space: body
+    prims:
+      - box: {c: [0.28, 2.75, 0.09], half: [0.025, 0.55, 0.01]}
+      - box: {c: [-0.28, 2.75, 0.09], half: [0.025, 0.55, 0.01]}
+  edging_low:
+    material: edge
+    space: low
+    prims:
+      - box: {c: [0.28, -0.55, 0.03], half: [0.025, 0.6, 0.01]}
+      - box: {c: [-0.28, -0.55, 0.03], half: [0.025, 0.6, 0.01]}
+  stripe:
+    material: stripe
+    space: body
+    prims:
+      - box: {c: [0, 2.55, 0.09], half: [0.05, 0.4, 0.01]}
+  stripe_low:
+    material: stripe
+    space: low
+    prims:
+      - box: {c: [0, -0.4, 0.03], half: [0.05, 0.42, 0.01]}
+  pleat:
+    material: pleat
+    space: low
+    prims:
+      - box: {c: [0.15, -0.5, 0.03], half: [0.018, 0.5, 0.01]}
+  star:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0, 3.0, 0.1], b: [0.0, 3.19, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [0.181, 3.059, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [0.112, 2.846, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [-0.112, 2.846, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [-0.181, 3.059, 0.1], r: [0.07, 0.02]}
+  rod:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.45, 3.36, 0.08], b: [0.45, 3.36, 0.08], r: 0.04}
+      - cone: {a: [0.45, 3.36, 0.08], b: [0.62, 3.36, 0.08], r: [0.07, 0.015]}
+      - cone: {a: [-0.45, 3.36, 0.08], b: [-0.62, 3.36, 0.08], r: [0.07, 0.015]}
+      - sphere: {c: [0.44, 3.36, 0.08], r: 0.06}
+      - sphere: {c: [-0.44, 3.36, 0.08], r: 0.06}
+  tassels:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0.4, 3.32, 0.1], b: [0.42, 3.0, 0.1], r: [0.025, 0.05]}
+      - cone: {a: [-0.4, 3.32, 0.1], b: [-0.42, 3.0, 0.1], r: [0.025, 0.05]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

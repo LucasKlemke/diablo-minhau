@@ -1,0 +1,124 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: firewood
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.4188 = 6 px above the pivot -> pivot (24, 30), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4188, 0]}
+shadow: {rx: 13, ry: 4, alpha: 80}
+
+# Aldo's hut: the firewood pile by the hearth.
+brief:
+  summary: small pile of split firewood stacked 4-3-2 with the pale cut ends toward the room (a growth ring
+    on each), dark bark, and a chopping block in front with a hatchet bitten into it
+  must_keep: [stacked logs with pale cut ends, dark bark, chopping block with hatchet]
+  simplify: [one growth ring per end, no kindling (it read as ears)]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.4188, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,30) is the floor point under the pile's
+    centre. Pile 1.15 wide x 0.55 deep x 0.68 tall (~21 px wide) plus the block in front -> footprint 2 x 1 tiles,
+    blocking. Usually set against the back wall beside the hearth. Static.
+
+materials:
+  bark:    {ramp: hbeam, bands: [1, 3]}
+  cut:     {ramp: hcut, bands: [3, 4]}
+  split:   {ramp: hcut, bands: [1, 2]}
+  ring:    {ramp: hcut, bands: [1, 1], outline: false, line: false}
+  kindling: {ramp: hwood, bands: [2, 4]}
+  blade:   {ramp: hiron, bands: [2, 4]}
+  edge:    {ramp: hiron, bands: [4, 4], outline: false, line: false}
+  haft:    {ramp: hcut, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  pile: {parent: body, pos: [-0.12, 0, -0.05], rot: [0, -0.62, 0]}   # turned so the cut ends face the camera-right
+
+parts:
+  logs:               # 4-3-2 stack, along z (ends toward the camera)
+    material: bark
+    space: pile
+    line: true
+    prims:
+      - cylinder: {a: [-0.42, 0.13, -0.45], b: [-0.42, 0.13, 0.4], r: 0.13}
+      - cylinder: {a: [-0.14, 0.13, -0.45], b: [-0.14, 0.13, 0.42], r: 0.13}
+      - cylinder: {a: [0.14, 0.13, -0.45], b: [0.14, 0.13, 0.38], r: 0.13}
+      - cylinder: {a: [0.42, 0.13, -0.45], b: [0.42, 0.13, 0.41], r: 0.13}
+      - cylinder: {a: [-0.28, 0.37, -0.45], b: [-0.28, 0.37, 0.39], r: 0.13}
+      - cylinder: {a: [0.0, 0.37, -0.45], b: [0.0, 0.37, 0.42], r: 0.13}
+      - cylinder: {a: [0.28, 0.37, -0.45], b: [0.28, 0.37, 0.4], r: 0.13}
+      - cylinder: {a: [-0.14, 0.6, -0.45], b: [-0.14, 0.6, 0.41], r: 0.12}
+      - cylinder: {a: [0.14, 0.6, -0.45], b: [0.14, 0.6, 0.39], r: 0.12}
+  ends:               # pale cut ends
+    material: cut
+    space: pile
+    prims:
+      - cylinder: {a: [-0.42, 0.13, 0.4], b: [-0.42, 0.13, 0.415], r: 0.105}
+      - cylinder: {a: [-0.14, 0.13, 0.42], b: [-0.14, 0.13, 0.435], r: 0.105}
+      - cylinder: {a: [0.14, 0.13, 0.38], b: [0.14, 0.13, 0.395], r: 0.105}
+      - cylinder: {a: [0.42, 0.13, 0.41], b: [0.42, 0.13, 0.425], r: 0.105}
+      - cylinder: {a: [-0.28, 0.37, 0.39], b: [-0.28, 0.37, 0.405], r: 0.105}
+      - cylinder: {a: [0.0, 0.37, 0.42], b: [0.0, 0.37, 0.435], r: 0.105}
+      - cylinder: {a: [0.28, 0.37, 0.4], b: [0.28, 0.37, 0.415], r: 0.105}
+      - cylinder: {a: [-0.14, 0.6, 0.41], b: [-0.14, 0.6, 0.425], r: 0.095}
+      - cylinder: {a: [0.14, 0.6, 0.39], b: [0.14, 0.6, 0.405], r: 0.095}
+  rings:              # heart of each log
+    material: ring
+    space: pile
+    prims:
+      - torus: {c: [-0.42, 0.13, 0.425], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [-0.14, 0.13, 0.445], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.14, 0.13, 0.405], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.42, 0.13, 0.435], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [-0.28, 0.37, 0.415], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.0, 0.37, 0.445], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.28, 0.37, 0.425], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [-0.14, 0.6, 0.435], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.14, 0.6, 0.415], R: 0.05, r: 0.012, rot: [1.5708, 0, 0]}
+  block:              # chopping block in front, the hatchet bitten into it
+    material: bark
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.62, 0.0, 0.42], b: [0.62, 0.26, 0.42], r: 0.2}
+  block_top:
+    material: cut
+    space: body
+    prims:
+      - cylinder: {a: [0.62, 0.26, 0.42], b: [0.62, 0.27, 0.42], r: 0.175}
+  block_ring:
+    material: ring
+    space: body
+    prims:
+      - torus: {c: [0.62, 0.272, 0.42], R: 0.09, r: 0.012}
+  hatchet_head:
+    material: blade
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.58, 0.31, 0.4], half: [0.11, 0.06, 0.025], rot: [0, 0.3, 0], round: 0.01}
+  hatchet_edge:
+    material: edge
+    space: body
+    prims:
+      - box: {c: [0.49, 0.29, 0.45], half: [0.02, 0.05, 0.004], rot: [0, 0.3, 0]}
+  hatchet_haft:
+    material: haft
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.66, 0.33, 0.36], b: [0.9, 0.62, 0.22], r: 0.035}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

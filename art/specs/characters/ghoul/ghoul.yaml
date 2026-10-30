@@ -1,0 +1,282 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ghoul
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.80, 0]}
+shadow: {rx: 9.5, ry: 3.3, alpha: 120}
+
+# Ghoul: Act II swamp corpse-eater. Same humanoid skeleton as the bandit/zombie (head 1.9x) but crouched
+# (pelvis 0.42) and hunched (lean 0.55) so it reads ~28 px, lower than the zombie. Project style: flat
+# 2-3 tones, dark outline, chibi, snappy.
+brief:
+  summary: chibi hunched ghoul - pale grey-lilac skin, bald head thrust forward with pointed ears, deep dark
+    eye sockets with glowing green eyes, wide toothy mouth, bony spine knobs on the back, long thin arms
+    ending in long bone-white claws, dark tattered loincloth, crouched digitigrade-looking legs
+  must_keep: [hunched low silhouette, long claws, glowing green sunken eyes, pointed ears]
+  simplify: [claws are three cones per hand, teeth are a pale band, ribs suggested by the shirtless torso only]
+  decisions:
+    - pale bone-green head and hands (ghoulskin) over a darker bruised grey-lilac body (ghoulbody), matching the game's
+      placeholder colours and separating it from the green-grey zombie and the cream skeleton
+    - eyes use the palette's fel green (the only saturated accent), sunk in dark sockets
+    - claws use the palette's bone ramp so they read white against the grass
+    - spine knobs on the back give the n/ne views a striking shape
+    - walk is a fast low run (6 frames x 80 ms) with arms swinging low; attack is a quick horizontal right-hand
+      swipe with a smear (like the bandit's slash)
+    - death collapses sideways onto the back (curled), eyes go out
+    - mirrored directions swap the swiping hand (project mirror style)
+
+ramps:
+  ghoulskin: ["#1c0f1a", "#6a7064", "#a7b09a", "#d2d8c4"]   # pale bone-green head and hands
+  ghoulbody: ["#1c0f1a", "#3e3650", "#5f5776", "#857c9a"]   # bruised grey-lilac body and limbs
+  loin:      ["#1c0f1a", "#2a2026", "#3f3036", "#56434a"]   # dark rag
+
+materials:
+  skin:   {ramp: ghoulskin, bands: [1, 3]}
+  body:   {ramp: ghoulbody, bands: [1, 3]}
+  claw:   {ramp: bone, bands: [2, 4]}
+  loin:   {ramp: loin, bands: [1, 3]}
+  socket: {ramp: mouth, emissive: true, band: 0, outline: false, line: false}
+  mouth:  {ramp: mouth, emissive: true, band: 1, outline: false, line: false}
+  teeth:  {ramp: bone, emissive: true, band: 3, outline: false, line: false}
+  eye:    {ramp: fel, emissive: true, band: 1, outline: false, glow: {color: "#5dff3d", mix: 0.35, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  hip_h: 0.56       # pelvis height (crouch)
+  bob: 0
+  lean: 0.32        # hunch
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  head_roll: 0
+  jaw: 0.3
+  eyes: 1
+  hand_L: [0.24, -0.06, 0.34]
+  hand_R: [0.24, -0.06, 0.34]
+  foot_L: [0.11, 0, 0.04]
+  pitch_foot_L: 0
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.50
+  smear_y: 0.62
+  smear_z: 0.22
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, hip_h + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.33, 0.12], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.15 - 0.10, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, head_roll]", scale: 1.9}
+  shoulder_L: {parent: pelvis, pos: [0.16, 0.25, 0.02]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.15, 0]"}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.23, 0.23],
+          pole: [0.5, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.28, 0.27],
+          pole: [0.2, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # skinny bare torso
+    material: body
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.12, 0.10, 0.10]}
+      - ellipsoid: {c: [0, 0.20, -0.01], r: [0.16, 0.11, 0.12]}
+  spine:           # bony knobs along the hunched back
+    material: skin
+    space: pelvis
+    blend: 0.02
+    prims:
+      - sphere: {c: [0, 0.29, -0.10], r: 0.048}
+      - sphere: {c: [0, 0.20, -0.13], r: 0.046}
+      - sphere: {c: [0, 0.10, -0.12], r: 0.04}
+  loin:            # tattered loincloth
+    material: loin
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0], r: [0.13, 0.065, 0.10]}
+      - box: {c: [0, -0.10, 0.08], half: [0.06, 0.07, 0.015], rot: [0.2, 0, 0], round: 0.01}
+      - box: {c: [0, -0.10, -0.08], half: [0.07, 0.07, 0.015], rot: [-0.2, 0, 0], round: 0.01}
+    cut:
+      - box: {c: [0.03, -0.18, 0.08], half: [0.02, 0.04, 0.05], rot: [0, 0, 0.6]}
+  neck:
+    material: body
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.24, 0.02], b: [0, 0.31, 0.08], r: [0.05, 0.045]}
+  head:            # bald skull-like head, heavy brow, wide jaw
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.02], r: [0.14, 0.13, 0.14]}
+      - ellipsoid: {c: [0, 0.07, 0.08], r: [0.10, 0.065, 0.10]}     # jutting jaw
+      - ellipsoid: {c: [0, 0.195, 0.10], r: [0.12, 0.03, 0.04]}
+  ear_L:           # pointed ears swept back
+    material: skin
+    space: head
+    blend: 0.02
+    prims:
+      - cone: {a: [0.12, 0.15, -0.04], b: [0.17, 0.18, -0.13], r: [0.028, 0.006]}
+  socket_L:        # deep dark sockets
+    material: socket
+    space: head
+    prims:
+      - ellipsoid: {c: [0.055, 0.15, 0.115], r: [0.045, 0.038, 0.03]}
+  eye_L:
+    when: "eyes > 0"
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: "[0.055, 0.15, 0.128 - 0.012*pulse(yaw, 90, 35)]", r: 0.024}
+  mouth:           # wide grin, opens with jaw
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, "0.065 - 0.01*jaw", 0.16], r: [0.065, "0.012 + 0.025*jaw", 0.025]}
+  teeth:
+    material: teeth
+    space: head
+    prims:
+      - box: {c: [0, 0.078, 0.172], half: [0.05, 0.007, 0.012]}
+  arm_L:           # long thin arms
+    material: body
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.045, 0.034]}
+      - sphere: {c: "@elbow_L", r: 0.036}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.034, 0.03]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.042, 0.028, 0.045]}
+  claws_L:         # three long bone claws
+    material: claw
+    space: wrist_L
+    blend: 0.01
+    prims:
+      - cone: {a: [0.03, 0, 0.06], b: [0.06, -0.05, 0.19], r: [0.018, 0.006]}
+      - cone: {a: [0, 0, 0.07], b: [0, -0.06, 0.21], r: [0.018, 0.006]}
+      - cone: {a: [-0.03, 0, 0.06], b: [-0.06, -0.05, 0.19], r: [0.018, 0.006]}
+  leg_L:
+    material: body
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.055, 0.04]}
+      - sphere: {c: "@knee_L", r: 0.04}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.038, 0.032]}
+  foot_L:          # long bare feet with a toe claw
+    material: body
+    space: sole_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.04], r: [0.05, 0.035, 0.09]}
+  toeclaw_L:
+    material: claw
+    space: sole_L
+    prims:
+      - cone: {a: [0, -0.04, 0.10], b: [0, -0.06, 0.15], r: [0.02, 0.006]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hit: {bone: wrist_R, offset: [0, -0.04, 0.14]}   # claw tips at impact
+  head: {bone: head, offset: [0, 0.34, 0]}
+
+timing: {attack: {hit: 200ms, total: 400ms}}
+
+animations:
+  idle:            # crouched panting, head bobbing, claws twitching
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      head_pitch: "-0.06*sin(p - 0.6)"
+      jaw: "0.3 + 0.25*sin(p)"
+      hand_L: "[0.24, -0.06 + 0.025*sin(p - 0.6), 0.34]"
+      hand_R: "[0.24, -0.06 + 0.025*sin(p + 0.8), 0.34]"
+  walk:            # fast low run: long strides, deep bob, arms swinging low against the legs
+    frames: 6
+    ms: 80
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.50
+      hip_h: 0.52
+      bob: "-0.04*cos(2*p) + 0.01"
+      twist: "0.12*cos(p)"
+      head_pitch: -0.10
+      foot_L: "[0.11, 0.10*pos(-sin(p)), 0.04 + 0.20*cos(p)]"
+      foot_R: "[0.11, 0.10*pos(sin(p)), 0.04 - 0.20*cos(p)]"
+      pitch_foot_L: "0.5*pos(-sin(p))"
+      pitch_foot_R: "0.5*pos(sin(p))"
+      hand_L: "[0.22, -0.14 + 0.05*pos(cos(p)), 0.16 - 0.18*cos(p)]"
+      hand_R: "[0.22, -0.14 + 0.05*pos(-cos(p)), 0.16 + 0.18*cos(p)]"
+      jaw: "0.5 + 0.2*sin(2*p)"
+  attack:          # quick swipe right to left: coil (held), slash with smear, impact, recover
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {twist: -0.55, lean: 0.45, bob: -0.04, squash: 0.92, jaw: 0.8, hand_R: [0.40, 0.18, -0.06],
+              hand_L: [0.20, -0.12, 0.24], foot_L: [0.11, 0, 0.12], foot_R: [0.11, 0, -0.06]}
+      - ms: 70
+        set: {root: [0, 0, 0.10], twist: 0.10, lean: 0.62, squash: 1.05, jaw: 1.0, hand_R: [0.20, 0.10, 0.40],
+              hand_L: [0.22, -0.16, 0.06], foot_L: [0.11, 0, 0.18], foot_R: [0.11, 0, -0.08],
+              smear_a0: -1.6, smear_a1: -0.1, smear_w: 0.08}
+      - ms: 90
+        event: hit
+        set: {root: [0, 0, 0.14], twist: 0.55, lean: 0.66, jaw: 0.9, hand_R: [-0.16, 0.0, 0.34],
+              hand_L: [0.24, -0.16, -0.02], foot_L: [0.11, 0, 0.20], foot_R: [0.11, 0, -0.08],
+              smear_a0: -1.2, smear_a1: 1.0, smear_w: 0.09}
+      - ms: 60
+        set: {root: [0, 0, 0.12], twist: 0.62, lean: 0.62, squash: 0.97, jaw: 0.5, hand_R: [-0.20, -0.10, 0.16],
+              hand_L: [0.24, -0.16, 0.0], foot_L: [0.11, 0, 0.18], foot_R: [0.11, 0, -0.06],
+              smear_a0: 0.3, smear_a1: 1.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 50
+        set: {root: [0, 0, 0.05], twist: 0.20, lean: 0.58, hand_R: [0.12, -0.14, 0.24]}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: 0.20, root: [0, 0, -0.08], squash: 0.92, head_pitch: -0.30, jaw: 1.0,
+                       hand_L: [0.30, 0.06, 0.06], hand_R: [0.30, 0.06, 0.06], foot_R: [0.11, 0, -0.06]}}
+      - {ms: 80, set: {lean: 0.40, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.12, jaw: 0.6,
+                       hand_L: [0.26, -0.08, 0.14], hand_R: [0.26, -0.08, 0.14], foot_R: [0.11, 0, -0.04]}}
+      - {ms: 100, set: {lean: 0.52, root: [0, 0, -0.02]}}
+  death:           # rears up shrieking, crumples onto its side and back, eyes go out
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: 0.0, hip_h: 0.46, squash: 1.04, head_pitch: -0.40, jaw: 1.0, root: [0, 0, -0.04],
+                        hand_L: [0.32, 0.26, 0.06], hand_R: [0.32, 0.26, 0.06]}}
+      - {ms: 110, set: {lean: -0.30, hip_h: 0.32, squash: 0.95, head_pitch: -0.25, jaw: 0.8, roll: 0.25, root: [0, 0, -0.06],
+                        hand_L: [0.34, 0.20, 0.0], hand_R: [0.30, 0.18, 0.02], foot_L: [0.12, 0, 0.12], foot_R: [0.12, 0, 0.08]}}
+      - {ms: 120, set: {lean: -0.80, hip_h: 0.18, squash: 0.95, head_pitch: 0.0, jaw: 0.6, roll: 0.50, root: [0, 0, -0.02],
+                        hand_L: [0.36, 0.14, 0.08], hand_R: [0.30, 0.10, 0.10], foot_L: [0.12, 0.06, 0.22], foot_R: [0.12, 0.02, 0.18]}}
+      - {ms: 120, set: {lean: -1.20, hip_h: 0.12, squash: 0.95, head_pitch: 0.25, jaw: 0.5, roll: 0.60, root: [0, 0, 0.04],
+                        hand_L: [0.36, 0.10, 0.18], hand_R: [0.30, 0.06, 0.20], foot_L: [0.12, 0.10, 0.28], foot_R: [0.12, 0.04, 0.24]}}
+      - {ms: 700, set: {lean: -1.25, hip_h: 0.12, squash: 0.95, head_pitch: 0.3, jaw: 0.4, roll: 0.62, root: [0, 0, 0.04], eyes: 0,
+                        hand_L: [0.36, 0.08, 0.20], hand_R: [0.30, 0.04, 0.22], foot_L: [0.12, 0.06, 0.28], foot_R: [0.12, 0.02, 0.24]}}

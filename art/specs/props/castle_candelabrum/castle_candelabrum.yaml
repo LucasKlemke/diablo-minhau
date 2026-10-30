@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_candelabrum
+kind: prop
+view: topdown
+size: 48
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+# centre y 1.0469 = 15 px above the pivot -> pivot (24, 39), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.0469, 0]}
+shadow: {rx: 7, ry: 2, alpha: 80}
+
+# Prologue: standing gold candelabra lighting the castle hall.
+brief:
+  summary: tall gold floor candelabrum - three clawed feet, a stem with two round knops, three branches (a
+    straight centre one and two curved side arms) each ending in a drip pan with a white wax candle and a
+    small teardrop flame (orange outside, yellow / white core) that flickers
+  must_keep: [gold stand with feet and knops, three white candles, emissive flames with glow, flicker]
+  simplify: [no wax drips beyond one, flames 3-4 px tall]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 1.0469, 0] (integer pivot). Flames are
+    emissive without outline. camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,39) is the ground point under the stem.
+    Feet span ~0.5 units -> footprint 1x1 tile, blocking. ~1.75 units tall (~25 px) plus the flames.
+    Clip idle: 4 frames, snappy: the three flames stretch and lean out of phase (a light source for the
+    game: place a warm light at the sockets `flame_*`).
+
+ramps:
+  cd_gold:  ["#1c0f1a", "#804a19", "#c7861f", "#e1a227", "#eddc83", "#f8f4dd"]
+  cd_wax:   ["#1c0f1a", "#c4b8a8", "#ece4d6", "#fffaf0"]
+  cd_flame: ["#1c0f1a", "#a8160f", "#fe6607", "#ffa12e", "#ffd65c", "#fff4c8", "#ffffff"]
+
+materials:
+  gold:  {ramp: cd_gold, bands: [1, 5]}
+  wax:   {ramp: cd_wax, bands: [1, 3]}
+  wick:  {ramp: cd_gold, bands: [0, 0], outline: false, line: false}
+  flame: {ramp: cd_flame, emissive: true, band: 3, outline: false, line: false, glow: {color: "#ffa12e", mix: 0.45, radius: 1}}
+  core:  {ramp: cd_flame, emissive: true, band: 5, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  h1: 1              # flame heights
+  h2: 1
+  h3: 1
+  l1: 0              # flame lean (units in x at the tip)
+  l2: 0
+  l3: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  feet:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0, 0.18, 0], b: [0.0, 0.03, 0.26], r: [0.06, 0.035]}
+      - cone: {a: [0, 0.18, 0], b: [0.225, 0.03, -0.13], r: [0.06, 0.035]}
+      - cone: {a: [0, 0.18, 0], b: [-0.225, 0.03, -0.13], r: [0.06, 0.035]}
+  stem:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.15, 0], b: [0, 1.25, 0], r: 0.045}
+      - sphere: {c: [0, 0.22, 0], r: 0.1}
+      - ellipsoid: {c: [0, 0.62, 0], r: [0.085, 0.06, 0.085]}
+      - ellipsoid: {c: [0, 1.12, 0], r: [0.1, 0.06, 0.1]}
+  arms:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - chain: {pts: [[0, 1.12, 0], [0.22, 1.08, 0], [0.36, 1.2, 0], [0.38, 1.4, 0]], r: [0.04, 0.038, 0.035, 0.035]}
+      - chain: {pts: [[0, 1.12, 0], [-0.22, 1.08, 0], [-0.36, 1.2, 0], [-0.38, 1.4, 0]], r: [0.04, 0.038, 0.035, 0.035]}
+      - cylinder: {a: [0, 1.12, 0], b: [0, 1.52, 0], r: 0.045}
+  pans:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.38, 1.4, 0], b: [0.38, 1.44, 0], r: 0.1}
+      - cylinder: {a: [-0.38, 1.4, 0], b: [-0.38, 1.44, 0], r: 0.1}
+      - cylinder: {a: [0, 1.52, 0], b: [0, 1.56, 0], r: 0.11}
+  candles:
+    material: wax
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.38, 1.44, 0], b: [0.38, 1.7, 0], r: 0.05}
+      - cylinder: {a: [-0.38, 1.44, 0], b: [-0.38, 1.7, 0], r: 0.05}
+      - cylinder: {a: [0, 1.56, 0], b: [0, 1.88, 0], r: 0.055}
+      - cone: {a: [0.05, 1.66, 0.03], b: [0.06, 1.55, 0.035], r: [0.022, 0.015]}     # one wax drip
+  flames:
+    material: flame
+    space: body
+    prims:
+      - cone: {a: [0.38, 1.77, 0], b: "[0.38 + l1, 1.77 + 0.17*h1, 0]", r: [0.06, 0.015]}
+      - cone: {a: [-0.38, 1.77, 0], b: "[-0.38 + l2, 1.77 + 0.17*h2, 0]", r: [0.06, 0.015]}
+      - cone: {a: [0, 1.95, 0], b: "[l3, 1.95 + 0.19*h3, 0]", r: [0.065, 0.015]}
+  cores:
+    material: core
+    space: body
+    prims:
+      - sphere: {c: [0.38, 1.76, 0.04], r: 0.03}
+      - sphere: {c: [-0.38, 1.76, 0.04], r: 0.03}
+      - sphere: {c: [0, 1.94, 0.04], r: 0.033}
+
+sockets:
+  flame_c: {bone: body, offset: [0, 2.0, 0]}
+  flame_l: {bone: body, offset: [0.38, 1.82, 0]}
+  flame_r: {bone: body, offset: [-0.38, 1.82, 0]}
+
+animations:
+  idle:
+    frames: 4
+    ms: 110
+    channels:
+      h1: "1 + 0.25*sin(p)"
+      h2: "1 + 0.25*sin(p + 2.2)"
+      h3: "1 + 0.22*sin(p + 4.1)"
+      l1: "0.03*sin(p + 1)"
+      l2: "0.03*sin(p + 3)"
+      l3: "0.03*cos(p)"

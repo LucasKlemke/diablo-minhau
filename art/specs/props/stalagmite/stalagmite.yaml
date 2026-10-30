@@ -1,0 +1,159 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: stalagmite
+kind: prop
+view: topdown
+size: 64
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.1167, 0]}   # 16 px above the pivot -> pivot (32, 48)
+shadow: null             # each variant draws its own ground shadow
+
+# Caverna dos Morcegos (Mata dos Lobos): dripstone spikes rising from the cave floor.
+brief:
+  summary: tapering dripstone spikes of damp brown-grey cave rock, ringed with drip bulges, wet pale tips;
+    three variants - one tall spike, a cluster of four, a snapped stump with its top lying on the floor
+  must_keep: [tapering pointed silhouette, drip rings, pale wet tips, dark base puddle-shadow]
+  simplify: [rings as 1-2 px bulges, no texture beyond the rings]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.1167, 0] (integer pivot);
+    shadow null (each variant has a flat dark ellipse part). camera.scale/pitch/light untouched.
+    Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,48) is the ground point at the centre of
+    the base. VARIANTS: animation `variants` has 3 frames (frame i = variant i); `idle` = variant 0.
+    0 single tall spike (blocks 1x1), 1 cluster (blocks 2x1), 2 broken stump + fallen top (blocks 1x1,
+    the fallen piece lies on the right tile and can stay walkable).
+    Cave rock is a warm brown-grey (the cave is earth, unlike the cold slate of mossy_rock outside).
+
+ramps:
+  sg_rock:   ["#1c0f1a", "#2c2426", "#433834", "#5e5048", "#7c6c5e"]
+  sg_tip:    ["#1c0f1a", "#5e5650", "#8a8072", "#b0a490"]
+  sg_shadow: ["#1c0f1a", "#141012"]
+
+materials:
+  rock:   {ramp: sg_rock, bands: [1, 4]}
+  tip:    {ramp: sg_tip, bands: [1, 3], line: false}
+  shadow: {ramp: sg_shadow, emissive: true, band: 1, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..2
+
+bones:
+  body: {parent: root}
+
+parts:
+  # ---------------- 0: single tall spike ----------------
+  shadow0:
+    when: "var < 0.5"
+    material: shadow
+    space: body
+    prims:
+      - ellipsoid: {c: [0.05, 0.0, 0.05], r: [0.50, 0.01, 0.36]}
+  spike0:
+    when: "var < 0.5"
+    material: rock
+    space: body
+    line: true
+    blend: 0.06
+    prims:
+      - cone: {a: [0, 0.0, 0], b: [0.04, 1.30, 0], r: [0.36, 0.10]}
+      - cone: {a: [0.04, 1.20, 0], b: [0.08, 1.95, -0.02], r: [0.11, 0.025]}
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.42, 0.08, 0.38]}                    # flared foot
+      - ellipsoid: {c: [0.01, 0.55, 0], r: [0.28, 0.06, 0.27]}                 # drip rings
+      - ellipsoid: {c: [0.03, 1.00, 0], r: [0.19, 0.05, 0.18]}
+      - cone: {a: [-0.30, 0.0, 0.10], b: [-0.36, 0.42, 0.12], r: [0.13, 0.03]} # small sister spike
+  tip0:
+    when: "var < 0.5"
+    material: tip
+    space: body
+    prims:
+      - cone: {a: [0.07, 1.62, 0.0], b: [0.08, 1.96, -0.02], r: [0.07, 0.02]}
+      - sphere: {c: [-0.36, 0.40, 0.12], r: 0.035}
+
+  # ---------------- 1: cluster ----------------
+  shadow1:
+    when: "abs(var - 1) < 0.5"
+    material: shadow
+    space: body
+    prims:
+      - ellipsoid: {c: [0.05, 0.0, 0.05], r: [1.0, 0.01, 0.48]}
+  spike1:
+    when: "abs(var - 1) < 0.5"
+    material: rock
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - cone: {a: [-0.15, 0.0, -0.10], b: [-0.12, 1.25, -0.10], r: [0.26, 0.07]}     # tall middle
+      - cone: {a: [-0.12, 1.15, -0.10], b: [-0.10, 1.85, -0.12], r: [0.08, 0.02]}
+      - ellipsoid: {c: [-0.14, 0.60, -0.10], r: [0.22, 0.05, 0.21]}
+      - cone: {a: [0.42, 0.0, 0.05], b: [0.52, 1.10, 0.04], r: [0.20, 0.02]}         # right
+      - ellipsoid: {c: [0.45, 0.42, 0.05], r: [0.16, 0.04, 0.15]}
+      - cone: {a: [-0.60, 0.0, 0.08], b: [-0.76, 0.90, 0.06], r: [0.19, 0.02]}       # left, leaning
+      - cone: {a: [0.12, 0.0, 0.34], b: [0.16, 0.55, 0.36], r: [0.14, 0.02]}         # small front
+      - ellipsoid: {c: [-0.08, 0.05, 0.08], r: [0.78, 0.06, 0.34]}                   # shared foot
+  tip1:
+    when: "abs(var - 1) < 0.5"
+    material: tip
+    space: body
+    prims:
+      - cone: {a: [-0.105, 1.55, -0.11], b: [-0.10, 1.86, -0.12], r: [0.06, 0.02]}
+      - cone: {a: [0.50, 0.85, 0.04], b: [0.52, 1.11, 0.04], r: [0.05, 0.02]}
+      - cone: {a: [-0.72, 0.66, 0.06], b: [-0.76, 0.91, 0.06], r: [0.05, 0.02]}
+
+  # ---------------- 2: broken stump + fallen top ----------------
+  shadow2:
+    when: "var > 1.5"
+    material: shadow
+    space: body
+    prims:
+      - ellipsoid: {c: [0.30, 0.0, 0.10], r: [0.95, 0.01, 0.45]}
+  stump2:
+    when: "var > 1.5"
+    material: rock
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - cone: {a: [0, 0.0, 0], b: [0.02, 1.00, 0], r: [0.36, 0.20]}
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.42, 0.08, 0.38]}
+      - ellipsoid: {c: [0.01, 0.42, 0], r: [0.32, 0.06, 0.30]}
+    cut:
+      - box: {c: [0.0, 1.05, 0], half: [0.6, 0.25, 0.6], rot: [0.35, 0.0, 0.35]}      # slanted snap
+      - box: {c: [-0.22, 0.86, 0.10], half: [0.08, 0.10, 0.4], rot: [0.3, 0.0, 0.8]} # jag
+  snap2:             # pale fresh break face
+    when: "var > 1.5"
+    material: tip
+    space: body
+    prims:
+      - ellipsoid: {c: [0.07, 0.805, 0.07], r: [0.21, 0.02, 0.21], rot: [0.35, 0, 0.35]}
+  fallen2:           # the snapped top lying on the floor, pointing right
+    when: "var > 1.5"
+    material: rock
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - cone: {a: [0.42, 0.18, 0.22], b: [1.18, 0.10, 0.02], r: [0.18, 0.03]}
+      - ellipsoid: {c: [0.66, 0.15, 0.16], r: [0.05, 0.15, 0.15], rot: [0, 0.26, 0]}
+      - box: {c: [-0.48, 0.07, 0.36], half: [0.10, 0.07, 0.08], rot: [0, 0.5, 0], round: 0.03}   # chips
+      - box: {c: [0.25, 0.05, 0.50], half: [0.07, 0.05, 0.06], rot: [0, -0.3, 0], round: 0.02}
+  fallen_tip2:
+    when: "var > 1.5"
+    material: tip
+    space: body
+    prims:
+      - cone: {a: [0.95, 0.12, 0.08], b: [1.18, 0.10, 0.02], r: [0.07, 0.025]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {var: "f"}

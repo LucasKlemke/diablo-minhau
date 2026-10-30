@@ -1,0 +1,243 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_aldo
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Act I village NPC "Rei Aldo, o Anciao": the deposed king hiding as the village elder.
+# Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi old deposed king - completely bald pink head (no hair tufts at all), short grey beard, slightly
+    stooped. Ash-brown peasant hood pushed back on the crown with a short shoulder capelet; under its rim
+    a dark dented iron crown sits on the bald brow. Patched royal mantle: faded royal-blue cloak over the
+    back and sides, wine-red under-robe in front, brown patches, worn dull-gold hem. A short plain
+    walking cane (hip height) in the right hand.
+  must_keep: [bald head (no hair), short grey beard, dark dented iron crown under the hood rim,
+              ash-brown hood + capelet, faded blue cloak with brown patches, worn gold hem, short cane]
+  simplify: [no fingers, legs hidden under the robe (only boots peek out), crown is a ring + 4 stubby points,
+             patches are flat boxes]
+  decisions: >
+    Head scale 1.8 (chibi), same skeleton numbers as npc_elder but a lighter stoop (lean 0.16) so he
+    reads as old but not the elder's hunch. Must read different from npc_elder: no long white beard, no
+    tall gnarled stick (a short straight cane instead), colourful patched royal cloth instead of plain
+    brown, hood up on the back of the head. The hood is cut by a plane so the front of the bald dome and
+    the crown stay visible from s/se/e; from n the hood covers the head and the cloak patches + gold hem
+    tell the story. The crown sits high on the dome (the 38 deg camera pushes a low ring over the eyes),
+    tilted (rz) with one point bent outwards: "dented". The cane lives in its own frame at wrist_R,
+    kept world-vertical so it rests on the ground.
+
+ramps:
+  beard_grey: ["#1c0f1a", "#6c6e7a", "#a2a5b0", "#d0d3da"]
+  hood_ash:   ["#1c0f1a", "#3e3530", "#655850", "#8a7c6e", "#ab9d8c"]
+  mantle_faded: ["#1c0f1a", "#262f5c", "#3d4f8f", "#5a6fae", "#8596c8"]
+  robe_wine:  ["#1c0f1a", "#4a1622", "#7a2836", "#9c3e48", "#bd6468"]
+  gold_worn:  ["#1c0f1a", "#5e4420", "#a07c3a", "#c4a35a", "#e0c98a"]
+  iron_dark:  ["#1c0f1a", "#24242e", "#3c3d4a", "#5c5e6e", "#8a8c9a"]
+
+materials:
+  skin:   {ramp: skin, bands: [2, 3], line_band: 2}
+  hood:   {ramp: hood_ash, bands: [1, 3]}
+  mantle: {ramp: mantle_faded, bands: [1, 3]}
+  robe:   {ramp: robe_wine, bands: [1, 3]}
+  patch:  {ramp: rag, bands: [1, 2]}
+  trim:   {ramp: gold_worn, bands: [2, 3]}
+  iron:   {ramp: iron_dark, bands: [1, 3]}
+  beard:  {ramp: beard_grey, bands: [1, 3]}
+  wood:   {ramp: wood, bands: [1, 2]}
+  boot:   {ramp: leather, bands: [1, 2]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.16        # the stoop
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.24 # looks ahead despite the stoop
+  head_yaw: 0
+  hand_L: [0.22, 0.14, 0.10]
+  foot_L: [0.09, 0, 0.04]
+  pitch_foot_L: 0
+  coat: 0           # robe / cloak hem sway (-1..1)
+  cane_pitch: 0     # cane tilt forward (+) / back (-), world-vertical at 0
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, -0.02]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.05], inherit_scale: false, rot: "[-lean*0.5, 0, 0]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.33, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: root, pos: "[0, 0.50 + bob, -0.02]", rot: "[-coat*0.25 + 0.05, twist*0.5, 0]"}
+  caneyaw:    {parent: root, rot: "[0, twist, 0]"}
+  cane:       {parent: caneyaw, at: wrist_R, rot: "[cane_pitch, 0, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.22, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # wine under-robe, slightly rounded back
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.18, 0.14, 0.16]}
+      - ellipsoid: {c: [0, 0.26, -0.02], r: [0.20, 0.15, 0.16]}
+  robe:            # wine skirt to the ground
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.05, 0], b: [0, -0.44, 0], r: [0.18, 0.25]}
+  cloak:           # faded royal-blue cloak over back and sides, open in front
+    material: mantle
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.30, -0.06], b: [0, -0.45, -0.06], r: [0.215, 0.285]}
+    cut:
+      - box: {c: [0, 0, 0.30], half: [0.13, 0.6, 0.12]}
+  hem:             # worn gold hem around cloak and robe
+    material: trim
+    space: coatbase
+    prims:
+      - cylinder: {a: [0, -0.465, -0.04], b: [0, -0.41, -0.04], r: 0.30, round: 0.01}
+  patches:         # brown patches sewn on the cloak (back, sides) and on the robe front
+    material: patch
+    space: coatbase
+    prims:
+      - box: {c: [0.09, -0.14, -0.325], half: [0.055, 0.05, 0.02], rot: [0, 0, 0.25]}
+      - box: {c: [-0.10, 0.12, -0.27], half: [0.045, 0.04, 0.02], rot: [0, 0, -0.2]}
+      - box: {c: [-0.24, -0.20, -0.08], half: [0.02, 0.05, 0.045], rot: [0, 0, 0.1]}
+      - box: {c: [-0.06, -0.26, 0.225], half: [0.045, 0.045, 0.02], rot: [-0.15, 0, 0.3]}
+  capelet:         # ash-brown peasant capelet over the shoulders (part of the hood)
+    material: hood
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.34, -0.03], r: [0.23, 0.09, 0.19]}
+  head:            # completely bald
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.15, 0.155, 0.145]}
+      - sphere: {c: [0, 0.10, 0.15], r: 0.03}      # nose
+  hood:            # hood pushed back: covers the back of the head, front of the bald dome bare
+    material: hood
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.035], r: [0.175, 0.18, 0.165]}
+      - ellipsoid: {c: [0, 0.03, -0.10], r: [0.15, 0.10, 0.10]}
+    cut:
+      - box: {c: [0, 0.15, 0.20], half: [0.3, 0.4, 0.2], rot: [-0.25, 0, 0]}
+  crown:           # dark dented iron crown high on the bald dome, just in front of the hood rim
+    material: iron
+    space: head
+    blend: 0.01
+    prims:
+      - torus: {c: [0, 0.265, 0.01], R: 0.112, r: 0.024, rot: [-0.12, 0, 0.10]}
+      - cone: {a: [0, 0.255, 0.12], b: [0, 0.34, 0.13], r: [0.03, 0.012]}
+      - cone: {a: [0.08, 0.27, 0.08], b: [0.10, 0.34, 0.10], r: [0.026, 0.011]}
+      - cone: {a: [-0.08, 0.25, 0.08], b: [-0.15, 0.29, 0.11], r: [0.026, 0.011]}   # bent point
+      - cone: {a: [0.112, 0.28, 0.0], b: [0.12, 0.35, 0.0], r: [0.024, 0.01]}
+  beard:           # short grey beard on the chin
+    material: beard
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.045, 0.10], r: [0.12, 0.07, 0.07]}
+      - ellipsoid: {c: [0, 0.00, 0.11], r: [0.07, 0.05, 0.05]}
+  brows_L:         # grey brows
+    material: beard
+    space: head
+    prims:
+      - ellipsoid: {c: [0.06, 0.18, 0.13], r: [0.04, 0.016, 0.02]}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.145, 0.135], r: 0.022}
+  arm_L:           # faded-blue sleeve
+    material: mantle
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.07}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.06, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.075]}
+  cuff_L:          # worn gold cuff
+    material: trim
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.03], b: [0, 0, 0.0], r: 0.075, round: 0.005}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.055}
+  boot_L:
+    material: boot
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.065, 0.05, 0.09]}
+  cane:            # short plain cane, right hand only, reaches the ground
+    material: wood
+    space: cane
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, -0.62, 0.03], b: [0, 0.05, 0.03], r: 0.03, round: 0.01}
+      - sphere: {c: [0, 0.06, 0.03], r: 0.045}
+
+animations:
+  idle:            # slow breath, leans a little on the cane
+    frames: 4
+    ms: 200
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      lean: "0.16 + 0.03*sin(p)"
+      head_pitch: "-0.24 - 0.04*sin(p - 0.5)"
+      hand_L: "[0.22, 0.14 + 0.015*sin(p - 0.6), 0.10]"
+      hand_R: "[0.32, 0.10, 0.16]"
+      coat: "0.10*sin(p - 1.0)"
+  talk:            # left hand rises and opens, head nods
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.015*sin(p)"
+      head_pitch: "-0.24 - 0.08*sin(2*p)"
+      hand_L: "[0.26 + 0.04*sin(p), 0.28 + 0.06*sin(p), 0.22]"
+      hand_R: "[0.32, 0.10, 0.16]"
+      coat: "0.08*sin(p - 1.0)"
+  walk:            # slow shuffling steps, the cane swings forward with the right leg
+    frames: 6
+    ms: 130
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.20
+      bob: "-0.03*cos(2*p) + 0.005"
+      twist: "0.06*cos(p)"
+      foot_L: "[0.09, 0.06*pos(-sin(p)), 0.05 + 0.12*cos(p)]"
+      foot_R: "[0.09, 0.06*pos(sin(p)), 0.05 - 0.12*cos(p)]"
+      pitch_foot_L: "0.25*pos(-sin(p))"
+      pitch_foot_R: "0.25*pos(sin(p))"
+      hand_L: "[0.22, 0.14 + 0.02*pos(cos(p)), 0.08 - 0.08*cos(p)]"
+      hand_R: "[0.32, 0.12, 0.18 - 0.04*cos(p)]"
+      cane_pitch: "0.12 - 0.12*cos(p)"
+      head_pitch: -0.28
+      coat: "0.4*sin(2*p)"

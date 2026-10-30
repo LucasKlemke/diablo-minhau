@@ -1,0 +1,207 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: bat
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.62, 0]}
+shadow: {rx: 8, ry: 3, alpha: 100}
+
+# Giant cave bat: flying dungeon enemy. It hovers ~0.8 units above its shadow (root stays on the ground,
+# so the shadow is where the game places it). Own skeleton: `body` (upright, slightly leaning forward)
+# carries the head; each wing is an FK chain wing_L (shoulder, flap) -> hand_L (wrist, fold) with a
+# membrane fanned from the wrist to three finger tips and the body side. Written once as _L, mirrored to _R.
+brief:
+  summary: giant cave bat, chibi round furry body with a big head and tall ears, wide leathery wings,
+    glowing red eyes, small pale fangs; hovers above its shadow and flaps fast
+  must_keep: [wide scalloped leathery wings, tall pointed ears, red emissive eyes, round furry body, hovering above shadow]
+  simplify: [no nose leaf, finger bones only as darker spars, feet as two small claws]
+  decisions: body ~12 px tall on screen, wingspan ~1.7 units (~30 px) so the flap fits frame 48;
+    fur dark brown-purple, wings a warmer redder brown so they separate from the body; flat 2-3 band shading;
+    walk = flying forward (body pitched forward, bigger flaps); death drops it to the ground with wings folded
+
+ramps:
+  bat_fur:  ["#1c0f1a", "#2a1830", "#45284f", "#664070", "#8a6394"]
+  bat_wing: ["#1c0f1a", "#34201f", "#55332d", "#7a4c3b", "#9c684a"]
+  bat_ear:  ["#1c0f1a", "#5e2e3a", "#a85a64", "#d08482"]
+  bat_eye:  ["#1c0f1a", "#ff2b2b", "#ffb3a0"]
+
+materials:
+  fur:   {ramp: bat_fur, bands: [1, 3]}
+  wing:  {ramp: bat_wing, bands: [1, 3], two_sided: true}
+  spar:  {ramp: bat_fur, bands: [1, 2]}
+  ear:   {ramp: bat_ear, bands: [1, 2], outline: false}
+  fang:  {ramp: bone, bands: [2, 4]}
+  mouth: {ramp: mouth, bands: [1, 2], line: false}
+  eye:   {ramp: bat_eye, emissive: true, band: 1, outline: false, glow: {color: "#ff2b2b", mix: 0.45, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset (hover)
+  tilt: 0.25        # + pitches the body forward (nose down)
+  roll: 0           # body roll
+  head_p: 0         # + head looks down
+  jaw: 0            # 0..1 mouth open
+  flap_L: 0.2       # wing raise around the body axis (+ up)
+  bend_L: 0         # wrist bend (+ outer wing up): lag of the flap
+  sweep_L: 0        # + sweeps the whole wing backward
+  fold_L: 0         # 0..1 wing folds in (dive, death)
+  legs: 0           # + feet swing forward
+
+bones:
+  body:    {parent: root, pos: "[0, 0.80 + bob, 0]", rot: "[tilt, 0, roll]"}
+  head:    {parent: body, pos: [0, 0.17, 0.04], rot: "[head_p, 0, 0]", scale: 1.35}
+  jaw:     {parent: head, pos: [0, -0.04, 0.10], rot: "[0.6*jaw, 0, 0]"}
+  wing_L:  {parent: body, pos: [0.12, 0.07, -0.03], rot: "[0, sweep_L + 0.9*fold_L, flap_L - 0.6*fold_L]"}
+  hand_L:  {parent: wing_L, pos: [0.30, 0.03, 0.03], rot: "[0, 0.15 + 2.0*fold_L, bend_L - 0.5*fold_L]"}
+  wroot_L: {parent: body, pos: [0.07, -0.12, -0.05]}
+  foot_L:  {parent: body, pos: [0.05, -0.15, -0.02], rot: "[-0.4 - legs, 0, 0]"}
+
+parts:
+  body:
+    material: fur
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0], r: [0.17, 0.19, 0.15]}
+      - ellipsoid: {c: [0, 0.07, 0.03], r: [0.12, 0.08, 0.12]}       # chest tuft / neck
+  head:
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.02], r: [0.15, 0.13, 0.13]}
+      - ellipsoid: {c: [0, 0.02, 0.12], r: [0.07, 0.055, 0.06]}       # snout
+  ear_L:
+    material: fur
+    space: head
+    blend: 0.02
+    prims:
+      - cone: {a: [0.07, 0.13, 0.0], b: [0.14, 0.34, -0.02], r: [0.07, 0.02]}
+  ear_inner_L:
+    material: ear
+    space: head
+    prims:
+      - cone: {a: [0.08, 0.15, 0.04], b: [0.13, 0.30, 0.025], r: [0.035, 0.012]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.062, 0.075, 0.13], r: 0.036}
+  mouth:
+    material: mouth
+    space: jaw
+    when: "jaw > 0.05"
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.03], r: [0.05, "0.01 + 0.03*jaw", 0.03]}
+  jaw:
+    material: fur
+    space: jaw
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.02], r: [0.055, 0.025, 0.05]}
+  fang_L:
+    material: fang
+    space: head
+    prims:
+      - cone: {a: [0.03, -0.01, 0.15], b: [0.035, -0.07, 0.155], r: [0.022, 0.01]}
+  wing_L:
+    material: wing
+    space: hand_L
+    blend: 0.01
+    prims:
+      - membrane: {hub: [0, 0, 0], th: 0.018,
+                   ring: [[0.52, 0.08, 0.07], [0.52, 0.0, -0.19], [0.33, -0.03, -0.40], "@wroot_L", "@wing_L"],
+                   scallop: [0, 1, 2], scallop_depth: 0.30}
+  spars_L:
+    material: spar
+    space: hand_L
+    blend: 0.015
+    prims:
+      - cone: {a: "@wing_L", b: [0, 0, 0], r: [0.04, 0.03]}
+      - cone: {a: [0, 0, 0], b: [0.52, 0.08, 0.07], r: [0.028, 0.016]}
+      - cone: {a: [0, 0, 0], b: [0.52, 0.0, -0.19], r: [0.024, 0.014]}
+      - cone: {a: [0, 0, 0], b: [0.33, -0.03, -0.40], r: [0.024, 0.014]}
+      - cone: {a: [0, 0, 0], b: [-0.02, 0.07, 0.07], r: [0.026, 0.012]}   # thumb claw
+  foot_L:
+    material: spar
+    space: foot_L
+    blend: 0.01
+    prims:
+      - cone: {a: [0, 0, 0], b: [0, -0.10, 0.02], r: [0.03, 0.022]}
+
+sockets:
+  hit: {bone: head, offset: [0, 0.0, 0.2]}
+  head: {bone: head, offset: [0, 0.1, 0]}
+
+timing: {attack: {hit: 200ms, total: 440ms}}
+
+animations:
+  idle:            # hovering in place: fast flap, body rises on the downstroke, wrists lag the shoulders
+    frames: 4
+    ms: 80
+    events: {2: flap}
+    channels:
+      flap_L: "0.15 + 0.7*sin(p)"
+      flap_R: "0.15 + 0.7*sin(p)"
+      bend_L: "0.35*sin(p - 1.2)"
+      bend_R: "0.35*sin(p - 1.2)"
+      bob: "0.05*sin(p + 2.0)"
+      tilt: "0.22 + 0.04*sin(p)"
+      legs: "0.15*sin(p - 1.5)"
+  walk:            # flying forward: pitched forward, bigger, quicker strokes
+    frames: 4
+    ms: 70
+    events: {2: flap}
+    channels:
+      flap_L: "0.15 + 0.85*sin(p)"
+      flap_R: "0.15 + 0.85*sin(p)"
+      bend_L: "0.40*sin(p - 1.2)"
+      bend_R: "0.40*sin(p - 1.2)"
+      sweep_L: "0.12 + 0.08*sin(p)"
+      sweep_R: "0.12 + 0.08*sin(p)"
+      bob: "0.06*sin(p + 2.0)"
+      tilt: "0.50 + 0.05*sin(p)"
+      head_p: -0.2
+      legs: -0.3
+  attack:          # rises with wings high and mouth open, then dives forward-down and bites (hit at 200 ms)
+    loop: false
+    keys:
+      - ms: 80
+        set: {root: [0, 0, -0.04], bob: 0.10, tilt: 0.0, head_p: -0.25, flap_L: 1.0, flap_R: 1.0, bend_L: 0.3, bend_R: 0.3, jaw: 0.4}
+      - ms: 120
+        event: windup
+        set: {root: [0, 0, -0.08], bob: 0.12, tilt: -0.15, head_p: -0.35, flap_L: 1.15, flap_R: 1.15, bend_L: 0.45, bend_R: 0.45,
+              sweep_L: -0.1, sweep_R: -0.1, jaw: 1.0, legs: 0.3}
+      - ms: 70
+        event: hit
+        set: {root: [0, 0, 0.16], bob: -0.12, tilt: 0.75, head_p: 0.1, flap_L: -0.2, flap_R: -0.2, bend_L: -0.3, bend_R: -0.3,
+              sweep_L: 0.5, sweep_R: 0.5, fold_L: 0.3, fold_R: 0.3, jaw: 0.2, legs: -0.4}
+      - ms: 80
+        set: {root: [0, 0, 0.12], bob: -0.08, tilt: 0.55, flap_L: -0.5, flap_R: -0.5, bend_L: -0.2, bend_R: -0.2, sweep_L: 0.3, sweep_R: 0.3, jaw: 0.1, legs: -0.3}
+      - ms: 90
+        set: {root: [0, 0, 0.04], bob: 0.0, tilt: 0.3, flap_L: 0.6, flap_R: 0.6, bend_L: 0.1, bend_R: 0.1}
+  hit:             # knocked back and up, wings crumple
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.10], bob: 0.08, tilt: -0.30, head_p: -0.3, roll: 0.15, flap_L: 0.9, flap_R: 0.9, bend_L: -0.5, bend_R: -0.5,
+              fold_L: 0.25, fold_R: 0.25, jaw: 0.8}
+      - ms: 80
+        set: {root: [0, 0, -0.07], bob: 0.04, tilt: -0.1, head_p: -0.15, roll: 0.06, flap_L: -0.3, flap_R: -0.3, bend_L: 0.3, bend_R: 0.3, jaw: 0.4}
+      - ms: 90
+        set: {root: [0, 0, -0.02], bob: 0.0, tilt: 0.15, flap_L: 0.6, flap_R: 0.6, bend_L: 0.1, bend_R: 0.1}
+  death:           # jolts, wings fold, drops to the ground and lies on its side, wings splayed limp
+    loop: false
+    keys:
+      - ms: 80
+        set: {root: [0, 0, -0.06], bob: 0.10, tilt: -0.3, head_p: -0.35, flap_L: 1.1, flap_R: 1.1, bend_L: 0.4, bend_R: 0.4, jaw: 1.0}
+      - ms: 90
+        set: {root: [0, 0, -0.06], bob: -0.15, tilt: 0.1, roll: 0.3, flap_L: 0.5, flap_R: 0.5, fold_L: 0.5, fold_R: 0.5, jaw: 0.8, legs: 0.3}
+      - ms: 90
+        set: {root: [0, 0, -0.05], bob: -0.42, tilt: 0.6, roll: 0.7, flap_L: 0.1, flap_R: 0.1, fold_L: 0.6, fold_R: 0.6, jaw: 0.6, legs: 0.4}
+      - ms: 100
+        set: {root: [0, 0, -0.04], bob: -0.60, tilt: 1.2, roll: 0.5, head_p: 0.2, flap_L: -0.15, flap_R: -0.15, fold_L: 0.2, fold_R: 0.2, jaw: 0.5}
+      - ms: 650
+        set: {root: [0, 0, -0.04], bob: -0.62, tilt: 1.35, roll: 0.4, head_p: 0.25, flap_L: -0.3, flap_R: -0.3, fold_L: 0.1, fold_R: 0.1, jaw: 0.4}

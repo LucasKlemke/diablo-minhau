@@ -1,0 +1,171 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cellar_rack
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.6980 = 10 px above the pivot -> pivot (24, 34), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.6980, 0]}
+shadow: {rx: 18, ry: 4, alpha: 90}
+
+# Act I dungeon "Casa Abandonada": wine rack standing against the cellar's north wall.
+brief:
+  summary: tall weathered wooden wine rack (three rows of cubbies, dark back boards) full of dusty dark
+    green bottles lying with their corked necks toward the viewer, some cubbies empty, a grey cobweb in the
+    top corner, a broken bottle and shards in a wine stain on the floor in front; two looks - mostly full,
+    and half emptied with more broken glass
+  must_keep: [rack frame with three shelves, rows of bottle ends, dust/cobweb, broken glass and a wine stain]
+  simplify: [bottles as short cylinders with a cork dot, shards as tiny boxes]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.6980, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local glass and wine.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,34) is the ground point at the centre of the
+    rack's footprint. Rack 1.9 wide x 0.45 deep x 1.4 tall (~35 px wide) -> footprint 2x1 tiles, blocking;
+    place it with its back against a north wall. Clips: idle (= variant 0) and `variants` (2 frames).
+
+ramps:
+  cr_glass: ["#1c0f1a", "#1a3226", "#2a4e3a", "#3f7052", "#6aa07a"]
+  cr_wine:  ["#1c0f1a", "#2a0a16", "#4a0f22", "#6e1a30"]
+  cr_dust:  ["#1c0f1a", "#8a8488", "#b4aeac", "#d6d0c8"]
+
+materials:
+  wood:   {ramp: rwood, bands: [2, 4]}
+  back:   {ramp: rchar, bands: [2, 3]}
+  glass:  {ramp: cr_glass, bands: [2, 4]}
+  cork:   {ramp: rbone, bands: [1, 2], outline: false, line: false}
+  wine:   {ramp: cr_wine, bands: [2, 3], outline: false, line: false}
+  shard:  {ramp: cr_glass, bands: [3, 4], outline: false, line: false}
+  web:    {ramp: cr_dust, bands: [1, 2], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  back:
+    material: back
+    space: body
+    prims:
+      - box: {c: [0, 0.68, -0.2], half: [0.92, 0.66, 0.03]}
+  frame:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.92, 0.72, 0], half: [0.06, 0.72, 0.22]}
+      - box: {c: [0.92, 0.72, 0], half: [0.06, 0.72, 0.22]}
+      - box: {c: [0, 0.72, 0.0], half: [0.04, 0.68, 0.2]}
+      - box: {c: [0, 0.12, 0.17], half: [0.95, 0.04, 0.04]}
+      - box: {c: [0, 0.49, 0.17], half: [0.95, 0.03, 0.035]}
+      - box: {c: [0, 0.87, 0.17], half: [0.95, 0.03, 0.035]}
+      - box: {c: [0, 1.25, 0.17], half: [0.95, 0.03, 0.035]}
+      - box: {c: [0, 1.44, 0], half: [0.98, 0.04, 0.12]}
+    cut:
+      - box: {c: [0.85, 1.5, 0.1], half: [0.2, 0.1, 0.3], rot: [0, 0, 0.4]}    # chipped top corner
+  bottles0:
+    material: glass
+    space: body
+    line: true
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - cylinder: {a: [-0.72, 0.3, -0.05], b: [-0.72, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [-0.16, 0.3, -0.05], b: [-0.16, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [0.44, 0.3, -0.05], b: [0.44, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [0.72, 0.3, -0.05], b: [0.72, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [-0.44, 0.68, -0.05], b: [-0.44, 0.68, 0.2], r: 0.1}
+      - cylinder: {a: [0.16, 0.68, -0.05], b: [0.16, 0.68, 0.2], r: 0.1}
+      - cylinder: {a: [-0.72, 1.06, -0.05], b: [-0.72, 1.06, 0.2], r: 0.1}
+      - cylinder: {a: [-0.44, 1.06, -0.05], b: [-0.44, 1.06, 0.2], r: 0.1}
+      - cylinder: {a: [0.16, 1.06, -0.05], b: [0.16, 1.06, 0.2], r: 0.1}
+      - cylinder: {a: [0.44, 1.06, -0.05], b: [0.44, 1.06, 0.2], r: 0.1}
+      - cylinder: {a: [0.72, 1.06, -0.05], b: [0.72, 1.06, 0.2], r: 0.1}
+  necks0:
+    material: cork
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - cylinder: {a: [-0.72, 0.3, 0.2], b: [-0.72, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [-0.16, 0.3, 0.2], b: [-0.16, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [0.44, 0.3, 0.2], b: [0.44, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [0.72, 0.3, 0.2], b: [0.72, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [-0.44, 0.68, 0.2], b: [-0.44, 0.68, 0.27], r: 0.04}
+      - cylinder: {a: [0.16, 0.68, 0.2], b: [0.16, 0.68, 0.27], r: 0.04}
+      - cylinder: {a: [-0.72, 1.06, 0.2], b: [-0.72, 1.06, 0.27], r: 0.04}
+      - cylinder: {a: [-0.44, 1.06, 0.2], b: [-0.44, 1.06, 0.27], r: 0.04}
+      - cylinder: {a: [0.16, 1.06, 0.2], b: [0.16, 1.06, 0.27], r: 0.04}
+      - cylinder: {a: [0.44, 1.06, 0.2], b: [0.44, 1.06, 0.27], r: 0.04}
+      - cylinder: {a: [0.72, 1.06, 0.2], b: [0.72, 1.06, 0.27], r: 0.04}
+  bottles1:
+    material: glass
+    space: body
+    line: true
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [-0.72, 0.3, -0.05], b: [-0.72, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [-0.16, 0.3, -0.05], b: [-0.16, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [0.44, 0.3, -0.05], b: [0.44, 0.3, 0.2], r: 0.1}
+      - cylinder: {a: [0.16, 0.68, -0.05], b: [0.16, 0.68, 0.2], r: 0.1}
+      - cylinder: {a: [0.72, 0.68, -0.05], b: [0.72, 0.68, 0.2], r: 0.1}
+      - cylinder: {a: [-0.72, 1.06, -0.05], b: [-0.72, 1.06, 0.2], r: 0.1}
+      - cylinder: {a: [-0.16, 1.06, -0.05], b: [-0.16, 1.06, 0.2], r: 0.1}
+  necks1:
+    material: cork
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [-0.72, 0.3, 0.2], b: [-0.72, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [-0.16, 0.3, 0.2], b: [-0.16, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [0.44, 0.3, 0.2], b: [0.44, 0.3, 0.27], r: 0.04}
+      - cylinder: {a: [0.16, 0.68, 0.2], b: [0.16, 0.68, 0.27], r: 0.04}
+      - cylinder: {a: [0.72, 0.68, 0.2], b: [0.72, 0.68, 0.27], r: 0.04}
+      - cylinder: {a: [-0.72, 1.06, 0.2], b: [-0.72, 1.06, 0.27], r: 0.04}
+      - cylinder: {a: [-0.16, 1.06, 0.2], b: [-0.16, 1.06, 0.27], r: 0.04}
+  web:                # dusty cobweb in the top-left cubby corner
+    material: web
+    space: body
+    prims:
+      - tri: {a: [-0.86, 1.4, 0.18], b: [-0.45, 1.4, 0.18], c: [-0.86, 1.05, 0.18], th: 0.01}
+  stain:
+    material: wine
+    space: body
+    prims:
+      - ellipsoid: {c: [0.3, 0.004, 0.5], r: "[0.38, 0.004, 0.16] + [0.15, 0, 0.06]*v"}
+      - ellipsoid: {c: [-0.5, 0.004, 0.42], r: [0.14, 0.004, 0.07]}
+  floor_bottle:       # one broken bottle lying in front
+    material: glass
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.12, 0.08, 0.5], b: [0.38, 0.08, 0.58], r: 0.08}
+  shards:
+    material: shard
+    space: body
+    prims:
+      - box: {c: [0.5, 0.02, 0.48], half: [0.04, 0.02, 0.025], rot: [0, 0.6, 0]}
+      - box: {c: [0.62, 0.02, 0.62], half: [0.03, 0.02, 0.02], rot: [0, -0.3, 0]}
+      - box: {c: [-0.42, 0.02, 0.5], half: [0.035, 0.02, 0.02], rot: [0, 0.9, 0]}
+  shards1:
+    material: shard
+    space: body
+    when: "v > 0.5"
+    prims:
+      - box: {c: [-0.15, 0.02, 0.62], half: [0.04, 0.02, 0.025], rot: [0, 0.2, 0]}
+      - box: {c: [0.75, 0.02, 0.4], half: [0.035, 0.02, 0.02], rot: [0, 1.1, 0]}
+      - cylinder: {a: [-0.7, 0.08, 0.5], b: [-0.5, 0.08, 0.66], r: 0.08}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 2
+    ms: 1000
+    channels: {v: "f"}

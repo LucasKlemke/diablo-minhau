@@ -1,0 +1,283 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: zombie
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+# Zombie: Act II swamp shambler. Same skeleton and proportions as the bandit (pelvis 0.50, head 1.9x),
+# hunched forward a little so it reads ~30 px. Project style: flat 2-3 tones, dark outline, chibi, snappy.
+brief:
+  summary: chibi swamp zombie - green-grey rotting skin, head lolling to one side, dull glowing yellow eyes,
+    gaping dark mouth, torn brown rag shirt and ragged trousers (one bare shin), both arms reaching forward
+    with clawed hands
+  must_keep: [green-grey skin vs brown rags contrast, both arms reaching forward, lolling head, yellow eyes]
+  simplify: [hands are a palm and three claw cones, rags are torn ellipsoids with jagged cuts, no toes]
+  decisions:
+    - skin is a spec-local grey-green ramp (zskin) darker than the goblin green so it does not read as a goblin
+    - rags reuse the palette's rag ramp (shirt) and a darker spec-local mud ramp (trousers)
+    - a patch of dark hair on the left of the scalp breaks the symmetry; the right shin is bare (torn trouser)
+    - arms default forward (hand channels at shoulder height, z ~0.3); the walk drags the right foot
+    - attack is a two-hand overhead claw slam with a vertical smear (fxspace rolled 90 deg like the skeleton)
+    - death falls forward face-down
+    - mirrored directions swap the hair patch and the bare shin (project mirror style)
+
+ramps:
+  zskin: ["#1c0f1a", "#3e5340", "#6d8a68", "#9fb48e"]   # grey-green rotting flesh
+  mud:   ["#1c0f1a", "#2f2620", "#4a3b2e", "#66523d"]   # dark muddy trousers
+
+materials:
+  skin:   {ramp: zskin, bands: [1, 3]}
+  shirt:  {ramp: rag, bands: [1, 3]}
+  pants:  {ramp: mud, bands: [1, 3]}
+  hair:   {ramp: hair_dark, bands: [1, 2]}
+  mouth:  {ramp: mouth, emissive: true, band: 1, outline: false, line: false}
+  eye:    {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.2, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.16
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.12
+  head_yaw: 0
+  head_roll: 0.22   # head lolls to one side
+  jaw: 0.4          # mouth open (0..1)
+  eyes: 1
+  hand_L: [0.17, 0.26, 0.35]
+  hand_R: [0.15, 0.22, 0.37]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.42
+  smear_y: 0.80
+  smear_z: 0.16
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.35, 0.05], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.4, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, head_roll]", scale: 1.9}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.27, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  fxspace:    {parent: root, pos: [-0.10, 0, 0], rot: "[0, twist*0.3, 1.5708]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.20, 0.19],
+          pole: [0.6, -0.6, -0.3], pole_space: torso_rot, up: [0, 1, 0], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  shirt:           # torn rag shirt over a skinny body
+    material: shirt
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.14, 0.11, 0.105]}
+      - ellipsoid: {c: [0, 0.21, 0.0], r: [0.155, 0.10, 0.11]}
+    cut:
+      - box: {c: [0.07, -0.05, 0.10], half: [0.03, 0.05, 0.06], rot: [0, 0, 0.5]}     # jagged hem
+      - box: {c: [-0.06, -0.04, 0.11], half: [0.025, 0.05, 0.06], rot: [0, 0, -0.6]}
+      - box: {c: [0.12, -0.04, -0.06], half: [0.03, 0.05, 0.06], rot: [0, 0.5, 0.6]}
+  belly:           # rotten skin showing through the torn shirt
+    material: skin
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.0], r: [0.12, 0.10, 0.095]}
+  hole:            # a rip in the chest
+    material: skin
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [-0.06, 0.20, 0.10], r: [0.045, 0.04, 0.02]}
+  hips:
+    material: pants
+    space: pelvis
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0], r: [0.13, 0.07, 0.10]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.26, 0.0], b: [0, 0.35, 0.05], r: [0.05, 0.045]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.01], r: [0.145, 0.14, 0.14]}
+      - ellipsoid: {c: [0, 0.065, 0.06], r: [0.10, 0.07, 0.09]}      # jaw, jutting
+      - ellipsoid: {c: [0, 0.205, 0.105], r: [0.11, 0.03, 0.04]}     # heavy brow
+  hair:            # patchy dark hair on one side of the scalp
+    material: hair
+    space: head
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.09, 0.22, -0.07], r: [0.07, 0.05, 0.08], rot: [0, 0, -0.7]}
+      - cone: {a: [0.12, 0.20, -0.02], b: [0.16, 0.08, 0.02], r: [0.028, 0.012]}
+      - cone: {a: [0.10, 0.20, -0.10], b: [0.14, 0.07, -0.12], r: [0.028, 0.012]}
+  sockets:         # dark sunken eye sockets
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0.058, 0.155, 0.112], r: [0.042, 0.04, 0.03]}
+      - ellipsoid: {c: [-0.058, 0.155, 0.112], r: [0.042, 0.04, 0.03]}
+  eye_L:
+    when: "eyes > 0"
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: "[0.058, 0.155, 0.128 - 0.012*pulse(yaw, 90, 35)]", r: 0.025}
+  mouth:           # gaping mouth, opens with jaw
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, "0.075 - 0.01*jaw", 0.12], r: ["0.04 + 0.01*jaw", "0.012 + 0.025*jaw", 0.025]}
+  arm_L:           # bare grey-green arms (sleeves torn off)
+    material: skin
+    blend: 0.025
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.048, 0.04]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.04, 0.036]}
+  sleeve_L:        # torn short sleeve
+    material: shirt
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.068}
+      - cone: {a: "@shoulder_L", b: {between: ["@shoulder_L", "@elbow_L"], t: 0.45}, r: [0.066, 0.058]}
+  hand_L:          # palm and three claws
+    material: skin
+    space: wrist_L
+    blend: 0.015
+    prims:
+      - ellipsoid: {c: [0, 0, 0.035], r: [0.045, 0.03, 0.045]}
+      - cone: {a: [0.03, 0, 0.05], b: [0.04, -0.03, 0.12], r: [0.02, 0.008]}
+      - cone: {a: [0, 0, 0.06], b: [0, -0.03, 0.13], r: [0.02, 0.008]}
+      - cone: {a: [-0.03, 0, 0.05], b: [-0.04, -0.03, 0.12], r: [0.02, 0.008]}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.075, 0.062]}
+      - cone: {a: "@knee_L", b: {between: ["@knee_L", "@ankle_L"], t: 0.6}, r: [0.064, 0.06]}
+  shin_bare:      # right trouser leg torn off: bare shin
+    material: skin
+    blend: 0.02
+    prims:
+      - cone: {a: "@knee_R", b: "@ankle_R", r: [0.045, 0.04]}
+  shin_cuff:      # covers the left shin only (the right one is bare)
+    material: pants
+    blend: 0.02
+    prims:
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.06, 0.055]}
+  foot_L:          # bare grey feet
+    material: skin
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.035], r: [0.055, 0.04, 0.085]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[smear_y, 0, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.08}
+
+sockets:
+  hit: {bone: torso_rot, offset: [0, 0.20, 0.45]}  # in front of the claws at impact
+  head: {bone: head, offset: [0, 0.36, 0]}
+
+timing: {attack: {hit: 360ms, total: 560ms}}
+
+animations:
+  idle:            # swaying in place, jaw working, arms drifting
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      roll: "0.04*sin(p)"
+      head_roll: "0.22 + 0.06*sin(p - 0.8)"
+      jaw: "0.4 + 0.3*sin(p)"
+      hand_L: "[0.17, 0.26 + 0.03*sin(p - 0.6), 0.35]"
+      hand_R: "[0.15, 0.22 + 0.03*sin(p + 0.9), 0.37]"
+  walk:            # slow lurch: big step on the left, the right foot drags; body rocks hard
+    frames: 6
+    ms: 150
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.22
+      bob: "-0.035*cos(2*p) + 0.005"
+      roll: "0.10*cos(p)"
+      twist: "0.08*cos(p)"
+      head_roll: "0.22 - 0.10*cos(p)"
+      foot_L: "[0.09, 0.07*pos(-sin(p)), 0.02 + 0.13*cos(p)]"
+      foot_R: "[0.09, 0.015*pos(sin(p)), 0.0 - 0.10*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.5"
+      hand_L: "[0.17, 0.26 + 0.03*cos(p), 0.35 - 0.04*cos(p)]"
+      hand_R: "[0.15, 0.22 - 0.03*cos(p), 0.37 + 0.04*cos(p)]"
+      jaw: "0.5 + 0.3*sin(2*p)"
+  attack:          # both hands raised overhead (held), slam down forward, impact, recover
+    loop: false
+    keys:
+      - ms: 150
+        event: windup
+        set: {lean: -0.12, bob: 0.0, squash: 1.04, head_pitch: -0.15, head_roll: 0.1, jaw: 0.8,
+              hand_L: [0.32, 0.52, 0.10], hand_R: [0.30, 0.50, 0.12], foot_L: [0.09, 0, 0.08], foot_R: [0.09, 0, -0.04]}
+      - ms: 150
+        set: {lean: -0.20, bob: 0.01, squash: 1.06, head_pitch: -0.20, head_roll: 0.1, jaw: 1.0,
+              hand_L: [0.34, 0.58, 0.04], hand_R: [0.32, 0.56, 0.06], foot_L: [0.09, 0, 0.08], foot_R: [0.09, 0, -0.04]}
+      - ms: 60
+        set: {root: [0, 0, 0.06], lean: 0.25, squash: 1.0, jaw: 1.0, head_roll: 0.15,
+              hand_L: [0.20, 0.48, 0.32], hand_R: [0.18, 0.46, 0.34], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06],
+              smear_a0: -1.2, smear_a1: 0.2, smear_w: 0.08}
+      - ms: 110
+        event: hit
+        set: {root: [0, 0, 0.10], lean: 0.50, bob: -0.04, squash: 0.92, jaw: 0.6, head_roll: 0.25,
+              hand_L: [0.12, 0.04, 0.40], hand_R: [0.10, 0.02, 0.42], foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.08],
+              smear_a0: -2.1, smear_a1: -0.4, smear_w: 0.09}
+      - ms: 90
+        set: {root: [0, 0, 0.08], lean: 0.42, bob: -0.03, jaw: 0.5, head_roll: 0.25,
+              hand_L: [0.14, 0.06, 0.36], hand_R: [0.12, 0.04, 0.38], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06],
+              smear_a0: -2.4, smear_a1: -1.4, smear_w: 0.05, smear_fade: 0.7}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.15, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, head_roll: 0.45, jaw: 0.9,
+                       hand_L: [0.26, 0.16, 0.16], hand_R: [0.24, 0.12, 0.18], foot_R: [0.09, 0, -0.06]}}
+      - {ms: 90, set: {lean: 0.0, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.1, head_roll: 0.35, jaw: 0.6,
+                       hand_L: [0.20, 0.20, 0.24], hand_R: [0.18, 0.16, 0.26], foot_R: [0.09, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.12, root: [0, 0, -0.02], head_roll: 0.25}}
+  death:           # sags, knees buckle, topples forward face-down, eyes go out
+    loop: false
+    keys:
+      - {ms: 110, set: {lean: -0.15, squash: 0.95, head_pitch: -0.3, head_roll: 0.4, jaw: 1.0, root: [0, 0, -0.04],
+                        hand_L: [0.28, 0.22, 0.10], hand_R: [0.26, 0.20, 0.12]}}
+      - {ms: 120, set: {bob: -0.14, lean: 0.35, squash: 0.92, head_pitch: 0.1, head_roll: 0.5, jaw: 0.8,
+                        hand_L: [0.24, 0.0, 0.20], hand_R: [0.22, -0.02, 0.22], foot_L: [0.10, 0, -0.06], foot_R: [0.10, 0, -0.10]}}
+      - {ms: 120, set: {bob: -0.30, lean: 0.95, squash: 0.95, head_pitch: 0.2, head_roll: 0.4, jaw: 0.6, root: [0, 0, -0.06],
+                        hand_L: [0.26, 0.10, 0.36], hand_R: [0.24, 0.08, 0.38], foot_L: [0.10, 0.02, -0.18], foot_R: [0.10, 0, -0.22]}}
+      - {ms: 120, set: {bob: -0.38, lean: 1.35, squash: 0.92, head_pitch: 0.1, head_roll: 0.5, jaw: 0.5, root: [0, 0, -0.16],
+                        hand_L: [0.32, 0.22, 0.40], hand_R: [0.30, 0.20, 0.42], foot_L: [0.10, 0.03, -0.28], foot_R: [0.11, 0, -0.30]}}
+      - {ms: 700, set: {bob: -0.39, lean: 1.40, squash: 0.92, head_pitch: 0.1, head_roll: 0.6, jaw: 0.4, root: [0, 0, -0.16], eyes: 0,
+                        hand_L: [0.34, 0.22, 0.40], hand_R: [0.32, 0.20, 0.42], foot_L: [0.10, 0.02, -0.28], foot_R: [0.11, 0, -0.30]}}

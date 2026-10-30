@@ -1,0 +1,234 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hunter_lodge
+kind: prop
+view: topdown
+size: 96
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 2.2335 = 32 px above the pivot -> pivot (48, 80), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 2.2335, 0]}
+shadow: {rx: 34, ry: 9, alpha: 70}
+
+# Act I, Minhau: Ivo the hunter's shelter.
+brief:
+  summary: a hunter's lean-to open toward the camera - rough poles with a roof of sewn raw hides sloping
+    down to the back, a big pair of deer antlers nailed over the front ridge pole, a bed of dark furs
+    inside; a deer hide stretched on a square stick frame leaning on the left, a round frame with a
+    wolf pelt on the right, and in front a drying rack (two forked posts and a pole) with two hares, a
+    bird and a haunch hanging from it
+  must_keep: [lean-to of hides on poles, antlers over the front, stretched pelts on frames, drying rack
+    with hanging game]
+  simplify: [hides as flat slabs with stitched seams, game as 2-3 ellipsoids each, lashing as dots]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false, camera.center [0, 2.2335, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 48,80) is the ground point at the centre of
+    the FRONT edge of the 4x3 footprint (like house). Lean-to x -1.5..1.5, z -2.45..-0.9 (the open
+    front at z -0.95), frames to x +-1.95, drying rack in front (z ~+0.15) -> footprint 4x3 tiles; block
+    the back 4x2 (shelter and frames) and the rack's two posts, the tile in front of the opening stays
+    walkable for Ivo. Static: 1-frame idle (the game can sway the hanging game if it wants).
+
+materials:
+  pole:    {ramp: rwood, bands: [2, 4]}
+  hide:    {ramp: rhide, bands: [2, 4], two_sided: true}
+  hide_dk: {ramp: rhide, bands: [1, 2], two_sided: true}
+  seam:    {ramp: rrope, bands: [2, 2], outline: false, line: false}
+  fur:     {ramp: rfur, bands: [1, 3]}
+  fur_lt:  {ramp: rcanvas, bands: [3, 5]}
+  bone:    {ramp: rbone, bands: [2, 4]}
+  rope:    {ramp: rrope, bands: [2, 3], outline: false}
+  meat:    {ramp: rwool, bands: [2, 4]}
+  feather: {ramp: rcrow, bands: [3, 4]}
+  dark:    {ramp: rchar, bands: [1, 1], outline: false, line: false}
+  mud:     {ramp: rmud, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  mud:
+    material: mud
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.01, -0.6], r: [1.3, 0.02, 0.5]}
+  # ---------- shelter ----------
+  inside:           # shadowed ground under the hides
+    material: dark
+    space: body
+    prims:
+      - box: {c: [0, 0.01, -1.7], half: [1.45, 0.01, 0.72]}
+  furs:             # bed of furs inside
+    material: fur
+    space: body
+    line: true
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [-0.5, 0.1, -1.5], r: [0.65, 0.1, 0.38]}
+      - ellipsoid: {c: [0.35, 0.09, -1.45], r: [0.45, 0.09, 0.33]}
+  roof:             # sewn hides sloping from the front ridge down to the back
+    material: hide
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.75, 1.15, -1.72], half: [0.76, 0.04, 1.27], rot: [-0.93, 0, 0]}
+      - box: {c: [0.78, 1.15, -1.72], half: [0.74, 0.04, 1.27], rot: [-0.93, 0, 0.02]}
+  roof_patch:       # darker hide sewn in
+    material: hide_dk
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.2, 1.62, -1.38], half: [0.45, 0.045, 0.42], rot: [-0.93, 0, 0]}
+  seams:
+    material: seam
+    space: body
+    prims:
+      - box: {c: [0.0, 1.17, -1.75], half: [0.025, 0.05, 1.2], rot: [-0.93, 0, 0]}
+  side_poles:       # side frame poles, to the ground at the back
+    material: pole
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.5, 2.15, -0.95], b: [-1.5, 0.0, -2.5], r: 0.06}
+      - cylinder: {a: [1.5, 2.15, -0.95], b: [1.5, 0.0, -2.5], r: 0.06}
+  front_posts:      # forked front posts and the ridge pole
+    material: pole
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.45, 0.0, -0.95], b: [-1.5, 2.2, -0.95], r: 0.07}
+      - cylinder: {a: [1.45, 0.0, -0.95], b: [1.5, 2.2, -0.95], r: 0.07}
+      - cylinder: {a: [-1.7, 2.18, -0.92], b: [1.7, 2.18, -0.92], r: 0.07}
+      - cylinder: {a: [-1.5, 2.15, -0.95], b: [-1.62, 2.38, -0.95], r: 0.04}
+      - cylinder: {a: [1.5, 2.15, -0.95], b: [1.62, 2.38, -0.95], r: 0.04}
+  lashing:
+    material: rope
+    space: body
+    prims:
+      - sphere: {c: [-1.5, 2.18, -0.86], r: 0.06}
+      - sphere: {c: [1.5, 2.18, -0.86], r: 0.06}
+  hide_flap:        # loose hide flap hanging over the front left
+    material: hide
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.05, 1.75, -0.86], half: [0.3, 0.38, 0.02], rot: [0.1, 0, 0.05]}
+  # ---------- antlers over the front ----------
+  skull:
+    material: bone
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 2.3, -0.82], r: [0.12, 0.14, 0.08]}
+      - cone: {a: [0, 2.26, -0.8], b: [0, 2.06, -0.76], r: [0.08, 0.04]}
+  antler_L:
+    material: bone
+    space: body
+    line: true
+    prims:
+      - chain: {pts: [[0.08, 2.4, -0.84], [0.3, 2.62, -0.86], [0.52, 2.72, -0.86], [0.72, 2.95, -0.86]], r: [0.04, 0.035, 0.03, 0.02]}
+      - cone: {a: [0.3, 2.62, -0.86], b: [0.32, 2.88, -0.84], r: [0.03, 0.015]}
+      - cone: {a: [0.52, 2.72, -0.86], b: [0.5, 3.0, -0.84], r: [0.028, 0.012]}
+      - cone: {a: [0.62, 2.82, -0.86], b: [0.86, 2.86, -0.84], r: [0.025, 0.012]}
+  # ---------- stretched pelts ----------
+  frame_sq:         # square stick frame leaning on the left side
+    material: pole
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.95, 0.0, -1.2], b: [-1.85, 1.5, -1.6], r: 0.04}
+      - cylinder: {a: [-1.95, 0.0, -0.3], b: [-1.85, 1.5, -0.7], r: 0.04}
+      - cylinder: {a: [-1.92, 0.3, -1.4], b: [-1.92, 0.3, -0.2], r: 0.035}
+      - cylinder: {a: [-1.86, 1.35, -1.75], b: [-1.86, 1.35, -0.55], r: 0.035}
+  pelt_sq:          # deer hide stretched in it (turned toward the camera)
+    material: hide
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.88, 0.82, -0.95], half: [0.03, 0.45, 0.42], rot: [0.26, -0.9, 0]}
+  pelt_lacing:
+    material: rope
+    space: body
+    prims:
+      - box: {c: [-1.72, 0.82, -0.72], half: [0.01, 0.42, 0.012], rot: [0.26, -0.9, 0]}
+  frame_round:      # round frame with a wolf pelt, right
+    material: pole
+    space: body
+    line: true
+    prims:
+      - torus: {c: [1.92, 0.75, -0.5], R: 0.5, r: 0.04, rot: [1.5708, 0.0, 0.0]}
+      - cylinder: {a: [1.92, 0.0, -0.6], b: [1.92, 0.3, -0.55], r: 0.04}
+  pelt_round:
+    material: fur_lt
+    space: body
+    line: true
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [1.92, 0.78, -0.5], r: [0.34, 0.4, 0.03]}
+      - ellipsoid: {c: [1.92, 1.15, -0.49], r: [0.12, 0.08, 0.03]}
+      - ellipsoid: {c: [1.92, 0.36, -0.49], r: [0.08, 0.1, 0.03]}
+  # ---------- drying rack with game ----------
+  rack:
+    material: pole
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.35, 0.0, 0.15], b: [0.32, 1.45, 0.15], r: 0.05}
+      - cylinder: {a: [1.55, 0.0, 0.15], b: [1.58, 1.45, 0.15], r: 0.05}
+      - cylinder: {a: [0.32, 1.45, 0.15], b: [0.22, 1.62, 0.15], r: 0.03}
+      - cylinder: {a: [1.58, 1.45, 0.15], b: [1.68, 1.62, 0.15], r: 0.03}
+      - cylinder: {a: [0.15, 1.5, 0.15], b: [1.75, 1.5, 0.15], r: 0.04}
+  strings:
+    material: rope
+    space: body
+    prims:
+      - cylinder: {a: [0.6, 1.5, 0.17], b: [0.6, 1.3, 0.17], r: 0.015}
+      - cylinder: {a: [0.92, 1.5, 0.17], b: [0.92, 1.36, 0.17], r: 0.015}
+      - cylinder: {a: [1.3, 1.5, 0.17], b: [1.3, 1.3, 0.17], r: 0.015}
+  hares:            # two hares hanging by the hind legs
+    material: hide
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0.6, 1.0, 0.17], r: [0.1, 0.25, 0.08]}
+      - cone: {a: [0.6, 0.78, 0.17], b: [0.62, 0.62, 0.19], r: [0.06, 0.035]}
+      - cone: {a: [0.58, 1.2, 0.17], b: [0.55, 1.32, 0.17], r: [0.03, 0.02]}
+      - ellipsoid: {c: [1.3, 0.98, 0.17], r: [0.1, 0.26, 0.08]}
+      - cone: {a: [1.3, 0.75, 0.17], b: [1.27, 0.6, 0.19], r: [0.06, 0.035]}
+  bird:
+    material: feather
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0.92, 1.12, 0.17], r: [0.09, 0.2, 0.08]}
+      - cone: {a: [0.92, 0.94, 0.17], b: [0.92, 0.84, 0.2], r: [0.04, 0.02]}
+  haunch:           # a smoked haunch on the right post
+    material: meat
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [1.62, 0.9, 0.24], r: [0.12, 0.22, 0.1]}
+  haunch_bone:
+    material: bone
+    space: body
+    prims:
+      - cone: {a: [1.62, 1.08, 0.24], b: [1.62, 1.22, 0.24], r: [0.03, 0.025]}
+  skull_ground:     # a small skull by the rack
+    material: bone
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.6, 0.08, 0.35], r: [0.12, 0.08, 0.1]}
+      - cone: {a: [-0.5, 0.06, 0.38], b: [-0.32, 0.04, 0.45], r: [0.05, 0.03]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

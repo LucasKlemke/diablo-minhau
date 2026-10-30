@@ -1,0 +1,334 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: armor
+mirror: true
+kind: character
+size: 64
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.25, 0]}
+shadow: {rx: 12, ry: 4.2, alpha: 120}
+
+# Animated armour: haunted suit of plate, Act III elite. ~36 px tall, same density as every asset (0.055).
+brief:
+  summary: >
+    Empty suit of steel-grey plate armour, upright and heavy. Great helm with a dark visor slit, two cyan
+    lights glowing inside. Big rounded pauldrons, barrel breastplate, stacked tassets, plate arms and legs
+    with dark empty gaps at the neck, waist, elbows and knees (nothing inside). A tattered dark-blue
+    tabard hangs at the front. Big two-handed greatsword; idles with both hands on the pommel, tip planted.
+  must_keep: [great helm with cyan visor glow, big pauldrons, greatsword, dark empty joints, steel-grey plate]
+  simplify: [no rivets beyond a few brass dots, the tabard is one tattered strip, gauntlets are blocks]
+  decisions:
+    - spec-local plate ramp, a cool steel slightly darker than the shared `steel`, so the cyan visor glow pops
+    - dark void material at the joints sells the "empty inside" read at 36 px
+    - smear uses cyan frost tones (haunted magic, emissive accent per the project notes)
+    - death falls apart: the helm pops off and rolls, the body collapses into a heap of plates, the glow dies
+  exceptions: >
+    frame size 64 (bigger creature, like bandit_brute and orc): a 36 px body plus a greatsword and a wide
+    overhead swing do not fit in 48. Same camera scale 0.055, pitch 38 and light as the project.
+
+ramps:
+  plate:  ["#1c0f1a", "#363b4f", "#5d6880", "#93a0b4", "#ccd5df"]
+  void:   ["#1c0f1a", "#120c18", "#221a2c"]
+  visor:  ["#1c0f1a", "#3fe6ff", "#d2fbff"]
+  tabard: ["#1c0f1a", "#1b2747", "#2c4374", "#47679e"]
+  frost_tail: ["#219be7"]
+  frost_mid:  ["#7edaf2"]
+  frost_core: ["#dbf9fa"]
+
+materials:
+  plate:   {ramp: plate, bands: [2, 3]}
+  plate_dk: {ramp: plate, bands: [1, 2]}
+  void:    {ramp: void, emissive: true, band: 1, outline: false, line: false}
+  visor:   {ramp: visor, emissive: true, band: 1, outline: false, glow: {color: "#3fe6ff", mix: 0.45, radius: 1}}
+  trim:    {ramp: gold, bands: [1, 2]}
+  tabard:  {ramp: tabard, bands: [1, 3], two_sided: true}
+  leather: {ramp: leather, bands: [1, 2]}
+  blade:   {ramp: steel, bands: [1, 3]}
+  fx_tail: {ramp: frost_tail, emissive: true}
+  fx_mid:  {ramp: frost_mid, emissive: true}
+  fx_core: {ramp: frost_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  head_roll: 0
+  helm_off: [0, 0, 0]  # helm offset from the neck (pelvis space): death pops it off
+  helm_roll: 0         # helm roll on the ground (radians)
+  glow: 1              # visor lights on (0 = dead)
+  pile: 0              # loose plates on the ground (death)
+  tab: 0               # tabard sway (-1..1)
+  hand_L: [0.07, 0.02, 0.30]
+  hand_R: [0.07, 0.02, 0.30]
+  foot_L: [0.15, 0, 0.0]
+  pitch_foot_L: 0
+  sword_pitch: 3.05    # sword rotation in torso space (0 = blade up, pi = tip down)
+  sword_yaw: 0
+  sword_roll: 0
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.95
+  smear_y: 0.95
+  smear_z: 0.15
+  smear_fade: 1
+  smear_roll: 1.3      # tilt of the smear plane (~1.57 vertical)
+
+bones:
+  body:      {parent: root, scale: 1.45}
+  torso_rot: {parent: body, pos: "[0, 0.66 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: "[0, 0.47, 0.03] + helm_off", inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 - 0.30, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, head_roll + helm_roll]", scale: 1.75}
+  tabbase:   {parent: pelvis, pos: [0, 0.04, 0.17], rot: "[-0.05 - tab*0.3, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.30, 0.36, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.12, -0.03, 0.0]}
+  legyaw:     {parent: body, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: body, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.10, 0]"}
+  sword:      {parent: torso_rot, at: wrist_R, rot: "[sword_pitch, sword_yaw, sword_roll]"}
+  fxspace:    {parent: body, rot: "[0, twist*0.3, 0]"}
+  smearspace: {parent: fxspace, pos: "[-0.08, smear_y, smear_z]", rot: "[0, 0, smear_roll]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.22, 0.21],
+          pole: [0.4, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: body, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.29, 0.27],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  cuirass:         # barrel breastplate + backplate
+    material: plate
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.27, 0.01], r: [0.25, 0.17, 0.19]}
+      - ellipsoid: {c: [0, 0.14, 0.02], r: [0.20, 0.10, 0.16]}
+  waist:           # dark empty gap at the waist
+    material: void
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.02, 0], b: [0, 0.08, 0], r: 0.165}
+  tassets:         # stacked hip plates
+    material: plate_dk
+    space: pelvis
+    blend: 0.01
+    prims:
+      - cone: {a: [0, 0.02, 0.0], b: [0, -0.06, 0.0], r: [0.19, 0.22]}
+      - cone: {a: [0, -0.07, 0.0], b: [0, -0.15, 0.0], r: [0.21, 0.24]}
+  tabard:          # tattered dark-blue tabard strip at the front
+    material: tabard
+    space: tabbase
+    prims:
+      - box: {c: [0, -0.12, 0.08], half: [0.09, 0.14, 0.012], round: 0.006}
+    cut:
+      - box: {c: [0.05, -0.27, 0.08], half: [0.025, 0.05, 0.04], rot: [0, 0, 0.6]}
+      - box: {c: [-0.05, -0.26, 0.08], half: [0.02, 0.04, 0.04], rot: [0, 0, -0.6]}
+  gorget:          # dark empty neck opening
+    material: void
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.40, 0.01], b: [0, 0.46, 0.02], r: 0.09}
+  pauldron_L:      # big rounded layered pauldron
+    material: plate
+    space: pelvis
+    blend: 0.015
+    prims:
+      - ellipsoid: {c: [0.30, 0.41, 0.0], r: [0.135, 0.095, 0.145], rot: [0, 0, -0.30]}
+      - ellipsoid: {c: [0.37, 0.32, 0.0], r: [0.10, 0.06, 0.12], rot: [0, 0, -0.55]}
+  pauldron_trim_L: # brass edge on the pauldron
+    material: trim
+    space: pelvis
+    prims:
+      - sphere: {c: [0.34, 0.48, 0.07], r: 0.03}
+  helm:            # great helm: flat-topped barrel with a rounded crown
+    material: plate
+    space: head
+    blend: 0.03
+    prims:
+      - cylinder: {a: [0, 0.02, 0], b: [0, 0.20, 0], r: 0.125, round: 0.02}
+      - ellipsoid: {c: [0, 0.20, 0], r: [0.125, 0.07, 0.125]}
+      - box: {c: [0, 0.10, 0.11], half: [0.012, 0.10, 0.03], round: 0.008}   # front ridge
+  visor:           # dark visor slit
+    material: void
+    space: head
+    prims:
+      - box: {c: [0, 0.125, 0.115], half: [0.105, 0.03, 0.03], round: 0.005}
+  eyes_L:          # cyan lights inside the slit
+    material: visor
+    when: "glow > 0"
+    space: head
+    prims:
+      - sphere: {c: [0.048, 0.125, 0.142], r: 0.026}
+  helm_trim:       # brass band and crest knob
+    material: trim
+    space: head
+    prims:
+      - sphere: {c: [0, 0.27, 0], r: 0.03}
+  arm_L:           # plate arm with a dark empty elbow
+    material: plate_dk
+    blend: 0.02
+    prims:
+      - cone: {a: "@shoulder_L", b: {between: ["@shoulder_L", "@elbow_L"], t: 0.85}, r: [0.085, 0.075]}
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.15}, b: "@wrist_L", r: [0.08, 0.09]}
+  elbow_L:
+    material: void
+    prims:
+      - sphere: {c: "@elbow_L", r: 0.06}
+  gauntlet_L:
+    material: plate_dk
+    space: wrist_L
+    prims:
+      - box: {c: [0, 0, 0.04], half: [0.065, 0.06, 0.06], round: 0.03}
+  leg_L:           # plate leg with a dark empty knee
+    material: plate_dk
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: {between: ["@hip_L", "@knee_L"], t: 0.85}, r: [0.10, 0.085]}
+      - cone: {a: {between: ["@knee_L", "@ankle_L"], t: 0.2}, b: "@ankle_L", r: [0.085, 0.08]}
+  knee_L:
+    material: void
+    prims:
+      - sphere: {c: "@knee_L", r: 0.065}
+  kneecop_L:       # small knee plate in front of the gap
+    material: plate_dk
+    prims:
+      - sphere: {c: {at: knee_L, off: [0, 0, 0.04]}, r: 0.05}
+  sabaton_L:
+    material: plate_dk
+    space: sole_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.06], r: [0.085, 0.055, 0.14]}
+  blade:           # greatsword blade (right hand, no _L)
+    material: blade
+    space: sword
+    blend: 0.01
+    prims:
+      - box: {c: [0, 0.44, 0], half: [0.03, 0.34, 0.075], round: 0.01}
+      - cone: {a: [0, 0.77, 0], b: [0, 0.86, 0], r: [0.07, 0.012]}
+  guard:
+    material: trim
+    space: sword
+    prims:
+      - box: {c: [0, 0.08, 0], half: [0.035, 0.03, 0.18], round: 0.014}
+      - sphere: {c: [0, -0.17, 0], r: 0.045}
+  grip:
+    material: leather
+    space: sword
+    prims:
+      - cylinder: {a: [0, -0.15, 0], b: [0, 0.07, 0], r: 0.03}
+  platepile:       # loose plates on the ground after the collapse
+    when: "pile > 0"
+    material: plate
+    space: root
+    prims:
+      - ellipsoid: {c: [0.34, 0.05, 0.20], r: [0.13, 0.05, 0.10], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [-0.36, 0.05, -0.05], r: [0.12, 0.05, 0.13], rot: [0, -0.3, 0]}
+      - cone: {a: [-0.10, 0.06, 0.45], b: [0.20, 0.06, 0.50], r: [0.08, 0.07]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: smearspace
+    prims:
+      - arc: {c: [0, 0, 0], r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hand_R: {bone: wrist_R}
+  hit: {bone: sword, offset: [0, 0.55, 0]}
+  head: {bone: head, offset: [0, 0.36, 0]}
+
+timing: {attack: {hit: 380ms, total: 700ms}}
+
+animations:
+  idle:            # stands guard, both gauntlets on the pommel, visor breathing
+    frames: 4
+    ms: 220
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      tab: "0.3*sin(p - 1.0)"
+  walk:            # heavy, slow clanking stride, sword carried low in the right hand
+    frames: 6
+    ms: 150
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.05*cos(2*p) + 0.01"
+      roll: "0.06*sin(p)"
+      twist: "0.07*cos(p)"
+      squash: "1 - 0.025*cos(2*p)"
+      foot_L: "[0.15, 0.09*pos(-sin(p)), 0.0 + 0.15*cos(p)]"
+      foot_R: "[0.15, 0.09*pos(sin(p)), 0.0 - 0.15*cos(p)]"
+      pitch_foot_L: "0.25*pos(-sin(p))"
+      pitch_foot_R: "0.25*pos(sin(p))"
+      hand_L: "[0.34, 0.0 + 0.03*pos(cos(p)), 0.08 - 0.12*cos(p)]"
+      hand_R: "[0.32, 0.02, 0.14 + 0.04*cos(p)]"
+      sword_pitch: "2.45 + 0.05*cos(2*p)"
+      sword_roll: 0.15
+      head_roll: "-0.05*cos(p)"
+      tab: "0.5*sin(2*p - 0.8)"
+  attack:          # wide two-handed overhead swing: lift, long held windup, cleave down, impact
+    loop: false
+    keys:
+      - ms: 100
+        set: {hand_R: [0.12, 0.32, 0.22], hand_L: [-0.02, 0.30, 0.24], sword_pitch: 0.4, lean: 0.0, squash: 0.98,
+              twist: -0.08, tab: -0.3}
+      - ms: 220
+        event: windup
+        set: {hand_R: [0.14, 0.60, -0.06], hand_L: [0.0, 0.58, -0.04], sword_pitch: "-0.95 - 0.35*pulse(yaw, 0, 70)", sword_roll: 0.1,
+              lean: -0.15, bob: -0.03, squash: 0.94, head_pitch: -0.12, twist: -0.15,
+              foot_L: [0.16, 0, 0.12], foot_R: [0.16, 0, -0.06], tab: -0.6}
+      - ms: 60
+        set: {hand_R: [0.06, 0.50, 0.32], hand_L: [-0.04, 0.50, 0.30], sword_pitch: "0.6 + 0.6*pulse(yaw, 180, 80)", sword_roll: 0.1,
+              lean: 0.20, squash: 1.06, twist: 0.05,
+              foot_L: [0.16, 0, 0.16], foot_R: [0.16, 0, -0.08], tab: 0.4,
+              smear_a0: 2.1, smear_a1: 0.3, smear_w: 0.13}
+      - ms: 120
+        event: hit
+        set: {hand_R: "[0.08, 0.10 + 0.08*pulse(yaw, 0, 110), 0.34]", hand_L: "[-0.02, 0.12 + 0.08*pulse(yaw, 0, 110), 0.32]",
+              sword_pitch: "1.85 - 0.9*pulse(yaw, 0, 110)", sword_roll: 0.2,
+              lean: 0.42, bob: -0.08, squash: 0.92, head_pitch: 0.12, root: [0, 0, 0.04], twist: 0.10,
+              foot_L: [0.18, 0, 0.18], foot_R: [0.18, 0, -0.10], tab: 0.8,
+              smear_a0: 1.6, smear_a1: -0.5, smear_w: 0.13, smear_fade: 0.7}
+      - ms: 100
+        set: {hand_R: "[0.08, 0.12 + 0.08*pulse(yaw, 0, 110), 0.33]", hand_L: "[-0.02, 0.14 + 0.08*pulse(yaw, 0, 110), 0.31]",
+              sword_pitch: "1.9 - 0.9*pulse(yaw, 0, 110)", sword_roll: 0.2,
+              lean: 0.38, bob: -0.07, squash: 0.96, head_pitch: 0.08, root: [0, 0, 0.04], twist: 0.08,
+              foot_L: [0.18, 0, 0.18], foot_R: [0.18, 0, -0.10], tab: 0.3}
+      - ms: 100
+        set: {hand_R: [0.10, 0.06, 0.32], hand_L: [0.04, 0.06, 0.30], sword_pitch: 2.6, lean: 0.15, bob: -0.02,
+              root: [0, 0, 0.03], foot_L: [0.16, 0, 0.08], foot_R: [0.16, 0, -0.03], tab: -0.2}
+  hit:             # clanks back, helm rattles
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.18, root: [0, 0, -0.06], squash: 0.94, head_pitch: -0.25, head_roll: 0.15, tab: 0.6,
+                       hand_L: [0.12, 0.08, 0.26], hand_R: [0.12, 0.08, 0.26], sword_pitch: 2.8}}
+      - {ms: 90, set: {lean: -0.06, root: [0, 0, -0.04], squash: 1.03, head_pitch: -0.08, head_roll: -0.10, tab: 0.3,
+                       hand_L: [0.09, 0.04, 0.28], hand_R: [0.09, 0.04, 0.28], sword_pitch: 2.95}}
+      - {ms: 100, set: {lean: 0.02, root: [0, 0, -0.01], head_roll: 0.04, tab: 0.1}}
+  death:           # falls apart: the helm pops off and rolls, the plates collapse into a heap, the glow dies
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.20, squash: 0.95, head_pitch: -0.3, root: [0, 0, -0.05], tab: 0.5,
+                        hand_L: [0.26, 0.10, 0.16], hand_R: [0.24, 0.12, 0.18], sword_pitch: 2.4}}
+      - {ms: 110, set: {bob: -0.14, lean: 0.08, squash: 0.92, helm_off: [0.0, 0.10, 0.03], head_pitch: -0.2, head_roll: 0.2,
+                        hand_L: [0.32, 0.04, 0.10], hand_R: [0.26, 0.12, 0.06], sword_pitch: 2.95,
+                        foot_L: [0.20, 0, 0.08], foot_R: [0.20, 0, 0.04], tab: 0.7}}
+      - {ms: 110, set: {bob: -0.32, lean: 0.25, squash: 0.80, helm_off: [0.34, -0.12, 0.16], head_roll: 0.6, head_pitch: -0.2,
+                        hand_L: [0.38, -0.22, 0.12], hand_R: [0.22, -0.22, 0.10], sword_pitch: 1.75, sword_yaw: "pi - radians(yaw) + 0.7",
+                        foot_L: [0.24, 0, 0.14], foot_R: [0.24, 0, 0.10], tab: 0.3, pile: 1}}
+      - {ms: 120, set: {bob: -0.42, lean: 0.25, squash: 0.70, helm_off: [0.55, -0.40, 0.26], helm_roll: 1.0, head_pitch: 0.1,
+                        hand_L: [0.42, -0.30, 0.12], hand_R: [0.24, -0.30, 0.04], sword_pitch: 1.62, sword_yaw: "pi - radians(yaw) + 0.7", sword_roll: 0.3,
+                        foot_L: [0.26, 0, 0.18], foot_R: [0.26, 0, 0.12], tab: 0.0, pile: 1}}
+      - {ms: 700, event: dead, set: {bob: -0.44, lean: 0.25, squash: 0.68, helm_off: [0.60, -0.38, 0.28], helm_roll: 1.6, head_pitch: 0.1,
+                        hand_L: [0.42, -0.30, 0.12], hand_R: [0.24, -0.30, 0.04], sword_pitch: 1.62, sword_yaw: "pi - radians(yaw) + 0.7", sword_roll: 0.3, glow: 0,
+                        foot_L: [0.26, 0, 0.18], foot_R: [0.26, 0, 0.12], tab: 0.0, pile: 1}}

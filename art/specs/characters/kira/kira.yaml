@@ -1,0 +1,311 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: kira
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.44, -0.05]}
+shadow: {rx: 13, ry: 4.5, alpha: 120}
+
+# Lady Kira, a Desatenta: the royal court's guardian husky. Skeleton and rig adapted from lisa.yaml
+# (quadruped: `body` carries chest and hips, the head hangs on a neck in front, the tail curls up over
+# the back; four 2-bone IK legs (_L mirrored), paw targets in body space, `plant` 1 cancels `bob`).
+# About 10% taller than Lisa, longer legs and neck, a slimmer waist: an elegant noble dog.
+brief:
+  summary: all-white noble husky of the royal court, dreamy and absent-minded (half-lidded ice-blue eyes,
+    head slightly tilted), fluffy neck ruff, pointed ears, fluffy tail curled over the back, red-velvet
+    collar with a small gold medallion
+  must_keep: [pure white fur (only pale cool blue-grey shading), pale ice-blue eyes, red collar + gold
+    medallion, tail curled over the back, tall pointy ears, fluffy ruff, a little taller than Lisa]
+  simplify: [no fur strands; the ruff is a few blended ellipsoids; no toes; the crest is one gold dot]
+  decisions: the white ramp is cool (blue-grey shadows) so she never reads as Lisa's warm cream; the
+    eyes get a thin dark rim (husky eyeliner) so the pale blue survives on white fur; a white upper lid
+    covers half of each eye for the dreamy look, and `blink` closes them (nap, idle blinks); the head
+    rests tilted (`head_tilt` 0.12) in idle; inner ears pale pink so the ears read against the white
+    head; the ladybug of `tilt` is a 1-2 px red dot on the ground in front of her (`bug` channel);
+    `lie` lowers her into a sphinx pose and holds, `nap` is the separate breathing loop that follows it.
+  exceptions: spec-local ramps; same camera scale/pitch/light as every asset.
+
+ramps:
+  kira_white: ["#1c0f1a", "#7e8aa0", "#bcc7d8", "#e4ebf3", "#ffffff"]
+  kira_dark:  ["#1c0f1a", "#22202c", "#3a3848", "#565466"]
+  kira_eye:   ["#1c0f1a", "#4f97c9", "#9fdcf8", "#dff6ff"]
+  kira_pink:  ["#1c0f1a", "#b07a88", "#e6aab4", "#f6d0d4"]
+  kira_red:   ["#1c0f1a", "#5c0f22", "#a3182f", "#d43b48", "#ee7a78"]
+  kira_gold:  ["#1c0f1a", "#804a19", "#e1a227", "#f5dc6e", "#fff6c8"]
+  kira_bug:   ["#1c0f1a", "#8a1414", "#e02a24", "#ff6a4a"]
+
+materials:
+  fur:   {ramp: kira_white, bands: [2, 4]}
+  dark:  {ramp: kira_dark, bands: [1, 2]}
+  pink:  {ramp: kira_pink, bands: [1, 2], outline: false}
+  mouth: {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:   {ramp: kira_eye, emissive: true, band: 2, outline: false}
+  velvet: {ramp: kira_red, bands: [1, 3]}
+  gold:  {ramp: kira_gold, bands: [3, 4]}
+  bug:   {ramp: kira_bug, emissive: true, band: 2}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes
+  rear: 0           # + raises the front of the body (sit)
+  roll: 0
+  twist: 0          # body yaw wiggle
+  squash: 1
+  neck: 0           # + lowers the head (lie, nap)
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  head_tilt: 0      # dreamy sideways tilt
+  jaw: 0            # + opens the mouth
+  blink: 0          # 1: eyes closed
+  ear_L: 0          # + perks / - flattens back
+  tail: 0           # tail wag (yaw)
+  tail_up: 0        # + curls the tail higher
+  bug: 0            # 1: the ladybug shows on the ground (tilt)
+  ffoot_L: [0.14, -0.44, 0.25]    # front paw target (body space)
+  hfoot_L: [0.14, -0.44, -0.25]   # hind paw target (body space)
+
+bones:
+  body:     {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: "[0, 0.40 - 0.20*neck, 0.40 + 0.06*neck]", inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.0 + head_pitch + 0.9*rear, head_yaw, head_tilt]", scale: 1.8}
+  jaw:      {parent: head, pos: [0, -0.01, 0.07], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.07, 0.10, -0.02], rot: "[ear_L, 0, -0.42]"}
+  tail:     {parent: body, pos: [0, 0.13, -0.33], rot: "[-0.2 - tail_up, tail, 0.45]"}
+  shoulder_L: {parent: body, pos: [0.12, -0.04, 0.23]}
+  hip_L:      {parent: body, pos: [0.12, -0.04, -0.23]}
+  bugpos:   {parent: root, pos: [0.10, 0.03, 0.60], inherit_rot: false}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.235, 0.225],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.235, 0.235],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # deep chest, slim waist, rounded hips
+    material: fur
+    space: body
+    blend: 0.09
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.16], r: [0.20, 0.21, 0.21]}
+      - ellipsoid: {c: [0, 0.04, -0.04], r: [0.16, 0.15, 0.16]}
+      - ellipsoid: {c: [0, 0.03, -0.21], r: [0.18, 0.17, 0.16]}
+      - cone: {a: [0, 0.08, 0.24], b: {at: headbase, off: [0, -0.06, -0.03]}, r: [0.15, 0.11]}     # neck
+  ruff:            # fluffy neck ruff around the throat and chest
+    material: fur
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.33], r: [0.19, 0.15, 0.12], rot: [0.5, 0, 0]}
+      - ellipsoid: {c: [0.12, 0.13, 0.26], r: [0.09, 0.12, 0.10]}
+      - ellipsoid: {c: [-0.12, 0.13, 0.26], r: [0.09, 0.12, 0.10]}
+      - ellipsoid: {c: [0, -0.04, 0.33], r: [0.12, 0.12, 0.09], rot: [0.3, 0, 0]}   # chest tuft
+  collar:          # red velvet collar over the ruff
+    material: velvet
+    space: body
+    prims:
+      - torus: {c: {at: headbase, off: [0, -0.16, -0.05]}, R: 0.12, r: 0.035, rot: [0.6, 0, 0]}
+  medallion:       # small gold crest hanging at the front of the collar
+    material: gold
+    space: headbase
+    prims:
+      - cylinder: {a: [0, -0.27, 0.08], b: [0, -0.29, 0.12], r: 0.05, round: 0.008}
+  head:
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.01], r: [0.115, 0.09, 0.10]}
+      - ellipsoid: {c: [0.09, 0.0, -0.01], r: [0.055, 0.06, 0.055]}             # cheek ruff
+      - ellipsoid: {c: [-0.09, 0.0, -0.01], r: [0.055, 0.06, 0.055]}
+      - ellipsoid: {c: [0, 0.01, 0.05], r: [0.10, 0.06, 0.075]}
+      - cone: {a: [0, 0.03, 0.06], b: [0, 0.012, 0.19], r: [0.058, 0.034]}      # slender snout
+  muzzle:
+    material: fur
+    space: jaw
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.015, 0.11], r: [0.04, 0.024]}
+  mouth:
+    when: "jaw > 0.12"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.005, 0.12], r: [0.035, 0.02, 0.06]}
+  tongue:
+    when: "jaw > 0.12"
+    material: pink
+    space: jaw
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.11], r: [0.025, 0.012, 0.04]}
+  nose:
+    material: dark
+    space: head
+    prims:
+      - sphere: {c: [0, 0.03, 0.205], r: 0.031}
+  ear_L:
+    material: fur
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.16, -0.01], r: [0.055, 0.012]}
+  ear_in_L:
+    material: pink
+    space: ear_L
+    prims:
+      - cone: {a: [0, 0.015, 0.026], b: [0, 0.09, 0.008], r: [0.022, 0.006]}
+  eyerim_L:        # dark husky eyeliner, so the pale eye reads on white fur
+    material: dark
+    line: false
+    space: head
+    prims:
+      - ellipsoid: {c: [0.050, 0.053, 0.088], r: [0.034, 0.029, 0.024]}
+  eye_L:           # soft, half-lidded (flattened) eye: the dreamy look
+    when: "blink < 0.5"
+    material: eye
+    line: false
+    space: head
+    prims:
+      - ellipsoid: {c: [0.058, 0.055, 0.098], r: [0.029, 0.024, 0.026]}
+  lid_L:           # closed eye (blink, nap): a dark lash line over the rim
+    when: "blink >= 0.5"
+    material: dark
+    line: false
+    space: head
+    prims:
+      - ellipsoid: {c: [0.054, 0.050, 0.098], r: [0.032, 0.013, 0.024]}
+  tail:            # thick fluffy tail curling up and forward over the hips
+    material: fur
+    space: tail
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.10, -0.08], [0, 0.20, -0.03], [0, 0.19, 0.09]], r: [0.07, 0.095, 0.09, 0.065]}
+      - sphere: {c: [0, 0.17, 0.12], r: 0.055}
+  fleg_L:
+    material: fur
+    blend: 0.03
+    prims:
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.065, 0.044]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.040, 0.034]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.01, 0.025]}, r: [0.045, 0.03, 0.05]}
+  hleg_L:
+    material: fur
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.075, 0.046]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.042, 0.034]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.01, 0.025]}, r: [0.045, 0.03, 0.05]}
+  ladybug:
+    when: "bug > 0.5"
+    material: bug
+    space: bugpos
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.045, 0.03, 0.05]}
+
+sockets:
+  head: {bone: head, offset: [0, 0.16, 0]}
+  mouth: {bone: head, offset: [0, 0.0, 0.19]}
+
+animations:
+  idle:            # dreamy: slow breathing, looks around, one blink, an ear flick, slow tail sway
+    frames: 8
+    ms: 170
+    channels:
+      bob: "0.012*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_tilt: "0.12 + 0.05*sin(p)"
+      head_yaw: "0.22*sin(p)"
+      head_pitch: "-0.03 + 0.04*cos(p)"
+      tail: "0.25*sin(p - 0.8)"
+      ear_L: "-0.35*(f == 5)"
+      blink: "1.0*(f == 3)"
+  walk:            # elegant trot, diagonal pairs, head held high
+    frames: 6
+    ms: 95
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.016*cos(2*p)"
+      twist: "0.035*sin(p)"
+      head_pitch: "-0.06 + 0.03*cos(2*p)"
+      head_tilt: 0.06
+      tail: "0.25*sin(p - 0.8)"
+      ffoot_L: "[0.14, -0.44 + 0.10*pos(-sin(p)), 0.25 + 0.14*cos(p)]"
+      hfoot_R: "[0.14, -0.44 + 0.10*pos(-sin(p)), -0.25 + 0.14*cos(p)]"
+      ffoot_R: "[0.14, -0.44 + 0.10*pos(sin(p)), 0.25 - 0.14*cos(p)]"
+      hfoot_L: "[0.14, -0.44 + 0.10*pos(sin(p)), -0.25 - 0.14*cos(p)]"
+  run:             # gallop: front pair and hind pair, body rocking, extended / gathered
+    frames: 6
+    ms: 75
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.04*sin(p) + 0.01"
+      rear: "0.10*cos(p)"
+      squash: "1 + 0.04*sin(p)"
+      head_pitch: "0.05 - 0.08*cos(p)"
+      ear_L: -0.35
+      tail: "0.15*sin(p)"
+      tail_up: -0.15
+      jaw: 0.18
+      ffoot_L: "[0.13, -0.44 + 0.14*pos(sin(p)), 0.28 + 0.19*cos(p)]"
+      ffoot_R: "[0.13, -0.44 + 0.14*pos(sin(p - 0.5)), 0.28 + 0.19*cos(p - 0.5)]"
+      hfoot_L: "[0.13, -0.44 + 0.14*pos(sin(p + 3.0)), -0.28 + 0.19*cos(p + 3.0)]"
+      hfoot_R: "[0.13, -0.44 + 0.14*pos(sin(p + 2.5)), -0.28 + 0.19*cos(p + 2.5)]"
+  sit:             # sits down (hips to the ground, front up) and holds; the last frame is the resting sit
+    loop: false
+    keys:
+      - ms: 100
+        set: {bob: -0.07, plant: 0, rear: 0.2, head_pitch: -0.05, head_tilt: 0.08, tail: 0.2,
+              ffoot_L: [0.14, -0.42, 0.21], ffoot_R: [0.14, -0.42, 0.21], hfoot_L: [0.15, -0.34, -0.21], hfoot_R: [0.15, -0.34, -0.21]}
+      - ms: 120
+        set: {bob: -0.155, plant: 0, rear: 0.45, head_pitch: -0.05, head_tilt: 0.1,
+              ffoot_L: [0.14, -0.38, 0.15], ffoot_R: [0.14, -0.38, 0.15], hfoot_L: [0.16, -0.23, -0.15], hfoot_R: [0.16, -0.23, -0.15]}
+      - ms: 200
+        set: {bob: -0.165, plant: 0, rear: 0.45, squash: 0.97, head_pitch: 0.0, head_tilt: 0.12, tail: -0.2,
+              ffoot_L: [0.14, -0.38, 0.15], ffoot_R: [0.14, -0.38, 0.15], hfoot_L: [0.16, -0.23, -0.15], hfoot_R: [0.16, -0.23, -0.15]}
+      - ms: 400
+        set: {bob: -0.155, plant: 0, rear: 0.45, head_pitch: -0.08, head_tilt: 0.16, tail: 0.2,
+              ffoot_L: [0.14, -0.38, 0.15], ffoot_R: [0.14, -0.38, 0.15], hfoot_L: [0.16, -0.23, -0.15], hfoot_R: [0.16, -0.23, -0.15]}
+  lie:             # lies down to nap (sphinx pose) and holds; `nap` loops after it
+    loop: false
+    keys:
+      - ms: 110
+        set: {bob: -0.10, plant: 0, rear: 0.05, head_pitch: 0.05, head_tilt: 0.08,
+              ffoot_L: [0.14, -0.40, 0.30], ffoot_R: [0.14, -0.40, 0.30], hfoot_L: [0.16, -0.34, -0.18], hfoot_R: [0.16, -0.34, -0.18]}
+      - ms: 120
+        set: {bob: -0.24, plant: 0, rear: 0.03, neck: 0.4, head_pitch: 0.1, head_tilt: 0.1,
+              ffoot_L: [0.13, -0.27, 0.40], ffoot_R: [0.13, -0.27, 0.40], hfoot_L: [0.19, -0.24, -0.10], hfoot_R: [0.19, -0.24, -0.10]}
+      - ms: 160
+        set: {bob: -0.31, plant: 0, squash: 0.95, neck: 0.7, head_pitch: 0.15, head_tilt: 0.12, blink: 0, tail: 0.3,
+              ffoot_L: [0.12, -0.18, 0.45], ffoot_R: [0.12, -0.18, 0.45], hfoot_L: [0.20, -0.17, -0.05], hfoot_R: [0.20, -0.17, -0.05]}
+      - ms: 400
+        set: {bob: -0.30, plant: 0, neck: 0.75, head_pitch: 0.12, head_tilt: 0.15, blink: 1, tail: 0.45,
+              ffoot_L: [0.12, -0.19, 0.45], ffoot_R: [0.12, -0.19, 0.45], hfoot_L: [0.20, -0.18, -0.05], hfoot_R: [0.20, -0.18, -0.05]}
+  nap:             # lying asleep: slow breathing loop (play after `lie`)
+    frames: 4
+    ms: 260
+    channels:
+      bob: "-0.30 + 0.008*sin(p)"
+      plant: 0
+      squash: "1 + 0.025*sin(p)"
+      neck: 0.75
+      head_pitch: "0.12 + 0.03*sin(p)"
+      head_tilt: 0.15
+      blink: 1
+      tail: 0.45
+      ear_L: "-0.15 - 0.1*sin(p)"
+      ffoot_L: "[0.12, -0.19 + 0.008*sin(p), 0.45]"
+      ffoot_R: "[0.12, -0.19 + 0.008*sin(p), 0.45]"
+      hfoot_L: "[0.20, -0.18 + 0.008*sin(p), -0.05]"
+      hfoot_R: "[0.20, -0.18 + 0.008*sin(p), -0.05]"
+  tilt:            # spots a ladybug on the ground, tilts the head curiously and holds
+    loop: false
+    keys:
+      - {ms: 160, set: {bug: 1, head_pitch: 0.1, head_tilt: 0.05, ear_L: 0.1}}
+      - {ms: 110, set: {bug: 1, head_pitch: 0.25, head_tilt: -0.05, ear_L: 0.25, bob: -0.01}}
+      - {ms: 120, set: {bug: 1, head_pitch: 0.3, head_tilt: 0.38, ear_L: 0.3, bob: -0.015}}
+      - {ms: 500, set: {bug: 1, head_pitch: 0.3, head_tilt: 0.42, ear_L: 0.2, bob: -0.015, tail: 0.15}}

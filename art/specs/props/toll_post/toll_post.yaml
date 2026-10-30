@@ -1,0 +1,153 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: toll_post
+kind: prop
+view: topdown
+size: 64                 # ~54 x 40 px on screen, 2+ px margins
+directions: 1            # faces the camera (s); the barrier runs left-right across the road
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}   # 12 px above the pivot -> pivot (32, 44)
+shadow: {rx: 24, ry: 5, alpha: 110}
+
+# Estrada dos Bandidos: bandits' improvised toll post across the old royal road.
+brief:
+  summary: bandits' improvised toll post; a rough log barrier swung across the road on a forked pivot post,
+    its short end weighed down by a stone in a rope sling and its tip resting in a forked prop, a crooked
+    hand-painted sign nailed askew on its own stake (a red coin daubed on it and a crossed-out crown), and a
+    small iron-banded coin crate at the side with stolen coins glinting in it
+  must_keep: [long log barrier across the road, forked posts, counterweight stone in a sling, crooked sign
+    with the red coin daub, coin crate with gold glints]
+  simplify: [daubs as flat 2-3 px paint shapes, no lettering]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 0.8376, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,44) is the ground point at the centre of the
+    barrier. Footprint 3x1 tiles (x -1.4..1.4), blocking all 3 while the barrier is down (the road is
+    closed until the bandits are dealt with). Static: 1-frame idle.
+    The crown crossed out with red paint says these bandits mock the old royal road.
+
+ramps:
+  tp_log:   ["#1c0f1a", "#3a2a1e", "#58402c", "#76583c", "#94704c"]
+  tp_cut:   ["#1c0f1a", "#8a6a44", "#b8945e", "#d8b880"]
+  tp_board: ["#1c0f1a", "#4a3c2e", "#6a5840", "#8a7656"]
+  tp_paint: ["#1c0f1a", "#6a1414", "#9a2420", "#b83a2a"]
+  tp_stone: ["#1c0f1a", "#3a3640", "#5a5662", "#7e7a86"]
+  tp_rope:  ["#1c0f1a", "#5e4a30", "#8a7048"]
+  tp_iron:  ["#1c0f1a", "#22202a", "#363442", "#504e5e"]
+  tp_gold:  ["#1c0f1a", "#7a4a12", "#c7861f", "#f0c040", "#fff0a0"]
+  tp_crown: ["#1c0f1a", "#8a6420", "#b48a30"]
+
+materials:
+  log:   {ramp: tp_log, bands: [1, 4]}
+  cut:   {ramp: tp_cut, bands: [1, 3], line: false}
+  board: {ramp: tp_board, bands: [1, 3]}
+  paint: {ramp: tp_paint, bands: [2, 3], outline: false, line: false}
+  rag:   {ramp: tp_paint, bands: [1, 3]}
+  crown: {ramp: tp_crown, bands: [1, 2], outline: false, line: false}
+  stone: {ramp: tp_stone, bands: [1, 3]}
+  rope:  {ramp: tp_rope, bands: [1, 2], line: false}
+  iron:  {ramp: tp_iron, bands: [1, 3]}
+  gold:  {ramp: tp_gold, bands: [2, 4]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  posts:
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.78, 0, -0.06], b: [-0.80, 0.98, -0.06], r: 0.08}      # pivot post (forked pair)
+      - cylinder: {a: [-0.62, 0, 0.06], b: [-0.60, 0.98, 0.06], r: 0.08}
+      - cylinder: {a: [1.10, 0, 0], b: [1.12, 0.62, 0], r: 0.07}                 # forked prop at the tip
+      - cone: {a: [1.12, 0.60, 0], b: [1.02, 0.82, 0], r: [0.05, 0.03]}
+      - cone: {a: [1.12, 0.60, 0], b: [1.24, 0.82, 0], r: [0.05, 0.03]}
+  barrier:           # the log barrier
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.30, 1.00, 0.0], b: [1.30, 0.80, 0.0], r: 0.10}
+      - cone: {a: [0.20, 0.92, 0.0], b: [0.30, 1.10, 0.04], r: [0.04, 0.015]}    # branch stubs
+      - cone: {a: [0.72, 0.87, 0.0], b: [0.80, 0.80, 0.16], r: [0.035, 0.015]}
+  barrier_cut:       # sawn end grain
+    material: cut
+    space: body
+    prims:
+      - cylinder: {a: [1.30, 0.80, 0.0], b: [1.33, 0.80, 0.0], r: 0.085}
+  rag:               # red warning rag tied on the barrier
+    material: rag
+    space: body
+    line: true
+    prims:
+      - tri: {a: [0.30, 0.92, 0.10], b: [0.56, 0.89, 0.10], c: [0.40, 0.56, 0.12], th: 0.025}
+      - tri: {a: [0.46, 0.90, 0.10], b: [0.60, 0.62, 0.12], c: [0.36, 0.70, 0.12], th: 0.025}
+  sling:
+    material: rope
+    space: body
+    prims:
+      - cylinder: {a: [-1.18, 0.98, 0], b: [-1.18, 0.56, 0.02], r: 0.022}
+      - cylinder: {a: [-0.70, 1.05, 0], b: [-0.70, 0.93, 0], r: 0.10}             # lashing at the pivot
+  counterweight:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.18, 0.40, 0.02], half: [0.18, 0.16, 0.16], rot: [0.2, 0.5, 0.15], round: 0.06}
+  sign_stake:
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.10, 0, -0.45], b: [-0.02, 1.30, -0.50], r: 0.05}
+  sign:              # crooked hand-painted board
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.02, 1.32, -0.42], half: [0.38, 0.20, 0.03], rot: [0, 0.05, 0.16], round: 0.01}
+  sign_paint:        # red coin daub and a crossed-out crown
+    material: paint
+    space: body
+    prims:
+      - cylinder: {a: [-0.18, 1.30, -0.39], b: [-0.18, 1.30, -0.37], r: 0.10}
+      - box: {c: [0.16, 1.36, -0.38], half: [0.15, 0.02, 0.01], rot: [0, 0.05, 0.85]}
+      - box: {c: [0.16, 1.36, -0.38], half: [0.15, 0.02, 0.01], rot: [0, 0.05, -0.55]}
+  sign_crown:
+    material: crown
+    space: body
+    prims:
+      - box: {c: [0.16, 1.34, -0.385], half: [0.10, 0.05, 0.01], rot: [0, 0.05, 0.16]}
+      - cone: {a: [0.08, 1.37, -0.385], b: [0.07, 1.46, -0.385], r: [0.025, 0.01]}
+      - cone: {a: [0.24, 1.40, -0.385], b: [0.25, 1.49, -0.385], r: [0.025, 0.01]}
+  coin_crate:
+    material: log
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.55, 0.17, 0.50], half: [0.24, 0.17, 0.18], rot: [0, 0.25, 0], round: 0.02}
+    cut:
+      - box: {c: [-0.55, 0.32, 0.50], half: [0.19, 0.10, 0.13], rot: [0, 0.25, 0]}
+  crate_bands:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [-0.55, 0.17, 0.50], half: [0.25, 0.03, 0.19], rot: [0, 0.25, 0]}
+  coins:
+    material: gold
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.55, 0.27, 0.50], r: [0.18, 0.05, 0.12], rot: [0, 0.25, 0]}
+      - cylinder: {a: [-0.18, 0.0, 0.70], b: [-0.18, 0.03, 0.70], r: 0.05}       # a dropped coin
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

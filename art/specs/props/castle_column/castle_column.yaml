@@ -1,0 +1,234 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_column
+kind: prop
+view: topdown
+size: 64
+directions: 1            # round column: one view serves every angle
+mirror: false
+palette: "farm"
+# centre y 2.0939 = 30 px above the pivot -> pivot (32, 62)
+camera: {pitch: 38, scale: 0.055, center: [0, 2.0939, 0]}
+shadow: null             # the plinth sits flat on the floor; its dark contact row is painted
+
+# Prologue: the white marble columns lining the castle hall.
+brief:
+  summary: tall white marble column (~60 px, as tall as the hall wall) - a square abacus, a capital with gold
+    corner volutes and a gold egg-and-dart band, a gold neck ring, a fluted round shaft shaded as a cylinder
+    lit from the left, a gold foot ring, a rounded torus and a square two-face plinth (its top seen from
+    above), with a dark outline
+  must_keep: [white marble, flutes, gold volutes and rings, square plinth and abacus, cylinder shading]
+  simplify: [shading painted per pixel column (light left, dark right)]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, camera.center [0, 2.0939, 0] (integer pivot).
+    A pixel painting on the plane z = 0 (pixel-exact one-colour boxes generated once from a 64x64 layout),
+    without a ground-shadow ellipse (it would clip the frame bottom). camera.scale/pitch/light untouched. Ramp index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 62) is the ground point at the bottom-centre of the plinth's front face, i.e.
+    the front edge of the footprint; sort actors by it. Plinth 22 px wide -> footprint 1x1 tile (the tile
+    whose bottom edge is the pivot row), blocking. Height 60 px, the same as castle_wall_back, so a column in
+    front of the wall reaches the cornice. Static: 1-frame idle.
+
+ramps:
+  c00: ["#1c0f1a", "#ffffff"]
+  c01: ["#1c0f1a", "#dcd5e2"]
+  c02: ["#1c0f1a", "#f6f3f8"]
+  c03: ["#1c0f1a", "#e8e3ec"]
+  c04: ["#1c0f1a", "#b9afc4"]
+  c05: ["#1c0f1a", "#9a8fa8"]
+  c06: ["#1c0f1a", "#f8e08a"]
+  c07: ["#1c0f1a", "#e1a227"]
+  c08: ["#1c0f1a", "#9a5a1c"]
+  c09: ["#1c0f1a", "#cbc2d3"]
+  c10: ["#1c0f1a", "#f3f0f5"]
+  c11: ["#1c0f1a", "#1c0f1a"]
+
+materials:
+  c00: {ramp: c00, bands: [1, 1], outline: false, line: false}
+  c01: {ramp: c01, bands: [1, 1], outline: false, line: false}
+  c02: {ramp: c02, bands: [1, 1], outline: false, line: false}
+  c03: {ramp: c03, bands: [1, 1], outline: false, line: false}
+  c04: {ramp: c04, bands: [1, 1], outline: false, line: false}
+  c05: {ramp: c05, bands: [1, 1], outline: false, line: false}
+  c06: {ramp: c06, bands: [1, 1], outline: false, line: false}
+  c07: {ramp: c07, bands: [1, 1], outline: false, line: false}
+  c08: {ramp: c08, bands: [1, 1], outline: false, line: false}
+  c09: {ramp: c09, bands: [1, 1], outline: false, line: false}
+  c10: {ramp: c10, bands: [1, 1], outline: false, line: false}
+  c11: {ramp: c11, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  col_c00:
+    material: c00
+    space: body
+    prims:
+      - box: {c: [-0.5775, 0.5235, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.0275, 4.1529, -0.0020], half: [0.5225, 0.0349, 0.002]}
+      - box: {c: [0.0000, 0.3141, -0.0020], half: [0.5500, 0.0349, 0.002]}
+      - box: {c: [0.0000, 0.7329, -0.0020], half: [0.3850, 0.0349, 0.002]}
+      - box: {c: [-0.1925, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+  col_c01:
+    material: c01
+    space: body
+    prims:
+      - box: {c: [-0.5775, 0.1047, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.5225, 3.9435, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0000, 0.5933, -0.0020], half: [0.3850, 0.0349, 0.002]}
+      - box: {c: [-0.3025, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.1650, 3.8039, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.1375, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.1650, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.1375, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.2750, 3.7341, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.3025, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.3025, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.5225, 4.1529, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.5775, 0.4537, -0.0020], half: [0.0275, 0.1047, 0.002]}
+  col_c02:
+    material: c02
+    space: body
+    prims:
+      - box: {c: [-0.5775, 0.2443, -0.0020], half: [0.0275, 0.1047, 0.002]}
+      - box: {c: [-0.5225, 4.0482, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [-0.4125, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.4125, 0.7329, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.2475, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+  col_c03:
+    material: c03
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.2094, -0.0020], half: [0.5500, 0.0698, 0.002]}
+      - box: {c: [0.0000, 4.0482, -0.0020], half: [0.4950, 0.0698, 0.002]}
+      - box: {c: [-0.0275, 0.6631, -0.0020], half: [0.4125, 0.0349, 0.002]}
+      - box: {c: [-0.3300, 3.8039, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.3575, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.3300, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.2200, 3.7341, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.1650, 3.8039, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.1650, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.1375, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [-0.0550, 3.7341, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.0000, 3.8039, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.0000, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.0000, 2.0939, -0.0020], half: [0.0550, 1.2563, 0.002]}
+      - box: {c: [0.0825, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.3575, 3.7341, -0.0020], half: [0.0275, 0.1047, 0.002]}
+  col_c04:
+    material: c04
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.1047, -0.0020], half: [0.5500, 0.0349, 0.002]}
+      - box: {c: [0.0000, 3.9435, -0.0020], half: [0.4950, 0.0349, 0.002]}
+      - box: {c: [-0.4125, 0.5933, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0000, 3.3851, -0.0020], half: [0.3300, 0.0349, 0.002]}
+      - box: {c: [0.1925, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.4125, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.4125, 0.7329, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.5225, 4.0482, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [0.5775, 0.2443, -0.0020], half: [0.0275, 0.1047, 0.002]}
+  col_c05:
+    material: c05
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.0349, -0.0020], half: [0.6050, 0.0349, 0.002]}
+      - box: {c: [0.3025, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.4125, 0.6282, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [0.5225, 3.9435, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.5775, 0.1047, -0.0020], half: [0.0275, 0.0349, 0.002]}
+  col_c06:
+    material: c06
+    space: body
+    prims:
+      - box: {c: [-0.1650, 3.8737, -0.0020], half: [0.3850, 0.0349, 0.002]}
+      - box: {c: [-0.5225, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.4400, 3.7341, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.4125, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.3575, 3.5247, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.3575, 0.8027, -0.0020], half: [0.0275, 0.0349, 0.002]}
+  col_c07:
+    material: c07
+    space: body
+    prims:
+      - box: {c: [-0.4950, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.1100, 3.5945, -0.0020], half: [0.3300, 0.0349, 0.002]}
+      - box: {c: [-0.3575, 3.4549, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.3025, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0000, 3.5247, -0.0020], half: [0.3300, 0.0349, 0.002]}
+      - box: {c: [0.0000, 0.8027, -0.0020], half: [0.3300, 0.0349, 0.002]}
+      - box: {c: [-0.2475, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.2475, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.1375, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.0825, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.0825, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0275, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0825, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.0825, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.1925, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.3300, 3.8737, -0.0020], half: [0.1100, 0.0349, 0.002]}
+      - box: {c: [0.2475, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.2475, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+  col_c08:
+    material: c08
+    space: body
+    prims:
+      - box: {c: [0.0275, 3.4549, -0.0020], half: [0.3575, 0.0349, 0.002]}
+      - box: {c: [0.3300, 3.5945, -0.0020], half: [0.1100, 0.0349, 0.002]}
+      - box: {c: [0.3575, 3.5247, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.3575, 0.8027, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.4125, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.4400, 3.7341, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.4950, 3.8737, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.4950, 3.6643, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.5225, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+  col_c09:
+    material: c09
+    space: body
+    prims:
+      - box: {c: [-0.0825, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.0825, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+      - box: {c: [0.2475, 2.0939, -0.0020], half: [0.0275, 1.2563, 0.002]}
+  col_c10:
+    material: c10
+    space: body
+    prims:
+      - box: {c: [-0.0275, 0.4188, -0.0020], half: [0.5775, 0.0698, 0.002]}
+      - box: {c: [0.0000, 0.5235, -0.0020], half: [0.5500, 0.0349, 0.002]}
+  col_c11:
+    material: c11
+    space: body
+    prims:
+      - box: {c: [-0.6325, 0.2792, -0.0020], half: [0.0275, 0.2792, 0.002]}
+      - box: {c: [-0.5775, 3.9784, -0.0020], half: [0.0275, 0.2094, 0.002]}
+      - box: {c: [-0.5775, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.5225, 0.5933, -0.0020], half: [0.0825, 0.0349, 0.002]}
+      - box: {c: [0.0000, -0.0349, -0.0020], half: [0.6050, 0.0349, 0.002]}
+      - box: {c: [0.0000, 4.2227, -0.0020], half: [0.5500, 0.0349, 0.002]}
+      - box: {c: [-0.5225, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.4950, 3.5945, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [-0.4675, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.4675, 0.6980, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [-0.4125, 3.4898, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [-0.4125, 0.8027, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [-0.3575, 2.1288, -0.0020], half: [0.0275, 1.2912, 0.002]}
+      - box: {c: [0.3575, 2.1288, -0.0020], half: [0.0275, 1.2912, 0.002]}
+      - box: {c: [0.4125, 3.4898, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [0.4125, 0.8027, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.4675, 3.8039, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.4950, 3.5945, -0.0020], half: [0.0550, 0.0349, 0.002]}
+      - box: {c: [0.4675, 0.6980, -0.0020], half: [0.0275, 0.0698, 0.002]}
+      - box: {c: [0.5225, 0.5933, -0.0020], half: [0.0825, 0.0349, 0.002]}
+      - box: {c: [0.5225, 3.7341, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.5775, 3.9784, -0.0020], half: [0.0275, 0.2094, 0.002]}
+      - box: {c: [0.5775, 3.6643, -0.0020], half: [0.0275, 0.0349, 0.002]}
+      - box: {c: [0.6325, 0.2792, -0.0020], half: [0.0275, 0.2792, 0.002]}
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

@@ -1,0 +1,102 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_rug
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}
+shadow: null             # flat on the floor
+
+# Aldo's hut: a braided rag rug, the only bright thing in the room.
+brief:
+  summary: oval braided rag rug made of old clothes - six concentric braids of faded red wool, undyed
+    linen, blue, straw yellow, green and red, with dark seams between the braids and two loose loops at the edge
+  must_keep: [oval shape, concentric coloured braids, braid seams]
+  simplify: [braid texture as the dark seam between rings plus a few light dashes]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0, 0] (pivot = frame
+    centre). camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a); the
+    braid colours reuse the blanket and patch ramps of the bed so the room shares one set of fabrics.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,24) is the rug's centre on the floor.
+    Oval 2.3 x 1.95 units (~42 x 22 px) -> about 3 x 1.5 tiles, NOT blocking: draw it on the floor layer
+    (above hut_floor, below everything else). Static.
+
+materials:
+  r_red:   {ramp: hwool, bands: [3, 3]}
+  r_linen: {ramp: hlinen, bands: [3, 3]}
+  r_blue:  {ramp: hpatch, bands: [2, 2]}
+  r_straw: {ramp: hstraw, bands: [3, 3]}
+  r_green: {ramp: hpatch2, bands: [2, 2]}
+  dash:    {ramp: hlinen, bands: [4, 4], outline: false, line: false}
+  loop:    {ramp: hwool, bands: [2, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  rug: {parent: body, scale: [1.15, 1, 0.975]}
+
+parts:
+  ring0:
+    material: r_red
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.020, 0], r: 1.0}
+  ring1:
+    material: r_linen
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.024, 0], r: 0.84}
+  ring2:
+    material: r_blue
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.028, 0], r: 0.68}
+  ring3:
+    material: r_straw
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.032, 0], r: 0.52}
+  ring4:
+    material: r_green
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.036, 0], r: 0.36}
+  ring5:
+    material: r_red
+    space: rug
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.040, 0], r: 0.2}
+  dashes:             # light braid dashes on a few rings
+    material: dash
+    space: rug
+    prims:
+      - box: {c: [0.0, 0.03, 0.92], half: [0.06, 0.003, 0.02]}
+      - box: {c: [0.62, 0.03, 0.66], half: [0.05, 0.003, 0.02], rot: [0, 0.75, 0]}
+      - box: {c: [-0.62, 0.03, 0.66], half: [0.05, 0.003, 0.02], rot: [0, -0.75, 0]}
+      - box: {c: [-0.86, 0.03, -0.3], half: [0.05, 0.003, 0.02], rot: [0, 1.9, 0]}
+      - box: {c: [0.44, 0.04, -0.2], half: [0.04, 0.003, 0.02], rot: [0, 2.0, 0]}
+  loops:              # loose braid loops at the edge (wear)
+    material: loop
+    space: rug
+    line: true
+    prims:
+      - torus: {c: [0.86, 0.01, 0.56], R: 0.07, r: 0.025}
+      - torus: {c: [-0.95, 0.01, -0.3], R: 0.06, r: 0.025}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

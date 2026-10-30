@@ -1,0 +1,189 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_shelf
+kind: prop
+view: topdown
+size: 48
+directions: 1            # hangs on the back wall, faces the camera
+mirror: false
+palette: ["farm", "hut"]
+# centre y 1.3957 = 20 px above the pivot -> pivot (24, 44), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3957, 0]}
+shadow: null             # wall piece
+
+# Aldo's hut: the healer's shelf of an old man who knows herbs.
+brief:
+  summary: two rough boards on carved wooden brackets pegged to the back wall, crowded with an old man's
+    remedies - a big clay crock with a cloth cover tied with string, a small blue-glazed ointment pot, a
+    green glass vial with a cork and a wooden mortar with pestle on the lower board; two small ointment
+    pots, a tall green bottle and a rolled bandage on the upper board
+  must_keep: [two boards on brackets, clay crock with tied cloth, green glass vials, small ointment pots,
+    mortar and pestle]
+  simplify: [corks and strings as 1-2 px, labels omitted]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 1.3957, 0] (integer
+    pivot). camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,44) is the FLOOR point on the back wall's
+    face (z 0) below the shelf's centre, like hut_wall_back, hearth and hut_door: put the pivot on the
+    wall's floor line and draw the shelf above the wall. Boards 1.3 wide (~24 px) at heights 1.2 and 1.75,
+    0.26 deep -> occupies 2 wall tiles; not blocking (it hangs above the floor). Static.
+
+materials:
+  board:   {ramp: hwood, bands: [2, 4]}
+  bracket: {ramp: hbeam, bands: [2, 4]}
+  peg:     {ramp: hcut, bands: [2, 2], outline: false, line: false}
+  clay:    {ramp: hclay, bands: [2, 4]}
+  glaze:   {ramp: hglaze, bands: [2, 4]}
+  glass:   {ramp: hglass, bands: [2, 4]}
+  glass_hi: {ramp: hglass, bands: [4, 4], outline: false, line: false}
+  cork:    {ramp: hcut, bands: [2, 3], line: false}
+  linen:   {ramp: hlinen, bands: [2, 4]}
+  string:  {ramp: hwool, bands: [2, 2], outline: false, line: false}
+  wood:    {ramp: hcut, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  low: {parent: body, pos: [0, 1.24, 0.13]}     # top surface centre of the lower board
+  high: {parent: body, pos: [0, 1.79, 0.13]}    # and of the upper board
+
+parts:
+  # ---------- boards and brackets ----------
+  boards:
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.2, 0.13], half: [0.66, 0.04, 0.14], rot: [0, 0, 0.01], round: 0.015}
+      - box: {c: [0.02, 1.75, 0.13], half: [0.6, 0.04, 0.14], rot: [0, 0, -0.01], round: 0.015}
+  brackets:           # triangular carved brackets under each board
+    material: bracket
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.5, 1.04, 0.06], half: [0.05, 0.13, 0.06]}
+      - box: {c: [0.5, 1.04, 0.06], half: [0.05, 0.13, 0.06]}
+      - box: {c: [-0.5, 1.07, 0.16], half: [0.045, 0.045, 0.1], rot: [0.7, 0, 0]}
+      - box: {c: [0.5, 1.07, 0.16], half: [0.045, 0.045, 0.1], rot: [0.7, 0, 0]}
+      - box: {c: [-0.45, 1.6, 0.06], half: [0.05, 0.11, 0.06]}
+      - box: {c: [0.47, 1.6, 0.06], half: [0.05, 0.11, 0.06]}
+  pegs:
+    material: peg
+    space: body
+    prims:
+      - sphere: {c: [-0.5, 0.96, 0.13], r: 0.03}
+      - sphere: {c: [0.5, 0.96, 0.13], r: 0.03}
+
+  # ---------- lower board ----------
+  crock:              # big clay crock with a cloth cover
+    material: clay
+    space: low
+    line: true
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.4, 0.17, 0], r: [0.16, 0.17, 0.12]}
+      - cylinder: {a: [-0.4, 0.26, 0], b: [-0.4, 0.33, 0], r: 0.11}
+  crock_cloth:
+    material: linen
+    space: low
+    line: true
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [-0.4, 0.35, 0], r: [0.15, 0.05, 0.12]}
+      - cone: {a: [-0.52, 0.33, 0.06], b: [-0.56, 0.24, 0.1], r: [0.04, 0.02]}
+  crock_string:
+    material: string
+    space: low
+    prims:
+      - torus: {c: [-0.4, 0.31, 0], R: 0.115, r: 0.014}
+  ointment_low:       # small blue-glazed pot with a wooden lid
+    material: glaze
+    space: low
+    line: true
+    prims:
+      - cylinder: {a: [-0.12, 0.0, 0.02], b: [-0.12, 0.12, 0.02], r: 0.08, round: 0.02}
+  ointment_low_lid:
+    material: wood
+    space: low
+    line: true
+    prims:
+      - cylinder: {a: [-0.12, 0.12, 0.02], b: [-0.12, 0.15, 0.02], r: 0.07, round: 0.01}
+  vial_low:
+    material: glass
+    space: low
+    line: true
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.1, 0.08, 0.0], r: [0.07, 0.08, 0.06]}
+      - cylinder: {a: [0.1, 0.12, 0.0], b: [0.1, 0.24, 0.0], r: 0.03}
+  vial_low_cork:
+    material: cork
+    space: low
+    prims:
+      - cylinder: {a: [0.1, 0.24, 0.0], b: [0.1, 0.29, 0.0], r: 0.032}
+  vial_low_hi:
+    material: glass_hi
+    space: low
+    prims:
+      - sphere: {c: [0.07, 0.1, 0.055], r: 0.02}
+  mortar:
+    material: wood
+    space: low
+    line: true
+    prims:
+      - cylinder: {a: [0.38, 0.0, 0.02], b: [0.38, 0.13, 0.02], r: 0.11, round: 0.03}
+    cut:
+      - cylinder: {a: [0.38, 0.08, 0.02], b: [0.38, 0.2, 0.02], r: 0.075}
+  pestle:
+    material: bracket
+    space: low
+    line: true
+    prims:
+      - cone: {a: [0.36, 0.08, 0.02], b: [0.52, 0.3, -0.02], r: [0.03, 0.04]}
+
+  # ---------- upper board ----------
+  pots_high:          # two small ointment pots
+    material: clay
+    space: high
+    line: true
+    prims:
+      - cylinder: {a: [-0.38, 0.0, 0.02], b: [-0.38, 0.1, 0.02], r: 0.07, round: 0.02}
+      - cylinder: {a: [-0.2, 0.0, 0.03], b: [-0.2, 0.08, 0.03], r: 0.06, round: 0.02}
+  pot_cloth:
+    material: linen
+    space: high
+    prims:
+      - cylinder: {a: [-0.38, 0.1, 0.02], b: [-0.38, 0.13, 0.02], r: 0.08, round: 0.015}
+  bottle:             # tall green bottle
+    material: glass
+    space: high
+    line: true
+    blend: 0.03
+    prims:
+      - cylinder: {a: [0.05, 0.0, 0.0], b: [0.05, 0.2, 0.0], r: 0.07, round: 0.02}
+      - cone: {a: [0.05, 0.2, 0.0], b: [0.05, 0.32, 0.0], r: [0.05, 0.028]}
+  bottle_cork:
+    material: cork
+    space: high
+    prims:
+      - cylinder: {a: [0.05, 0.31, 0.0], b: [0.05, 0.36, 0.0], r: 0.03}
+  bottle_hi:
+    material: glass_hi
+    space: high
+    prims:
+      - box: {c: [0.02, 0.1, 0.07], half: [0.012, 0.06, 0.005]}
+  bandage:            # rolled linen bandage
+    material: linen
+    space: high
+    line: true
+    prims:
+      - cylinder: {a: [0.26, 0.06, -0.02], b: [0.44, 0.06, 0.02], r: 0.06, round: 0.02}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

@@ -1,0 +1,143 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: palisade_v
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.6980 = 10 px above the pivot -> pivot (24, 34), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.6980, 0]}
+shadow: {rx: 4, ry: 9, alpha: 80}
+
+# Act I, Minhau: vertical palisade TILE (one per 16 px tile, runs up/down the screen).
+brief:
+  summary: the same crude palisade as palisade_h, running toward the camera - four sharpened, crooked
+    weathered stakes per tile seen end-on, one behind the other, lashed by two green vine bands that run
+    along both sides
+  must_keep: [same stake wood, tips and vine heights as palisade_h, stakes continuous between tiles]
+  simplify: [vine as two thin ropes on each side, a few knots]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.698, 0] (integer pivot).
+    The vine material has outline off (tileable ends). camera.scale/pitch/light untouched.
+    Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: pivot = ground point at the centre of the tile (world origin) = frame px (24, 34).
+    One 16 px tile down the screen is 1.4293 units of z (38 degree foreshortening); stakes at
+    z -0.536, -0.179, 0.179, 0.536 keep an even spacing (0.357 = 4 px) across tiles and the vines span
+    z [-0.7146, 0.7146]. Draw southern pieces over northern ones (depth by y). Place it like fence_v
+    (pivot 3 px above the bottom of its tile; the stakes then sit a little low in the tile, like the
+    fence); footprint 1x1, blocking.
+    Clips (1 frame each): idle, alt (other heights and lean), broken (the second stake from the front
+    snapped and fallen to the ground on the right side, vines cut).
+
+materials:
+  wood:   {ramp: rwood, bands: [2, 4]}
+  cut:    {ramp: hcut, bands: [1, 2], outline: false}
+  vine:   {ramp: rvine, bands: [2, 4], outline: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0          # 0 idle, 1 alt, 2 broken
+
+bones:
+  body: {parent: root}
+
+parts:
+  stake_1:      # back
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0, 0, -0.536], b: ["0.02 + 0.04*(v == 1)", "1.12 + 0.2*(v == 1)", -0.536], r: [0.135, 0.125]}
+      - cone: {a: ["0.02 + 0.04*(v == 1)", "1.12 + 0.2*(v == 1)", -0.536], b: ["0.03 + 0.05*(v == 1)", "1.44 + 0.2*(v == 1)", -0.52], r: [0.125, 0.02]}
+  stake_2:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0.01, 0, -0.179], b: ["-0.03 + 0.05*(v == 1)", "1.3 - 0.22*(v == 1)", -0.179], r: [0.135, 0.125]}
+      - cone: {a: ["-0.03 + 0.05*(v == 1)", "1.3 - 0.22*(v == 1)", -0.179], b: ["-0.04 + 0.06*(v == 1)", "1.62 - 0.22*(v == 1)", -0.16], r: [0.125, 0.02]}
+  stake_3:      # fallen in `broken`
+    material: wood
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - cone: {a: [0, 0, 0.179], b: ["0.04 - 0.08*(v == 1)", "1.02 + 0.26*(v == 1)", 0.179], r: [0.135, 0.125]}
+      - cone: {a: ["0.04 - 0.08*(v == 1)", "1.02 + 0.26*(v == 1)", 0.179], b: ["0.05 - 0.09*(v == 1)", "1.34 + 0.26*(v == 1)", 0.2], r: [0.125, 0.02]}
+  stake_4:      # front
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-0.01, 0, 0.536], b: ["-0.02 - 0.03*(v == 1)", "1.2 - 0.14*(v == 1)", 0.536], r: [0.135, 0.125]}
+      - cone: {a: ["-0.02 - 0.03*(v == 1)", "1.2 - 0.14*(v == 1)", 0.536], b: ["-0.03 - 0.03*(v == 1)", "1.5 - 0.14*(v == 1)", 0.55], r: [0.125, 0.02]}
+  stump_3:
+    material: wood
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cone: {a: [0, 0, 0.179], b: [0, 0.3, 0.179], r: [0.135, 0.13]}
+  stump_cut:
+    material: cut
+    space: body
+    when: "v > 1.5"
+    prims:
+      - ellipsoid: {c: [0, 0.31, 0.2], r: [0.1, 0.03, 0.08], rot: [0.3, 0, 0.2]}
+  fallen_3:     # lying on the ground on the right side, pointing back
+    material: wood
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cone: {a: [0.3, 0.11, 0.6], b: [0.42, 0.11, -0.4], r: [0.11, 0.1]}
+      - cone: {a: [0.42, 0.11, -0.4], b: [0.45, 0.11, -0.66], r: [0.1, 0.02]}
+  vines:        # two bands on each side, along z
+    material: vine
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - cylinder: {a: [0.13, 0.44, -0.7146], b: [0.13, 0.42, 0.7146], r: 0.04}
+      - cylinder: {a: [0.13, 0.92, -0.7146], b: [0.13, 0.9, 0.7146], r: 0.04}
+      - cylinder: {a: [-0.13, 0.44, -0.7146], b: [-0.13, 0.42, 0.7146], r: 0.04}
+      - cylinder: {a: [-0.13, 0.92, -0.7146], b: [-0.13, 0.9, 0.7146], r: 0.04}
+  vines_cut:
+    material: vine
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cylinder: {a: [0.13, 0.44, -0.7146], b: [0.13, 0.43, -0.02], r: 0.04}
+      - cylinder: {a: [0.13, 0.92, -0.7146], b: [0.13, 0.91, -0.02], r: 0.04}
+      - cylinder: {a: [0.13, 0.91, -0.02], b: [0.16, 0.66, 0.06], r: 0.035}
+      - cylinder: {a: [-0.13, 0.44, -0.7146], b: [-0.13, 0.43, -0.02], r: 0.04}
+      - cylinder: {a: [-0.13, 0.92, -0.7146], b: [-0.13, 0.91, -0.02], r: 0.04}
+      - cylinder: {a: [0.13, 0.43, 0.38], b: [0.13, 0.42, 0.7146], r: 0.04}
+      - cylinder: {a: [0.13, 0.91, 0.38], b: [0.13, 0.9, 0.7146], r: 0.04}
+      - cylinder: {a: [-0.13, 0.43, 0.38], b: [-0.13, 0.42, 0.7146], r: 0.04}
+      - cylinder: {a: [-0.13, 0.91, 0.38], b: [-0.13, 0.9, 0.7146], r: 0.04}
+  knots:
+    material: vine
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0.0, 0.44, 0.6], r: [0.15, 0.07, 0.06]}
+      - ellipsoid: {c: [0.0, 0.91, 0.6], r: [0.15, 0.07, 0.06]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  alt:
+    frames: 1
+    ms: 1000
+    channels: {v: 1}
+  broken:
+    frames: 1
+    ms: 1000
+    channels: {v: 2}

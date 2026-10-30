@@ -1,0 +1,100 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_candle
+kind: prop
+view: topdown
+size: 32
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.4188 = 6 px above the pivot -> pivot (16, 22), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4188, 0]}
+shadow: {rx: 5, ry: 2, alpha: 70}
+
+# Aldo's hut: a fat tallow candle in a clay holder (floor, shelf or table).
+brief:
+  summary: fat, half-burnt tallow candle with thick wax drips in a little clay chamberstick (dish with a
+    finger loop), a short black wick and a warm flickering flame with a white-hot core
+  must_keep: [cream wax with drips, clay dish with loop, warm emissive flame that flickers]
+  simplify: [drips as 3 lumps, flame as an outer cone and a core dot]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, camera.center [0, 0.4188, 0] (integer pivot).
+    The flame is emissive without outline. camera.scale/pitch/light untouched. Ramps from
+    palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 16,22) is the floor point under the dish's
+    centre (place it on a table or shelf by offsetting the pivot by the surface height: the table top is
+    11 px above its pivot). ~8 px wide, ~14 px tall with the flame -> footprint under 1 tile, not blocking.
+    idle loops 6 frames x 110 ms: the flame sways, stretches and the core pulses; the flame tip is at about
+    (0, -13) px from the pivot (for a game light). Same wax, clay and flame ramps as the table candle.
+
+materials:
+  clay:    {ramp: hclay, bands: [2, 4]}
+  wax:     {ramp: hwax, bands: [2, 4]}
+  wax_hi:  {ramp: hwax, bands: [4, 4], outline: false, line: false}
+  wick:    {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  flame:   {ramp: hflame, emissive: true, band: 5, outline: false, line: false, glow: {color: "#ffa12e", mix: 0.45, radius: 1}}
+  flame_mid: {ramp: hflame, emissive: true, band: 6, outline: false, line: false}
+  flame_core: {ramp: hflame, emissive: true, band: 7, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  fh: 1              # flame height
+  fs: 0              # flame sway (x)
+  core: 1            # core size
+
+bones:
+  body: {parent: root}
+
+parts:
+  dish:
+    material: clay
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.06, 0], r: 0.17, round: 0.015}
+      - torus: {c: [0.2, 0.04, 0.04], R: 0.05, r: 0.018, rot: [1.5708, 0, 0]}
+  wax:
+    material: wax
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - cylinder: {a: [0, 0.05, 0], b: [0, 0.34, 0], r: 0.075}
+      - ellipsoid: {c: [0.07, 0.24, 0.04], r: [0.03, 0.05, 0.03]}
+      - ellipsoid: {c: [-0.06, 0.18, 0.05], r: [0.03, 0.07, 0.03]}
+      - ellipsoid: {c: [0.05, 0.07, 0.08], r: [0.07, 0.025, 0.05]}
+  wax_hi:
+    material: wax_hi
+    space: body
+    prims:
+      - box: {c: [-0.035, 0.24, 0.07], half: [0.012, 0.07, 0.005]}
+  wick:
+    material: wick
+    space: body
+    prims:
+      - cylinder: {a: [0, 0.34, 0], b: [0, 0.39, 0], r: 0.013}
+  flame:
+    material: flame
+    space: body
+    prims:
+      - cone: {a: [0, 0.41, 0.02], b: "[fs, 0.41 + 0.2*fh, 0.02]", r: [0.055, 0.012]}
+  flame_mid:
+    material: flame_mid
+    space: body
+    prims:
+      - cone: {a: [0, 0.41, 0.05], b: "[0.6*fs, 0.41 + 0.11*fh, 0.05]", r: [0.035, 0.01]}
+  flame_core:
+    material: flame_core
+    space: body
+    prims:
+      - sphere: {c: [0, 0.41, 0.07], r: "0.02*core"}
+
+animations:
+  idle:
+    frames: 6
+    ms: 110
+    channels:
+      fh: "1 + 0.2*sin(p) + 0.08*sin(2*p + 0.7)"
+      fs: "0.025*sin(p + 1.2)"
+      core: "1 + 0.25*sin(2*p)"

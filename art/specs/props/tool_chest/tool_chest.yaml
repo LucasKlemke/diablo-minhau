@@ -1,0 +1,181 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: tool_chest
+kind: prop
+view: topdown
+size: 48
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.5584, 0]}   # 8 px above the pivot -> pivot (24, 32)
+shadow: {rx: 16, ry: 5, alpha: 110}
+
+# Ruined village QUEST OBJECT: the smith's tool chest, stolen by goblins; the player pries it open.
+brief:
+  summary: heavy workman's chest of red-brown oak with thick dark iron bands and corner plates, stolen and
+    battered - the lid is jammed half open on a bent hinge, a sledgehammer handle and a pair of iron pincers
+    stick out of the gap, a dent and a cracked plank on the front, a crooked padlock hanging from a broken
+    hasp, and crude goblin scribbles in green and red paint (a zigzag, an X and a skull-ish blob) on the
+    front; a bright highlight along the top edges
+  must_keep: [iron bands, lid ajar with hammer and pincers sticking out, dent, goblin paint scribbles,
+    hanging padlock, bright top edges]
+  simplify: [planks as 2 dark lines, scribbles as flat paint strokes]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.5584, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a. Light top-edge strips
+    (material `edge`) make it pop on the Farm RPG grass, as asked for quest props.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,32) is the ground point under the chest's
+    centre. Chest 1.5 x 0.75 units (~28 px wide) -> footprint 2x1 tiles, blocking; interaction radius
+    around the pivot. Warmer, redder wood than the ground so it stands out on grass and dirt.
+    Different from the treasure `chest` on purpose: flat lid, iron, tools. Static: 1-frame idle.
+
+ramps:
+  tc_wood:   ["#1c0f1a", "#4a2118", "#7a3e22", "#a35a2e", "#c47a3e"]
+  tc_inside: ["#1c0f1a", "#24151c", "#3a2224"]
+  tc_edge:   ["#1c0f1a", "#d89a5a", "#f0c080", "#ffe0a8"]
+  tc_iron:   ["#1c0f1a", "#2e3040", "#4b5266", "#7a849a", "#a4aec0"]
+  tc_steel:  ["#1c0f1a", "#424557", "#717c97", "#adb8c3", "#e8ebee"]
+  tc_handle: ["#1c0f1a", "#5d351f", "#9e6d32", "#c4a75c", "#dccb94"]
+  tc_brass:  ["#1c0f1a", "#804a19", "#c7861f", "#e1a227"]
+  tc_green:  ["#1c0f1a", "#4f7d33", "#7ab041", "#a6d05a"]
+  tc_red:    ["#1c0f1a", "#8a1e1e", "#c43030", "#e05050"]
+
+materials:
+  wood:   {ramp: tc_wood, bands: [2, 4]}
+  plank:  {ramp: tc_wood, bands: [1, 1], outline: false, line: false}
+  front:  {ramp: tc_wood, bands: [3, 3], outline: false, line: false}
+  inside: {ramp: tc_inside, bands: [1, 2], line: false}
+  edge:   {ramp: tc_edge, bands: [2, 3], outline: false, line: false}
+  iron:   {ramp: tc_iron, bands: [1, 4]}
+  steel:  {ramp: tc_steel, bands: [1, 4]}
+  handle: {ramp: tc_handle, bands: [1, 4]}
+  brass:  {ramp: tc_brass, bands: [1, 3]}
+  paint_g: {ramp: tc_green, bands: [2, 3], outline: false, line: false}
+  paint_r: {ramp: tc_red, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  lid: {parent: body, pos: [0, 0.5, -0.38], rot: [-0.2, 0, 0.05]}     # jammed half open, a bit crooked
+
+parts:
+  box:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.25, 0], half: [0.75, 0.25, 0.37], round: 0.02}
+    cut:
+      - box: {c: [0, 0.5, 0], half: [0.69, 0.08, 0.31]}
+      - sphere: {c: [-0.35, 0.22, 0.47], r: 0.13}                  # the dent
+  inside:
+    material: inside
+    space: body
+    prims:
+      - box: {c: [0, 0.4, 0], half: [0.69, 0.02, 0.31]}
+  front:              # lit front face (the light comes mostly from above)
+    material: front
+    space: body
+    prims:
+      - box: {c: [0, 0.25, 0.373], half: [0.73, 0.23, 0.003]}
+  planks:
+    material: plank
+    space: body
+    prims:
+      - box: {c: [0.1, 0.17, 0.378], half: [0.6, 0.008, 0.004]}
+      - box: {c: [0.1, 0.33, 0.378], half: [0.6, 0.008, 0.004]}
+      - box: {c: [0.48, 0.25, 0.378], half: [0.1, 0.008, 0.004], rot: [0, 0, 0.7]}    # crack
+  box_edge:           # bright top rim of the box
+    material: edge
+    space: body
+    prims:
+      - box: {c: [0, 0.495, 0.355], half: [0.72, 0.012, 0.02]}
+  iron:
+    material: iron
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.7, 0.26, 0.33], half: [0.08, 0.26, 0.06]}
+      - box: {c: [-0.7, 0.26, 0.33], half: [0.08, 0.26, 0.06]}
+      - box: {c: [0.7, 0.26, -0.33], half: [0.08, 0.26, 0.06]}
+      - box: {c: [-0.7, 0.26, -0.33], half: [0.08, 0.26, 0.06]}
+      - box: {c: [0.34, 0.26, 0], half: [0.055, 0.26, 0.39]}
+      - box: {c: [-0.36, 0.26, 0.02], half: [0.055, 0.26, 0.39], rot: [0, 0, 0.06]}   # bent band
+  hasp:
+    material: iron
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.4, 0.4], half: [0.06, 0.1, 0.02]}
+  padlock:            # hanging crooked from the broken hasp
+    material: brass
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.04, 0.2, 0.43], half: [0.08, 0.08, 0.035], rot: [0, 0, 0.35], round: 0.02}
+      - torus: {c: [0.0, 0.3, 0.43], R: 0.055, r: 0.018, rot: [1.5708, 0, 0.35]}
+  scribble_g:         # goblin paint: green zigzag and a blob face
+    material: paint_g
+    space: body
+    prims:
+      - box: {c: [-0.6, 0.36, 0.38], half: [0.09, 0.025, 0.004], rot: [0, 0, 0.7]}
+      - box: {c: [-0.48, 0.36, 0.38], half: [0.09, 0.025, 0.004], rot: [0, 0, -0.7]}
+      - box: {c: [-0.36, 0.36, 0.38], half: [0.09, 0.025, 0.004], rot: [0, 0, 0.7]}
+      - cylinder: {a: [0.55, 0.14, 0.376], b: [0.55, 0.14, 0.382], r: 0.09}
+  scribble_r:         # red X
+    material: paint_r
+    space: body
+    prims:
+      - box: {c: [-0.05, 0.13, 0.38], half: [0.13, 0.028, 0.004], rot: [0, 0, 0.75]}
+      - box: {c: [-0.05, 0.13, 0.38], half: [0.13, 0.028, 0.004], rot: [0, 0, -0.75]}
+      - box: {c: [0.53, 0.15, 0.385], half: [0.012, 0.012, 0.004]}
+      - box: {c: [0.58, 0.15, 0.385], half: [0.012, 0.012, 0.004]}
+  lid:
+    material: wood
+    space: lid
+    line: true
+    prims:
+      - box: {c: [0, 0.05, 0.39], half: [0.78, 0.05, 0.4], round: 0.02}
+  lid_edge:
+    material: edge
+    space: lid
+    prims:
+      - box: {c: [0, 0.1, 0.77], half: [0.75, 0.012, 0.02]}
+  lid_iron:
+    material: iron
+    space: lid
+    line: true
+    prims:
+      - box: {c: [0.34, 0.06, 0.39], half: [0.055, 0.06, 0.41]}
+      - box: {c: [-0.36, 0.06, 0.39], half: [0.055, 0.06, 0.41]}
+  hammer_handle:      # sledgehammer sticking out of the gap
+    material: handle
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.2, 0.35, 0.12], b: [0.48, 1.25, 0.34], r: 0.055}
+  hammer_head:
+    material: steel
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.5, 1.3, 0.35], half: [0.22, 0.1, 0.1], rot: [0, 0, 0.3], round: 0.02}
+  pincers:            # iron pincers sticking out the other side, jaws open
+    material: iron
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.18, 0.35, 0.12], b: [-0.42, 1.05, 0.32], r: 0.035}
+      - cylinder: {a: [-0.34, 0.35, 0.14], b: [-0.4, 1.05, 0.32], r: 0.035}
+      - sphere: {c: [-0.41, 1.05, 0.32], r: 0.055}
+      - cone: {a: [-0.41, 1.05, 0.32], b: [-0.6, 1.25, 0.34], r: [0.045, 0.025]}
+      - cone: {a: [-0.41, 1.05, 0.32], b: [-0.33, 1.3, 0.36], r: [0.045, 0.025]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

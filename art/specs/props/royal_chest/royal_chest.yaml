@@ -1,0 +1,256 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: royal_chest
+kind: prop
+view: topdown
+size: 48
+directions: 1            # faces the camera (s)
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.6979 = 10 px above the pivot -> pivot (24, 34), integer (arched lid included)
+camera: {pitch: 38, scale: 0.055, center: [0, 0.6979, 0]}
+shadow: {rx: 12, ry: 4, alpha: 90}
+
+# Aldo's hut: the old chest that hides what is left of a king.
+brief:
+  summary: an old, poor-looking chest of worn planks (the hut's own wood) with rusty iron bands, iron corner
+    caps and a heavy padlock - only a strip of purple cloth with a gold edge caught in the lid seam betrays
+    it. Opened, it holds the royal mantle folded (deep purple velvet, ermine edge with black tails, gold
+    trim) and the royal sword lying on it (steel blade, gold crossguard, ruby pommel)
+  must_keep: [humble weathered chest, padlock, purple strip in the seam (the only hint when closed),
+    folded purple mantle with ermine and gold trim, the sword with gold guard and ruby pommel]
+  simplify: [ermine tails as 1 px dots, blade fuller omitted, plank lines as 2 grooves]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.6979, 0] (integer pivot).
+    The sword glint is emissive. camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml
+    (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,34) is the floor point under the chest's
+    centre. Body 1.1 x 0.59 x 0.5 (~21 px wide) -> footprint 1 tile wide (a bit over) x 1 deep, blocking.
+    Lid hinged at the back top edge, like the game's `chest`. The chest must look like Aldo's other poor
+    things (same wood ramps) until it opens; the royal ramps (hroyal, hgold, hruby) appear only inside and
+    in the seam strip. Clips: idle (closed, 1 frame), open (non-loop: the padlock is already off-screen
+    logic; creak, lid jerks, swings up, settles; event `open` when the treasure first shows), opened
+    (4 x 160 ms loop: a glint runs down the blade).
+
+materials:
+  wood:    {ramp: hwood, bands: [2, 4]}
+  wood_in: {ramp: hbeam, bands: [1, 1], line: false}
+  lining:  {ramp: hwood, bands: [2, 2], outline: false, line: false}
+  groove:  {ramp: hsoot, bands: [2, 2], outline: false, line: false}
+  iron:    {ramp: hiron, bands: [1, 3]}
+  rust:    {ramp: hclay, bands: [1, 2], outline: false, line: false}
+  lock:    {ramp: hiron, bands: [2, 4]}
+  velvet:  {ramp: hroyal, bands: [2, 4]}
+  ermine:  {ramp: hlinen, bands: [3, 4]}
+  tail:    {ramp: hsoot, bands: [1, 1], outline: false, line: false}
+  trim:    {ramp: hgold, bands: [3, 4], line: false}
+  blade:   {ramp: steel, bands: [2, 4]}
+  guard:   {ramp: hgold, bands: [2, 4]}
+  grip:    {ramp: hwool, bands: [1, 2]}
+  ruby:    {ramp: hruby, bands: [2, 4]}
+  glint:   {ramp: hgold, emissive: true, band: 5, outline: false, line: false, glow: {color: "#f8f4dd", mix: 0.5, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  squash: 1         # body squash (the creak)
+  lid: 0            # lid angle (radians, 0 closed .. ~1.95 open)
+  glint: -1         # glint position along the blade (-1 = off, 0..1 hilt to tip)
+
+bones:
+  body: {parent: root, scale: "[1.1/sqrt(squash), squash, 1.05/sqrt(squash)]"}
+  lid:  {parent: body, pos: [0, 0.4, -0.28], rot: "[-lid, 0, 0]"}
+  sword: {parent: body, pos: [0.0, 0.36, -0.02], rot: [0, 0.32, 0]}   # lies on the mantle, diagonal
+
+parts:
+  # ---------- body ----------
+  box:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.2, 0], half: [0.5, 0.2, 0.28], round: 0.02}
+    cut:
+      - box: {c: [0, 0.42, 0], half: [0.45, 0.12, 0.23]}
+  inside:
+    material: wood_in
+    space: body
+    prims:
+      - box: {c: [0, 0.22, 0], half: [0.455, 0.02, 0.235]}
+  grooves:            # plank seams on the front
+    material: groove
+    space: body
+    prims:
+      - box: {c: [0, 0.14, 0.282], half: [0.46, 0.012, 0.004]}
+      - box: {c: [0, 0.28, 0.282], half: [0.46, 0.012, 0.004]}
+  bands:              # rusty iron bands and corner caps
+    material: iron
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.3, 0.2, 0], half: [0.04, 0.205, 0.29]}
+      - box: {c: [-0.3, 0.2, 0], half: [0.04, 0.205, 0.29]}
+      - box: {c: [0.47, 0.06, 0.25], half: [0.045, 0.06, 0.045]}
+      - box: {c: [-0.47, 0.06, 0.25], half: [0.045, 0.06, 0.045]}
+  rust:
+    material: rust
+    space: body
+    prims:
+      - box: {c: [0.3, 0.12, 0.293], half: [0.03, 0.05, 0.004]}
+      - box: {c: [-0.3, 0.3, 0.293], half: [0.03, 0.04, 0.004]}
+  hasp_plate:
+    material: lock
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.33, 0.29], half: [0.06, 0.07, 0.015]}
+  padlock:
+    material: lock
+    space: body
+    line: true
+    when: "lid < 0.05"
+    prims:
+      - box: {c: [0, 0.21, 0.32], half: [0.07, 0.065, 0.03], round: 0.02}
+      - torus: {c: [0, 0.29, 0.32], R: 0.045, r: 0.015, rot: [1.5708, 0, 0]}
+  keyhole:
+    material: groove
+    space: body
+    when: "lid < 0.05"
+    prims:
+      - box: {c: [0, 0.2, 0.352], half: [0.012, 0.025, 0.003]}
+
+  # ---------- treasure ----------
+  mantle:             # folded royal mantle filling the chest
+    material: velvet
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.3, -0.02], half: [0.42, 0.06, 0.2], round: 0.04}
+  mantle_fold:        # a fold line across the velvet
+    material: groove
+    space: body
+    prims:
+      - box: {c: [-0.15, 0.362, -0.02], half: [0.006, 0.003, 0.18]}
+  ermine:             # ermine edge along the front of the fold
+    material: ermine
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.43, 0.33, 0.16], b: [0.43, 0.33, 0.16], r: 0.065}
+  ermine_tails:
+    material: tail
+    space: body
+    prims:
+      - box: {c: [-0.3, 0.392, 0.16], half: [0.012, 0.004, 0.02]}
+      - box: {c: [-0.08, 0.392, 0.16], half: [0.012, 0.004, 0.02]}
+      - box: {c: [0.14, 0.392, 0.16], half: [0.012, 0.004, 0.02]}
+      - box: {c: [0.34, 0.392, 0.16], half: [0.012, 0.004, 0.02]}
+  trim:               # gold braid along the back of the fold
+    material: trim
+    space: body
+    prims:
+      - box: {c: [0, 0.362, -0.16], half: [0.4, 0.004, 0.025]}
+  blade:
+    material: blade
+    space: sword
+    line: true
+    prims:
+      - box: {c: [0.1, 0.03, 0], half: [0.3, 0.012, 0.045]}
+      - tri: {a: [0.4, 0.03, -0.045], b: [0.4, 0.03, 0.045], c: [0.47, 0.03, 0], th: 0.012}
+  crossguard:
+    material: guard
+    space: sword
+    line: true
+    prims:
+      - box: {c: [-0.2, 0.04, 0], half: [0.03, 0.025, 0.14], round: 0.01}
+  grip:
+    material: grip
+    space: sword
+    line: true
+    prims:
+      - cylinder: {a: [-0.22, 0.04, 0], b: [-0.34, 0.04, 0], r: 0.03}
+  pommel:
+    material: ruby
+    space: sword
+    line: true
+    prims:
+      - sphere: {c: [-0.38, 0.045, 0], r: 0.05}
+  guard_gem:
+    material: ruby
+    space: sword
+    prims:
+      - sphere: {c: [-0.2, 0.065, 0], r: 0.028}
+  sword_glint:
+    material: glint
+    space: sword
+    when: "glint >= 0"
+    prims:
+      - sphere: {c: "[-0.12 + 0.5*glint, 0.05, 0]", r: 0.028}
+
+  # ---------- lid ----------
+  lid_wood:           # arched lid (half cylinder)
+    material: wood
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [-0.51, -0.06, 0.28], b: [0.51, -0.06, 0.28], r: 0.3, round: 0.02}
+    cut:
+      - box: {c: [0, -0.26, 0.28], half: [0.6, 0.2, 0.4]}
+  lid_bands:
+    material: iron
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [0.26, -0.06, 0.28], b: [0.34, -0.06, 0.28], r: 0.315}
+      - cylinder: {a: [-0.34, -0.06, 0.28], b: [-0.26, -0.06, 0.28], r: 0.315}
+    cut:
+      - box: {c: [0, -0.26, 0.28], half: [0.6, 0.2, 0.4]}
+  lid_groove:         # plank seam along the arch
+    material: groove
+    space: lid
+    prims:
+      - box: {c: [0, 0.236, 0.28], half: [0.255, 0.006, 0.012]}
+  lid_lining:
+    material: lining
+    space: lid
+    prims:
+      - box: {c: [0, -0.055, 0.28], half: [0.47, 0.006, 0.26]}
+  lid_hasp:
+    material: lock
+    space: lid
+    line: true
+    prims:
+      - box: {c: [0, 0.02, 0.585], half: [0.05, 0.06, 0.014]}
+  seam_strip:         # the purple strip caught in the lid (closed only)
+    material: velvet
+    space: body
+    line: true
+    when: "lid < 0.05"
+    prims:
+      - box: {c: [-0.17, 0.38, 0.295], half: [0.08, 0.035, 0.012], rot: [0, 0, 0.08]}
+      - box: {c: [-0.2, 0.3, 0.292], half: [0.05, 0.06, 0.01], rot: [0, 0, 0.25]}
+  seam_trim:
+    material: trim
+    space: body
+    when: "lid < 0.05"
+    prims:
+      - box: {c: [-0.22, 0.245, 0.3], half: [0.045, 0.012, 0.006], rot: [0, 0, 0.25]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}
+  open:
+    loop: false
+    keys:
+      - {ms: 160, set: {squash: 0.95, lid: 0.06}}                       # creak: the old lid sticks
+      - {ms: 90, set: {squash: 1.03, lid: 0.5}}                         # jerks free
+      - {ms: 110, event: open, set: {squash: 1, lid: 1.4}, tween: 1, ease: out}   # swings up
+      - {ms: 120, set: {lid: 2.05}}                                     # past vertical
+      - {ms: 160, set: {lid: 1.95, glint: 0}}                           # settles; first glint
+  opened:
+    frames: 4
+    ms: 160
+    channels: {lid: 1.95, glint: "(f < 3)*(f/2.0 + 1) - 1"}

@@ -1,0 +1,156 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: wolf_den
+kind: prop
+view: topdown
+size: 96                 # ~68 x 50 px on screen at camera.scale 0.055, 2+ px margins
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.9772, 0]}   # 14 px above the pivot -> pivot (48, 62)
+shadow: {rx: 30, ry: 9, alpha: 110}
+
+# Mata dos Lobos: a wolf den dug under a rocky slope; wolves spawn from it.
+brief:
+  summary: wolf den under a hump of heaped slate boulders (a small rocky hillside), a low black cave mouth
+    at the front framed by a heavy lintel stone, gnawed bones, a deer skull and a ribcage strewn in the
+    trampled dirt before the entrance, dark moss and dead grass on the boulders, claw-scratched mud
+  must_keep: [black cave mouth facing the camera, boulder hump silhouette with pointed tops, bones and a
+    skull at the entrance, moss on the rocks, trampled dirt apron]
+  simplify: [boulders as rotated rounded boxes, bones as 2-3 prim pieces, the cave interior is flat black]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false; camera.center [0, 0.9772, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot) is the ground point at the centre of the den's base,
+    the cave mouth lies on its front edge. Footprint about 4x3 tiles; the boulder hump blocks 4x2 tiles
+    (the back two rows), the dirt apron with the bones in front (1 row) is walkable; the spawn point is the
+    cave mouth (~0.9 units in front of the pivot). Same slate and moss ramps as mossy_rock.
+
+ramps:
+  wd_stone: ["#1c0f1a", "#2c2a34", "#45424e", "#625e6a", "#87828c"]
+  wd_moss:  ["#1c0f1a", "#22301e", "#344a27", "#4b6232", "#66783e"]
+  wd_dirt:  ["#1c0f1a", "#2e241c", "#3e3024", "#4e3e2e"]
+  wd_void:  ["#1c0f1a", "#0e080c", "#1a1014"]
+  wd_bone:  ["#1c0f1a", "#7a6a58", "#b4a488", "#ddd0b0"]
+  wd_grass: ["#1c0f1a", "#4a4228", "#6a5e38", "#86784a"]
+
+materials:
+  stone: {ramp: wd_stone, bands: [1, 4]}
+  moss:  {ramp: wd_moss, bands: [1, 4], line: false}
+  dirt:  {ramp: wd_dirt, bands: [1, 3], outline: false, line: false}
+  void:  {ramp: wd_void, emissive: true, band: 1, outline: false, line: false}
+  bone:  {ramp: wd_bone, bands: [1, 3]}
+  grass: {ramp: wd_grass, bands: [1, 3], line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+# Layout: hump x -1.7..1.7, z -1.2..0.5, top y ~1.6; cave mouth at x 0, front face z ~0.62, y 0..0.75.
+parts:
+  apron:             # trampled dirt in front of the den
+    material: dirt
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.70], r: [1.30, 0.03, 0.55]}
+  hump:              # heaped boulders
+    material: stone
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.55, -0.45], half: [0.95, 0.70, 0.70], rot: [-0.35, 0.22, 0.04], round: 0.22}     # core mass, leaning back (slope)
+      - box: {c: [-1.05, 0.45, -0.20], half: [0.55, 0.50, 0.50], rot: [-0.2, -0.65, 0.22], round: 0.16}
+      - box: {c: [1.10, 0.40, -0.25], half: [0.55, 0.45, 0.50], rot: [-0.25, 0.75, -0.2], round: 0.16}
+      - box: {c: [-0.35, 1.30, -0.55], half: [0.40, 0.42, 0.40], rot: [0.12, 0.60, 0.10], round: 0.06}
+      - box: {c: [0.45, 1.25, -0.60], half: [0.38, 0.40, 0.36], rot: [-0.08, -0.50, -0.12], round: 0.06}
+      - cone: {a: [-0.30, 1.50, -0.60], b: [-0.42, 2.00, -0.72], r: [0.26, 0.03]}                       # pointed tops
+      - cone: {a: [0.48, 1.45, -0.62], b: [0.66, 1.82, -0.74], r: [0.22, 0.03]}
+      - cone: {a: [-1.15, 0.75, -0.25], b: [-1.40, 1.12, -0.30], r: [0.20, 0.03]}
+      - cone: {a: [1.20, 0.70, -0.25], b: [1.42, 1.00, -0.32], r: [0.18, 0.03]}
+  lintel:            # heavy stones framing the mouth
+    material: stone
+    space: body
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.98, 0.30], half: [0.62, 0.17, 0.26], rot: [0.1, 0, 0.06], round: 0.05}
+      - box: {c: [-0.62, 0.42, 0.34], half: [0.20, 0.42, 0.24], rot: [0, 0.2, 0.08], round: 0.05}
+      - box: {c: [0.64, 0.38, 0.34], half: [0.20, 0.38, 0.24], rot: [0, -0.2, -0.1], round: 0.05}
+      - box: {c: [-1.00, 0.24, 0.42], half: [0.30, 0.24, 0.24], rot: [0.1, 0.7, 0.15], round: 0.10}   # front boulders
+      - box: {c: [1.02, 0.20, 0.40], half: [0.28, 0.20, 0.22], rot: [0.1, -0.6, -0.1], round: 0.10}
+  mouth:             # black cave mouth
+    material: void
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.36, 0.52], r: [0.46, 0.54, 0.12]}
+    cut:
+      - box: {c: [0, -0.5, 0.5], half: [1, 0.5, 1]}
+  rubble:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.30, 0.08, 0.50], half: [0.16, 0.09, 0.13], rot: [0, 0.5, 0.1], round: 0.04}
+      - box: {c: [1.25, 0.08, 0.55], half: [0.14, 0.08, 0.12], rot: [0, -0.4, 0], round: 0.04}
+      - box: {c: [0.98, 0.07, 0.95], half: [0.10, 0.07, 0.09], rot: [0, 0.3, 0], round: 0.04}
+  moss:
+    material: moss
+    space: body
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.10, 1.38, -0.05], r: [0.75, 0.10, 0.40]}
+      - ellipsoid: {c: [-1.10, 0.92, 0.0], r: [0.40, 0.08, 0.30]}
+      - ellipsoid: {c: [1.10, 0.85, -0.05], r: [0.36, 0.08, 0.30]}
+      - ellipsoid: {c: [0.05, 1.15, 0.36], r: [0.48, 0.07, 0.14]}
+      - ellipsoid: {c: [-1.35, 0.08, 0.18], r: [0.30, 0.08, 0.12]}
+  grass:             # dead grass tufts on the boulders
+    material: grass
+    space: body
+    prims:
+      - cone: {a: [-0.82, 1.00, 0.08], b: [-0.90, 1.22, 0.10], r: [0.04, 0.012]}
+      - cone: {a: [-0.82, 1.00, 0.08], b: [-0.74, 1.20, 0.10], r: [0.04, 0.012]}
+      - cone: {a: [0.80, 0.96, 0.05], b: [0.74, 1.16, 0.08], r: [0.04, 0.012]}
+      - cone: {a: [0.80, 0.96, 0.05], b: [0.90, 1.14, 0.08], r: [0.04, 0.012]}
+      - cone: {a: [0.20, 1.62, -0.30], b: [0.14, 1.84, -0.28], r: [0.04, 0.012]}
+      - cone: {a: [0.20, 1.62, -0.30], b: [0.28, 1.82, -0.28], r: [0.04, 0.012]}
+  bones:
+    material: bone
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.62, 0.05, 0.90], b: [-0.20, 0.05, 1.05], r: 0.035}             # femur
+      - sphere: {c: [-0.64, 0.06, 0.90], r: 0.055}
+      - sphere: {c: [-0.18, 0.06, 1.05], r: 0.055}
+      - cylinder: {a: [0.34, 0.04, 1.08], b: [0.62, 0.04, 0.86], r: 0.03}
+      - sphere: {c: [0.33, 0.05, 1.09], r: 0.045}
+      - sphere: {c: [0.63, 0.05, 0.85], r: 0.045}
+      - ellipsoid: {c: [0.30, 0.10, 0.76], r: [0.13, 0.10, 0.15]}                      # deer skull
+      - cone: {a: [0.30, 0.10, 0.90], b: [0.32, 0.06, 0.98], r: [0.07, 0.04]}           # snout
+      - cone: {a: [0.24, 0.16, 0.72], b: [0.08, 0.36, 0.66], r: [0.025, 0.015]}          # antler stubs
+      - cone: {a: [0.36, 0.16, 0.72], b: [0.52, 0.36, 0.66], r: [0.025, 0.015]}
+  ribs:              # ribcage on its side, left of the mouth
+    material: bone
+    space: body
+    prims:
+      - cylinder: {a: [-1.10, 0.06, 0.78], b: [-0.70, 0.06, 0.70], r: 0.03}             # spine
+      - torus: {c: [-1.00, 0.10, 0.80], R: 0.12, r: 0.022, rot: [0, 1.4, 1.57]}
+      - torus: {c: [-0.88, 0.11, 0.78], R: 0.13, r: 0.022, rot: [0, 1.4, 1.57]}
+      - torus: {c: [-0.76, 0.10, 0.76], R: 0.11, r: 0.022, rot: [0, 1.4, 1.57]}
+    cut:
+      - box: {c: [-0.9, -0.5, 0.8], half: [1, 0.5, 1]}
+  eye_dark:          # skull eye sockets
+    material: void
+    space: body
+    prims:
+      - sphere: {c: [0.25, 0.14, 0.88], r: 0.03}
+      - sphere: {c: [0.35, 0.14, 0.88], r: 0.03}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_throne
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+# centre y 1.3959 = 20 px above the pivot -> pivot (32, 52), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3959, 0]}
+shadow: {rx: 20, ry: 6, alpha: 80}
+
+# Prologue: the king's throne at the head of the white marble hall.
+brief:
+  summary: golden throne (a gold cat-head crest on the back cushion) with a tall arched back and royal-blue cushions (seat and back panel), gold
+    armrests ending in round knobs, ball finials on the back corners and a small gold star on top; it stands
+    on a one-step white marble dais topped with red velvet and a gold trim band
+  must_keep: [gold frame, royal-blue cushions, tall arched back, white marble step, gold star on top]
+  simplify: [no carving, cushion tufting as 1-2 dark dots at most, legs hidden by the seat skirt]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, camera.center [0, 1.3959, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,52) is the ground point at the CENTRE of the
+    dais footprint. The dais spans x -1.1..1.1, z -0.9..0.9 (about 2.5 x 2 tiles wide/deep -> footprint
+    3x2 tiles, blocking). The throne sits a little back on the dais (seat centre z -0.15) so the step reads
+    in front of it. Marble colours are the castle_floor / castle_column ramps. Static: 1-frame idle.
+
+ramps:
+  th_marble: ["#1c0f1a", "#a69caf", "#d3ccd9", "#ece8ef", "#ffffff"]
+  th_gold:   ["#1c0f1a", "#804a19", "#c7861f", "#e1a227", "#eddc83", "#f8f4dd"]
+  th_red:    ["#1c0f1a", "#6e1d24", "#a82a28", "#c13a2b", "#e0664a"]
+  th_blue:   ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea", "#a8cff3"]
+
+materials:
+  marble: {ramp: th_marble, bands: [2, 3]}
+  gold:   {ramp: th_gold, bands: [2, 5]}
+  blue:   {ramp: th_blue, bands: [1, 3]}
+  red:    {ramp: th_red, bands: [3, 3]}
+  emblem: {ramp: th_gold, bands: [3, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  throne: {parent: body, pos: [0, 0.22, -0.15]}
+
+parts:
+  dais:
+    material: marble
+    space: body
+    prims:
+      - box: {c: [0, 0.11, 0], half: [1.1, 0.11, 0.9], round: 0.02}
+  dais_cloth:         # red velvet runner on top of the step (contrast with the white floor)
+    material: red
+    space: body
+    prims:
+      - box: {c: [0, 0.225, 0], half: [1.0, 0.012, 0.8]}
+  dais_trim:          # gold band around the top edge of the step
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.17, 0.905], half: [1.105, 0.035, 0.02]}
+      - box: {c: [1.105, 0.17, 0], half: [0.02, 0.035, 0.905]}
+      - box: {c: [-1.105, 0.17, 0], half: [0.02, 0.035, 0.905]}
+  seat:               # seat box with its gold skirt
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.22, 0.05], half: [0.52, 0.22, 0.42], round: 0.04}
+  back:               # tall arched back
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.95, -0.42], half: [0.55, 0.75, 0.1], round: 0.03}
+      - cylinder: {a: [0, 1.7, -0.52], b: [0, 1.7, -0.32], r: 0.55}
+  finials:
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - sphere: {c: [0.58, 1.72, -0.42], r: 0.11}
+      - sphere: {c: [-0.58, 1.72, -0.42], r: 0.11}
+      - sphere: {c: [0, 2.3, -0.42], r: 0.09}
+  star:               # small gold star above the arch (Minhau's star)
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - cone: {a: [0, 2.5, -0.42], b: [0.000, 2.770, -0.42], r: [0.1, 0.03]}
+      - cone: {a: [0, 2.5, -0.42], b: [-0.257, 2.583, -0.42], r: [0.1, 0.03]}
+      - cone: {a: [0, 2.5, -0.42], b: [-0.159, 2.282, -0.42], r: [0.1, 0.03]}
+      - cone: {a: [0, 2.5, -0.42], b: [0.159, 2.282, -0.42], r: [0.1, 0.03]}
+      - cone: {a: [0, 2.5, -0.42], b: [0.257, 2.583, -0.42], r: [0.1, 0.03]}
+  crest:              # Minhau's gold cat head embroidered on the back cushion
+    material: emblem
+    space: throne
+    prims:
+      - cylinder: {a: [0, 1.3, -0.27], b: [0, 1.3, -0.24], r: 0.17}
+      - tri: {a: [0.05, 1.42, -0.255], b: [0.17, 1.38, -0.255], c: [0.16, 1.58, -0.255], th: 0.012}
+      - tri: {a: [-0.05, 1.42, -0.255], b: [-0.17, 1.38, -0.255], c: [-0.16, 1.58, -0.255], th: 0.012}
+  crest_eyes:
+    material: blue
+    space: throne
+    prims:
+      - box: {c: [0.065, 1.33, -0.235], half: [0.03, 0.035, 0.01]}
+      - box: {c: [-0.065, 1.33, -0.235], half: [0.03, 0.035, 0.01]}
+  arms:
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0.6, 0.55, 0.0], half: [0.09, 0.08, 0.42], round: 0.04}
+      - box: {c: [-0.6, 0.55, 0.0], half: [0.09, 0.08, 0.42], round: 0.04}
+      - box: {c: [0.6, 0.27, 0.36], half: [0.08, 0.27, 0.07], round: 0.03}
+      - box: {c: [-0.6, 0.27, 0.36], half: [0.08, 0.27, 0.07], round: 0.03}
+      - sphere: {c: [0.6, 0.62, 0.42], r: 0.12}
+      - sphere: {c: [-0.6, 0.62, 0.42], r: 0.12}
+  cushion_seat:
+    material: blue
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.5, 0.08], half: [0.44, 0.08, 0.36], round: 0.07}
+  cushion_back:
+    material: blue
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 1.15, -0.3], half: [0.38, 0.55, 0.04], round: 0.05}
+      - cylinder: {a: [0, 1.66, -0.34], b: [0, 1.66, -0.26], r: 0.38}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

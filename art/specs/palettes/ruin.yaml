@@ -1,0 +1,49 @@
+# Act I, Minhau the ruined village: one shared set of ramps for the desolate exterior props (burned
+# houses, palisade, rubble, crops, graves...). Used as `palette: ["farm", "hut", "ruin"]` so the hut's wood,
+# daub and straw stay available. Index 0 = shared near-black outline (#1c0f1a).
+# Mood: dark, worn and cold over grey mud and dead olive grass; warm colours only where there is fire.
+ramps:
+  # weathered dark wood (palisade stakes, shed posts, cart): brown going grey
+  rwood:   ["#1c0f1a", "#2a1c1e", "#433028", "#5e4634", "#7a5e44", "#94785a"]
+  # sun-bleached grey planks (patches, newer boards gone grey)
+  rplank:  ["#1c0f1a", "#352e32", "#504646", "#6c625c", "#8a7e72", "#a69a88"]
+  # charred timber (burned beams, black and a dull brown sheen)
+  rchar:   ["#1c0f1a", "#1a1216", "#2a1e20", "#3c2a28", "#523a30"]
+  # ash and cinders
+  rash:    ["#1c0f1a", "#3e3a40", "#5a5558", "#7a7472", "#9c9590", "#bdb6ae"]
+  # cold grey fieldstone
+  rstone:  ["#1c0f1a", "#34313a", "#4e4a52", "#6c666a", "#8c8584", "#aaa29c"]
+  # mud and churned earth
+  rmud:    ["#1c0f1a", "#2a201e", "#3e302a", "#544236", "#6c5644", "#857058"]
+  # burned soil (scorch decals, dark earth)
+  rburnt:  ["#1c0f1a", "#161012", "#221a1a", "#302522", "#3e302a"]
+  # old grey-gold straw and dead thatch
+  rstraw:  ["#1c0f1a", "#463620", "#64502e", "#83693e", "#a08754", "#b9a270"]
+  # dead crops: dry stalks
+  rcrop:   ["#1c0f1a", "#3e321e", "#5a4a2a", "#7a6438", "#97804c", "#b09a64"]
+  # green vine lashing (the only living green)
+  rvine:   ["#1c0f1a", "#1e3018", "#304a20", "#46652a", "#62803a"]
+  # dirty canvas / tarp
+  rcanvas: ["#1c0f1a", "#4a4236", "#665a48", "#83765c", "#a09074", "#b8aa8c"]
+  # raw hides and pelts
+  rhide:   ["#1c0f1a", "#46281c", "#663c28", "#875436", "#a46e48", "#bc8a60"]
+  # dark fur (game, wolf pelt)
+  rfur:    ["#1c0f1a", "#2a2224", "#403432", "#5a4a44", "#766256"]
+  # antler, bone and horn
+  rbone:   ["#1c0f1a", "#6a5a48", "#93836a", "#b8a988", "#d6caa8"]
+  # rope and twine
+  rrope:   ["#1c0f1a", "#5a4a34", "#7e6a4a", "#a08a64"]
+  # cold black iron (anvil, tools, hoops)
+  riron:   ["#1c0f1a", "#22222c", "#363844", "#50545e", "#737884", "#9aa0aa"]
+  # dull wool of refugees (bedroll, bundles): muted rust, muted blue
+  rwool:   ["#1c0f1a", "#3e1e20", "#5c2c28", "#7a4034", "#955a44"]
+  rblue:   ["#1c0f1a", "#1e2434", "#2e3a4e", "#435468", "#5e7084"]
+  # crow feathers (blue-black) and beak
+  rcrow:   ["#1c0f1a", "#14121c", "#201e2c", "#302e40", "#46445a"]
+  rbeak:   ["#1c0f1a", "#3a3430", "#5e5448", "#82765e"]
+  # smoke (grey, no outline)
+  rsmoke:  ["#1c0f1a", "#4a4650", "#66626c", "#86828a", "#a6a2a8"]
+  # fire, embers, hot iron (emissive)
+  rfire:   ["#1c0f1a", "#5a0a12", "#a8160f", "#e0361a", "#fe6607", "#ffa12e", "#ffd65c", "#fff4c8"]
+  # warm window light (emissive, inhabited houses)
+  rlamp:   ["#1c0f1a", "#7a3a14", "#c06a22", "#f0a040", "#ffd27a"]

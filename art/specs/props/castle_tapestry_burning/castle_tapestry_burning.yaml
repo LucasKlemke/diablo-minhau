@@ -1,0 +1,257 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_tapestry_burning
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s): hangs on the hall's north wall
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.6751, 0]}   # 24 px above the pivot -> pivot (32, 56), as castle_tapestry
+shadow: null             # hangs on the wall
+
+# Prologue (the burning castle): the royal tapestry of Minhau on fire, then its charred remains.
+brief:
+  summary: castle_tapestry burning from the bottom up - the V tip and tassel are gone, the royal-blue cloth ends
+    in a jagged charred edge just under the gold cat crest, and a row of flames licks up from that edge with
+    embers rising; `burnt` keeps only the gold rod with a ragged strip of scorched cloth and a few glowing
+    sparks along its edge
+  must_keep: [same rod, trim, colours and crest as castle_tapestry, jagged black burn edge, flames along it]
+  simplify: [burn line as a jagged cut with a charred band under it, flames as swaying tapered chains]
+  exceptions: |
+    Same frame, camera and pivot as castle_tapestry (size 64, camera.center [0, 1.6751, 0], pivot (32, 56)),
+    so it swaps in place. Flames are emissive (farm `fire` ramp), no outline. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: identical to castle_tapestry (pivot = ground point under it on the wall line; footprint 0).
+    Channel `burn` moves the burn line (1.55 + 1.3*burn) from 1.55 (burning, `idle`: 8-frame loop at 90 ms) to 2.85 (`burnt`:
+    1 frame, flames off). Swap castle_tapestry -> castle_tapestry_burning (idle) when the fire reaches it, then
+    play `burnt` when it burns out. Every flame motion is periodic in p (seamless loop).
+
+ramps:
+  tp_blue:  ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea", "#a8cff3"]
+  tp_gold:  ["#1c0f1a", "#804a19", "#e1a227", "#eddc83", "#f8f4dd"]
+  bc_char:  ["#1c0f1a", "#1f1416", "#3a2420", "#5a3626"]
+
+materials:
+  cloth: {ramp: tp_blue, bands: [1, 3]}
+  fold:  {ramp: tp_blue, bands: [1, 1], outline: false, line: false}
+  fold_hi: {ramp: tp_blue, bands: [3, 3], outline: false, line: false}
+  ring:  {ramp: tp_gold, bands: [3, 3], outline: false, line: false}
+  gold:  {ramp: tp_gold, bands: [2, 4]}
+  arms:  {ramp: tp_gold, bands: [2, 3], outline: false, line: false}
+  eye:   {ramp: tp_blue, bands: [1, 1], outline: false, line: false}
+  outer: {ramp: fire, emissive: true, band: 0, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+  mid:   {ramp: fire, emissive: true, band: 1, outline: false}
+  inner: {ramp: fire, emissive: true, band: 2, outline: false}
+  core:  {ramp: fire, emissive: true, band: 3, outline: false}
+  ember: {ramp: fire, emissive: true, band: 2, outline: false}
+  glowing: {ramp: fire, emissive: true, band: 1, outline: false}
+  char:  {ramp: bc_char, bands: [1, 2]}
+
+channels:
+  root: [0, 0, 0]
+  burn: 0            # 0 burning, 1 burnt
+
+bones:
+  body: {parent: root}
+  edge: {parent: body, pos: "[0, (1.55 + 1.3*burn) - 0.06, 0.12]"}     # flames rise from the burn line
+
+parts:
+  cloth:
+    material: cloth
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.1, 0.06], half: [0.6, 1.2, 0.03]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.06], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.06], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.06], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.06], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.06], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.06], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  charred:         # black-brown burnt band under the cloth's edge
+    material: char
+    space: body
+    prims:
+      - box: {c: [0, 2.1, 0.05], half: [0.6, 1.2, 0.025]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.2", 0.05], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.2 + 0.02", 0.05], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.2 + 0.05", 0.05], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.2 + 0.0", 0.05], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.2 + 0.06", 0.05], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.2 + 0.03", 0.05], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  glow_edge:       # sparks still glowing along the burnt edge
+    material: glowing
+    space: body
+    prims:
+      - sphere: {c: ["-0.40", "(1.55 + 1.3*burn) - 0.12", 0.08], r: 0.035}
+      - sphere: {c: ["0.05", "(1.55 + 1.3*burn) - 0.10", 0.08], r: 0.03}
+      - sphere: {c: ["0.36", "(1.55 + 1.3*burn) - 0.09", 0.08], r: 0.035}
+  folds:
+    material: fold
+    space: body
+    prims:
+      - box: {c: [-0.3, 2.35, 0.095], half: [0.02, 0.85, 0.01]}
+      - box: {c: [0.3, 2.35, 0.095], half: [0.02, 0.85, 0.01]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.095], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.095], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.095], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.095], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.095], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.095], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  pleats_hi:
+    material: fold_hi
+    space: body
+    prims:
+      - box: {c: [-0.255, 2.35, 0.095], half: [0.025, 0.85, 0.01]}
+      - box: {c: [0.345, 2.35, 0.095], half: [0.025, 0.85, 0.01]}
+      - box: {c: [-0.48, 2.4, 0.095], half: [0.02, 0.8, 0.01]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.095], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.095], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.095], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.095], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.095], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.095], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  crest_ring:
+    material: ring
+    space: body
+    prims:
+      - torus: {c: [0, 2.06, 0.1], R: 0.46, r: 0.022, rot: [1.5708, 0, 0]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.1], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.1], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.1], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.1], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.1], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.1], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  trim:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.57, 2.37, 0.08], half: [0.04, 0.93, 0.02]}
+      - box: {c: [-0.57, 2.37, 0.08], half: [0.04, 0.93, 0.02]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.02", 0.08], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.02 + 0.02", 0.08], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.02 + 0.05", 0.08], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.02 + 0.0", 0.08], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.02 + 0.06", 0.08], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.02 + 0.03", 0.08], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  rod:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.78, 3.32, 0.08], b: [0.78, 3.32, 0.08], r: 0.05}
+      - sphere: {c: [0.82, 3.32, 0.08], r: 0.08}
+      - sphere: {c: [-0.82, 3.32, 0.08], r: 0.08}
+  cat_head:
+    material: arms
+    space: body
+    prims:
+      - cylinder: {a: [0, 1.98, 0.09], b: [0, 1.98, 0.11], r: 0.27}
+      - tri: {a: [0.06, 2.18, 0.1], b: [0.27, 2.12, 0.1], c: [0.24, 2.42, 0.1], th: 0.01}
+      - tri: {a: [-0.06, 2.18, 0.1], b: [-0.27, 2.12, 0.1], c: [-0.24, 2.42, 0.1], th: 0.01}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.1], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.1], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.1], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.1], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.1], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.1], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  cat_eyes:
+    material: eye
+    space: body
+    prims:
+      - box: {c: [0.11, 2.02, 0.115], half: [0.045, 0.05, 0.01]}
+      - box: {c: [-0.11, 2.02, 0.115], half: [0.045, 0.05, 0.01]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.115], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.115], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.115], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.115], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.115], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.115], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  star:
+    material: arms
+    space: body
+    prims:
+      - cone: {a: [0, 2.78, 0.1], b: [0.0, 3.03, 0.1], r: [0.09, 0.025]}
+      - cone: {a: [0, 2.78, 0.1], b: [0.238, 2.857, 0.1], r: [0.09, 0.025]}
+      - cone: {a: [0, 2.78, 0.1], b: [0.147, 2.578, 0.1], r: [0.09, 0.025]}
+      - cone: {a: [0, 2.78, 0.1], b: [-0.147, 2.578, 0.1], r: [0.09, 0.025]}
+      - cone: {a: [0, 2.78, 0.1], b: [-0.238, 2.857, 0.1], r: [0.09, 0.025]}
+    cut:
+      - box: {c: [0, "(1.55 + 1.3*burn) - 1.0 - 0.0", 0.1], half: [1.3, 1.0, 0.3]}
+      - box: {c: [-0.48, "(1.55 + 1.3*burn) - 0.0 + 0.02", 0.1], half: [0.09, 0.09, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.27, "(1.55 + 1.3*burn) - 0.0 + 0.05", 0.1], half: [0.13, 0.13, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [-0.02, "(1.55 + 1.3*burn) - 0.0 + 0.0", 0.1], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.55 + 1.3*burn) - 0.0 + 0.06", 0.1], half: [0.14, 0.14, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.45, "(1.55 + 1.3*burn) - 0.0 + 0.03", 0.1], half: [0.1, 0.1, 0.3], rot: [0, 0, 0.785]}
+  flame_outer:
+    when: "burn < 0.5"
+    material: outer
+    space: edge
+    prims:
+      - chain: {pts: [[-0.500, 0.066, 0.000], ["-0.500 + 0.039*sin(p + 1.49)", "0.000 + 0.5*0.600*(1 + 0.16*sin(1*p + 1.45))", 0.000], ["-0.500 + 0.077*sin(p + 2.39)", "0.000 + 0.600*(1 + 0.16*sin(1*p + 1.45))", 0.000]], r: [0.110, 0.077, 0.012]}
+      - chain: {pts: [[-0.300, 0.084, 0.020], ["-0.300 + 0.049*sin(p + 4.76)", "0.000 + 0.5*0.950*(1 + 0.16*sin(2*p + 2.42))", 0.020], ["-0.300 + 0.097*sin(p + 5.66)", "0.000 + 0.950*(1 + 0.16*sin(2*p + 2.42))", 0.020]], r: [0.140, 0.098, 0.012]}
+      - chain: {pts: [[-0.080, 0.078, 0.000], ["-0.080 + 0.042*sin(p + 2.57)", "0.000 + 0.5*0.700*(1 + 0.16*sin(1*p + 2.41))", 0.000], ["-0.080 + 0.084*sin(p + 3.47)", "0.000 + 0.700*(1 + 0.16*sin(1*p + 2.41))", 0.000]], r: [0.130, 0.091, 0.012]}
+      - chain: {pts: [[0.120, 0.090, 0.020], ["0.120 + 0.051*sin(p + 4.01)", "0.000 + 0.5*1.050*(1 + 0.16*sin(1*p + 4.15))", 0.020], ["0.120 + 0.102*sin(p + 4.91)", "0.000 + 1.050*(1 + 0.16*sin(1*p + 4.15))", 0.020]], r: [0.150, 0.105, 0.012]}
+      - chain: {pts: [[0.330, 0.078, 0.000], ["0.330 + 0.045*sin(p + 1.86)", "0.000 + 0.5*0.800*(1 + 0.16*sin(1*p + 0.97))", 0.000], ["0.330 + 0.089*sin(p + 2.76)", "0.000 + 0.800*(1 + 0.16*sin(1*p + 0.97))", 0.000]], r: [0.130, 0.091, 0.012]}
+      - chain: {pts: [[0.520, 0.066, 0.020], ["0.520 + 0.037*sin(p + 5.25)", "0.000 + 0.5*0.550*(1 + 0.16*sin(2*p + 2.00))", 0.020], ["0.520 + 0.074*sin(p + 6.15)", "0.000 + 0.550*(1 + 0.16*sin(2*p + 2.00))", 0.020]], r: [0.110, 0.077, 0.012]}
+  flame_mid:
+    when: "burn < 0.5"
+    material: mid
+    space: edge
+    prims:
+      - chain: {pts: [[-0.500, 0.282, 0.300], ["-0.500 + 0.030*sin(p + 1.49)", "0.234 + 0.5*0.468*(1 + 0.16*sin(1*p + 1.45))", 0.300], ["-0.500 + 0.060*sin(p + 2.39)", "0.234 + 0.468*(1 + 0.16*sin(1*p + 1.45))", 0.300]], r: [0.079, 0.055, 0.012]}
+      - chain: {pts: [[-0.300, 0.294, 0.320], ["-0.300 + 0.038*sin(p + 4.76)", "0.234 + 0.5*0.741*(1 + 0.16*sin(2*p + 2.42))", 0.320], ["-0.300 + 0.076*sin(p + 5.66)", "0.234 + 0.741*(1 + 0.16*sin(2*p + 2.42))", 0.320]], r: [0.101, 0.071, 0.012]}
+      - chain: {pts: [[-0.080, 0.290, 0.300], ["-0.080 + 0.033*sin(p + 2.57)", "0.234 + 0.5*0.546*(1 + 0.16*sin(1*p + 2.41))", 0.300], ["-0.080 + 0.065*sin(p + 3.47)", "0.234 + 0.546*(1 + 0.16*sin(1*p + 2.41))", 0.300]], r: [0.094, 0.066, 0.012]}
+      - chain: {pts: [[0.120, 0.299, 0.320], ["0.120 + 0.040*sin(p + 4.01)", "0.234 + 0.5*0.819*(1 + 0.16*sin(1*p + 4.15))", 0.320], ["0.120 + 0.080*sin(p + 4.91)", "0.234 + 0.819*(1 + 0.16*sin(1*p + 4.15))", 0.320]], r: [0.108, 0.076, 0.012]}
+      - chain: {pts: [[0.330, 0.290, 0.300], ["0.330 + 0.035*sin(p + 1.86)", "0.234 + 0.5*0.624*(1 + 0.16*sin(1*p + 0.97))", 0.300], ["0.330 + 0.070*sin(p + 2.76)", "0.234 + 0.624*(1 + 0.16*sin(1*p + 0.97))", 0.300]], r: [0.094, 0.066, 0.012]}
+      - chain: {pts: [[0.520, 0.282, 0.320], ["0.520 + 0.029*sin(p + 5.25)", "0.234 + 0.5*0.429*(1 + 0.16*sin(2*p + 2.00))", 0.320], ["0.520 + 0.058*sin(p + 6.15)", "0.234 + 0.429*(1 + 0.16*sin(2*p + 2.00))", 0.320]], r: [0.079, 0.055, 0.012]}
+  flame_inner:
+    when: "burn < 0.5"
+    material: inner
+    space: edge
+    prims:
+      - chain: {pts: [[-0.500, 0.498, 0.600], ["-0.500 + 0.021*sin(p + 1.49)", "0.468 + 0.5*0.330*(1 + 0.16*sin(1*p + 1.45))", 0.600], ["-0.500 + 0.043*sin(p + 2.39)", "0.468 + 0.330*(1 + 0.16*sin(1*p + 1.45))", 0.600]], r: [0.051, 0.035, 0.012]}
+      - chain: {pts: [[-0.300, 0.507, 0.620], ["-0.300 + 0.027*sin(p + 4.76)", "0.468 + 0.5*0.522*(1 + 0.16*sin(2*p + 2.42))", 0.620], ["-0.300 + 0.054*sin(p + 5.66)", "0.468 + 0.522*(1 + 0.16*sin(2*p + 2.42))", 0.620]], r: [0.064, 0.045, 0.012]}
+      - chain: {pts: [[-0.080, 0.504, 0.600], ["-0.080 + 0.023*sin(p + 2.57)", "0.468 + 0.5*0.385*(1 + 0.16*sin(1*p + 2.41))", 0.600], ["-0.080 + 0.046*sin(p + 3.47)", "0.468 + 0.385*(1 + 0.16*sin(1*p + 2.41))", 0.600]], r: [0.060, 0.042, 0.012]}
+      - chain: {pts: [[0.120, 0.509, 0.620], ["0.120 + 0.028*sin(p + 4.01)", "0.468 + 0.5*0.578*(1 + 0.16*sin(1*p + 4.15))", 0.620], ["0.120 + 0.056*sin(p + 4.91)", "0.468 + 0.578*(1 + 0.16*sin(1*p + 4.15))", 0.620]], r: [0.069, 0.048, 0.012]}
+      - chain: {pts: [[0.330, 0.504, 0.600], ["0.330 + 0.025*sin(p + 1.86)", "0.468 + 0.5*0.440*(1 + 0.16*sin(1*p + 0.97))", 0.600], ["0.330 + 0.049*sin(p + 2.76)", "0.468 + 0.440*(1 + 0.16*sin(1*p + 0.97))", 0.600]], r: [0.060, 0.042, 0.012]}
+      - chain: {pts: [[0.520, 0.498, 0.620], ["0.520 + 0.020*sin(p + 5.25)", "0.468 + 0.5*0.303*(1 + 0.16*sin(2*p + 2.00))", 0.620], ["0.520 + 0.041*sin(p + 6.15)", "0.468 + 0.303*(1 + 0.16*sin(2*p + 2.00))", 0.620]], r: [0.051, 0.035, 0.012]}
+  flame_core:
+    when: "burn < 0.5"
+    material: core
+    space: edge
+    prims:
+      - chain: {pts: [[-0.300, 0.726, 0.920], ["-0.300 + 0.016*sin(p + 4.76)", "0.702 + 0.5*0.304*(1 + 0.16*sin(2*p + 2.42))", 0.920], ["-0.300 + 0.031*sin(p + 5.66)", "0.702 + 0.304*(1 + 0.16*sin(2*p + 2.42))", 0.920]], r: [0.039, 0.027, 0.012]}
+      - chain: {pts: [[-0.080, 0.724, 0.900], ["-0.080 + 0.013*sin(p + 2.57)", "0.702 + 0.5*0.224*(1 + 0.16*sin(1*p + 2.41))", 0.900], ["-0.080 + 0.027*sin(p + 3.47)", "0.702 + 0.224*(1 + 0.16*sin(1*p + 2.41))", 0.900]], r: [0.036, 0.025, 0.012]}
+      - chain: {pts: [[0.120, 0.727, 0.920], ["0.120 + 0.016*sin(p + 4.01)", "0.702 + 0.5*0.336*(1 + 0.16*sin(1*p + 4.15))", 0.920], ["0.120 + 0.033*sin(p + 4.91)", "0.702 + 0.336*(1 + 0.16*sin(1*p + 4.15))", 0.920]], r: [0.042, 0.029, 0.012]}
+      - chain: {pts: [[0.330, 0.724, 0.900], ["0.330 + 0.014*sin(p + 1.86)", "0.702 + 0.5*0.256*(1 + 0.16*sin(1*p + 0.97))", 0.900], ["0.330 + 0.029*sin(p + 2.76)", "0.702 + 0.256*(1 + 0.16*sin(1*p + 0.97))", 0.900]], r: [0.036, 0.025, 0.012]}
+  embers:
+    when: "burn < 0.5"
+    material: ember
+    space: edge
+    prims:
+      - sphere: {c: ["-0.037 + 0.12*sin(p + 0.0)", "0.500 + 1.200*(p/tau + 0.37 - floor(p/tau + 0.37))", -0.058], r: 0.045}
+      - sphere: {c: ["0.367 + 0.12*sin(p + 1.7)", "0.500 + 1.200*(p/tau + 0.01 - floor(p/tau + 0.01))", 0.051], r: 0.045}
+      - sphere: {c: ["0.398 + 0.12*sin(p + 3.4)", "0.500 + 1.200*(p/tau + 0.08 - floor(p/tau + 0.08))", 0.066], r: 0.045}
+      - sphere: {c: ["0.117 + 0.12*sin(p + 5.1)", "0.500 + 1.200*(p/tau + 0.04 - floor(p/tau + 0.04))", 0.014], r: 0.045}
+      - sphere: {c: ["0.203 + 0.12*sin(p + 6.8)", "0.500 + 1.200*(p/tau + 0.45 - floor(p/tau + 0.45))", 0.118], r: 0.045}
+
+animations:
+  idle:
+    frames: 8
+    ms: 90
+    channels: {burn: 0}
+  burnt:
+    frames: 1
+    ms: 1000
+    channels: {burn: 1}

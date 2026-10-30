@@ -1,0 +1,246 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: jimmy_pup
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.30, 0]}
+shadow: {rx: 8, ry: 3, alpha: 120}
+
+# Jimmy, a tiny spoiled Yorkshire terrier (Act I). Quadruped skeleton from wolf.yaml, authored in "wolf
+# units" and shrunk by the `rig` bone (scale 0.85): about knee-high to a human (~13 px tall, smaller than the wolf). Parts live in
+# spaces under `rig` so radii shrink too. IK targets are in the scaled body space, but IK `lengths` are
+# world units (authored x 0.85); the head bone does not inherit the rig scale (its 1.9 is final). Four
+# 2-bone IK legs (_L mirrored), paw targets in body space (`plant` 1 cancels `bob`). The cast (pee) raises
+# the right hind paw (near side in e) out to the side; `pee` > 0 shows a short yellow stream under it.
+brief:
+  summary: tiny pampered Yorkshire terrier, big chibi head with a golden-tan face and beard, small erect ears,
+    a long steel-blue coat over the back, tan legs, a top-knot tied in a red bow, a perky stubby tail
+  must_keep: [steel-blue back vs golden-tan head and legs, red bow on the top-knot, small erect ears,
+    big round head with beard, very small (smaller than the wolf)]
+  simplify: [no fur strands; the coat is one blended skirt; bow is two lobes and a knot; eyes are dark dots]
+  decisions: head scale 1.9 (chibi, big so the face reads at ~13 px); the steel-blue
+    coat hangs to mid-leg like a show coat so the tan legs still show; the bow is oversized (3-4 px) to
+    survive the size; dark (non-emissive) eyes, it is a pet; the cast (pee) lifts the right hind leg (the near side in e/se) and is
+    mirrored by the engine in w/sw/nw (it then lifts the other leg, which reads the same).
+  exceptions: rig scale 0.85 over the wolf-unit skeleton; same camera scale/pitch/light; spec-local ramps.
+
+ramps:
+  yk_tan:   ["#1c0f1a", "#7a4618", "#c4842e", "#e8b45a", "#f7dc9a"]
+  yk_steel: ["#1c0f1a", "#2a3150", "#465577", "#6c82a6", "#9fb4d0"]
+  yk_dark:  ["#1c0f1a", "#24181c", "#3a2a2a", "#55403a"]
+  yk_eye:   ["#1c0f1a", "#1c0f1a", "#2b1a1e", "#ffffff"]
+  pee:      ["#6e5a10", "#d8c02a", "#f6e86a", "#fffbd0"]
+
+materials:
+  tan:   {ramp: yk_tan, bands: [1, 3]}
+  coat:  {ramp: yk_steel, bands: [1, 4]}
+  dark:  {ramp: yk_dark, bands: [1, 2]}
+  bow:   {ramp: cloth_red, bands: [1, 3]}
+  mouth: {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:   {ramp: yk_eye, bands: [1, 2], outline: false, line: false}
+  pee:   {ramp: pee, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes
+  rear: 0           # + raises the front of the body
+  roll: 0           # roll around the body length
+  twist: 0          # body yaw wiggle
+  squash: 1
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  head_tilt: 0      # cute head tilt (roll)
+  jaw: 0            # + opens the mouth
+  ear_L: 0          # + perks / - flattens back
+  tail: 0           # tail wag (yaw)
+  tail_up: 0        # + raises the tail more
+  pee: 0            # 0..1 stream length (cast)
+  ffoot_L: [0.10, -0.34, 0.17]    # front paw target (body space)
+  hfoot_L: [0.10, -0.34, -0.15]   # hind paw target (body space)
+
+bones:
+  rig:      {parent: root, scale: 0.85}
+  body:     {parent: rig, pos: "[0, 0.38 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: [0, 0.16, 0.27], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.05 + head_pitch, head_yaw, head_tilt]", scale: 1.9}
+  jaw:      {parent: head, pos: [0, -0.02, 0.06], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.07, 0.075, -0.02], rot: "[ear_L - 0.15, 0, -0.62]"}
+  tail:     {parent: body, pos: [0, 0.10, -0.24], rot: "[-1.0 - tail_up, tail, 0]"}
+  shoulder_L: {parent: body, pos: [0.09, -0.04, 0.16]}
+  hip_L:      {parent: body, pos: [0.09, -0.04, -0.15]}
+  peespace:   {parent: rig, pos: [-0.08, 0.26, -0.13]}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.03 - bob*plant, 0]", lengths: [0.125, 0.125],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.03 - bob*plant, 0]", lengths: [0.125, 0.125],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # compact body, tan chest
+    material: tan
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.10], r: [0.15, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.02, -0.12], r: [0.14, 0.13, 0.14]}
+      - cone: {a: [0, 0.06, 0.14], b: [0, 0.20, 0.24], r: [0.12, 0.10]}       # neck
+  coat:            # long steel-blue show coat over the back, hanging down the flanks
+    material: coat
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.09, -0.03], r: [0.17, 0.11, 0.24]}
+      - ellipsoid: {c: [0.07, -0.04, -0.03], r: [0.11, 0.15, 0.22]}
+      - ellipsoid: {c: [-0.07, -0.04, -0.03], r: [0.11, 0.15, 0.22]}
+      - ellipsoid: {c: [0, 0.10, 0.14], r: [0.12, 0.08, 0.08]}               # withers
+  head:            # big round tan head with long cheek fur and beard
+    material: tan
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.0], r: [0.10, 0.09, 0.09]}
+      - ellipsoid: {c: [0, 0.0, 0.09], r: [0.05, 0.042, 0.065]}               # short muzzle
+      - ellipsoid: {c: [0.065, -0.02, 0.02], r: [0.05, 0.06, 0.05]}           # cheek fur
+      - ellipsoid: {c: [-0.065, -0.02, 0.02], r: [0.05, 0.06, 0.05]}
+      - ellipsoid: {c: [0, -0.05, 0.06], r: [0.05, 0.05, 0.04]}               # beard
+      - ellipsoid: {c: [0, 0.12, -0.01], r: [0.045, 0.05, 0.045]}             # top-knot
+  mouth:
+    when: "jaw > 0.12"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.09], r: [0.03, 0.02, 0.03]}
+  nose:
+    material: dark
+    space: head
+    prims:
+      - sphere: {c: [0, 0.015, 0.13], r: 0.03}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.045, 0.05, 0.07], r: 0.033}
+  ear_L:
+    material: tan
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.11, -0.01], r: [0.04, 0.01]}
+  ear_in_L:
+    material: dark
+    space: ear_L
+    prims:
+      - cone: {a: [0, 0.015, 0.024], b: [0, 0.08, 0.008], r: [0.02, 0.006]}
+  bow:             # red bow on the top-knot
+    material: bow
+    space: head
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0.04, 0.175, 0.0], r: [0.042, 0.04, 0.045], rot: [0, 0, -0.5]}
+      - ellipsoid: {c: [-0.04, 0.175, 0.0], r: [0.042, 0.04, 0.045], rot: [0, 0, 0.5]}
+      - sphere: {c: [0, 0.17, 0.01], r: 0.028}
+  tail:            # stubby perky tail
+    material: coat
+    space: tail
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.07, 0.0], [0, 0.12, 0.02]], r: [0.04, 0.045, 0.03]}
+  fleg_L:
+    material: tan
+    space: rig
+    blend: 0.03
+    prims:
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.05, 0.04]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.038, 0.034]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.005, 0.02]}, r: [0.04, 0.03, 0.045]}
+  hleg_L:
+    material: tan
+    space: rig
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.06, 0.042]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.038, 0.034]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.005, 0.02]}, r: [0.04, 0.03, 0.045]}
+  pee:
+    when: "pee > 0.05"
+    material: pee
+    space: peespace
+    prims:
+      - chain: {pts: [[0, 0, 0], "[-0.10*pee, -0.06, 0]", "[-0.16*pee, -0.25, 0]"], r: [0.03, 0.03, 0.03]}
+      - ellipsoid: {c: "[-0.17*pee, -0.255, 0]", r: "[0.07*pee + 0.01, 0.012, 0.06*pee + 0.01]"}
+
+sockets:
+  bark: {bone: head, offset: [0, 0.0, 0.14]}
+  head: {bone: head, offset: [0, 0.18, 0]}
+  pee: {bone: peespace, offset: [-0.17, -0.25, 0]}
+
+timing: {attack: {hit: 210ms, total: 500ms}, cast: {release: 300ms}}
+
+animations:
+  idle:            # breathing, tail wags, a cute head tilt
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.012*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      tail: "0.5*sin(2*p)"
+      head_tilt: "0.18*(f == 2) + 0.12*(f == 3)"
+      ear_L: "0.25*(f == 1)"
+  walk:            # quick prancing trot, diagonal pairs
+    frames: 6
+    ms: 80
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.02*cos(2*p)"
+      twist: "0.05*sin(p)"
+      head_pitch: "-0.04 + 0.05*cos(2*p)"
+      tail: "0.5*sin(2*p)"
+      tail_up: 0.15
+      ffoot_L: "[0.10, -0.34 + 0.08*pos(-sin(p)), 0.17 + 0.10*cos(p)]"
+      hfoot_R: "[0.10, -0.34 + 0.08*pos(-sin(p)), -0.15 + 0.10*cos(p)]"
+      ffoot_R: "[0.10, -0.34 + 0.08*pos(sin(p)), 0.17 - 0.10*cos(p)]"
+      hfoot_L: "[0.10, -0.34 + 0.08*pos(sin(p)), -0.15 - 0.10*cos(p)]"
+  attack:          # growl (crouch, ears back) then a yappy bark lunge (hit 210 ms, total 500 ms)
+    loop: false
+    keys:
+      - ms: 90
+        event: windup
+        set: {root: [0, 0, -0.03], bob: -0.03, rear: -0.08, squash: 0.92, head_pitch: 0.25, ear_L: -0.5, jaw: 0.15, tail_up: -0.2,
+              ffoot_L: [0.10, -0.34, 0.21], ffoot_R: [0.10, -0.34, 0.21]}
+      - ms: 120
+        set: {root: [0, 0, -0.05], bob: -0.05, rear: -0.10, squash: 0.88, head_pitch: 0.3, ear_L: -0.6, jaw: 0.25, tail_up: -0.3,
+              ffoot_L: [0.10, -0.34, 0.23], ffoot_R: [0.10, -0.34, 0.23]}
+      - ms: 70
+        event: hit
+        set: {root: [0, 0, 0.08], bob: 0.03, rear: 0.25, squash: 1.1, head_pitch: -0.35, ear_L: 0.3, jaw: 0.6, tail_up: 0.3,
+              ffoot_L: [0.10, -0.29, 0.25], ffoot_R: [0.10, -0.29, 0.25]}
+      - ms: 90
+        set: {root: [0, 0, 0.06], bob: 0.0, rear: 0.12, squash: 1.0, head_pitch: -0.2, ear_L: 0.2, jaw: 0.45, tail: 0.4}
+      - ms: 130
+        set: {root: [0, 0, 0.02], head_pitch: -0.05, jaw: 0.1, tail: -0.4}
+  cast:            # cocks the right hind leg (near side in e) out to the side and pees (release 300 ms), then shakes it off
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {roll: 0.10, twist: -0.1, head_yaw: -0.25, tail_up: 0.2, hfoot_R: [0.16, -0.24, -0.16]}
+      - ms: 180
+        set: {roll: 0.18, twist: -0.12, head_yaw: -0.4, head_pitch: -0.1, tail_up: 0.3,
+              hfoot_R: [0.30, -0.05, -0.24], hfoot_L: [0.08, -0.34, -0.15], ffoot_L: [0.08, -0.34, 0.17]}
+      - ms: 200
+        event: release
+        set: {roll: 0.18, twist: -0.12, head_yaw: -0.4, head_pitch: -0.15, tail_up: 0.3, pee: 0.7,
+              hfoot_R: [0.30, -0.05, -0.24], hfoot_L: [0.08, -0.34, -0.15], ffoot_L: [0.08, -0.34, 0.17]}
+      - ms: 220
+        set: {roll: 0.18, twist: -0.12, head_yaw: -0.4, head_pitch: -0.15, tail_up: 0.3, pee: 1.0, head_tilt: -0.15,
+              hfoot_R: [0.30, -0.04, -0.24], hfoot_L: [0.08, -0.34, -0.15], ffoot_L: [0.08, -0.34, 0.17]}
+      - ms: 120
+        set: {roll: 0.08, twist: -0.05, head_yaw: -0.2, tail: 0.5, tail_up: 0.2, hfoot_R: [0.14, -0.26, -0.20]}
+      - ms: 120
+        set: {tail: -0.5, tail_up: 0.2, ear_L: 0.2}

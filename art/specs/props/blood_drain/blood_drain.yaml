@@ -1,0 +1,200 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: blood_drain
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot = frame centre (24, 24) = the ground point
+shadow: null             # a decal on the floor
+
+# Act I dungeon "Porao do Acougueiro": drains in the slaughter floor.
+brief:
+  summary: rusty black iron drain grates set flush in the floor, blood running to them along grooves and
+    pooling around them, darkest right at the grate; three looks - a square grate fed by four channels in a
+    cross, a round grate in a wide pool with splatter, a tilted square grate with a long channel and a trail
+  must_keep: [iron grate with dark slots (reads as a hole with bars), red channels converging, pools]
+  simplify: [flat decal with 1-2 px of relief for the grate, channels as thin flat boxes, pools as blobs]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. Blood has no
+    outline (an outlined decal looks like a hole, as in blood_splat); the grate keeps the dark outline.
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 24) = frame centre = the ground point at the grate's centre. Draw it on the
+    floor layer (below actors and props), NOT blocking. Up to ~1.9 units wide (~2x2 tiles). VARIANTS:
+    `variants` has 3 frames (frame i = variant i); `idle` = variant 0. Layout generated once from a seeded
+    script.
+
+ramps:
+  bd_blood: ["#1c0f1a", "#86101a"]
+  bd_dark:  ["#1c0f1a", "#4e0710"]
+  bd_iron:  ["#1c0f1a", "#2a2630", "#3e3640", "#5a4a4a", "#7a5e50"]
+  bd_void:  ["#1c0f1a", "#0e080c"]
+
+materials:
+  blood:  {ramp: bd_blood, bands: [1, 1], outline: false, line: false}
+  dark:   {ramp: bd_dark, bands: [1, 1], outline: false, line: false}
+  iron:   {ramp: bd_iron, bands: [2, 3]}
+  void:   {ramp: bd_void, bands: [1, 1], outline: false, line: false}
+  bar:    {ramp: bd_iron, bands: [3, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  channel0:
+    material: blood
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - box: {c: [0.345, 0.004, 0.011], half: [0.106, 0.004, 0.045], rot: [0, -0.100, 0]}
+      - box: {c: [0.575, 0.004, 0.032], half: [0.125, 0.004, 0.045], rot: [0, -0.090, 0]}
+      - box: {c: [0.825, 0.004, 0.047], half: [0.125, 0.004, 0.045], rot: [0, -0.025, 0]}
+      - box: {c: [-0.352, 0.004, -0.028], half: [0.116, 0.004, 0.045], rot: [0, 2.893, 0]}
+      - box: {c: [-0.613, 0.004, -0.025], half: [0.152, 0.004, 0.045], rot: [0, -2.930, 0]}
+      - box: {c: [-0.856, 0.004, -0.016], half: [0.097, 0.004, 0.045], rot: [0, 2.896, 0]}
+      - box: {c: [-0.007, 0.004, 0.312], half: [0.072, 0.004, 0.045], rot: [0, -1.669, 0]}
+      - box: {c: [0.028, 0.004, 0.480], half: [0.105, 0.004, 0.045], rot: [0, -1.163, 0]}
+      - box: {c: [0.050, 0.004, 0.664], half: [0.089, 0.004, 0.045], rot: [0, -1.796, 0]}
+      - box: {c: [0.010, 0.004, -0.326], half: [0.087, 0.004, 0.045], rot: [0, 1.453, 0]}
+      - box: {c: [0.004, 0.004, -0.514], half: [0.103, 0.004, 0.045], rot: [0, 1.733, 0]}
+      - box: {c: [-0.026, 0.004, -0.682], half: [0.069, 0.004, 0.045], rot: [0, 1.770, 0]}
+  pool0:
+    material: blood
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.000, 0.003, 0.000], r: [0.380, 0.003, 0.285], rot: [0, 1.90, 0]}
+      - ellipsoid: {c: [0.780, 0.003, 0.100], r: [0.150, 0.003, 0.112], rot: [0, 2.60, 0]}
+      - ellipsoid: {c: [-0.700, 0.003, -0.050], r: [0.120, 0.003, 0.090], rot: [0, 1.57, 0]}
+      - ellipsoid: {c: [0.050, 0.003, 0.620], r: [0.100, 0.003, 0.075], rot: [0, 2.22, 0]}
+  dark0:
+    material: dark
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.050, 0.003, 0.050], r: [0.300, 0.003, 0.225], rot: [0, 2.01, 0]}
+  plate0:
+    material: iron
+    space: body
+    line: true
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - box: {c: [0, 0.0075, 0], half: [0.24, 0.0075, 0.24], rot: [0, 0.0, 0]}
+  void0:
+    material: void
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - box: {c: [0, 0.02, 0], half: [0.190, 0.012, 0.190], rot: [0, 0.0, 0]}
+  bars0:
+    material: bar
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - box: {c: [-0.1, 0.035, 0.0], half: [0.022, 0.01, 0.19]}
+      - box: {c: [0.0, 0.035, 0.0], half: [0.022, 0.01, 0.19]}
+      - box: {c: [0.1, 0.035, 0.0], half: [0.022, 0.01, 0.19]}
+  pool1:
+    material: blood
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.000, 0.003, 0.020], r: [0.550, 0.003, 0.413], rot: [0, 0.19, 0]}
+      - ellipsoid: {c: [0.400, 0.003, 0.300], r: [0.250, 0.003, 0.188], rot: [0, 2.27, 0]}
+      - ellipsoid: {c: [-0.450, 0.003, 0.250], r: [0.200, 0.003, 0.150], rot: [0, 1.77, 0]}
+      - ellipsoid: {c: [0.600, 0.003, -0.200], r: [0.080, 0.003, 0.060], rot: [0, 0.90, 0]}
+      - ellipsoid: {c: [-0.700, 0.003, -0.150], r: [0.070, 0.003, 0.053], rot: [0, 0.09, 0]}
+      - ellipsoid: {c: [0.200, 0.003, -0.550], r: [0.060, 0.003, 0.045], rot: [0, 2.60, 0]}
+  dark1:
+    material: dark
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.000, 0.003, 0.000], r: [0.360, 0.003, 0.270], rot: [0, 1.42, 0]}
+      - ellipsoid: {c: [0.300, 0.003, 0.250], r: [0.120, 0.003, 0.090], rot: [0, 2.16, 0]}
+  plate1:
+    material: iron
+    space: body
+    line: true
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [0, 0, 0], b: [0, 0.015, 0], r: 0.26}
+  void1:
+    material: void
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [0, 0.01, 0], b: [0, 0.035, 0], r: 0.2}
+  bars1:
+    material: bar
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - box: {c: [-0.1, 0.035, 0], half: [0.022, 0.01, 0.18]}
+      - box: {c: [0.0, 0.035, 0], half: [0.022, 0.01, 0.2]}
+      - box: {c: [0.1, 0.035, 0], half: [0.022, 0.01, 0.18]}
+  channel2:
+    material: blood
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [-0.225, 0.004, -0.196], half: [0.088, 0.004, 0.05], rot: [0, 2.595, 0]}
+      - box: {c: [-0.391, 0.004, -0.313], half: [0.117, 0.004, 0.05], rot: [0, 2.474, 0]}
+      - box: {c: [-0.583, 0.004, -0.439], half: [0.113, 0.004, 0.05], rot: [0, 2.647, 0]}
+      - box: {c: [-0.791, 0.004, -0.547], half: [0.121, 0.004, 0.05], rot: [0, 2.685, 0]}
+      - box: {c: [0.259, 0.004, 0.193], half: [0.131, 0.004, 0.07], rot: [0, -0.587, 0]}
+      - box: {c: [0.414, 0.004, 0.282], half: [0.049, 0.004, 0.07], rot: [0, -0.349, 0]}
+      - box: {c: [0.553, 0.004, 0.394], half: [0.133, 0.004, 0.07], rot: [0, -0.795, 0]}
+      - box: {c: [0.748, 0.004, 0.520], half: [0.106, 0.004, 0.07], rot: [0, -0.291, 0]}
+  pool2:
+    material: blood
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.000, 0.003, 0.000], r: [0.300, 0.003, 0.225], rot: [0, 1.31, 0]}
+      - ellipsoid: {c: [0.850, 0.003, 0.550], r: [0.140, 0.003, 0.105], rot: [0, 1.88, 0]}
+      - ellipsoid: {c: [-0.850, 0.003, -0.600], r: [0.100, 0.003, 0.075], rot: [0, 0.90, 0]}
+  dark2:
+    material: dark
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.000, 0.003, 0.000], r: [0.240, 0.003, 0.180], rot: [0, 1.52, 0]}
+  plate2:
+    material: iron
+    space: body
+    line: true
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [0, 0.0075, 0], half: [0.22, 0.0075, 0.22], rot: [0, 0.6, 0]}
+  void2:
+    material: void
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [0, 0.02, 0], half: [0.17, 0.01, 0.17], rot: [0, 0.6, 0]}
+  bars2:
+    material: bar
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [-0.083, 0.035, 0.057], half: [0.022, 0.01, 0.16], rot: [0, 0.6, 0]}
+      - box: {c: [0.0, 0.035, 0.0], half: [0.022, 0.01, 0.16], rot: [0, 0.6, 0]}
+      - box: {c: [0.083, 0.035, -0.057], half: [0.022, 0.01, 0.16], rot: [0, 0.6, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {v: "f"}

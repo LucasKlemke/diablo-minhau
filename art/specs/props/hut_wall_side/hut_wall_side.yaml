@@ -1,0 +1,154 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_wall_side
+kind: prop
+view: topdown
+size: 32                 # a 16 px wide strip, 32 px (2 tiles) tall, tileable in y
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}
+shadow: null
+
+# Aldo's hut (prologue): the side (west/east) walls, seen from above.
+brief:
+  summary: top of a side wall seen from above - the straw thatch eave on the outside (straw strokes running
+    across the strip, ragged fringe hanging inward) over the smoke-darkened wall-plate log on the inner edge,
+    with a squared post head every 32 px
+  must_keep: [same straw and beam ramps as hut_wall_back, ragged fringe toward the room, seamless in y]
+  simplify: [no rafters, the wall face itself is not visible from this angle]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. The strip touches
+    the top and bottom frame edges on purpose (tileable; QA margin warnings expected). The wall top is
+    modelled at floor height so the pivot is the frame centre (the projection is the same; only the
+    shadowing of a real 2.6 m wall would differ and there is none). camera.scale/pitch/light untouched.
+    Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    TILING CONTRACT: pivot = frame centre (16,16). The strip covers frame columns 8..23 (1 tile) and all 32
+    rows; draw it every 32 px in y. idle = LEFT wall (room to the right of the strip, fringe pointing
+    right); `right` = the same wall turned 180 degrees about the vertical axis for the RIGHT wall (fringe
+    pointing left, lit from the same world light; do not flip the left one in the engine). Put the strip on
+    the room's outer tile column, from the back wall's top down to the bottom row.
+    The strip is 1 px = 0.0893 units in z, so the z period is 2.858; every per-z detail stays inside it.
+
+materials:
+  thatch:    {ramp: hstraw, bands: [3, 3], line: false}
+  fringe:    {ramp: hstraw, bands: [3, 4], line: false}
+  thatch_dk: {ramp: hstraw, bands: [1, 1], outline: false, line: false}
+  thatch_md: {ramp: hstraw, bands: [2, 2], outline: false, line: false}
+  thatch_hi: {ramp: hstraw, bands: [5, 5], outline: false, line: false}
+  log:       {ramp: hwood, bands: [2, 4]}
+  post:      {ramp: hbeam, bands: [2, 4]}
+  postcut:   {ramp: hcut, bands: [1, 2], outline: false}
+
+channels:
+  root: [0, 0, 0]
+  flip: 0             # 0 = left wall, 1 = right wall (turned 180 degrees)
+
+bones:
+  body: {parent: root, rot: "[0, pi*flip, 0]"}
+
+parts:
+  plate:              # wall-plate log along the inner edge (runs past the frame: seamless)
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.3, 0.12, -2.0], b: [0.3, 0.12, 2.0], r: 0.12}
+  post_head:          # squared post head under the plate, once per 32 px
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.3, 0.14, 0.0], half: [0.13, 0.12, 0.2], round: 0.02}
+  post_cut:
+    material: postcut
+    space: body
+    prims:
+      - box: {c: [0.3, 0.265, 0.0], half: [0.09, 0.005, 0.14]}
+  thatch:             # the eave: a thick slab of straw
+    material: thatch
+    space: body
+    prims:
+      - box: {c: [-0.2, 0.15, 0], half: [0.25, 0.15, 2.0]}
+  fringe:             # ragged straw ends hanging toward the room
+    material: fringe
+    space: body
+    blend: 0.04
+    prims:
+      - cone: {a: [-0.02, 0.27, -1.429], b: [0.186, 0.28, -1.392], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 1.429], b: [0.186, 0.28, 1.466], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -1.169], b: [0.141, 0.28, -1.195], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 1.689], b: [0.141, 0.28, 1.663], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -0.909], b: [0.202, 0.28, -0.911], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -0.650], b: [0.193, 0.28, -0.663], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -0.390], b: [0.133, 0.28, -0.407], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -0.130], b: [0.160, 0.28, -0.116], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 0.130], b: [0.143, 0.28, 0.112], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 0.390], b: [0.141, 0.28, 0.425], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 0.650], b: [0.149, 0.28, 0.683], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 0.909], b: [0.121, 0.28, 0.939], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, 1.169], b: [0.154, 0.28, 1.158], r: [0.1, 0.035]}
+      - cone: {a: [-0.02, 0.27, -1.689], b: [0.154, 0.28, -1.700], r: [0.1, 0.035]}
+  strokes_dk:
+    material: thatch_dk
+    space: body
+    prims:
+      - box: {c: [-0.040, 0.31, -1.382], half: [0.095, 0.01, 0.03], rot: [0, -0.09, 0]}
+      - box: {c: [-0.040, 0.31, 1.476], half: [0.095, 0.01, 0.03], rot: [0, -0.09, 0]}
+      - box: {c: [-0.330, 0.31, -0.975], half: [0.093, 0.01, 0.03], rot: [0, -0.09, 0]}
+      - box: {c: [-0.378, 0.31, -1.043], half: [0.104, 0.01, 0.03], rot: [0, 0.09, 0]}
+      - box: {c: [-0.034, 0.31, -0.796], half: [0.088, 0.01, 0.03], rot: [0, -0.08, 0]}
+      - box: {c: [-0.320, 0.31, -0.633], half: [0.060, 0.01, 0.03], rot: [0, -0.04, 0]}
+      - box: {c: [-0.270, 0.31, -0.465], half: [0.099, 0.01, 0.03], rot: [0, -0.00, 0]}
+      - box: {c: [-0.359, 0.31, -0.500], half: [0.118, 0.01, 0.03], rot: [0, 0.11, 0]}
+      - box: {c: [-0.377, 0.31, -0.262], half: [0.053, 0.01, 0.03], rot: [0, 0.03, 0]}
+      - box: {c: [-0.191, 0.31, -0.101], half: [0.104, 0.01, 0.03], rot: [0, 0.02, 0]}
+      - box: {c: [-0.257, 0.31, 0.092], half: [0.093, 0.01, 0.03], rot: [0, -0.04, 0]}
+      - box: {c: [-0.360, 0.31, 0.569], half: [0.114, 0.01, 0.03], rot: [0, 0.07, 0]}
+      - box: {c: [-0.101, 0.31, 1.287], half: [0.099, 0.01, 0.03], rot: [0, 0.06, 0]}
+      - box: {c: [-0.101, 0.31, -1.571], half: [0.099, 0.01, 0.03], rot: [0, 0.06, 0]}
+  strokes_md:
+    material: thatch_md
+    space: body
+    prims:
+      - box: {c: [-0.233, 0.31, -1.171], half: [0.063, 0.01, 0.03], rot: [0, -0.08, 0]}
+      - box: {c: [-0.233, 0.31, 1.687], half: [0.063, 0.01, 0.03], rot: [0, -0.08, 0]}
+      - box: {c: [-0.309, 0.31, -0.857], half: [0.118, 0.01, 0.03], rot: [0, -0.05, 0]}
+      - box: {c: [-0.169, 0.31, -0.679], half: [0.092, 0.01, 0.03], rot: [0, -0.10, 0]}
+      - box: {c: [-0.234, 0.31, -0.299], half: [0.088, 0.01, 0.03], rot: [0, -0.03, 0]}
+      - box: {c: [-0.337, 0.31, -0.143], half: [0.067, 0.01, 0.03], rot: [0, -0.04, 0]}
+      - box: {c: [-0.248, 0.31, 0.009], half: [0.071, 0.01, 0.03], rot: [0, 0.11, 0]}
+      - box: {c: [-0.184, 0.31, 0.259], half: [0.072, 0.01, 0.03], rot: [0, -0.05, 0]}
+      - box: {c: [-0.154, 0.31, 0.195], half: [0.100, 0.01, 0.03], rot: [0, 0.12, 0]}
+      - box: {c: [-0.113, 0.31, 0.399], half: [0.074, 0.01, 0.03], rot: [0, -0.01, 0]}
+      - box: {c: [-0.096, 0.31, 0.720], half: [0.057, 0.01, 0.03], rot: [0, -0.03, 0]}
+      - box: {c: [-0.217, 0.31, 0.922], half: [0.084, 0.01, 0.03], rot: [0, -0.01, 0]}
+      - box: {c: [-0.235, 0.31, 0.946], half: [0.060, 0.01, 0.03], rot: [0, 0.08, 0]}
+      - box: {c: [-0.315, 0.31, 1.121], half: [0.116, 0.01, 0.03], rot: [0, -0.08, 0]}
+      - box: {c: [-0.315, 0.31, -1.737], half: [0.116, 0.01, 0.03], rot: [0, -0.08, 0]}
+      - box: {c: [-0.126, 0.31, 1.348], half: [0.070, 0.01, 0.03], rot: [0, -0.06, 0]}
+      - box: {c: [-0.126, 0.31, -1.510], half: [0.070, 0.01, 0.03], rot: [0, -0.06, 0]}
+  strokes_hi:
+    material: thatch_hi
+    space: body
+    prims:
+      - box: {c: [-0.156, 0.31, -1.382], half: [0.102, 0.01, 0.03], rot: [0, -0.11, 0]}
+      - box: {c: [-0.156, 0.31, 1.476], half: [0.102, 0.01, 0.03], rot: [0, -0.11, 0]}
+      - box: {c: [-0.291, 0.31, -1.177], half: [0.088, 0.01, 0.03], rot: [0, -0.06, 0]}
+      - box: {c: [-0.291, 0.31, 1.681], half: [0.088, 0.01, 0.03], rot: [0, -0.06, 0]}
+      - box: {c: [-0.363, 0.31, 0.360], half: [0.119, 0.01, 0.03], rot: [0, 0.10, 0]}
+      - box: {c: [-0.305, 0.31, 0.599], half: [0.119, 0.01, 0.03], rot: [0, 0.11, 0]}
+      - box: {c: [-0.229, 0.31, 0.812], half: [0.060, 0.01, 0.03], rot: [0, 0.08, 0]}
+      - box: {c: [-0.195, 0.31, 1.150], half: [0.088, 0.01, 0.03], rot: [0, -0.03, 0]}
+      - box: {c: [-0.195, 0.31, -1.708], half: [0.088, 0.01, 0.03], rot: [0, -0.03, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {flip: 0}
+  right:
+    frames: 1
+    ms: 1000
+    channels: {flip: 1}

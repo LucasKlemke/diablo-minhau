@@ -1,0 +1,196 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: looted_carriage
+kind: prop
+view: topdown
+size: 96                 # ~70 x 50 px on screen, 2+ px margins
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}   # 12 px above the pivot -> pivot (48, 60)
+shadow: {rx: 32, ry: 9, alpha: 120}
+
+# Estrada dos Bandidos: a royal carriage ambushed by bandits, overturned on the old royal road.
+brief:
+  summary: royal carriage ambushed on the old royal road and tipped over onto its side; dark crimson lacquer
+    gone dull, gold trim and a crest medallion flaking off to the bare wood, a door torn open on the
+    upturned side (black inside), two wheels sticking up in the air (one with snapped spokes), the
+    undercarriage and axle turned to the viewer, a wheel torn off lying beside it, and the loot spilled -
+    an emptied strongbox with its lid thrown open, a torn velvet cushion and a few scattered papers
+  must_keep: [overturned box silhouette with the roof to the back, upturned wheels, flaking gold trim and
+    crest, torn-open door (dark), emptied strongbox, loose wheel]
+  simplify: [trim as raised gold strips with gaps (the flaking), papers as 2-3 pale flecks]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false; camera.center [0, 0.8376, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 48,60) is the ground point at the centre of the
+    carriage. The carriage is modelled upright in bone `coach` and tipped -90 degrees about x, so its left
+    side faces the sky and the roof points away from the viewer. Footprint 4x2 tiles (x -1.6..1.6,
+    z -0.9..0.9) blocking; the debris in front (strongbox, cushion, loose wheel) is walkable decoration.
+    Gold is dull ochre with bright flecks (worn), not shiny: the carriage is a ruin, not a treasure.
+
+ramps:
+  lc_lacquer: ["#1c0f1a", "#2e1218", "#481c22", "#62282a", "#7a3632"]
+  lc_wood:    ["#1c0f1a", "#3a2618", "#5a3c24", "#7a5634", "#966c42"]
+  lc_gold:    ["#1c0f1a", "#5a3c14", "#8a6420", "#b48a30", "#d8b450"]
+  lc_iron:    ["#1c0f1a", "#22202a", "#363442", "#504e5e", "#6e6c7c"]
+  lc_void:    ["#1c0f1a", "#100a0e", "#1a1016"]
+  lc_velvet:  ["#1c0f1a", "#2a1440", "#3e2058", "#54306e"]
+  lc_paper:   ["#1c0f1a", "#9a9078", "#c8bea0"]
+
+materials:
+  lacquer: {ramp: lc_lacquer, bands: [1, 4]}
+  wood:    {ramp: lc_wood, bands: [1, 4]}
+  gold:    {ramp: lc_gold, bands: [1, 4]}
+  iron:    {ramp: lc_iron, bands: [1, 4]}
+  void:    {ramp: lc_void, bands: [1, 2], outline: false, line: false}
+  velvet:  {ramp: lc_velvet, bands: [1, 3]}
+  paper:   {ramp: lc_paper, bands: [1, 2], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body:  {parent: root}
+  coach: {parent: body, pos: [0, 0.62, 0.10], rot: [-1.5708, 0, 3.08]}   # upright model tipped onto its side
+
+# coach frame (upright model): x along the carriage (+-1.0), y up (floor 0.45, roof 1.55), z its side (+-0.55).
+parts:
+  cabin:
+    material: lacquer
+    space: coach
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0, 1.00, 0], half: [0.95, 0.55, 0.55], round: 0.04}
+      - box: {c: [0, 1.60, 0], half: [1.02, 0.07, 0.60], round: 0.03}         # roof rim
+      - ellipsoid: {c: [0, 1.62, 0], r: [0.92, 0.16, 0.52]}                   # curved roof
+    cut:
+      - box: {c: [0.0, 1.00, -0.60], half: [0.30, 0.38, 0.25]}              # torn-open door (upturned side)
+  doorway:
+    material: void
+    space: coach
+    prims:
+      - box: {c: [0.0, 1.00, -0.37], half: [0.30, 0.38, 0.02]}
+  door:              # the door ripped off and hanging
+    material: lacquer
+    space: coach
+    line: true
+    prims:
+      - box: {c: [0.55, 1.10, -0.90], half: [0.26, 0.38, 0.03], rot: [0.4, -0.9, 0.0], round: 0.02}
+  trim:              # gold strips with gaps where the gilding flaked off
+    material: gold
+    space: coach
+    line: true
+    prims:
+      - box: {c: [-0.55, 0.50, -0.57], half: [0.36, 0.04, 0.02]}
+      - box: {c: [0.65, 0.50, -0.57], half: [0.26, 0.04, 0.02]}
+      - box: {c: [-0.40, 1.50, -0.57], half: [0.50, 0.04, 0.02]}
+      - box: {c: [0.72, 1.50, -0.57], half: [0.18, 0.04, 0.02]}
+      - box: {c: [-0.93, 1.00, -0.57], half: [0.03, 0.42, 0.02]}
+      - box: {c: [0.93, 0.80, -0.57], half: [0.03, 0.26, 0.02]}
+      - box: {c: [-0.55, 0.50, 0.57], half: [0.36, 0.04, 0.02]}
+      - box: {c: [0.40, 0.50, 0.57], half: [0.50, 0.04, 0.02]}
+      - box: {c: [-0.98, 1.60, 0], half: [0.04, 0.08, 0.50]}
+  crest:             # crest medallion on the upturned side, left of the door
+    material: gold
+    space: coach
+    line: true
+    prims:
+      - cylinder: {a: [-0.56, 1.00, -0.56], b: [-0.56, 1.00, -0.60], r: 0.20}
+  crest_crown:       # the royal crown on the crest, half flaked off
+    material: lacquer
+    space: coach
+    prims:
+      - box: {c: [-0.56, 0.96, -0.61], half: [0.09, 0.04, 0.01]}
+      - cone: {a: [-0.63, 0.99, -0.61], b: [-0.65, 1.09, -0.61], r: [0.025, 0.012]}
+      - cone: {a: [-0.56, 0.99, -0.61], b: [-0.56, 1.11, -0.61], r: [0.025, 0.012]}
+      - cone: {a: [-0.49, 0.99, -0.61], b: [-0.47, 1.09, -0.61], r: [0.025, 0.012]}
+  crest_bare:        # flaked patch showing the wood
+    material: wood
+    space: coach
+    prims:
+      - cylinder: {a: [-0.44, 0.90, -0.60], b: [-0.44, 0.90, -0.62], r: 0.06}
+      - box: {c: [-0.20, 0.50, -0.58], half: [0.07, 0.035, 0.02]}
+  chassis:           # undercarriage, now facing the viewer
+    material: wood
+    space: coach
+    line: true
+    prims:
+      - box: {c: [0, 0.38, -0.26], half: [1.05, 0.06, 0.06], round: 0.02}      # two chassis beams
+      - box: {c: [0, 0.38, 0.26], half: [1.05, 0.06, 0.06], round: 0.02}
+      - cylinder: {a: [-0.70, 0.36, -0.68], b: [-0.70, 0.36, 0.68], r: 0.05}   # axles
+      - cylinder: {a: [0.70, 0.36, -0.68], b: [0.70, 0.36, 0.68], r: 0.05}
+      - box: {c: [1.30, 0.40, 0], half: [0.30, 0.04, 0.05], rot: [0, 0, -0.1]}   # broken draught pole
+  wheels:            # wheels on the upturned side stick up; the lower side ones are crushed under it
+    material: wood
+    space: coach
+    line: true
+    prims:
+      - torus: {c: [-0.70, 0.36, -0.70], R: 0.36, r: 0.05, rot: [1.5708, 0, 0]}
+      - torus: {c: [0.70, 0.36, -0.70], R: 0.36, r: 0.05, rot: [1.5708, 0, 0.3]}
+  spokes:
+    material: wood
+    space: coach
+    line: true
+    prims:
+      - cylinder: {a: [-1.04, 0.36, -0.70], b: [-0.36, 0.36, -0.70], r: 0.025}
+      - cylinder: {a: [-0.70, 0.02, -0.70], b: [-0.70, 0.70, -0.70], r: 0.025}
+      - cylinder: {a: [0.70, 0.36, -0.70], b: [1.02, 0.50, -0.70], r: 0.025}       # snapped spokes
+      - cylinder: {a: [0.70, 0.36, -0.70], b: [0.56, 0.04, -0.70], r: 0.025}
+  hubs:
+    material: iron
+    space: coach
+    line: true
+    prims:
+      - cylinder: {a: [-0.70, 0.36, -0.66], b: [-0.70, 0.36, -0.78], r: 0.08}
+      - cylinder: {a: [0.70, 0.36, -0.66], b: [0.70, 0.36, -0.78], r: 0.08}
+
+  # ---------------- loot spilled in front ----------------
+  loose_wheel:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - torus: {c: [1.35, 0.06, 0.82], R: 0.34, r: 0.05, rot: [0.12, 0, 0.08]}
+      - cylinder: {a: [1.02, 0.07, 0.82], b: [1.68, 0.07, 0.82], r: 0.025}
+      - cylinder: {a: [1.35, 0.07, 0.50], b: [1.35, 0.07, 1.14], r: 0.025}
+  strongbox:         # emptied strongbox, lid thrown open
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.05, 0.16, 0.90], half: [0.26, 0.16, 0.18], rot: [0, 0.3, 0], round: 0.02}
+      - box: {c: [-1.14, 0.36, 0.70], half: [0.26, 0.03, 0.16], rot: [-1.1, 0.3, 0], round: 0.02}
+    cut:
+      - box: {c: [-1.05, 0.30, 0.90], half: [0.21, 0.12, 0.13], rot: [0, 0.3, 0]}
+  strongbox_bands:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [-1.05, 0.16, 0.90], half: [0.27, 0.03, 0.19], rot: [0, 0.3, 0]}
+  strongbox_inside:
+    material: void
+    space: body
+    prims:
+      - box: {c: [-1.05, 0.20, 0.90], half: [0.21, 0.02, 0.13], rot: [0, 0.3, 0]}
+  cushion:
+    material: velvet
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.30, 0.07, 1.00], r: [0.24, 0.07, 0.16], rot: [0, -0.4, 0.1]}
+  papers:
+    material: paper
+    space: body
+    prims:
+      - box: {c: [0.20, 0.01, 1.15], half: [0.09, 0.005, 0.06], rot: [0, 0.5, 0]}
+      - box: {c: [0.55, 0.01, 1.00], half: [0.08, 0.005, 0.06], rot: [0, -0.3, 0]}
+      - box: {c: [-0.62, 0.01, 1.20], half: [0.08, 0.005, 0.05], rot: [0, 0.9, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

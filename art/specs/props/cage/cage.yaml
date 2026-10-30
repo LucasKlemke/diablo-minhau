@@ -1,0 +1,163 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cage
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 1.2563 = 18 px above the pivot -> pivot (32, 50), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.2563, 0]}
+shadow: {rx: 16, ry: 6, alpha: 100}
+
+# Act I dungeon "Porao do Acougueiro": the Butcher's prisoner cage.
+brief:
+  summary: a squat rusty iron prisoner cage (square, a bit shorter than a man standing) - thick corner
+    posts, a riveted floor plate and roof, vertical bars all round, a ring on top, the barred door on the
+    front-left hanging half open on its hinges, rust streaks; two looks - empty with dirty straw and a dented
+    tin bowl, and with the bones of its last prisoner (skull, ribcage, long bones) on the straw
+  must_keep: [rusty orange-brown iron, readable bars with the inside visible, open door, straw, bones in v1]
+  simplify: [bars as thin cylinders, straw as a flat lumpy mat, rivets left out]
+  exceptions: |
+    kind prop, size 64 (tall), directions 1, mirror false, camera.center [0, 1.2563, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local rust and bone.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,50) is the ground point at the cage's centre.
+    1.2 x 1.2 base, 1.75 tall (~human height) -> footprint 1x1 tile visually ~22 px wide; block 1x1 (or
+    2x1 against a wall). Door on the front-left, open ~60 degrees toward the viewer. Clips: idle (= variant
+    0) and `variants` (2 frames: 0 empty, 1 with bones).
+
+ramps:
+  cg_rust:  ["#1c0f1a", "#2e1c1a", "#4e2c22", "#74402a", "#9a5a34"]
+  cg_bone:  ["#1c0f1a", "#7a6a50", "#b0a080", "#d8ccaa", "#f0e8cc"]
+
+materials:
+  rust:   {ramp: cg_rust, bands: [2, 4]}
+  plate:  {ramp: cg_rust, bands: [1, 3]}
+  straw:  {ramp: rstraw, bands: [1, 3]}
+  tin:    {ramp: riron, bands: [3, 5]}
+  bone:   {ramp: cg_bone, bands: [1, 3]}
+  socket: {ramp: riron, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+  door: {parent: body, pos: [-0.6, 0, 0.6], rot: [0, -1.0, 0]}     # hinged at the front-left post
+
+parts:
+  floor:
+    material: plate
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.05, 0], half: [0.66, 0.05, 0.66], round: 0.01}
+  straw:
+    material: straw
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [-0.05, 0.1, -0.1], r: [0.45, 0.05, 0.38]}
+      - ellipsoid: {c: [0.3, 0.1, 0.25], r: [0.2, 0.04, 0.2]}
+  bars:
+    material: rust
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.45, 0.1, -0.6], b: [-0.45, 1.7, -0.6], r: 0.032}
+      - cylinder: {a: [-0.22, 0.1, -0.6], b: [-0.22, 1.7, -0.6], r: 0.032}
+      - cylinder: {a: [0.0, 0.1, -0.6], b: [0.0, 1.7, -0.6], r: 0.032}
+      - cylinder: {a: [0.22, 0.1, -0.6], b: [0.22, 1.7, -0.6], r: 0.032}
+      - cylinder: {a: [0.45, 0.1, -0.6], b: [0.45, 1.7, -0.6], r: 0.032}
+      - cylinder: {a: [0.6, 0.1, -0.45], b: [0.6, 1.7, -0.45], r: 0.032}
+      - cylinder: {a: [-0.6, 0.1, -0.45], b: [-0.6, 1.7, -0.45], r: 0.032}
+      - cylinder: {a: [0.6, 0.1, -0.22], b: [0.6, 1.7, -0.22], r: 0.032}
+      - cylinder: {a: [-0.6, 0.1, -0.22], b: [-0.6, 1.7, -0.22], r: 0.032}
+      - cylinder: {a: [0.6, 0.1, 0.0], b: [0.6, 1.7, 0.0], r: 0.032}
+      - cylinder: {a: [-0.6, 0.1, 0.0], b: [-0.6, 1.7, 0.0], r: 0.032}
+      - cylinder: {a: [0.6, 0.1, 0.22], b: [0.6, 1.7, 0.22], r: 0.032}
+      - cylinder: {a: [-0.6, 0.1, 0.22], b: [-0.6, 1.7, 0.22], r: 0.032}
+      - cylinder: {a: [0.6, 0.1, 0.45], b: [0.6, 1.7, 0.45], r: 0.032}
+      - cylinder: {a: [-0.6, 0.1, 0.45], b: [-0.6, 1.7, 0.45], r: 0.032}
+      - cylinder: {a: [0.22, 0.1, 0.6], b: [0.22, 1.7, 0.6], r: 0.032}
+      - cylinder: {a: [0.45, 0.1, 0.6], b: [0.45, 1.7, 0.6], r: 0.032}
+      - box: {c: [-0.6, 0.90, -0.6], half: [0.05, 0.90, 0.05]}
+      - box: {c: [0.6, 0.90, -0.6], half: [0.05, 0.90, 0.05]}
+      - box: {c: [-0.6, 0.90, 0.6], half: [0.05, 0.90, 0.05]}
+      - box: {c: [0.6, 0.90, 0.6], half: [0.05, 0.90, 0.05]}
+  roof:
+    material: plate
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.73, 0.62], half: [0.66, 0.045, 0.045]}
+      - box: {c: [0, 1.73, -0.62], half: [0.66, 0.045, 0.045]}
+      - box: {c: [0.62, 1.73, 0], half: [0.045, 0.045, 0.66]}
+      - box: {c: [-0.62, 1.73, 0], half: [0.045, 0.045, 0.66]}
+      - box: {c: [0, 1.73, 0], half: [0.045, 0.04, 0.62]}
+      - box: {c: [0, 1.73, 0], half: [0.62, 0.04, 0.045]}
+      - torus: {c: [0, 1.8599999999999999, 0], R: 0.1, r: 0.03, rot: [1.5708, 0, 0]}
+  door:
+    material: rust
+    space: door
+    line: true
+    prims:
+      - cylinder: {a: [0.06, 0.12, 0], b: [0.06, 1.65, 0], r: 0.032}
+      - cylinder: {a: [0.27, 0.12, 0], b: [0.27, 1.65, 0], r: 0.032}
+      - cylinder: {a: [0.48, 0.12, 0], b: [0.48, 1.65, 0], r: 0.032}
+      - box: {c: [0.27, 0.16, 0], half: [0.27, 0.035, 0.035]}
+      - box: {c: [0.27, 1.5999999999999999, 0], half: [0.27, 0.035, 0.035]}
+      - box: {c: [0.27, 0.9, 0], half: [0.27, 0.03, 0.03]}
+  bowl:
+    material: tin
+    space: body
+    line: true
+    when: "v < 0.5"
+    prims:
+      - cylinder: {a: [0.25, 0.1, -0.25], b: [0.25, 0.17, -0.25], r: 0.11}
+    cut:
+      - cylinder: {a: [0.25, 0.14, -0.25], b: [0.25, 0.2, -0.25], r: 0.08}
+  bones1:
+    material: bone
+    space: body
+    line: true
+    when: "v > 0.5"
+    prims:
+      - cylinder: {a: [-0.3, 0.14, 0.15], b: [0.15, 0.14, 0.3], r: 0.035}
+      - sphere: {c: [-0.3, 0.14, 0.15], r: 0.05}
+      - sphere: {c: [0.15, 0.14, 0.3], r: 0.05}
+      - cylinder: {a: [0.05, 0.13, -0.05], b: [0.35, 0.13, 0.12], r: 0.032}
+      - sphere: {c: [0.35, 0.13, 0.12], r: 0.045}
+      - cylinder: {a: [-0.1, 0.16, -0.35], b: [0.25, 0.16, -0.35], r: 0.035}
+      - torus: {c: [-0.02, 0.2, -0.28], R: 0.13, r: 0.022, rot: [0, 0, 1.5708]}
+      - torus: {c: [0.08, 0.2, -0.28], R: 0.12, r: 0.022, rot: [0, 0, 1.5708]}
+      - torus: {c: [0.18, 0.2, -0.28], R: 0.1, r: 0.022, rot: [0, 0, 1.5708]}
+  skull1:
+    material: bone
+    space: body
+    line: true
+    blend: 0.03
+    when: "v > 0.5"
+    prims:
+      - sphere: {c: [-0.3, 0.26, -0.15], r: 0.14}
+      - box: {c: [-0.28, 0.17, -0.06], half: [0.08, 0.05, 0.07], round: 0.03}
+  eyes1:
+    material: socket
+    space: body
+    when: "v > 0.5"
+    prims:
+      - sphere: {c: [-0.35, 0.26, -0.03], r: 0.04}
+      - sphere: {c: [-0.23, 0.26, -0.03], r: 0.04}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 2
+    ms: 1000
+    channels: {v: "f"}

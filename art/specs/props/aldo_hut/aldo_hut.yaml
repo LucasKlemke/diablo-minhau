@@ -1,0 +1,373 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: aldo_hut
+kind: prop
+view: topdown
+size: 96
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 2.3731 = 34 px above the pivot -> pivot (48, 82), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 2.3731, 0]}
+shadow: {rx: 34, ry: 9, alpha: 80}
+
+# Act I, Minhau: the outside of King Aldo's poor hut (its interior is the hut_* props).
+brief:
+  summary: the poorest hut of the village, smaller than a house - wattle-and-daub clay walls in a
+    smoke-darkened post frame on rough sill logs (the same materials as the interior), gable front to
+    the camera like `house`, a heavy old thatch roof weathered grey-gold outside, with a thick ragged
+    front edge and a hole on the right slope where the rafters show; a low plank door with a Z brace on
+    the left, a closed shutter on the right with warm hearth light leaking through its crack, a smoke
+    vent in the gable, a patch where the clay fell off and the wattle shows, a chopping block with an axe
+  must_keep: [daub panels + dark posts + log sill (same ramps as hut_wall_back), thatch with a hole and
+    visible rafters, plank door with Z brace, shutter with a warm light crack, exposed wattle patch]
+  simplify: [straw as strokes along the slopes, wattle as 3 sticks]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false, camera.center [0, 2.3731, 0] (integer pivot).
+    The light in the shutter crack is emissive (the hearth inside: the only warm accent).
+    camera.scale/pitch/light untouched. Wood, daub and post ramps from palettes/hut.yaml so the outside
+    matches the interior; the outer thatch uses ruin.yaml's weathered rstraw (the inside of the thatch,
+    in the interior props, stays golden: sun-bleached and rained-on outside).
+  decisions: |
+    PIVOT CONTRACT (same as house): world origin (= exported pivot, frame px 48,82) is the ground point at
+    the centre of the FRONT wall's base. Walls x -1.45..1.45, z -2.4..0; thatch eaves x -1.85..1.85,
+    front edge z +0.2 -> ~68 px wide: footprint 4x3 tiles (one tile narrower than house), blocking all
+    12 tiles; place it like house with the pivot 2 tiles right of the footprint's left edge. The door
+    (centre x -0.6, i.e. about -11 px from the pivot) is the entrance: the walkable tile in front of it
+    is the one below the footprint's second column. Roof at 45 degrees like house, ridge y ~3.3.
+    Static: 1-frame idle.
+
+materials:
+  daub:    {ramp: hdaub, bands: [1, 2]}
+  grime:   {ramp: hdaub, bands: [1, 1], outline: false, line: false}
+  wattle_bg: {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  stick:   {ramp: hwood, bands: [2, 3], outline: false}
+  post:    {ramp: hbeam, bands: [2, 4]}
+  log:     {ramp: hwood, bands: [1, 3]}
+  logend:  {ramp: hcut, bands: [1, 2]}
+  board:   {ramp: hwood, bands: [1, 3]}
+  brace:   {ramp: hwood, bands: [2, 3]}
+  iron:    {ramp: riron, bands: [1, 3]}
+  thatch:  {ramp: rstraw, bands: [2, 4]}
+  edge:    {ramp: rstraw, bands: [1, 3], line: false}
+  st_dk:   {ramp: rstraw, bands: [1, 1], outline: false, line: false}
+  st_md:   {ramp: rstraw, bands: [2, 2], outline: false, line: false}
+  st_hi:   {ramp: rstraw, bands: [5, 5], outline: false, line: false}
+  dark:    {ramp: hsoot, bands: [1, 1], outline: false, line: false}
+  rafter:  {ramp: hbeam, bands: [2, 3]}
+  lamp:    {ramp: rlamp, emissive: true, band: 3, outline: false, line: false, glow: {color: "#f0a040", mix: 0.35, radius: 1}}
+  mud:     {ramp: rmud, bands: [2, 3], outline: false, line: false}
+  stump:   {ramp: hwood, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  mud:              # trodden mud at the doorstep
+    material: mud
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [-0.6, 0.01, 0.45], r: [0.55, 0.02, 0.32]}
+  # ---------- walls ----------
+  walls:
+    material: daub
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.85, -1.2], half: [1.45, 0.85, 1.2]}
+  gable:            # triangular attic prism (45-degree diamond, lower half inside the walls)
+    material: daub
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.7, -1.2], half: [0.99, 0.99, 1.2], rot: [0, 0, 0.7854]}
+  grime:
+    material: grime
+    space: body
+    prims:
+      - box: {c: [0, 0.55, 0.005], half: [1.45, 0.09, 0.006]}
+      - ellipsoid: {c: [0.85, 0.66, 0.005], r: [0.2, 0.07, 0.006]}
+  wattle_bg:        # clay fallen off the gable: dark hollow behind the woven sticks
+    material: wattle_bg
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [-0.42, 2.12, 0.012], r: [0.26, 0.18, 0.006]}
+      - ellipsoid: {c: [-0.26, 2.26, 0.012], r: [0.14, 0.11, 0.006]}
+  wattle:
+    material: stick
+    space: body
+    prims:
+      - cylinder: {a: [-0.64, 2.02, 0.03], b: [-0.2, 2.04, 0.03], r: 0.035}
+      - cylinder: {a: [-0.62, 2.18, 0.03], b: [-0.16, 2.17, 0.03], r: 0.035}
+      - cylinder: {a: [-0.46, 2.33, 0.03], b: [-0.14, 2.34, 0.03], r: 0.035}
+  vent:             # smoke vent under the apex, sooty
+    material: dark
+    space: body
+    prims:
+      - tri: {a: [-0.22, 2.62, 0.015], b: [0.22, 2.62, 0.015], c: [0, 2.86, 0.015], th: 0.01}
+  posts:
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.38, 0.85, 0.03], half: [0.11, 0.85, 0.08]}
+      - box: {c: [1.38, 0.85, 0.03], half: [0.11, 0.85, 0.08]}
+      - box: {c: [0.15, 0.85, 0.03], half: [0.09, 0.85, 0.08]}
+      - box: {c: [0, 2.2, 0.03], half: [0.08, 0.5, 0.07]}          # king post in the gable
+  tie_beam:
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.5, 1.7, 0.1], b: [1.5, 1.7, 0.1], r: 0.11}
+  sill:
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-1.55, 0.13, 0.08], b: [1.55, 0.13, 0.08], r: 0.13}
+      - cylinder: {a: [0.25, 0.37, 0.05], b: [1.55, 0.37, 0.05], r: 0.11}
+  sill_ends:
+    material: logend
+    space: body
+    prims:
+      - cylinder: {a: [1.55, 0.13, 0.08], b: [1.58, 0.13, 0.08], r: 0.12}
+      - cylinder: {a: [-1.55, 0.13, 0.08], b: [-1.58, 0.13, 0.08], r: 0.12}
+  # ---------- door (left) ----------
+  door_dark:
+    material: dark
+    space: body
+    prims:
+      - box: {c: [-0.6, 0.78, 0.03], half: [0.36, 0.78, 0.02]}
+  door:
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.78, 0.76, 0.07], half: [0.085, 0.72, 0.03], rot: [0, 0, 0.02]}
+      - box: {c: [-0.6, 0.75, 0.07], half: [0.085, 0.73, 0.03]}
+      - box: {c: [-0.42, 0.74, 0.07], half: [0.085, 0.7, 0.03], rot: [0, 0, -0.02]}
+  door_brace:
+    material: brace
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.6, 1.2, 0.11], half: [0.27, 0.05, 0.02]}
+      - box: {c: [-0.6, 0.34, 0.11], half: [0.27, 0.05, 0.02]}
+      - box: {c: [-0.6, 0.77, 0.11], half: [0.05, 0.47, 0.02], rot: [0, 0, -0.55]}
+  hinges:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [-0.72, 1.2, 0.13], half: [0.15, 0.03, 0.01]}
+      - box: {c: [-0.72, 0.34, 0.13], half: [0.15, 0.03, 0.01]}
+  lintel:
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.6, 1.6, 0.06], half: [0.46, 0.06, 0.07]}
+  # ---------- shutter (right), hearth light in the crack ----------
+  shutter_glow:
+    material: lamp
+    space: body
+    prims:
+      - box: {c: [0.78, 1.05, 0.03], half: [0.03, 0.22, 0.02]}
+  shutter:
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.64, 1.05, 0.06], half: [0.11, 0.25, 0.03]}
+      - box: {c: [0.92, 1.05, 0.06], half: [0.11, 0.25, 0.03], rot: [0, 0, 0.04]}
+  shutter_frame:
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.78, 0.75, 0.08], half: [0.36, 0.05, 0.06]}
+      - box: {c: [0.78, 1.35, 0.08], half: [0.36, 0.05, 0.06]}
+  # ---------- thatch roof (ridge along z, gable to the camera, 45 degrees) ----------
+  hole_dark:        # dark attic seen through the hole
+    material: dark
+    space: body
+    prims:
+      - box: {c: [0.86, 2.14, -1.3], half: [0.6, 0.02, 0.65], rot: [0, 0, -0.7854]}
+  rafters:          # rafters crossing the hole
+    material: rafter
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.9, 2.24, -1.05], half: [0.7, 0.06, 0.06], rot: [0, 0, -0.7854]}
+      - box: {c: [0.9, 2.24, -1.6], half: [0.7, 0.06, 0.06], rot: [0, 0, -0.7854]}
+      - box: {c: [0.9, 2.3, -1.3], half: [0.05, 0.05, 0.6], rot: [0, 0, -0.7854]}
+  roof_r:           # screen-right slope, with the hole
+    material: thatch
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.925, 2.315, -1.2], half: [1.31, 0.16, 1.4], rot: [0, 0, -0.7854], round: 0.05}
+    cut:
+      - ellipsoid: {c: [0.95, 2.4, -1.3], r: [0.48, 0.48, 0.55]}
+  roof_l:
+    material: thatch
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.925, 2.315, -1.2], half: [1.31, 0.16, 1.4], rot: [0, 0, 0.7854], round: 0.05}
+  ridge:            # rolled straw ridge along the top
+    material: edge
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 3.36, 0.15], b: [0, 3.36, -2.55], r: 0.16, round: 0.04}
+  front_edge_r:     # thick ragged front edge of the thatch
+    material: edge
+    space: body
+    blend: 0.04
+    prims:
+      - box: {c: [0.925, 2.315, 0.16], half: [1.33, 0.18, 0.06], rot: [0, 0, -0.7854]}
+      - cone: {a: [1.75, 1.42, 0.2], b: [1.82, 1.2, 0.24], r: [0.1, 0.03]}
+      - cone: {a: [1.35, 1.82, 0.2], b: [1.4, 1.62, 0.24], r: [0.1, 0.04]}
+      - cone: {a: [0.75, 2.42, 0.2], b: [0.82, 2.24, 0.24], r: [0.09, 0.03]}
+  front_edge_l:
+    material: edge
+    space: body
+    blend: 0.04
+    prims:
+      - box: {c: [-0.925, 2.315, 0.16], half: [1.33, 0.18, 0.06], rot: [0, 0, 0.7854]}
+      - cone: {a: [-1.75, 1.42, 0.2], b: [-1.8, 1.16, 0.24], r: [0.1, 0.03]}
+      - cone: {a: [-1.15, 2.02, 0.2], b: [-1.2, 1.84, 0.24], r: [0.1, 0.04]}
+      - cone: {a: [-0.5, 2.67, 0.2], b: [-0.56, 2.5, 0.24], r: [0.09, 0.03]}
+  straw_dk:
+    material: st_dk
+    space: body
+    prims:
+      - box: {c: [0.743, 2.731, -2.150], half: [0.178, 0.01, 0.018], rot: [0, -0.09, -0.7854]}
+      - box: {c: [1.578, 1.895, -2.071], half: [0.170, 0.01, 0.018], rot: [0, 0.03, -0.7854]}
+      - box: {c: [1.541, 1.932, -0.698], half: [0.129, 0.01, 0.018], rot: [0, 0.01, -0.7854]}
+      - box: {c: [0.451, 3.022, -1.254], half: [0.105, 0.01, 0.018], rot: [0, 0.03, -0.7854]}
+      - box: {c: [1.320, 2.153, -2.389], half: [0.184, 0.01, 0.018], rot: [0, 0.03, -0.7854]}
+      - box: {c: [0.392, 3.081, -2.394], half: [0.192, 0.01, 0.018], rot: [0, -0.07, -0.7854]}
+      - box: {c: [0.802, 2.671, -0.207], half: [0.215, 0.01, 0.018], rot: [0, -0.07, -0.7854]}
+      - box: {c: [1.341, 2.133, -2.407], half: [0.208, 0.01, 0.018], rot: [0, 0.06, -0.7854]}
+      - box: {c: [0.547, 2.926, -2.120], half: [0.141, 0.01, 0.018], rot: [0, -0.09, -0.7854]}
+      - box: {c: [1.600, 1.874, -2.122], half: [0.103, 0.01, 0.018], rot: [0, 0.09, -0.7854]}
+      - box: {c: [1.582, 1.891, -0.589], half: [0.127, 0.01, 0.018], rot: [0, 0.00, -0.7854]}
+      - box: {c: [-0.961, 2.512, -1.067], half: [0.211, 0.01, 0.018], rot: [0, -0.01, 0.7854]}
+      - box: {c: [-0.347, 3.126, -0.404], half: [0.183, 0.01, 0.018], rot: [0, -0.09, 0.7854]}
+      - box: {c: [-0.516, 2.957, -1.909], half: [0.104, 0.01, 0.018], rot: [0, -0.01, 0.7854]}
+      - box: {c: [-1.886, 1.587, 0.089], half: [0.201, 0.01, 0.018], rot: [0, 0.04, 0.7854]}
+      - box: {c: [-1.819, 1.654, -0.305], half: [0.100, 0.01, 0.018], rot: [0, -0.06, 0.7854]}
+      - box: {c: [-0.341, 3.132, -1.669], half: [0.216, 0.01, 0.018], rot: [0, 0.05, 0.7854]}
+      - box: {c: [-0.517, 2.957, -0.610], half: [0.116, 0.01, 0.018], rot: [0, 0.03, 0.7854]}
+      - box: {c: [-0.551, 2.923, -1.505], half: [0.203, 0.01, 0.018], rot: [0, 0.03, 0.7854]}
+      - box: {c: [-0.346, 3.127, -1.006], half: [0.129, 0.01, 0.018], rot: [0, 0.02, 0.7854]}
+      - box: {c: [-1.735, 1.739, -0.383], half: [0.130, 0.01, 0.018], rot: [0, -0.06, 0.7854]}
+      - box: {c: [-0.259, 3.215, 0.001], half: [0.129, 0.01, 0.018], rot: [0, 0.04, 0.7854]}
+      - box: {c: [-1.142, 2.331, -0.291], half: [0.174, 0.01, 0.018], rot: [0, -0.04, 0.7854]}
+      - box: {c: [-1.164, 2.309, -2.201], half: [0.143, 0.01, 0.018], rot: [0, 0.08, 0.7854]}
+      - box: {c: [-1.383, 2.091, 0.001], half: [0.103, 0.01, 0.018], rot: [0, 0.03, 0.7854]}
+  straw_md:
+    material: st_md
+    space: body
+    prims:
+      - box: {c: [1.054, 2.419, -2.451], half: [0.152, 0.01, 0.018], rot: [0, -0.09, -0.7854]}
+      - box: {c: [0.866, 2.607, 0.037], half: [0.106, 0.01, 0.018], rot: [0, 0.07, -0.7854]}
+      - box: {c: [0.294, 3.179, -2.004], half: [0.182, 0.01, 0.018], rot: [0, -0.01, -0.7854]}
+      - box: {c: [1.084, 2.389, -0.231], half: [0.188, 0.01, 0.018], rot: [0, -0.04, -0.7854]}
+      - box: {c: [1.878, 1.595, -0.372], half: [0.134, 0.01, 0.018], rot: [0, -0.02, -0.7854]}
+      - box: {c: [0.492, 2.981, -1.935], half: [0.128, 0.01, 0.018], rot: [0, -0.00, -0.7854]}
+      - box: {c: [1.677, 1.796, -0.436], half: [0.147, 0.01, 0.018], rot: [0, -0.02, -0.7854]}
+      - box: {c: [0.194, 3.280, -2.149], half: [0.112, 0.01, 0.018], rot: [0, -0.03, -0.7854]}
+      - box: {c: [1.634, 1.840, 0.082], half: [0.156, 0.01, 0.018], rot: [0, -0.00, -0.7854]}
+      - box: {c: [1.090, 2.384, -2.162], half: [0.165, 0.01, 0.018], rot: [0, -0.09, -0.7854]}
+      - box: {c: [1.097, 2.376, -0.486], half: [0.140, 0.01, 0.018], rot: [0, -0.06, -0.7854]}
+      - box: {c: [-1.055, 2.418, -0.993], half: [0.122, 0.01, 0.018], rot: [0, 0.00, 0.7854]}
+      - box: {c: [-1.860, 1.613, 0.007], half: [0.178, 0.01, 0.018], rot: [0, 0.02, 0.7854]}
+      - box: {c: [-0.941, 2.533, -0.318], half: [0.162, 0.01, 0.018], rot: [0, 0.03, 0.7854]}
+      - box: {c: [-0.728, 2.745, -1.941], half: [0.135, 0.01, 0.018], rot: [0, -0.09, 0.7854]}
+      - box: {c: [-1.738, 1.735, -1.305], half: [0.218, 0.01, 0.018], rot: [0, -0.02, 0.7854]}
+      - box: {c: [-0.393, 3.080, -1.897], half: [0.112, 0.01, 0.018], rot: [0, -0.09, 0.7854]}
+      - box: {c: [-0.391, 3.082, -1.435], half: [0.126, 0.01, 0.018], rot: [0, -0.05, 0.7854]}
+      - box: {c: [-0.363, 3.110, 0.072], half: [0.126, 0.01, 0.018], rot: [0, -0.05, 0.7854]}
+      - box: {c: [-0.824, 2.649, -1.349], half: [0.215, 0.01, 0.018], rot: [0, -0.00, 0.7854]}
+      - box: {c: [-1.448, 2.025, -0.058], half: [0.124, 0.01, 0.018], rot: [0, 0.09, 0.7854]}
+      - box: {c: [-0.629, 2.844, -0.367], half: [0.172, 0.01, 0.018], rot: [0, -0.04, 0.7854]}
+      - box: {c: [-1.750, 1.723, -2.009], half: [0.102, 0.01, 0.018], rot: [0, -0.05, 0.7854]}
+      - box: {c: [-1.857, 1.616, -0.809], half: [0.183, 0.01, 0.018], rot: [0, 0.02, 0.7854]}
+  straw_hi:
+    material: st_hi
+    space: body
+    prims:
+      - box: {c: [0.347, 3.126, -1.425], half: [0.199, 0.01, 0.018], rot: [0, -0.08, -0.7854]}
+      - box: {c: [0.685, 2.789, -2.168], half: [0.114, 0.01, 0.018], rot: [0, -0.04, -0.7854]}
+      - box: {c: [1.857, 1.617, -2.237], half: [0.150, 0.01, 0.018], rot: [0, 0.05, -0.7854]}
+      - box: {c: [0.967, 2.506, -0.324], half: [0.213, 0.01, 0.018], rot: [0, -0.01, -0.7854]}
+      - box: {c: [1.328, 2.145, -2.490], half: [0.155, 0.01, 0.018], rot: [0, -0.07, -0.7854]}
+      - box: {c: [1.584, 1.890, -0.260], half: [0.133, 0.01, 0.018], rot: [0, -0.02, -0.7854]}
+      - box: {c: [0.369, 3.104, -0.869], half: [0.107, 0.01, 0.018], rot: [0, -0.09, -0.7854]}
+      - box: {c: [0.236, 3.237, -0.233], half: [0.174, 0.01, 0.018], rot: [0, -0.07, -0.7854]}
+      - box: {c: [0.339, 3.134, -2.279], half: [0.141, 0.01, 0.018], rot: [0, -0.05, -0.7854]}
+      - box: {c: [1.089, 2.384, 0.043], half: [0.204, 0.01, 0.018], rot: [0, 0.04, -0.7854]}
+      - box: {c: [1.570, 1.903, 0.060], half: [0.202, 0.01, 0.018], rot: [0, 0.06, -0.7854]}
+      - box: {c: [-1.262, 2.211, -0.449], half: [0.111, 0.01, 0.018], rot: [0, -0.04, 0.7854]}
+      - box: {c: [-0.460, 3.013, -2.510], half: [0.163, 0.01, 0.018], rot: [0, -0.09, 0.7854]}
+      - box: {c: [-1.041, 2.432, -0.795], half: [0.155, 0.01, 0.018], rot: [0, -0.04, 0.7854]}
+      - box: {c: [-1.494, 1.980, -1.489], half: [0.202, 0.01, 0.018], rot: [0, -0.02, 0.7854]}
+      - box: {c: [-0.317, 3.156, -0.882], half: [0.193, 0.01, 0.018], rot: [0, -0.05, 0.7854]}
+      - box: {c: [-1.546, 1.928, -2.079], half: [0.167, 0.01, 0.018], rot: [0, -0.01, 0.7854]}
+      - box: {c: [-1.841, 1.632, -0.421], half: [0.136, 0.01, 0.018], rot: [0, 0.08, 0.7854]}
+      - box: {c: [-1.504, 1.969, -1.678], half: [0.136, 0.01, 0.018], rot: [0, -0.09, 0.7854]}
+      - box: {c: [-1.168, 2.305, -0.254], half: [0.122, 0.01, 0.018], rot: [0, -0.07, 0.7854]}
+      - box: {c: [-1.690, 1.783, -0.951], half: [0.151, 0.01, 0.018], rot: [0, -0.08, 0.7854]}
+      - box: {c: [-0.491, 2.982, -0.641], half: [0.108, 0.01, 0.018], rot: [0, -0.05, 0.7854]}
+      - box: {c: [-0.950, 2.524, -2.390], half: [0.121, 0.01, 0.018], rot: [0, -0.03, 0.7854]}
+      - box: {c: [-0.431, 3.042, -2.457], half: [0.102, 0.01, 0.018], rot: [0, 0.08, 0.7854]}
+  hole_straws:
+    material: st_dk
+    space: body
+    prims:
+      - cone: {a: [0.7, 2.66, -1.05], b: [0.92, 2.4, -1.1], r: [0.025, 0.02]}
+      - cone: {a: [1.2, 2.2, -1.5], b: [1.0, 2.32, -1.45], r: [0.022, 0.02]}
+  # ---------- yard ----------
+  block:            # chopping block with an axe
+    material: stump
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [1.2, 0.0, 0.5], b: [1.2, 0.34, 0.5], r: 0.2, round: 0.03}
+  block_top:
+    material: logend
+    space: body
+    prims:
+      - cylinder: {a: [1.2, 0.33, 0.5], b: [1.2, 0.35, 0.5], r: 0.17}
+  axe_haft:
+    material: brace
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [1.17, 0.4, 0.52], b: [1.47, 0.78, 0.62], r: 0.035}
+  axe_head:
+    material: iron
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.13, 0.42, 0.52], half: [0.11, 0.09, 0.025], rot: [0, 0, 0.9]}
+  chips:
+    material: logend
+    space: body
+    prims:
+      - box: {c: [0.85, 0.02, 0.7], half: [0.06, 0.015, 0.03], rot: [0, 0.4, 0]}
+      - box: {c: [1.5, 0.02, 0.75], half: [0.05, 0.015, 0.03], rot: [0, -0.7, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

@@ -1,0 +1,240 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: gore_chunks
+kind: prop
+view: topdown
+size: 32
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot = frame centre (16, 16) = the chunk's centre
+shadow: null             # flying debris: the game draws (or skips) its own shadow
+
+# Prologue (castle massacre): pieces flying out of a royal guard when Jimmynelson tears him apart.
+brief:
+  summary: loose gibs, one per frame - a lump of raw meat with a bone stub, a bloody femur, a rib cage
+    fragment, a dented silver pauldron, a torn royal-blue tabard scrap with gold hem, a silver gauntlet torn
+    off at the wrist, a strip of sinew, a run of vertebrae
+  must_keep: [raw red meat with a pink highlight, ivory bone, the guard's silver steel and royal blue + gold,
+    blood on every piece, dark outline]
+  simplify: [6-12 px pieces, 2-3 tones per material, no fine anatomy]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, shadow null, camera.center [0, 0, 0] (pivot at the frame
+    centre). camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: pivot (16, 16) = the centre of the piece, so the engine can spin and arc it (spawn at the
+    guard's chest, tween along a parabola, rotate, land). VARIANTS: animation `variants` has 8 frames, one
+    piece each: 0 meat lump, 1 femur, 2 ribs, 3 pauldron, 4 tabard scrap, 5 gauntlet, 6 sinew strip,
+    7 vertebrae. `idle` = variant 0. Colours match royal_guard (steel, cloth_blue, gold) and blood_splat.
+
+ramps:
+  gc_meat:  ["#1c0f1a", "#5a0a14", "#9c1a24", "#d0464a", "#f08a80"]
+  gc_blood: ["#1c0f1a", "#4e0710", "#86101a", "#b41a20"]
+
+materials:
+  meat:  {ramp: gc_meat, bands: [2, 4]}
+  blood: {ramp: gc_blood, bands: [2, 3], line: false}
+  bone:  {ramp: bone, bands: [2, 4]}
+  steel: {ramp: steel, bands: [2, 4]}
+  cloth: {ramp: cloth_blue, bands: [1, 3]}
+  gold:  {ramp: gold, bands: [2, 3]}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..7
+
+bones:
+  body: {parent: root}
+  p0: {parent: body, rot: [0.4, 0.5, 0.3]}
+  p1: {parent: body, rot: [0.2, 0.0, 0.55]}
+  p2: {parent: body, rot: [0.5, 0.4, 0.0]}
+  p3: {parent: body, rot: [-2.0, 0.3, 0.4]}
+  p4: {parent: body, rot: [-0.45, 0.25, 0.3]}
+  p5: {parent: body, rot: [0.3, 0.5, -0.4], scale: 1.35}
+  p6: {parent: body, rot: [0.2, 0.3, -0.5]}
+  p7: {parent: body, rot: [0.5, 0.0, 0.35], scale: 1.15}
+
+parts:
+  # 0: lump of raw meat with a bone stub
+  meat_0:
+    when: "var == 0"
+    material: meat
+    space: p0
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.22, 0.15, 0.17]}
+      - ellipsoid: {c: [0.12, 0.05, 0.05], r: [0.12, 0.11, 0.10]}
+      - ellipsoid: {c: [-0.10, -0.04, 0.06], r: [0.10, 0.09, 0.10]}
+  bone_0:
+    when: "var == 0"
+    material: bone
+    space: p0
+    prims:
+      - cone: {a: [0.05, 0.05, 0], b: [-0.30, 0.20, -0.02], r: [0.055, 0.045]}
+      - sphere: {c: [-0.31, 0.21, -0.02], r: 0.065}
+  blood_0:
+    when: "var == 0"
+    material: blood
+    space: p0
+    prims:
+      - ellipsoid: {c: [0.04, 0.10, 0.06], r: [0.13, 0.06, 0.10]}
+  # 1: femur, bloody at the torn end
+  bone_1:
+    when: "var == 1"
+    material: bone
+    space: p1
+    blend: 0.03
+    prims:
+      - cylinder: {a: [-0.30, 0, 0], b: [0.26, 0, 0], r: 0.05, round: 0.02}
+      - sphere: {c: [-0.34, 0.04, 0.0], r: 0.075}
+      - sphere: {c: [-0.32, -0.05, 0.02], r: 0.065}
+  meat_1:
+    when: "var == 1"
+    material: meat
+    space: p1
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.30, 0, 0], r: [0.10, 0.10, 0.10]}
+      - ellipsoid: {c: [0.20, 0.02, 0.02], r: [0.08, 0.07, 0.07]}
+  blood_1:
+    when: "var == 1"
+    material: blood
+    space: p1
+    prims:
+      - ellipsoid: {c: [0.36, 0.03, 0.04], r: [0.06, 0.07, 0.06]}
+  # 2: rib cage fragment: three curved ribs on a lump of flesh
+  bone_2:
+    when: "var == 2"
+    material: bone
+    space: p2
+    prims:
+      - chain: {pts: [[-0.02, 0.0, -0.10], [0.16, 0.08, -0.12], [0.30, 0.02, -0.08]], r: [0.04, 0.035, 0.025]}
+      - chain: {pts: [[-0.02, 0.0, 0.0], [0.17, 0.09, 0.0], [0.31, 0.03, 0.02]], r: [0.04, 0.035, 0.025]}
+      - chain: {pts: [[-0.02, 0.0, 0.10], [0.15, 0.08, 0.11], [0.27, 0.02, 0.13]], r: [0.04, 0.035, 0.025]}
+  meat_2:
+    when: "var == 2"
+    material: meat
+    space: p2
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [-0.10, 0.0, 0.0], r: [0.12, 0.10, 0.20]}
+  blood_2:
+    when: "var == 2"
+    material: blood
+    space: p2
+    prims:
+      - ellipsoid: {c: [-0.06, 0.06, 0.02], r: [0.08, 0.05, 0.14]}
+  # 3: dented silver pauldron, bloody inside
+  steel_3:
+    when: "var == 3"
+    material: steel
+    space: p3
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.26, 0.16, 0.20]}
+    cut:
+      - ellipsoid: {c: [0, -0.06, 0], r: [0.22, 0.14, 0.17]}
+      - sphere: {c: [0.14, 0.17, 0.06], r: 0.06}
+  gold_3:
+    when: "var == 3"
+    material: gold
+    space: p3
+    prims:
+      - torus: {c: [0, 0.0, 0], R: 0.235, r: 0.025, rot: [0, 0, 0]}
+  blood_3:
+    when: "var == 3"
+    material: blood
+    space: p3
+    prims:
+      - ellipsoid: {c: [-0.06, 0.02, 0.10], r: [0.10, 0.06, 0.08]}
+  # 4: torn royal-blue tabard scrap with gold hem, blood-soaked
+  cloth_4:
+    when: "var == 4"
+    material: cloth
+    space: p4
+    prims:
+      - box: {c: [0, 0, 0], half: [0.24, 0.20, 0.025], round: 0.01}
+    cut:
+      - tri: {a: [0.10, 0.22, 0], b: [0.26, 0.22, 0], c: [0.24, 0.05, 0], th: 0.1}
+      - tri: {a: [-0.26, -0.05, 0], b: [-0.26, 0.22, 0], c: [-0.12, 0.22, 0], th: 0.1}
+      - tri: {a: [-0.05, 0.22, 0], b: [0.05, 0.22, 0], c: [0.0, 0.10, 0], th: 0.1}
+  gold_4:
+    when: "var == 4"
+    material: gold
+    space: p4
+    prims:
+      - box: {c: [0, -0.19, 0.01], half: [0.24, 0.035, 0.03]}
+  blood_4:
+    when: "var == 4"
+    material: blood
+    space: p4
+    prims:
+      - ellipsoid: {c: [-0.08, 0.02, 0.02], r: [0.12, 0.10, 0.02]}
+      - ellipsoid: {c: [0.10, 0.10, 0.02], r: [0.05, 0.05, 0.02]}
+  # 5: silver gauntlet (mitten) torn off at the wrist
+  steel_5:
+    when: "var == 5"
+    material: steel
+    space: p5
+    blend: 0.03
+    prims:
+      - box: {c: [0.08, 0, 0], half: [0.14, 0.06, 0.11], round: 0.05}
+      - cone: {a: [-0.06, 0, 0], b: [-0.22, 0, 0], r: [0.09, 0.11]}
+      - ellipsoid: {c: [0.10, -0.02, 0.13], r: [0.06, 0.05, 0.05]}
+  meat_5:
+    when: "var == 5"
+    material: meat
+    space: p5
+    prims:
+      - cylinder: {a: [-0.22, 0, 0], b: [-0.27, 0, 0], r: 0.09, round: 0.02}
+  bone_5:
+    when: "var == 5"
+    material: bone
+    space: p5
+    prims:
+      - cone: {a: [-0.25, 0.02, 0], b: [-0.34, 0.03, 0], r: [0.035, 0.03]}
+  # 6: strip of torn flesh and sinew
+  meat_6:
+    when: "var == 6"
+    material: meat
+    space: p6
+    blend: 0.04
+    prims:
+      - chain: {pts: [[-0.32, 0.0, 0.0], [-0.12, 0.07, 0.03], [0.08, -0.02, 0.0], [0.30, 0.05, -0.03]], r: [0.05, 0.08, 0.07, 0.04]}
+  blood_6:
+    when: "var == 6"
+    material: blood
+    space: p6
+    prims:
+      - chain: {pts: [[-0.16, 0.10, 0.04], [0.06, 0.04, 0.03]], r: [0.04, 0.035]}
+  # 7: a run of vertebrae
+  bone_7:
+    when: "var == 7"
+    material: bone
+    space: p7
+    prims:
+      - cylinder: {a: [-0.30, 0, 0], b: [-0.22, 0, 0], r: 0.075, round: 0.025}
+      - cylinder: {a: [-0.14, 0, 0], b: [-0.06, 0, 0], r: 0.075, round: 0.025}
+      - cylinder: {a: [0.02, 0, 0], b: [0.10, 0, 0], r: 0.075, round: 0.025}
+      - cylinder: {a: [0.18, 0, 0], b: [0.25, 0, 0], r: 0.07, round: 0.025}
+      - cone: {a: [-0.26, 0.04, 0], b: [-0.27, 0.19, -0.03], r: [0.035, 0.018]}
+      - cone: {a: [-0.10, 0.04, 0], b: [-0.11, 0.19, -0.03], r: [0.035, 0.018]}
+      - cone: {a: [0.05, 0.04, 0], b: [0.05, 0.19, -0.03], r: [0.035, 0.018]}
+      - cone: {a: [0.20, 0.04, 0], b: [0.21, 0.18, -0.03], r: [0.035, 0.018]}
+  meat_7:
+    when: "var == 7"
+    material: meat
+    space: p7
+    prims:
+      - ellipsoid: {c: [0.30, -0.01, 0], r: [0.07, 0.08, 0.08]}
+      - ellipsoid: {c: [-0.33, 0.0, 0.0], r: [0.05, 0.06, 0.06]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 8
+    ms: 1000
+    channels: {var: "f"}
