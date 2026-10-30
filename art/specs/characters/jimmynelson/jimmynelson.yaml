@@ -1,0 +1,828 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: jimmynelson
+mirror: true
+kind: character
+size: 128
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 2.15, 0.0]}
+shadow: {rx: 35, ry: 12, alpha: 130}
+
+# JIMMYNELSON: Jimmy (jimmy_pup.yaml) turned into a colossal, blood-soaked beast, Act I boss. Same density as
+# every asset (scale 0.055); only the frame is bigger (128). Quadruped skeleton from wolf.yaml authored in "wolf
+# units" and blown up by the `rig` bone (scale 4.6): ~4.5 units tall, about 3x a human. Every part lives in a
+# space under `rig` so radii scale too, except the legs (world-space IK points: radii x4.6). Four 2-bone IK
+# legs (_L mirrored), paw targets in body space (`plant` 1 cancels `bob`). IK targets live in the scaled body
+# space but IK `lengths` are world units (authored 0.205 x rig 4.6).
+# COAT: the Yorkie coat is parted along the spine and falls in heavy locks down both flanks (bones lock1..6_L
+# on the spine line). `hair` is the phase of their swing and `hamp` its amplitude: each lock lags a little more
+# than the one in front of it (overlap), so the curtain ripples back to front in the walk. Lock tips, chest bib,
+# forelegs and muzzle are matted with dark blood (`gore` material); claws are red; `drip` grows a drop under
+# the chin. `fume` drives the green-yellow miasma puffs (emissive); `roar` > 0 shows the sonic rings of the
+# cast; `rend` uses `smear` (claw slash) and `splat` (blood burst at the hit socket).
+brief:
+  summary: >
+    Jimmy the Yorkshire terrier mutated into a hulking, bloodthirsty boss: a tan Yorkie head with a long
+    drooping beard and moustache, small erect ears, a torn red bow on the dishevelled top-knot, glowing red
+    eyes, a scarred face and a jaw of fangs dripping blood and red slaver. The dark steel-blue coat is parted
+    along the spine and falls in long, heavy, shaggy locks down both flanks almost to the knees; the locks
+    sway with a lag when it walks. Tan legs with shaggy cuffs and red, blood-soaked claws; the chest bib, the
+    lock tips, the forelegs and the muzzle are matted with dark blood. A foul green-yellow miasma drifts around it.
+  must_keep: [reads as a Yorkshire (tan head and legs vs dark steel-blue back, small erect ears, beard, coat
+    parted on the spine), torn red bow on the top-knot, glowing red eyes, fangs, long heavy locks (no spikes),
+    blood: muzzle, drips, matted tips and chest, red claws, scars; green-yellow miasma]
+  simplify: [locks as tapered chains (one bone each), blood as flat dark-red decals on the fur, the blood
+    burst as a few drops and a red claw smear, scars as 1 px pink lines]
+  decisions: >
+    Redesign (v2): the old steel-blue plates and spine spikes read as a porcupine and, seen from behind (n),
+    the round hump plates made a face. Now the back is one smooth mass with a darker parting line down the
+    spine and the locks hang off it to both sides, longest at mid-flank and ragged at the hem; from n it reads
+    as a shaggy mop with a parting, never as features. Hunched, heavy-fronted posture (front raised, massive
+    shoulders) so it towers; head scale 1.35 x rig over a short muzzle so it stays a Yorkie and not a wolf.
+    Blood is a non-emissive dark crimson (gore) darker than the bow's cloth red, so the bow stays the brightest
+    red on the body and the eyes stay the only glowing red; the claw smear of `rend` is an emissive red slash.
+    The bow keeps one red lobe, the other is torn to a stub with a ribbon dangling. Scar: three slashes across
+    the beast's left brow and muzzle (one side only; mirrored directions flip it, accepted). Cast = roar with the
+    head thrown up and the jaw wide (release at 450 ms). Rend = a raking left fore-claw swipe followed by a bite
+    on the same spot; the blood burst spawns at the `hit` socket (in front of the muzzle) on the hit frame.
+  exceptions: frame size 128 (boss), rig scale 4.6, spec-local ramps; same camera scale/pitch/light.
+
+ramps:
+  jn_tan:    ["#1c0f1a", "#6a3a14", "#b07228", "#dca24c", "#f2cf86"]
+  jn_steel:  ["#1c0f1a", "#161c34", "#283554", "#41557a", "#6a83a8"]
+  jn_part:   ["#1c0f1a", "#10142a", "#1c2440"]
+  jn_dark:   ["#1c0f1a", "#24181c", "#3a2a2a", "#55403a"]
+  jn_fang:   ["#1c0f1a", "#8a7a5a", "#d8ccaa", "#f6efd8"]
+  jn_eye:    ["#5a0a0a", "#ff2a1a", "#ff8a6a", "#ffe0d0"]
+  jn_miasma: ["#3c4a10", "#9cc22a", "#d6ec5a", "#f4fcb8"]
+  jn_gore:   ["#1c0f1a", "#3e0610", "#6c0c18", "#9c1420", "#cf2a26"]
+  jn_scar:   ["#1c0f1a", "#7a2a3a", "#c0607a"]
+  jn_fx_tail: ["#7a0c16"]
+  jn_fx_mid:  ["#d0201e"]
+  jn_fx_core: ["#ff7a52"]
+  # Sarah (copied from sarah_young.yaml so the carried princess matches her own sprite)
+  skin_fair:  ["#1c0f1a", "#a35a5a", "#eebfa4", "#fbdcc8", "#fff1e6"]
+  hair_brown: ["#1c0f1a", "#24130e", "#43261a", "#653c26"]
+  gown_lav:   ["#1c0f1a", "#6a5a9a", "#a796d6", "#cbbdf0", "#ece4ff"]
+  white_trim: ["#1c0f1a", "#a8a3c0", "#e4e0f0", "#ffffff"]
+  flower:     ["#1c0f1a", "#b0406a", "#f07aa6", "#ffc4dc"]
+
+materials:
+  tan:    {ramp: jn_tan, bands: [1, 3]}
+  coat:   {ramp: jn_steel, bands: [1, 4]}
+  part:   {ramp: jn_part, bands: [1, 2], outline: false, line: false}
+  sheen:  {ramp: jn_steel, bands: [4, 4], outline: false, line: false}
+  dark:   {ramp: jn_dark, bands: [1, 2]}
+  bow:    {ramp: cloth_red, bands: [1, 3]}
+  fang:   {ramp: jn_fang, bands: [2, 3]}
+  gore:   {ramp: jn_gore, bands: [1, 3], line: false}
+  wet:    {ramp: jn_gore, bands: [2, 4], line: false}
+  claw:   {ramp: jn_gore, bands: [3, 4]}
+  scar:   {ramp: jn_scar, bands: [1, 2], outline: false, line: false}
+  mouth:  {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:    {ramp: jn_eye, emissive: true, band: 2, outline: false, glow: {color: "#ff2a1a", mix: 0.55, radius: 1}}
+  miasma: {ramp: jn_miasma, emissive: true, band: 1, outline: false, glow: {color: "#b8e03a", mix: 0.35, radius: 1}}
+  sonic:  {ramp: jn_miasma, emissive: true, band: 3, outline: false, glow: {color: "#d6ec5a", mix: 0.4, radius: 1}}
+  fx_tail: {ramp: jn_fx_tail, emissive: true, outline: false}
+  fx_mid:  {ramp: jn_fx_mid, emissive: true, outline: false}
+  fx_core: {ramp: jn_fx_core, emissive: true, outline: false}
+  s_skin:   {ramp: skin_fair, bands: [2, 4], line_band: 2}
+  s_gown:   {ramp: gown_lav, bands: [1, 3]}
+  s_trim:   {ramp: white_trim, bands: [1, 3]}
+  s_hair:   {ramp: hair_brown, bands: [1, 3]}
+  s_gold:   {ramp: gold, bands: [2, 3]}
+  s_flower: {ramp: flower, bands: [2, 3]}
+  s_shoes:  {ramp: cloth_purple, bands: [1, 2]}
+  s_ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+  chain:    {ramp: jn_miasma, emissive: true, band: 1, outline: false, glow: {color: "#9cc22a", mix: 0.4, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes; 0: paws follow the body (death)
+  rear: 0.12        # + raises the front of the body (hunched, heavy front by default)
+  roll: 0           # roll around the body length (death)
+  twist: 0          # body yaw
+  squash: 1
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  jaw: 0            # + opens the mouth
+  ear_L: 0          # + perks / - flattens back
+  tail: 0
+  tail_up: 0
+  fume: 0           # miasma phase (radians): puffs drift up and around
+  roar: 0           # 0..1 sonic rings (cast)
+  hair: 0           # phase of the coat locks' swing (radians)
+  hamp: 0           # amplitude of the locks' swing (0 still, 1 walk)
+  hlift: 0          # + flares the locks outward (lunges, hits)
+  drip: 0           # 0..1 blood drop growing under the chin
+  smear: 0          # claw smear width (rend)
+  smear_a0: 0
+  smear_a1: 0
+  smear_fade: 1
+  splat: 0          # 0..1 blood burst at the hit socket (rend)
+  carry: 0          # 1: Sarah hangs from the jaws, bitten by the dress (carry_idle / carry_walk only)
+  sw_x: 0           # Sarah swing, front/back (rad)
+  sw_z: 0           # Sarah swing, side to side (rad)
+  s_fold: 0         # + folds her more over the jaws
+  s_head: 0         # her head lifts (+) / drops (-)
+  flail_L: 0        # her arms flail (rad, + forward)
+  kick_L: 0         # her legs kick (rad, + forward)
+  ffoot_L: [0.16, -0.475, 0.24]    # front paw target (body space)
+  hfoot_L: [0.15, -0.425, -0.20]   # hind paw target (body space)
+
+bones:
+  rig:      {parent: root, scale: 4.6}
+  body:     {parent: rig, pos: "[0, 0.44 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: [0, 0.24, 0.32], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.26 + head_pitch, head_yaw, 0]", scale: 6.21}   # 1.35 x rig 4.6 (headbase does not inherit scale)
+  jaw:      {parent: head, pos: [0, -0.025, 0.05], rot: "[jaw, 0, 0]"}
+  chin:     {parent: jaw, pos: [0, -0.055, 0.07], inherit_rot: false}            # blood drips hang straight down
+  ear_L:    {parent: head, pos: [0.07, 0.08, -0.02], rot: "[ear_L - 0.15, 0, -0.55]"}
+  tail:     {parent: body, pos: [0, 0.12, -0.26], rot: "[-0.9 - tail_up, tail, 0]"}
+  shoulder_L: {parent: body, pos: [0.13, -0.05, 0.20]}
+  hip_L:      {parent: body, pos: [0.12, -0.05, -0.19]}
+  fumespace:  {parent: rig, rot: "[0, twist, 0]"}
+  # coat locks hanging from the spine line, front (1) to rump (6); each lags 0.55 rad behind the one before
+  lock1_L:  {parent: body, pos: [0.16, 0.10, 0.20], rot: "[0.12*hamp*sin(hair) - 0.12, 0, -0.18*hlift - 0.06*hamp*sin(hair - 0.4)]"}
+  lock2_L:  {parent: body, pos: [0.18, 0.09, 0.08], rot: "[0.12*hamp*sin(hair - 0.6), 0, -0.18*hlift - 0.06*hamp*sin(hair - 1.0)]"}
+  lock3_L:  {parent: body, pos: [0.18, 0.09, -0.04], rot: "[0.12*hamp*sin(hair - 1.2), 0, -0.18*hlift - 0.06*hamp*sin(hair - 1.6)]"}
+  lock4_L:  {parent: body, pos: [0.17, 0.09, -0.16], rot: "[0.12*hamp*sin(hair - 1.8), 0, -0.18*hlift - 0.06*hamp*sin(hair - 2.2)]"}
+  lock5_L:  {parent: body, pos: [0.12, 0.10, -0.28], rot: "[0.14*hamp*sin(hair - 2.4) + 0.15, 0.6, -0.18*hlift]"}
+  # Sarah (1.45x real size, no rig scale), hung from a fang by a fetid chain and the back of her dress:
+  # she dangles upright beside the muzzle on the beast's right (-x, the near side in s/se/e), clear of
+  # its eyes, facing out. `sgrip` ignores the head rotation so she keeps world "down" and swings.
+  sgrip:      {parent: jaw, pos: [0, -0.03, 0.10], inherit_rot: false, inherit_scale: false,
+               rot: "[sw_x, twist, sw_z]", scale: 1.45}   # 1.45x real size so she reads at 1x
+  swaist:     {parent: sgrip, pos: [-0.24, -0.60, 0.04], rot: "[0.08, 0.35, 0.22]"}
+  supper:     {parent: swaist, rot: "[0.05 + 0.3*s_fold, 0, 0]"}
+  slower:     {parent: swaist, rot: "[-0.25*s_fold, 0, 0]"}
+  shead:      {parent: supper, pos: [0, 0.38, 0.03], rot: "[0.05 - 0.35*s_head, 0, 0.12*s_head]", scale: 1.75}
+  sarm_L:     {parent: supper, pos: [0.15, 0.29, 0.0], rot: "[flail_L, 0, -2.75]"}
+  sleg_L:     {parent: slower, pos: [0.07, -0.05, 0.0], rot: "[-kick_L, 0, 0.05]"}
+  roarspace:  {parent: head, pos: [0, -0.02, 0.13], rot: [0.6, 0, 0], scale: "1 - 0.55*pulse(abs(yaw), 180, 90)"}   # sonic rings follow the open jaws
+  # rend: the claw smear in front of the chest, and the blood burst at the bite point (= `hit` socket)
+  fxspace:    {parent: body, pos: [0, 0.10, 0.62], inherit_scale: false, rot: [-1.45, 0, 0.35]}   # arc plane faces forward (vertical)
+  burst:      {parent: head, pos: [0, -0.02, 0.18], inherit_rot: false, inherit_scale: false, rot: "[0, twist, 0]", scale: 4.6}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.94, 0.94],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.94, 0.94],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # heavy tan chest and haunches under the coat
+    material: tan
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.14], r: [0.21, 0.21, 0.19]}
+      - ellipsoid: {c: [0, 0.0, -0.13], r: [0.18, 0.17, 0.17]}
+      - cone: {a: [0, 0.06, 0.18], b: [0, 0.22, 0.30], r: [0.17, 0.14]}       # thick neck
+  bib:             # long tan chest hair hanging between the forelegs, matted at the ends
+    material: tan
+    space: body
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.02, 0.30], b: [0.0, -0.22, 0.30], r: [0.10, 0.03]}
+      - cone: {a: [0.06, 0.04, 0.29], b: [0.08, -0.18, 0.27], r: [0.07, 0.022]}
+      - cone: {a: [-0.06, 0.04, 0.29], b: [-0.09, -0.20, 0.27], r: [0.07, 0.022]}
+  bib_gore:        # dried blood soaking the chest bib
+    material: gore
+    space: body
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.01, -0.06, 0.335], r: [0.07, 0.08, 0.03], rot: [-0.25, 0, 0.2]}
+      - cone: {a: [0.0, -0.12, 0.31], b: [0.0, -0.21, 0.30], r: [0.04, 0.02]}
+      - cone: {a: [-0.07, -0.10, 0.285], b: [-0.09, -0.195, 0.27], r: [0.03, 0.016]}
+  coat:            # one smooth dark steel-blue mass over the back (the locks hang from it)
+    material: coat
+    space: body
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.11, -0.02], r: [0.215, 0.14, 0.33]}
+      - ellipsoid: {c: [0, 0.16, 0.16], r: [0.19, 0.11, 0.15]}               # shoulders
+      - cone: {a: [0, 0.17, 0.22], b: [0, 0.27, 0.31], r: [0.14, 0.11]}       # nape, under the head
+  parting:         # the darker parting line down the spine, the Yorkie hallmark
+    material: part
+    space: body
+    prims:
+      - chain: {pts: [[0, 0.268, 0.24], [0, 0.262, 0.10], [0, 0.252, -0.04], [0, 0.235, -0.18], [0, 0.20, -0.30]],
+                r: [0.012, 0.013, 0.013, 0.012, 0.010]}
+  lock1_L:         # heavy locks falling off the flank, ragged hem; line: false so the curtain reads as one mass
+    material: coat
+    space: lock1_L
+    blend: 0.04
+    line: false
+    prims:
+      - chain: {pts: [[-0.03, 0.06, 0.03], [0.03, -0.05, 0.03], [0.06, -0.20, 0.02], [0.065, -0.36, 0.00]], r: [0.05, 0.055, 0.045, 0.016]}
+      - chain: {pts: [[-0.03, 0.06, -0.05], [0.03, -0.05, -0.05], [0.055, -0.18, -0.06], [0.06, -0.26, -0.08]], r: [0.05, 0.05, 0.04, 0.014]}
+  lock2_L:
+    material: coat
+    space: lock2_L
+    blend: 0.04
+    line: false
+    prims:
+      - chain: {pts: [[-0.03, 0.06, 0.03], [0.03, -0.05, 0.03], [0.06, -0.20, 0.02], [0.065, -0.47, 0.00]], r: [0.05, 0.055, 0.045, 0.016]}
+      - chain: {pts: [[-0.03, 0.06, -0.05], [0.03, -0.05, -0.05], [0.055, -0.18, -0.06], [0.06, -0.3, -0.08]], r: [0.05, 0.05, 0.04, 0.014]}
+  lock3_L:
+    material: coat
+    space: lock3_L
+    blend: 0.04
+    line: false
+    prims:
+      - chain: {pts: [[-0.03, 0.06, 0.03], [0.03, -0.05, 0.03], [0.06, -0.20, 0.02], [0.065, -0.34, 0.00]], r: [0.05, 0.055, 0.045, 0.016]}
+      - chain: {pts: [[-0.03, 0.06, -0.05], [0.03, -0.05, -0.05], [0.055, -0.18, -0.06], [0.06, -0.48, -0.08]], r: [0.05, 0.05, 0.04, 0.014]}
+  lock4_L:
+    material: coat
+    space: lock4_L
+    blend: 0.04
+    line: false
+    prims:
+      - chain: {pts: [[-0.03, 0.06, 0.03], [0.03, -0.05, 0.03], [0.06, -0.20, 0.02], [0.065, -0.43, 0.00]], r: [0.05, 0.055, 0.045, 0.016]}
+      - chain: {pts: [[-0.03, 0.06, -0.05], [0.03, -0.05, -0.05], [0.055, -0.18, -0.06], [0.06, -0.28, -0.08]], r: [0.05, 0.05, 0.04, 0.014]}
+  lock5_L:
+    material: coat
+    space: lock5_L
+    blend: 0.04
+    line: false
+    prims:
+      - chain: {pts: [[-0.03, 0.06, 0.03], [0.03, -0.05, 0.03], [0.06, -0.20, 0.02], [0.065, -0.3, 0.00]], r: [0.05, 0.055, 0.045, 0.016]}
+      - chain: {pts: [[-0.03, 0.06, -0.05], [0.03, -0.05, -0.05], [0.055, -0.18, -0.06], [0.06, -0.22, -0.08]], r: [0.05, 0.05, 0.04, 0.014]}
+  sheen_L:         # a few lighter strands combed from the parting down the back (hair texture)
+    material: sheen
+    space: body
+    prims:
+      - chain: {pts: [[0.03, 0.262, 0.16], [0.12, 0.23, 0.17], [0.19, 0.15, 0.18]], r: [0.010, 0.011, 0.009]}
+      - chain: {pts: [[0.03, 0.250, -0.02], [0.13, 0.22, -0.02], [0.20, 0.13, -0.03]], r: [0.010, 0.011, 0.009]}
+      - chain: {pts: [[0.03, 0.225, -0.20], [0.11, 0.20, -0.21], [0.17, 0.12, -0.23]], r: [0.010, 0.010, 0.008]}
+  tip2_L:          # blood-soaked ends of two locks
+    material: gore
+    space: lock2_L
+    line: false
+    prims:
+      - cone: {a: [0.063, -0.36, 0.0], b: [0.065, -0.47, -0.0], r: [0.04, 0.016]}
+  tip3_L:
+    material: gore
+    space: lock3_L
+    line: false
+    prims:
+      - cone: {a: [0.058, -0.36, -0.07], b: [0.06, -0.48, -0.08], r: [0.036, 0.014]}
+  coat_gore:       # dark blood matted over the shoulder hump
+    material: gore
+    space: body
+    blend: 0.02
+    line: false
+    prims:
+      - ellipsoid: {c: [0.10, 0.215, 0.15], r: [0.08, 0.04, 0.09], rot: [0, 0, -0.5]}
+  streak2_L:       # blood soaked down the length of a few locks
+    material: gore
+    space: lock2_L
+    line: false
+    prims:
+      - chain: {pts: [[0.07, -0.08, 0.03], [0.10, -0.22, 0.02], [0.09, -0.40, 0.0]], r: [0.02, 0.028, 0.024]}
+  streak4_L:
+    material: gore
+    space: lock4_L
+    line: false
+    prims:
+      - chain: {pts: [[0.065, -0.10, -0.05], [0.09, -0.22, -0.06], [0.085, -0.36, -0.07]], r: [0.018, 0.025, 0.022]}
+  head:            # big tan Yorkie head, heavy brow
+    material: tan
+    space: head
+    blend: 0.035
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.0], r: [0.10, 0.09, 0.09]}
+      - ellipsoid: {c: [0, 0.01, 0.09], r: [0.055, 0.044, 0.07]}              # muzzle
+      - ellipsoid: {c: [0, 0.072, 0.06], r: [0.078, 0.025, 0.03]}             # heavy brow
+      - ellipsoid: {c: [0.07, -0.02, 0.01], r: [0.05, 0.06, 0.05]}            # cheek fur
+      - ellipsoid: {c: [-0.07, -0.02, 0.01], r: [0.05, 0.06, 0.05]}
+      - ellipsoid: {c: [0, 0.12, -0.01], r: [0.05, 0.05, 0.05]}               # top-knot
+  mane_L:          # long Yorkie fall: moustache and cheek hair drooping in heavy locks, messy top-knot
+    material: tan
+    space: head
+    blend: 0.025
+    prims:
+      - chain: {pts: [[0.08, 0.0, 0.0], [0.11, -0.07, -0.01], [0.12, -0.16, -0.03]], r: [0.04, 0.035, 0.012]}
+      - chain: {pts: [[0.07, 0.04, -0.05], [0.11, -0.02, -0.08], [0.13, -0.11, -0.10]], r: [0.035, 0.03, 0.01]}
+      - chain: {pts: [[0.035, -0.02, 0.10], [0.05, -0.08, 0.10], [0.055, -0.17, 0.08]], r: [0.03, 0.028, 0.01]}
+      - cone: {a: [0.03, 0.14, -0.02], b: [0.06, 0.20, -0.08], r: [0.03, 0.01]}
+  beard:           # the long beard under the jaw
+    material: tan
+    space: jaw
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.04], r: [0.045, 0.03, 0.055]}
+      - chain: {pts: [[0, -0.04, 0.05], [0, -0.10, 0.05], [0, -0.17, 0.03]], r: [0.04, 0.032, 0.012]}
+  muzzle_gore:     # blood smeared over the muzzle, lips and beard
+    material: gore
+    space: head
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0, -0.012, 0.105], r: [0.05, 0.022, 0.04]}
+      - ellipsoid: {c: [0.04, -0.03, 0.08], r: [0.025, 0.035, 0.03]}
+  beard_gore:
+    material: gore
+    space: jaw
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0, -0.05, 0.075], r: [0.04, 0.03, 0.03]}
+      - chain: {pts: [[0, -0.09, 0.055], [0, -0.17, 0.032]], r: [0.03, 0.013]}
+  drips:           # fresh drops falling from the chin and the beard
+    material: wet
+    space: chin
+    prims:
+      - cone: {a: [0, -0.02, 0], b: "[0, -0.06 - 0.10*drip, 0]", r: [0.018, "0.008 + 0.012*drip"]}
+      - cone: {a: [0.035, 0.0, -0.015], b: [0.04, -0.07, -0.015], r: [0.014, 0.009]}
+      - sphere: {c: "[-0.03, -0.09 - 0.12*drip, 0.01]", r: "0.012*(drip > 0.3)"}
+  mouth:
+    when: "jaw > 0.1"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.09], r: [0.04, "0.02 + 0.03*jaw", 0.045]}
+  slaver_L:        # red slaver strung between the jaws when open
+    when: "jaw > 0.18"
+    material: wet
+    space: head
+    prims:
+      - cone: {a: [0.03, -0.03, 0.105], b: "[0.032, -0.03 - 0.05*jaw, 0.11 - 0.02*jaw]", r: [0.008, 0.007]}
+  fang_L:          # upper fangs (long canine + a second one)
+    material: fang
+    space: head
+    prims:
+      - cone: {a: [0.032, -0.02, 0.11], b: [0.036, -0.09, 0.118], r: [0.017, 0.004]}
+      - cone: {a: [0.012, -0.02, 0.125], b: [0.013, -0.05, 0.128], r: [0.009, 0.003]}
+  fang_tip_L:      # blood on the canine tips
+    material: wet
+    space: head
+    prims:
+      - cone: {a: [0.0345, -0.065, 0.114], b: [0.035, -0.084, 0.115], r: [0.009, 0.004]}
+  lowfang_L:
+    material: fang
+    space: jaw
+    prims:
+      - cone: {a: [0.026, -0.02, 0.08], b: [0.029, 0.035, 0.088], r: [0.015, 0.004]}
+  nose:
+    material: dark
+    space: head
+    prims:
+      - sphere: {c: [0, 0.03, 0.14], r: 0.028}
+  brow_L:          # scowl: a dark slash angled down to the nose above each eye
+    material: dark
+    space: head
+    prims:
+      - box: {c: [0.044, 0.073, 0.088], half: [0.034, 0.008, 0.01], rot: [-0.3, -0.3, 0.42]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - ellipsoid: {c: [0.045, 0.05, 0.075], r: [0.026, 0.017, 0.015], rot: [0, 0, -0.35]}
+  scar:            # three slashes across the beast's left brow and cheek (one side only)
+    material: scar
+    space: head
+    prims:
+      - box: {c: [0.05, 0.065, 0.088], half: [0.008, 0.045, 0.006], rot: [-0.5, 0, 0.6]}
+      - box: {c: [0.075, 0.03, 0.07], half: [0.007, 0.04, 0.006], rot: [-0.3, 0.5, 0.6]}
+      - box: {c: [0.02, 0.02, 0.122], half: [0.006, 0.03, 0.006], rot: [-0.7, 0, 0.5]}
+  ear_L:
+    material: tan
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.15, -0.01], r: [0.05, 0.012]}
+  ear_in_L:
+    material: dark
+    space: ear_L
+    prims:
+      - cone: {a: [0, 0.015, 0.028], b: [0, 0.11, 0.01], r: [0.025, 0.006]}
+  bow:             # torn red bow: one lobe intact, a ripped stub, a dangling ribbon
+    material: bow
+    space: head
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [0.055, 0.185, 0.0], r: [0.06, 0.045, 0.03], rot: [0, 0, -0.45]}
+      - ellipsoid: {c: [-0.035, 0.165, 0.005], r: [0.032, 0.022, 0.025], rot: [0, 0, 0.9]}
+      - sphere: {c: [0, 0.16, 0.01], r: 0.025}
+      - chain: {pts: [[0.0, 0.15, 0.03], [0.02, 0.10, 0.06], [0.0, 0.06, 0.07]], r: [0.012, 0.011, 0.009]}
+  tail:            # short shaggy tail, hair falling off it
+    material: coat
+    space: tail
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.08, 0.0], [0, 0.15, 0.03]], r: [0.05, 0.055, 0.03]}
+      - chain: {pts: [[0, 0.12, 0.0], [0.03, 0.12, -0.07], [0.04, 0.06, -0.11]], r: [0.035, 0.03, 0.01]}
+      - chain: {pts: [[0, 0.12, 0.0], [-0.03, 0.12, -0.07], [-0.04, 0.06, -0.11]], r: [0.035, 0.03, 0.01]}
+  fleg_L:          # thick tan forelegs
+    material: tan
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: shoulder_L, off: [0.000, 0.000, 0.000]}, r: [0.414, 0.552, 0.460]}
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.345, 0.253]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.239, 0.211]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0.000, -0.023, 0.115]}, r: [0.267, 0.161, 0.299]}
+  fcuff_L:         # shaggy tan hair falling off the back of the forearm
+    material: tan
+    blend: 0.03
+    prims:
+      - cone: {a: {at: felbow_L, off: [0.0, 0.0, -0.10]}, b: {at: felbow_L, off: [0.05, -0.50, -0.40]}, r: [0.22, 0.06]}
+  fleg_gore_L:     # fore-paws soaked in blood, a run of it up the front of the shin
+    material: gore
+    blend: 0.02
+    line: false
+    prims:
+      - cone: {a: {at: fpaw_L, off: [0.06, 0.06, 0.20]}, b: {at: fpaw_L, off: [0.10, 0.45, 0.16]}, r: [0.12, 0.06]}
+  hleg_L:
+    material: tan
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: hip_L, off: [0.000, 0.000, 0.000]}, r: [0.414, 0.598, 0.506]}
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.368, 0.253]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.230, 0.207]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0.000, -0.023, 0.115]}, r: [0.257, 0.161, 0.285]}
+  claws_L:         # long red claws
+    material: claw
+    prims:
+      - cone: {a: {at: fpaw_L, off: [0.13, -0.046, 0.32]}, b: {at: fpaw_L, off: [0.17, -0.14, 0.56]}, r: [0.07, 0.022]}
+      - cone: {a: {at: fpaw_L, off: [0.0, -0.046, 0.35]}, b: {at: fpaw_L, off: [0.0, -0.14, 0.60]}, r: [0.07, 0.022]}
+      - cone: {a: {at: fpaw_L, off: [-0.13, -0.046, 0.32]}, b: {at: fpaw_L, off: [-0.17, -0.14, 0.56]}, r: [0.07, 0.022]}
+  hclaws_L:
+    material: claw
+    prims:
+      - cone: {a: {at: hpaw_L, off: [0.10, -0.046, 0.32]}, b: {at: hpaw_L, off: [0.12, -0.14, 0.48]}, r: [0.06, 0.02]}
+      - cone: {a: {at: hpaw_L, off: [-0.10, -0.046, 0.32]}, b: {at: hpaw_L, off: [-0.12, -0.14, 0.48]}, r: [0.06, 0.02]}
+  miasma:          # foul green-yellow puffs rising off the back and around the paws
+    material: miasma
+    space: fumespace
+    prims:
+      - sphere: {c: "[0.24 + 0.03*sin(fume), 0.66 + 0.10*sin(fume), -0.22]", r: 0.030}
+      - sphere: {c: "[-0.22 + 0.03*sin(fume + 2), 0.74 + 0.10*sin(fume + 2.1), 0.02]", r: 0.026}
+      - sphere: {c: "[-0.12 + 0.02*cos(fume + 1), 0.84 + 0.08*sin(fume + 1.0), -0.34]", r: 0.026}
+      - sphere: {c: "[0.29, 0.06 + 0.03*sin(fume + 3.1), 0.12]", r: 0.026}
+  sonic:           # sonic roar rings (cast), in front of the raised jaws
+    when: "roar > 0.05"
+    material: sonic
+    space: roarspace
+    prims:
+      - torus: {c: "[0, 0, 0.03 + 0.05*roar]", R: "0.035 + 0.035*roar", r: 0.006, rot: [1.5708, 0, 0]}
+      - torus: {c: "[0, 0, 0.07 + 0.10*roar]", R: "0.05 + 0.06*roar", r: 0.006, rot: [1.5708, 0, 0]}
+  claw_smear:      # rend: three red claw trails raking down-across in front of the chest (arc r/width in world units)
+    when: "smear > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: [0, 0, 0], r: 1.6, a0: smear_a0, a1: smear_a1, width: smear, fade: smear_fade, dip: 0.0}
+  claw_smear2:
+    when: "smear > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: [0.0, -0.06, 0.0], r: 1.25, a0: smear_a0, a1: smear_a1, width: smear, fade: smear_fade, dip: 0.0}
+  claw_smear3:
+    when: "smear > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: [0.0, -0.12, 0.0], r: 0.9, a0: smear_a0, a1: smear_a1, width: "0.8*smear", fade: smear_fade, dip: 0.0}
+  burst:           # rend: blood bursting from the bite point, drops flying out and falling
+    when: "splat > 0.02"
+    material: wet
+    space: burst
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "[0.14*(1 - splat), 0.11*(1 - splat), 0.09*(1 - splat)]"}
+      - sphere: {c: "[0.20*splat, 0.11*splat - 0.40*splat*splat, 0.07*splat]", r: "0.055*(1 - 0.35*splat)"}
+      - sphere: {c: "[-0.22*splat, 0.15*splat - 0.40*splat*splat, 0.03*splat]", r: "0.048*(1 - 0.35*splat)"}
+      - sphere: {c: "[0.09*splat, 0.24*splat - 0.40*splat*splat, 0.13*splat]", r: "0.045*(1 - 0.35*splat)"}
+      - sphere: {c: "[-0.11*splat, 0.04*splat - 0.48*splat*splat, 0.18*splat]", r: "0.048*(1 - 0.35*splat)"}
+      - sphere: {c: "[0.29*splat, -0.02*splat - 0.40*splat*splat, -0.02*splat]", r: "0.04*(1 - 0.35*splat)"}
+      - sphere: {c: "[-0.30*splat, 0.07*splat - 0.40*splat*splat, 0.09*splat]", r: "0.036*(1 - 0.35*splat)"}
+      - cone: {a: [0, 0, 0], b: "[0.15*splat, 0.18*splat, 0.11*splat]", r: ["0.05*(1 - splat)", "0.015*(1 - splat)"]}
+      - cone: {a: [0, 0, 0], b: "[-0.18*splat, 0.13*splat, 0.09*splat]", r: ["0.05*(1 - splat)", "0.015*(1 - splat)"]}
+
+  # ---- Sarah (carry only) ----
+  s_torso:         # lavender bodice, belt in the jaws
+    when: "carry > 0.5"
+    material: s_gown
+    space: supper
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.13, 0.11, 0.105]}
+      - ellipsoid: {c: [0, 0.21, 0.0], r: [0.145, 0.11, 0.11]}
+  s_belt:
+    when: "carry > 0.5"
+    material: s_gold
+    space: swaist
+    prims:
+      - torus: {c: [0, 0.03, 0], R: 0.13, r: 0.022}
+  s_neck:
+    when: "carry > 0.5"
+    material: s_skin
+    space: supper
+    prims:
+      - cone: {a: [0, 0.30, 0], b: [0, 0.40, 0.02], r: [0.045, 0.04]}
+  s_head:
+    when: "carry > 0.5"
+    material: s_skin
+    space: shead
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.145, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.10, 0.08, 0.10]}
+  s_hair:          # long dark-brown hair; the long fall hangs toward the ground
+    when: "carry > 0.5"
+    material: s_hair
+    space: shead
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.18, -0.02], r: [0.16, 0.125, 0.152]}
+      - ellipsoid: {c: [0, 0.10, -0.08], r: [0.155, 0.12, 0.10]}
+      - ellipsoid: {c: [0, -0.06, -0.13], r: [0.12, 0.15, 0.06]}
+      - ellipsoid: {c: [0, -0.22, -0.14], r: [0.095, 0.09, 0.045]}
+    cut:
+      - box: {c: [0, 0.08, 0.17], half: [0.14, 0.135, 0.1]}
+  s_locks:         # side locks framing the face
+    when: "carry > 0.5"
+    material: s_hair
+    space: shead
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0.13, 0.17, 0.06], [0.15, 0.06, 0.06], [0.14, -0.04, 0.04]], r: [0.035, 0.034, 0.024]}
+      - chain: {pts: [[-0.13, 0.17, 0.06], [-0.15, 0.06, 0.06], [-0.14, -0.04, 0.04]], r: [0.035, 0.034, 0.024]}
+  s_tiara:
+    when: "carry > 0.5"
+    material: s_gold
+    space: shead
+    prims:
+      - torus: {c: [0, 0.255, -0.01], R: 0.135, r: 0.02, rot: [-0.30, 0, 0]}
+      - cone: {a: [0, 0.29, 0.125], b: [0, 0.34, 0.13], r: [0.022, 0.008]}
+  s_flowers:
+    when: "carry > 0.5"
+    material: s_flower
+    space: shead
+    prims:
+      - sphere: {c: [0.075, 0.315, 0.08], r: 0.036}
+      - sphere: {c: [-0.075, 0.315, 0.08], r: 0.036}
+      - sphere: {c: [0.0, 0.33, 0.10], r: 0.034}
+  s_eyes:
+    when: "carry > 0.5"
+    material: s_ink
+    space: shead
+    prims:
+      - sphere: {c: [0.055, 0.14, 0.13], r: 0.024}
+      - sphere: {c: [-0.055, 0.14, 0.13], r: 0.024}
+  s_arm_L:         # lavender sleeves dangling toward the ground, flailing
+    when: "carry > 0.5"
+    material: s_gown
+    space: sarm_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0, 0], b: [0, 0.27, 0.03], r: [0.05, 0.048]}
+  s_puff_L:
+    when: "carry > 0.5"
+    material: s_trim
+    space: sarm_L
+    prims:
+      - sphere: {c: [0, 0.0, 0], r: 0.072}
+  s_hand_L:
+    when: "carry > 0.5"
+    material: s_skin
+    space: sarm_L
+    prims:
+      - sphere: {c: [0, 0.31, 0.03], r: 0.048}
+  s_skirt:         # bell skirt hanging off the other side of the jaws
+    when: "carry > 0.5"
+    material: s_gown
+    space: slower
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.02, 0], b: [0, -0.40, 0], r: [0.13, 0.23]}
+  s_hem:
+    when: "carry > 0.5"
+    material: s_trim
+    space: slower
+    prims:
+      - cylinder: {a: [0, -0.44, 0], b: [0, -0.38, 0], r: 0.23, round: 0.015}
+  s_leg_L:         # white stockings and purple shoes kicking out of the hem
+    when: "carry > 0.5"
+    material: s_trim
+    space: sleg_L
+    prims:
+      - cone: {a: [0, -0.30, 0], b: [0, -0.50, 0.0], r: [0.04, 0.035]}
+  s_shoe_L:
+    when: "carry > 0.5"
+    material: s_shoes
+    space: sleg_L
+    prims:
+      - ellipsoid: {c: [0, -0.53, 0.04], r: [0.05, 0.045, 0.08]}
+  s_chains:        # fetid green chains wrapped around her (emissive accent) and hooked on a fang
+    when: "carry > 0.5"
+    material: chain
+    space: supper
+    prims:
+      - torus: {c: [0, 0.10, 0], R: 0.15, r: 0.022, rot: [0.25, 0, 0.2]}
+      - torus: {c: [0, 0.24, 0], R: 0.16, r: 0.022, rot: [-0.3, 0, -0.2]}
+  s_leash:         # the chain from the fang down to her back
+    when: "carry > 0.5"
+    material: chain
+    space: sgrip
+    prims:
+      - chain: {pts: [[0, 0.02, -0.02], [-0.10, -0.12, -0.04], [-0.20, -0.27, -0.06]], r: [0.022, 0.02, 0.02]}
+  s_chains_skirt:
+    when: "carry > 0.5"
+    material: chain
+    space: slower
+    prims:
+      - torus: {c: [0, -0.20, 0], R: 0.19, r: 0.022, rot: [0.3, 0, 0]}
+
+
+sockets:
+  hit:   {bone: head, offset: [0, -0.02, 0.18]}      # bite / rend impact point (the blood burst spawns here)
+  mouth: {bone: head, offset: [0, -0.02, 0.13]}
+  head:  {bone: head, offset: [0, 0.22, 0]}
+  roar:  {bone: roarspace, offset: [0, 0, 0.2]}
+  claw_L: {bone: fpaw_L, offset: [0, -0.10, 0.45]}   # fore-claw tips (automatic claw_R twin)
+
+timing: {attack: {hit: 380ms, total: 900ms}, cast: {release: 450ms, total: 1150ms}, rend: {hit: 360ms, total: 960ms}}
+
+animations:
+  idle:            # heavy panting, blood dripping from the chin, the locks settle, an ear twitch
+    frames: 4
+    ms: 180
+    channels:
+      fume: "p"
+      hair: "p"
+      hamp: 0.35
+      drip: "0.5 + 0.5*sin(p - 1.2)"
+      bob: "0.010*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "0.04*sin(p)"
+      jaw: "0.30 + 0.08*sin(p)"
+      tail: "0.2*sin(p - 0.8)"
+      ear_L: "-0.3*(f == 2)"
+  walk:            # heavy lumbering trot, diagonal pairs, head swaying; the locks swing behind the body (overlap)
+    frames: 6
+    ms: 115
+    events: {0: step_l, 3: step_r}
+    channels:
+      fume: "p"
+      hair: "2*p - 0.6"
+      hamp: 1
+      drip: "0.5 + 0.5*sin(2*p)"
+      bob: "0.016*cos(2*p)"
+      twist: "0.05*sin(p)"
+      roll: "0.03*sin(p)"
+      head_pitch: "0.04*cos(2*p)"
+      head_yaw: "0.08*sin(p)"
+      jaw: 0.22
+      tail: "0.3*sin(p - 0.8)"
+      ffoot_L: "[0.16, -0.475 + 0.07*pos(-sin(p)), 0.24 + 0.10*cos(p)]"
+      hfoot_R: "[0.15, -0.425 + 0.07*pos(-sin(p)), -0.20 + 0.10*cos(p)]"
+      ffoot_R: "[0.16, -0.475 + 0.07*pos(sin(p)), 0.24 - 0.10*cos(p)]"
+      hfoot_L: "[0.15, -0.425 + 0.07*pos(sin(p)), -0.20 - 0.10*cos(p)]"
+  attack:          # rears back with jaws open, then slams forward in a crushing bite (hit 380 ms, total 900 ms)
+    loop: false
+    keys:
+      - ms: 130
+        set: {fume: 0.5, hair: 0.5, hamp: 0.6, root: [0, 0, -0.10], bob: -0.02, rear: 0.22, head_pitch: -0.2, jaw: 0.3, ear_L: -0.3, tail_up: 0.2}
+      - ms: 250
+        event: windup
+        set: {fume: 1.0, hair: 1.2, hamp: 0.8, root: [0, 0, -0.16], bob: -0.01, rear: 0.34, squash: 0.94, head_pitch: -0.4, jaw: 0.7, ear_L: -0.5, tail_up: 0.3,
+              ffoot_L: [0.16, -0.40, 0.30], ffoot_R: [0.16, -0.40, 0.30]}
+      - ms: 70
+        event: hit
+        set: {fume: 1.6, hair: 2.6, hamp: 1, hlift: 0.6, root: [0, 0, 0.18], bob: -0.04, rear: -0.10, squash: 1.08, head_pitch: 0.35, jaw: 0.05, ear_L: -0.6, tail_up: -0.1,
+              ffoot_L: [0.16, -0.475, 0.34], ffoot_R: [0.16, -0.475, 0.34], hfoot_L: [0.15, -0.425, -0.28], hfoot_R: [0.15, -0.425, -0.28]}
+      - ms: 200
+        set: {fume: 2.2, hair: 3.4, hamp: 0.8, hlift: 0.3, drip: 1, root: [0, 0, 0.15], bob: -0.03, rear: -0.04, squash: 1.0, head_pitch: 0.3, jaw: 0.1, ear_L: -0.4,
+              ffoot_L: [0.16, -0.475, 0.32], ffoot_R: [0.16, -0.475, 0.32], hfoot_L: [0.15, -0.425, -0.26], hfoot_R: [0.15, -0.425, -0.26]}
+      - ms: 250
+        set: {fume: 2.8, hair: 4.2, hamp: 0.4, drip: 0.6, root: [0, 0, 0.15], head_pitch: 0.08, jaw: 0.2, tail: 0.2}
+  rend:            # mauling claw rake + bite: rears and raises the left fore-claw, rakes down-across (hit), bites the same spot, blood bursts
+    loop: false
+    keys:
+      - ms: 160
+        set: {fume: 0.4, hair: 0.6, hamp: 0.5, root: [0, 0, -0.06], bob: 0.0, rear: 0.26, twist: 0.10, roll: -0.08, head_pitch: -0.25, jaw: 0.4, ear_L: -0.4, tail_up: 0.2,
+              ffoot_L: [0.24, -0.20, 0.36]}
+      - ms: 200
+        event: windup
+        set: {fume: 0.8, hair: 1.2, hamp: 0.8, hlift: 0.3, root: [0, 0, -0.10], bob: 0.02, rear: 0.36, twist: 0.18, roll: -0.14, squash: 0.95, head_pitch: -0.45, jaw: 0.8, ear_L: -0.6, tail_up: 0.35,
+              ffoot_L: [0.30, 0.05, 0.36], ffoot_R: [0.16, -0.46, 0.26]}
+      - ms: 60
+        event: hit
+        set: {fume: 1.4, hair: 2.4, hamp: 1, hlift: 0.7, root: [0, 0, 0.20], bob: -0.04, rear: -0.04, twist: -0.14, roll: 0.10, squash: 1.08, head_pitch: 0.15, jaw: 0.9, ear_L: -0.7, tail_up: -0.1,
+              ffoot_L: [0.0, -0.32, 0.50], hfoot_L: [0.15, -0.425, -0.27], hfoot_R: [0.15, -0.425, -0.27],
+              smear: 0.17, smear_a0: 0.8, smear_a1: 3.1, splat: 0.2}
+      - ms: 90
+        event: bite
+        set: {fume: 1.8, hair: 3.0, hamp: 1, hlift: 0.5, root: [0, 0, 0.12], bob: -0.06, rear: -0.12, twist: -0.18, roll: 0.10, squash: 1.04, head_pitch: 0.40, jaw: 0.05, ear_L: -0.7, drip: 1,
+              ffoot_L: [-0.02, -0.46, 0.36], hfoot_L: [0.15, -0.425, -0.27], hfoot_R: [0.15, -0.425, -0.27],
+              smear: 0.13, smear_a0: 1.6, smear_a1: 3.4, smear_fade: 0.6, splat: 0.55}
+      - ms: 180
+        set: {fume: 2.4, hair: 3.8, hamp: 0.8, hlift: 0.2, root: [0, 0, 0.10], bob: -0.04, rear: -0.06, twist: -0.10, roll: 0.05, head_pitch: 0.30, jaw: 0.25, ear_L: -0.5, drip: 1,
+              ffoot_L: [0.06, -0.475, 0.34], hfoot_L: [0.15, -0.425, -0.25], hfoot_R: [0.15, -0.425, -0.25], splat: 0.9}
+      - ms: 270
+        set: {fume: 3.0, hair: 4.6, hamp: 0.4, drip: 0.7, root: [0, 0, 0.12], rear: 0.08, head_pitch: 0.10, jaw: 0.3, ear_L: -0.2, tail: 0.2,
+              ffoot_L: [0.12, -0.475, 0.30]}
+  cast:            # sonic ROAR: crouches and inhales, throws the head up, jaws wide, rings blast out (release 450 ms)
+    loop: false
+    keys:
+      - ms: 180
+        set: {fume: 0.4, hair: 0.4, hamp: 0.3, bob: -0.03, rear: 0.0, squash: 0.94, head_pitch: 0.3, jaw: 0.1, ear_L: -0.4, tail_up: -0.1}
+      - ms: 270
+        event: windup
+        set: {fume: 0.8, hair: 0.8, hamp: 0.4, bob: -0.04, rear: -0.02, squash: 0.9, head_pitch: 0.4, jaw: 0.0, ear_L: -0.6, tail_up: -0.2}
+      - ms: 110
+        event: release
+        set: {fume: 1.4, hair: 2.0, hamp: 1, hlift: 0.8, bob: 0.03, rear: 0.32, squash: 1.08, head_pitch: -0.75, jaw: 1.0, ear_L: -0.7, tail_up: 0.4, roar: 0.35,
+              ffoot_L: [0.16, -0.43, 0.24], ffoot_R: [0.16, -0.43, 0.24]}
+      - ms: 160
+        set: {fume: 2.0, hair: 2.8, hamp: 1, hlift: 0.9, bob: 0.03, rear: 0.34, squash: 1.06, head_pitch: -0.8, jaw: 1.0, ear_L: -0.7, tail_up: 0.4, roar: 0.7,
+              ffoot_L: [0.16, -0.43, 0.24], ffoot_R: [0.16, -0.43, 0.24], head_yaw: 0.06}
+      - ms: 200
+        set: {fume: 2.6, hair: 3.6, hamp: 0.8, hlift: 0.6, bob: 0.02, rear: 0.30, squash: 1.04, head_pitch: -0.7, jaw: 0.9, ear_L: -0.6, tail_up: 0.3, roar: 1.0,
+              ffoot_L: [0.16, -0.44, 0.24], ffoot_R: [0.16, -0.44, 0.24], head_yaw: -0.06}
+      - ms: 230
+        set: {fume: 3.2, hair: 4.4, hamp: 0.4, rear: 0.16, head_pitch: -0.1, jaw: 0.3, ear_L: -0.2}
+  hit:             # flinches back, head jerked up, ears flat, the locks fly out
+    loop: false
+    keys:
+      - ms: 80
+        set: {fume: 0.3, hair: 1.6, hamp: 1, hlift: 0.8, root: [0, 0, -0.25], bob: -0.03, rear: 0.25, squash: 0.92, head_pitch: -0.35, ear_L: -0.6, jaw: 0.5, tail_up: -0.2}
+      - ms: 90
+        set: {fume: 0.6, hair: 2.6, hamp: 0.8, hlift: 0.4, root: [0, 0, -0.20], bob: -0.02, rear: 0.18, squash: 0.96, head_pitch: -0.15, ear_L: -0.4, jaw: 0.3}
+      - ms: 110
+        set: {fume: 0.9, hair: 3.6, hamp: 0.4, root: [0, 0, -0.08], ear_L: -0.15, jaw: 0.15}
+  death:           # howls, staggers, crashes onto its side; the eyes go out last
+    loop: false
+    keys:
+      - ms: 140
+        set: {fume: 0.3, hair: 0.8, hamp: 0.6, root: [0, 0, -0.15], rear: 0.4, squash: 0.94, head_pitch: -0.7, jaw: 0.9, ear_L: -0.6, tail_up: -0.2,
+              ffoot_L: [0.16, -0.42, 0.24], ffoot_R: [0.16, -0.42, 0.24]}
+      - ms: 140
+        set: {fume: 0.6, hair: 1.6, hamp: 0.8, root: [0, 0, -0.2], bob: -0.06, rear: 0.15, roll: 0.35, head_pitch: -0.3, jaw: 0.7, ear_L: -0.5}
+      - ms: 130
+        set: {fume: 0.9, hair: 2.4, hamp: 0.8, hlift: 0.4, root: [0, 0, -0.2], bob: -0.14, plant: 0, rear: 0.0, roll: 0.9, head_pitch: 0.1, jaw: 0.5, ear_L: -0.5,
+              ffoot_L: [0.18, -0.40, 0.26], hfoot_L: [0.18, -0.38, -0.22]}
+      - ms: 130
+        set: {fume: 1.2, hair: 3.2, hamp: 0.5, root: [0, 0, -0.2], bob: -0.24, plant: 0, roll: 1.4, squash: 0.95, head_pitch: 0.25, jaw: 0.4, ear_L: -0.5,
+              ffoot_L: [0.16, -0.40, 0.32], ffoot_R: [0.16, -0.40, 0.34], hfoot_L: [0.15, -0.38, -0.27], hfoot_R: [0.15, -0.38, -0.24]}
+      - ms: 700
+        set: {fume: 1.5, root: [0, 0, -0.2], bob: -0.25, plant: 0, roll: 1.5, squash: 0.95, head_pitch: 0.3, jaw: 0.25, ear_L: -0.5, drip: 1,
+              ffoot_L: [0.16, -0.40, 0.32], ffoot_R: [0.16, -0.40, 0.34], hfoot_L: [0.15, -0.38, -0.27], hfoot_R: [0.15, -0.38, -0.24]}
+  carry_idle:      # prologue end: Sarah hangs from its jaws, kicking and struggling; it pants, miasma drifts
+    frames: 4
+    ms: 170
+    channels:
+      carry: 1
+      fume: "p"
+      hair: "p"
+      hamp: 0.35
+      drip: "0.5 + 0.5*sin(p)"
+      bob: "0.010*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "0.12 + 0.03*sin(p)"
+      jaw: 0.22
+      ear_L: "-0.25"
+      tail: "0.15*sin(p - 0.8)"
+      sw_z: "0.10*sin(p - 0.6)"
+      sw_x: "0.06*sin(2*p)"
+      s_fold: "0.08*sin(p)"
+      s_head: "0.25*pos(sin(p + 1.0))"
+      flail_L: "0.6*sin(2*p)"
+      flail_R: "-0.6*sin(2*p + 0.8)"
+      kick_L: "0.7*sin(2*p)"
+      kick_R: "-0.7*sin(2*p)"
+  carry_walk:      # heavy, menacing stride with its prize: low head, shoulders rolling, Sarah swinging and kicking
+    frames: 6
+    ms: 130
+    events: {0: step_l, 3: step_r}
+    channels:
+      carry: 1
+      fume: "p"
+      hair: "2*p - 0.6"
+      hamp: 1
+      drip: "0.5 + 0.5*sin(2*p)"
+      bob: "-0.02*cos(2*p) - 0.01"
+      twist: "0.06*sin(p)"
+      roll: "0.04*sin(p)"
+      rear: 0.06
+      head_pitch: "0.16 + 0.05*cos(2*p)"
+      head_yaw: "0.06*sin(p)"
+      jaw: 0.22
+      ear_L: -0.35
+      tail: "0.3*sin(p - 0.8)"
+      sw_z: "0.20*sin(p - 0.9)"
+      sw_x: "0.10*cos(2*p - 0.6)"
+      s_fold: "0.10*sin(2*p)"
+      s_head: "0.3*pos(sin(p))"
+      flail_L: "0.7*sin(2*p)"
+      flail_R: "-0.7*sin(2*p + 1.0)"
+      kick_L: "0.8*sin(2*p + 0.5)"
+      kick_R: "-0.8*sin(2*p + 0.5)"
+      ffoot_L: "[0.16, -0.475 + 0.07*pos(-sin(p)), 0.24 + 0.11*cos(p)]"
+      hfoot_R: "[0.15, -0.425 + 0.07*pos(-sin(p)), -0.20 + 0.11*cos(p)]"
+      ffoot_R: "[0.16, -0.475 + 0.07*pos(sin(p)), 0.24 - 0.11*cos(p)]"
+      hfoot_L: "[0.15, -0.425 + 0.07*pos(sin(p)), -0.20 - 0.11*cos(p)]"

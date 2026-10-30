@@ -1,0 +1,173 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: leech
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.2, 0.0]}
+shadow: {rx: 13, ry: 4.5, alpha: 110}
+
+# Giant swamp leech: ambush enemy of the swamp. Lies flat in the mud (idle) until the hero is near, then
+# crawls like an inchworm and rears up to latch on with its round toothed sucker.
+# Not a humanoid: a spine of 7 segment bones (seg0 = head .. seg6 = tail) whose positions are expressions
+# of a few channels (len, hump, rear, flat, sway), so the whole body bends without IK.
+brief:
+  summary: giant dark olive-brown swamp leech, ~1.5 goblin-heights long (~1.9 units), low and fat,
+    ringed segments with two ochre dorsal stripes, round toothed sucker mouth with red inside at the front
+  must_keep: [long segmented body, round sucker mouth with red inside and pale teeth, low silhouette (~10 px tall)]
+  simplify: [no eyespots, rear sucker merged into the tail segment, teeth as 5 pale nubs]
+  decisions: |
+    Segments alternate between two parts (seg_a / seg_b) of the same material so inner lines draw the rings.
+    Two ochre dorsal stripes give the body a read over swamp mud and green grass alike.
+    The head is tilted up a little at rest so the red sucker shows from the 38 deg camera.
+    Idle is flattened (flat 0.7) with a slow ripple: the ambusher lying in the mud; the game handles hiding.
+    Death: writhes, rolls onto its side and deflates.
+
+ramps:
+  leech:        ["#1c0f1a", "#2a2014", "#47381f", "#66532c", "#86713c"]
+  leech_stripe: ["#1c0f1a", "#6b4a1c", "#a8742a", "#d4a24a"]
+  leech_maw:    ["#1c0f1a", "#5a0c16", "#b0202a", "#e0483c"]
+
+materials:
+  body:   {ramp: leech, bands: [1, 3]}
+  stripe: {ramp: leech_stripe, bands: [1, 2], outline: false, line: false}
+  maw:    {ramp: leech_maw, bands: [2, 3], outline: false, line: false}
+  tooth:  {ramp: bone, bands: [3, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  len: 1          # body length factor (inchworm: < 1 bunched, > 1 stretched)
+  hump: 0         # inchworm arch height at mid-body
+  rear: 0         # lifts the front third of the body
+  flat: 1         # vertical thickness factor (idle in the mud < 1)
+  puff: 1         # radius factor (breathing, deflate on death)
+  sway: 0         # lateral S-wave amplitude
+  wave: 0         # phase of the lateral wave
+  roll: 0         # roll around the body axis (death: onto its side)
+  gape: 1         # sucker opening
+  mtilt: -0.55    # extra head pitch (- = mouth faces up)
+
+bones:
+  body:  {parent: root, pos: "[0, 0.10*abs(sin(roll)), 0]", rot: "[0, 0, roll]"}
+  seg0:  {parent: body, pos: "[sway*sin(wave), 0.19*0.62*flat*puff + rear*1.00 + hump*0.000, len*0.78 - rear*0.30]"}
+  seg1:  {parent: body, pos: "[sway*sin(wave - 0.67), 0.23*0.62*flat*puff + rear*0.62 + hump*0.500, len*0.52 - rear*0.16]"}
+  seg2:  {parent: body, pos: "[sway*sin(wave - 1.33), 0.27*0.62*flat*puff + rear*0.32 + hump*0.866, len*0.26 - rear*0.06]"}
+  seg3:  {parent: body, pos: "[sway*sin(wave - 2.00), 0.29*0.62*flat*puff + rear*0.10 + hump*1.000, len*0.00]"}
+  seg4:  {parent: body, pos: "[sway*sin(wave - 2.67), 0.29*0.62*flat*puff + hump*0.866, len*-0.26]"}
+  seg5:  {parent: body, pos: "[sway*sin(wave - 3.33), 0.27*0.62*flat*puff + hump*0.500, len*-0.52]"}
+  seg6:  {parent: body, pos: "[sway*sin(wave - 4.00), 0.23*0.62*flat*puff + hump*0.000, len*-0.78]"}
+  # head frame: at seg0, pitched up with the rear (mouth faces forward/up)
+  head:  {parent: seg0, rot: "[mtilt - rear*1.1 - hump*0.6, 0.6*sway*cos(wave), 0]"}
+
+parts:
+  seg_a:           # even segments (head, 2, 4, 6)
+    material: body
+    space: body
+    blend: 0.02
+    line: true
+    prims:
+      - ellipsoid: {c: "@seg0", r: "[0.19*puff, 0.19*0.62*flat*puff, 0.20]", align: ["@seg1", "@seg0"]}
+      - ellipsoid: {c: "@seg2", r: "[0.27*puff, 0.27*0.62*flat*puff, 0.23*len]", align: ["@seg3", "@seg1"]}
+      - ellipsoid: {c: "@seg4", r: "[0.29*puff, 0.29*0.62*flat*puff, 0.23*len]", align: ["@seg5", "@seg3"]}
+      - ellipsoid: {c: "@seg6", r: "[0.23*puff, 0.23*0.62*flat*puff, 0.19]", align: ["@seg6", "@seg5"]}
+  seg_b:           # odd segments
+    material: body
+    space: body
+    blend: 0.02
+    line: true
+    prims:
+      - ellipsoid: {c: "@seg1", r: "[0.23*puff, 0.23*0.62*flat*puff, 0.23*len]", align: ["@seg2", "@seg0"]}
+      - ellipsoid: {c: "@seg3", r: "[0.29*puff, 0.29*0.62*flat*puff, 0.23*len]", align: ["@seg4", "@seg2"]}
+      - ellipsoid: {c: "@seg5", r: "[0.27*puff, 0.27*0.62*flat*puff, 0.23*len]", align: ["@seg6", "@seg4"]}
+  stripe_L:        # ochre dorsal stripe along the top
+    material: stripe
+    space: body
+    prims:
+      - chain:
+          pts:
+            - {at: seg1, off: "[0.08, 0.23*0.60*flat*puff, 0]"}
+            - {at: seg2, off: "[0.10, 0.27*0.60*flat*puff, 0]"}
+            - {at: seg3, off: "[0.11, 0.29*0.60*flat*puff, 0]"}
+            - {at: seg4, off: "[0.11, 0.29*0.60*flat*puff, 0]"}
+            - {at: seg5, off: "[0.10, 0.27*0.60*flat*puff, 0]"}
+            - {at: seg6, off: "[0.08, 0.23*0.58*flat*puff, -0.05]"}
+          r: [0.022, 0.026, 0.028, 0.028, 0.026, 0.02]
+  sucker:          # lip ring around the mouth
+    material: body
+    space: head
+    prims:
+      - torus: {c: [0, 0, 0.17], R: "0.14*(0.75 + 0.25*gape)", r: 0.05, rot: [1.5708, 0, 0]}
+  maw:             # red inside of the sucker
+    material: maw
+    space: head
+    prims:
+      - cylinder: {a: [0, 0, 0.12], b: [0, 0, 0.19], r: "0.13*(0.6 + 0.4*gape)"}
+  teeth:
+    material: tooth
+    space: head
+    prims:
+      - sphere: {c: "[0.0, 0.105*(0.75 + 0.25*gape), 0.20]", r: 0.03}
+      - sphere: {c: "[0.10*(0.75 + 0.25*gape), 0.032*(0.75 + 0.25*gape), 0.20]", r: 0.03}
+      - sphere: {c: "[-0.10*(0.75 + 0.25*gape), 0.032*(0.75 + 0.25*gape), 0.20]", r: 0.03}
+      - sphere: {c: "[0.062*(0.75 + 0.25*gape), -0.085*(0.75 + 0.25*gape), 0.20]", r: 0.03}
+      - sphere: {c: "[-0.062*(0.75 + 0.25*gape), -0.085*(0.75 + 0.25*gape), 0.20]", r: 0.03}
+
+sockets:
+  hit: {bone: head, offset: [0, 0, 0.18]}
+
+timing: {attack: {hit: 340ms, total: 560ms}}
+
+animations:
+  idle:
+    frames: 4
+    ms: 180
+    channels:
+      flat: 0.7
+      puff: "1 + 0.04*sin(p)"
+      sway: 0.03
+      wave: "p"
+      gape: "0.7 + 0.2*sin(p)"
+  walk:            # inchworm crawl: bunch up into an arch, then stretch the front forward flat
+    frames: 6
+    ms: 100
+    events: {0: step_l, 3: step_r}
+    channels:
+      hump: "0.20*(0.5 - 0.5*cos(p))"
+      len: "1.08 - 0.20*(0.5 - 0.5*cos(p))"
+      root: "[0, 0, 0.06*sin(p)]"
+      mtilt: "-0.55 + 0.15*sin(p)"
+      puff: "1 + 0.03*cos(p)"
+      sway: 0.03
+      wave: "p"
+      gape: 0.8
+  attack:          # rears up with the sucker open, lunges and latches (hit 340 ms, total 560 ms)
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {root: [0, 0, -0.04], rear: 0.30, len: 0.94, puff: 1.04, gape: 1.2, mtilt: -0.25}
+      - ms: 150
+        set: {root: [0, 0, -0.08], rear: 0.55, len: 0.88, puff: 1.07, gape: 1.5, mtilt: -0.15}
+      - ms: 70
+        set: {root: [0, 0, 0.06], rear: 0.12, len: 1.10, puff: 0.98, gape: 1.6, mtilt: 0.35}
+      - ms: 110
+        event: hit
+        set: {root: [0, 0, 0.08], rear: 0.04, len: 1.12, flat: 0.9, puff: 1.06, gape: 0.7, mtilt: 0.25}
+      - ms: 110
+        set: {root: [0, 0, 0.04], len: 1.03, puff: 1.03, gape: 0.8, mtilt: -0.1}
+  hit:             # recoils and writhes
+    loop: false
+    keys:
+      - {ms: 70, event: hit, set: {root: [0, 0, -0.08], rear: 0.22, len: 0.9, puff: 0.92, sway: 0.12, wave: 0.0, gape: 1.4}}
+      - {ms: 80, set: {root: [0, 0, -0.05], rear: 0.10, len: 0.95, puff: 0.97, sway: 0.09, wave: 1.6, gape: 1.1}}
+      - {ms: 100, set: {root: [0, 0, -0.02], len: 1.0, sway: 0.04, wave: 3.0}}
+  death:           # writhes, rolls onto its side and deflates (last frame 700 ms)
+    loop: false
+    keys:
+      - {ms: 90, set: {rear: 0.35, sway: 0.14, wave: 0.0, gape: 1.6, puff: 1.02, mtilt: -0.1}}
+      - {ms: 100, set: {rear: 0.15, sway: 0.16, wave: 1.8, gape: 1.3, roll: 0.5, puff: 0.96}}
+      - {ms: 110, set: {rear: 0.0, sway: 0.14, wave: 3.4, gape: 1.0, roll: 0.9, puff: 0.92, flat: 0.9}}
+      - {ms: 120, set: {sway: 0.13, wave: 4.4, gape: 0.7, roll: 1.0, puff: 0.86, flat: 0.8, len: 0.98}}
+      - {ms: 700, event: dead, set: {sway: 0.12, wave: 4.7, gape: 0.4, roll: 1.0, puff: 0.82, flat: 0.72, len: 0.96, mtilt: 0.1}}

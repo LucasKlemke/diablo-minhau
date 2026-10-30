@@ -1,0 +1,207 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_rubble
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.5584, 0]}   # 8 px above the pivot -> pivot (24, 32)
+shadow: null             # the pale dust skirt under the heap is its contact
+
+# Prologue (the castle destroyed): heaps of broken white marble.
+brief:
+  summary: heaps of broken white marble from the hall's walls and columns - angular chunks piled higher in
+    the middle, a fluted column drum, a few gold fragments of capitals, a skirt of pale dust underneath
+  must_keep: [white marble of castle_column / castle_throne, gold bits, chunky angular silhouette, 3 sizes]
+  simplify: [chunks as rounded boxes, 2-3 tones each, dust as a flat pale shape]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0.5584, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 32) = the ground point at the centre of the heap. VARIANTS: animation
+    `variants` has 3 frames: 0 big heap (~2 x 1.5 tiles, blocking), 1 medium (1.5 x 1 tiles, blocking),
+    2 small scatter (1 tile, walkable); `idle` = variant 0. Geometry generated once from a seeded layout.
+
+ramps:
+  rb_marble: ["#1c0f1a", "#6e6480", "#a39bb2", "#d6d0de", "#f6f4f8"]
+  rb_gold:   ["#1c0f1a", "#804a19", "#c7861f", "#e1a227", "#eddc83"]
+  rb_dust:   ["#1c0f1a", "#cfc6c0"]
+
+materials:
+  marble: {ramp: rb_marble, bands: [1, 4]}
+  gold:   {ramp: rb_gold, bands: [2, 4]}
+  dust:   {ramp: rb_dust, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..2
+
+bones:
+  body: {parent: root}
+
+parts:
+  dust_0:
+    when: "var == 0"
+    material: dust
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.05], r: [1.092, 0.004, 0.807]}
+      - ellipsoid: {c: [0.570, 0.004, 0.380], r: [0.380, 0.004, 0.285]}
+  dust_1:
+    when: "var == 1"
+    material: dust
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.05], r: [0.862, 0.004, 0.637]}
+      - ellipsoid: {c: [0.450, 0.004, 0.300], r: [0.300, 0.004, 0.225]}
+  dust_2:
+    when: "var == 2"
+    material: dust
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0.05], r: [0.690, 0.004, 0.510]}
+      - ellipsoid: {c: [0.360, 0.004, 0.240], r: [0.240, 0.004, 0.180]}
+  marble_0:
+    when: "var == 0"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.352, 0.259, 0.366], half: [0.228, 0.124, 0.203], rot: [0.039, 0.252, -0.053], round: 0.025}
+      - box: {c: [0.537, 0.265, 0.015], half: [0.174, 0.159, 0.219], rot: [-0.315, 1.407, 0.165], round: 0.025}
+      - box: {c: [0.466, 0.159, -0.535], half: [0.163, 0.103, 0.146], rot: [-0.423, 2.123, 0.434], round: 0.025}
+      - box: {c: [0.498, 0.261, -0.170], half: [0.217, 0.125, 0.177], rot: [0.241, 0.506, 0.359], round: 0.025}
+      - box: {c: [-0.703, 0.151, 0.345], half: [0.139, 0.081, 0.141], rot: [-0.371, 3.134, -0.131], round: 0.025}
+      - box: {c: [0.665, 0.186, 0.077], half: [0.109, 0.106, 0.087], rot: [0.282, 2.209, 0.009], round: 0.025}
+  marble_1:
+    when: "var == 1"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.260, 0.343, -0.116], half: [0.257, 0.182, 0.192], rot: [-0.334, 0.906, 0.231], round: 0.025}
+      - box: {c: [-0.318, 0.203, 0.242], half: [0.113, 0.097, 0.136], rot: [-0.185, 0.069, 0.246], round: 0.025}
+      - box: {c: [0.389, 0.289, 0.063], half: [0.282, 0.119, 0.228], rot: [0.329, 2.541, 0.351], round: 0.025}
+      - box: {c: [0.000, 0.247, 0.244], half: [0.156, 0.073, 0.087], rot: [0.184, 2.787, -0.585], round: 0.025}
+      - box: {c: [0.287, 0.203, 0.217], half: [0.170, 0.109, 0.148], rot: [-0.163, 2.081, 0.060], round: 0.025}
+  marble_2:
+    when: "var == 2"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.253, 0.135, 0.272], half: [0.119, 0.067, 0.103], rot: [0.080, 0.136, 0.036], round: 0.025}
+      - box: {c: [-0.223, 0.157, 0.311], half: [0.146, 0.091, 0.159], rot: [-0.400, 0.651, 0.107], round: 0.025}
+      - box: {c: [0.387, 0.177, -0.052], half: [0.183, 0.076, 0.098], rot: [0.430, 2.772, -0.139], round: 0.025}
+  marbleb_0:
+    when: "var == 0"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.789, 0.165, 0.196], half: [0.167, 0.137, 0.136], rot: [-0.386, 0.592, -0.184], round: 0.025}
+      - box: {c: [0.248, 0.373, -0.141], half: [0.219, 0.148, 0.204], rot: [0.009, 0.910, 0.108], round: 0.025}
+      - box: {c: [0.379, 0.165, 0.510], half: [0.129, 0.115, 0.126], rot: [-0.228, 1.950, 0.181], round: 0.025}
+      - box: {c: [0.129, 0.283, -0.107], half: [0.124, 0.080, 0.148], rot: [-0.452, 0.210, 0.535], round: 0.025}
+      - box: {c: [-0.059, 0.282, 0.353], half: [0.193, 0.100, 0.113], rot: [-0.588, 0.251, -0.242], round: 0.025}
+      - box: {c: [0.242, 0.209, 0.376], half: [0.134, 0.125, 0.145], rot: [-0.275, 1.964, 0.160], round: 0.025}
+  marbleb_1:
+    when: "var == 1"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.156, 0.081, 0.517], half: [0.067, 0.064, 0.070], rot: [-0.034, 1.024, 0.165], round: 0.025}
+      - box: {c: [0.506, 0.126, 0.024], half: [0.093, 0.054, 0.080], rot: [0.222, 2.287, -0.165], round: 0.025}
+      - box: {c: [0.182, 0.314, 0.176], half: [0.288, 0.146, 0.247], rot: [-0.433, 3.005, 0.461], round: 0.025}
+      - box: {c: [-0.420, 0.133, -0.370], half: [0.158, 0.073, 0.103], rot: [0.192, 1.734, 0.042], round: 0.025}
+  marbleb_2:
+    when: "var == 2"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.285, 0.218, -0.212], half: [0.197, 0.113, 0.147], rot: [0.372, 2.166, 0.131], round: 0.025}
+      - box: {c: [-0.241, 0.189, -0.208], half: [0.191, 0.136, 0.177], rot: [0.167, 1.476, 0.537], round: 0.025}
+      - box: {c: [-0.013, 0.181, 0.357], half: [0.199, 0.142, 0.151], rot: [-0.102, 0.449, -0.024], round: 0.025}
+  marblec_0:
+    when: "var == 0"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.590, 0.113, -0.478], half: [0.106, 0.080, 0.103], rot: [-0.407, 2.036, -0.451], round: 0.025}
+      - box: {c: [-0.493, 0.271, -0.070], half: [0.223, 0.165, 0.227], rot: [0.469, 2.046, -0.297], round: 0.025}
+      - box: {c: [-0.007, 0.153, -0.516], half: [0.107, 0.071, 0.119], rot: [0.264, 0.657, -0.132], round: 0.025}
+      - box: {c: [-0.513, 0.189, 0.291], half: [0.152, 0.082, 0.140], rot: [-0.299, 0.456, -0.350], round: 0.025}
+      - box: {c: [-0.423, 0.232, -0.422], half: [0.183, 0.139, 0.166], rot: [0.274, 0.579, 0.572], round: 0.025}
+      - box: {c: [0.429, 0.179, 0.394], half: [0.149, 0.129, 0.151], rot: [-0.332, 1.236, -0.050], round: 0.025}
+  marblec_1:
+    when: "var == 1"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.253, 0.230, 0.140], half: [0.139, 0.133, 0.167], rot: [0.198, 2.771, -0.126], round: 0.025}
+      - box: {c: [-0.269, 0.213, -0.304], half: [0.147, 0.126, 0.156], rot: [0.220, 0.019, -0.499], round: 0.025}
+      - box: {c: [-0.092, 0.327, 0.120], half: [0.198, 0.103, 0.165], rot: [0.389, 0.285, 0.525], round: 0.025}
+      - box: {c: [-0.330, 0.110, 0.451], half: [0.136, 0.067, 0.074], rot: [-0.336, 0.208, -0.422], round: 0.025}
+  marblec_2:
+    when: "var == 2"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.357, 0.149, 0.110], half: [0.101, 0.085, 0.115], rot: [0.204, 0.774, -0.490], round: 0.025}
+      - box: {c: [-0.404, 0.197, 0.112], half: [0.189, 0.145, 0.182], rot: [0.498, 1.956, 0.040], round: 0.025}
+      - box: {c: [0.019, 0.225, 0.122], half: [0.148, 0.095, 0.154], rot: [-0.219, 2.287, -0.103], round: 0.025}
+  cyl_0:
+    when: "var == 0"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.356, 0.22, 0.190], b: [0.606, 0.22, 0.326], r: 0.22, round: 0.03}
+  cyl_1:
+    when: "var == 1"
+    material: marble
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.429, 0.22, 0.004], b: [-0.018, 0.22, 0.324], r: 0.22, round: 0.03}
+  gold_0:
+    when: "var == 0"
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.474, 0.08, 0.114], half: [0.13, 0.07, 0.09], rot: [0.3, 0.293, 0.2], round: 0.03}
+      - box: {c: [0.355, 0.08, 0.036], half: [0.13, 0.07, 0.09], rot: [0.3, 0.126, 0.2], round: 0.03}
+      - box: {c: [0.257, 0.08, 0.162], half: [0.13, 0.07, 0.09], rot: [0.3, 0.667, 0.2], round: 0.03}
+  gold_1:
+    when: "var == 1"
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.226, 0.08, -0.357], half: [0.13, 0.07, 0.09], rot: [0.3, 4.245, 0.2], round: 0.03}
+      - box: {c: [0.023, 0.08, 0.310], half: [0.13, 0.07, 0.09], rot: [0.3, 1.512, 0.2], round: 0.03}
+  gold_2:
+    when: "var == 2"
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.010, 0.08, 0.189], half: [0.13, 0.07, 0.09], rot: [0.3, 1.528, 0.2], round: 0.03}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {var: "f"}

@@ -1,0 +1,133 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: ruined_hut
+kind: prop
+view: topdown
+size: 96
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.6980, 0]}   # 10 px above the pivot -> pivot (48, 58)
+shadow: {rx: 34, ry: 11, alpha: 70}
+
+# Ruined village: a collapsed cabin, the source of oak beams.
+brief:
+  summary: collapsed village cabin - low broken stone foundation walls (back wall still knee-to-waist high,
+    sides stepping down, front almost gone), one oak corner post still standing at the back left and a
+    snapped one at the back right, the roof caved in - three oak rafters lying slanted from the back wall
+    into the room, grey rotten thatch clumps over them, rubble and a fallen door plank in front
+  must_keep: [broken stone foundation, standing corner post, slanted oak rafters (same oak as oak_beam),
+    grey thatch clumps, rubble]
+  simplify: [stones as rounded boxes, thatch as lumpy blobs]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false, camera.center [0, 0.698, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a; oak ramp copied from
+    oak_beam, stone from house.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 48,58) is the ground point at the centre of the
+    ruin's footprint. Foundation x -1.6..1.6, z -1.2..1.2 (~58 px wide) -> footprint 4x3 tiles; the walls
+    block, the inside can stay walkable. The beams the player takes are the separate `oak_beam` prop: place
+    one or two beside the ruin. Static: 1-frame idle.
+
+ramps:
+  rh_stone: ["#1c0f1a", "#5a4a48", "#856c5c", "#b4a07f", "#cdc1a0"]
+  rh_dirt:  ["#1c0f1a", "#3a2a22", "#5a4030", "#6e5038"]
+  rh_oak:   ["#1c0f1a", "#3a1f16", "#5e3a22", "#80552f", "#9c6c3e"]
+  rh_thatch: ["#1c0f1a", "#5a5038", "#7e7250", "#a09468"]
+  rh_char:  ["#1c0f1a", "#24151c", "#3e2422"]
+
+materials:
+  stone:  {ramp: rh_stone, bands: [1, 4]}
+  dirt:   {ramp: rh_dirt, bands: [1, 3], outline: false, line: false}
+  oak:    {ramp: rh_oak, bands: [1, 4]}
+  thatch: {ramp: rh_thatch, bands: [1, 3]}
+  char:   {ramp: rh_char, bands: [1, 2]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  floor:
+    material: dirt
+    space: body
+    prims:
+      - box: {c: [0, 0.01, 0], half: [1.55, 0.01, 1.15]}
+  walls:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.5, 0.4, -1.1], half: [1.1, 0.4, 0.12], round: 0.03}       # back wall, left part high
+      - box: {c: [0.95, 0.25, -1.1], half: [0.65, 0.25, 0.12], round: 0.03}    # back wall, right part lower
+      - box: {c: [-1.5, 0.3, -0.35], half: [0.12, 0.3, 0.75], round: 0.03}     # left wall
+      - box: {c: [-1.5, 0.12, 0.65], half: [0.12, 0.12, 0.45], round: 0.03}
+      - box: {c: [1.5, 0.2, -0.5], half: [0.12, 0.2, 0.6], round: 0.03}        # right wall
+      - box: {c: [1.5, 0.08, 0.6], half: [0.12, 0.08, 0.5], round: 0.03}
+      - box: {c: [-0.9, 0.1, 1.1], half: [0.6, 0.1, 0.12], round: 0.03}        # front wall stubs
+      - box: {c: [1.15, 0.07, 1.1], half: [0.4, 0.07, 0.12], round: 0.03}
+  wall_stones:        # loose top stones
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.2, 0.86, -1.1], half: [0.18, 0.08, 0.12], rot: [0, 0, 0.1], round: 0.04}
+      - box: {c: [-0.6, 0.85, -1.08], half: [0.2, 0.07, 0.12], rot: [0, 0, -0.08], round: 0.04}
+      - box: {c: [0.1, 0.84, -1.1], half: [0.15, 0.06, 0.12], round: 0.04}
+  rubble:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.2, 0.08, 1.3], half: [0.14, 0.08, 0.1], rot: [0, 0.5, 0], round: 0.04}
+      - box: {c: [-0.25, 0.07, 1.4], half: [0.11, 0.07, 0.09], rot: [0, -0.4, 0], round: 0.04}
+      - box: {c: [1.75, 0.06, 0.2], half: [0.1, 0.06, 0.09], rot: [0, 0.9, 0], round: 0.04}
+      - box: {c: [-1.75, 0.07, 0.1], half: [0.12, 0.07, 0.09], rot: [0, 0.3, 0], round: 0.04}
+      - box: {c: [0.6, 0.08, 0.2], half: [0.13, 0.08, 0.11], rot: [0, 1.1, 0], round: 0.04}
+  posts:
+    material: oak
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.48, 0.95, -1.08], half: [0.11, 0.95, 0.11]}                # standing corner post
+      - box: {c: [1.48, 0.45, -1.08], half: [0.11, 0.45, 0.11]}                 # snapped post
+      - box: {c: [-1.48, 1.86, -0.75], half: [0.08, 0.08, 0.35], rot: [0.3, 0, 0]}   # stub of the wall plate
+  post_snap:
+    material: char
+    space: body
+    line: true
+    prims:
+      - cone: {a: [1.48, 0.88, -1.08], b: [1.5, 1.05, -1.04], r: [0.09, 0.02]}
+  rafters:            # caved-in roof timbers, slanting from the back wall into the room
+    material: oak
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.75, 0.6, -0.35], half: [0.1, 0.08, 0.9], rot: [0.55, 0.15, 0], round: 0.02}
+      - box: {c: [0.2, 0.5, -0.3], half: [0.1, 0.08, 0.95], rot: [0.45, -0.25, 0], round: 0.02}
+      - box: {c: [0.95, 0.35, -0.2], half: [0.09, 0.08, 0.85], rot: [0.35, 0.4, 0.1], round: 0.02}
+      - box: {c: [-0.1, 0.12, 0.65], half: [1.0, 0.08, 0.09], rot: [0, 0.15, 0.05], round: 0.02}     # fallen ridge beam
+  thatch:
+    material: thatch
+    space: body
+    blend: 0.1
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.6, 0.55, -0.6], r: [0.45, 0.14, 0.3], rot: [0.5, 0, 0]}
+      - ellipsoid: {c: [0.5, 0.35, -0.55], r: [0.4, 0.12, 0.28], rot: [0.4, 0, 0]}
+      - ellipsoid: {c: [-1.0, 0.15, 0.3], r: [0.35, 0.1, 0.3]}
+      - ellipsoid: {c: [0.9, 0.12, 0.55], r: [0.3, 0.09, 0.25]}
+  door_plank:
+    material: oak
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.4, 0.04, 1.55], half: [0.35, 0.04, 0.18], rot: [0, -0.3, 0], round: 0.02}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

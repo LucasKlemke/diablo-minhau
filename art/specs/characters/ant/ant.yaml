@@ -1,0 +1,245 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ant
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.46, -0.02]}
+shadow: {rx: 14, ry: 5, alpha: 120}
+
+# Giant soldier ant: dungeon enemy (a tinted, 2x scaled copy becomes the Ant Queen boss, who uses `cast`).
+# Own skeleton, built like the spider: `body` is the thorax, `head` (chibi, big) sits in front with two
+# mandibles and elbowed antennae, `gaster` hangs behind a petiole. Three FK legs per side
+# (coxa -> femur -> tibia, written once as _L and mirrored to _R).
+brief:
+  summary: giant rust-red soldier ant, oversized head with huge curved mandibles, elbowed antennae,
+    shiny black eyes, slim thorax, round gaster, six jointed legs
+  must_keep: [huge dark mandibles, big head, round gaster behind a thin waist, six legs, elbowed antennae]
+  simplify: [no hair, tarsus merged into the tibia, petiole as one small bead]
+  decisions: ~1.2 units long so the 2x queen copy still fits a 96 frame; legs a darker rust than the body
+    so the body mass reads first; mandibles dark brown with pale tips so the bite reads; cast = rears up,
+    gaster curls under, then lunges the head down and spits (release, socket `mouth`)
+
+ramps:
+  ant:      ["#1c0f1a", "#5c1a16", "#962f22", "#bf4a2e", "#dc7650"]
+  ant_leg:  ["#1c0f1a", "#3e1412", "#69231b", "#8f3726", "#b05638"]
+  ant_mand: ["#1c0f1a", "#2e1612", "#4e2a1c", "#7a4a2c", "#b07a48"]
+  ant_eye:  ["#1c0f1a", "#1c0f1a", "#3a2a40", "#b8a8c8"]
+
+materials:
+  body:  {ramp: ant, bands: [1, 3]}
+  leg:   {ramp: ant_leg, bands: [1, 3]}
+  mand:  {ramp: ant_mand, bands: [1, 3]}
+  eye:   {ramp: ant_eye, bands: [1, 3], line: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  rear: 0           # + raises the front of the body
+  roll: 0           # body roll around its length (death flip: pi)
+  head_p: 0         # + head pitches down
+  gas: 1            # gaster scale (breathing)
+  gas_tilt: 0       # + lifts the gaster tip, - curls it under
+  squash: 1         # gaster squash
+  mand_L: 0         # + opens the mandible outward
+  antp_L: 0         # antenna pitch (+ up)
+  anty_L: 0         # antenna yaw (+ out)
+  curl: 0           # 0..1 legs fold in (death)
+  sw1_L: 0          # leg yaw swing (+ toward the back), legs 1 (front) .. 3 (rear)
+  sw2_L: 0
+  sw3_L: 0
+  lf1_L: 0          # femur lift (radians, + up)
+  lf2_L: 0
+  lf3_L: 0
+
+bones:
+  body:    {parent: root, pos: "[0, 0.40 + bob, 0]", rot: "[-rear, 0, roll]"}
+  head:    {parent: body, pos: [0, 0.10, 0.21], rot: "[head_p - 0.2, 0, 0]", scale: 1.45}
+  mand_L:  {parent: head, pos: [0.07, -0.05, 0.13], rot: "[0, mand_L, 0]"}
+  ant_L:   {parent: head, pos: [0.05, 0.09, 0.10], rot: "[-0.9 - antp_L, -0.45 - anty_L, 0]"}
+  antel_L: {parent: ant_L, pos: [0, 0, 0.18], rot: [1.3, 0, 0]}
+  gaster:  {parent: body, pos: [0, 0.02, -0.14], rot: "[gas_tilt - 0.15, 0, 0]",
+            scale: "[gas/sqrt(squash), gas*squash, gas/sqrt(squash)]"}
+  # leg 1 (front): points forward-out
+  coxa1_L: {parent: body, pos: [0.07, -0.05, 0.10], rot: "[0, 0.55 + sw1_L, 0]"}
+  fem1_L:  {parent: coxa1_L, rot: "[-(0.85 + lf1_L - 1.15*curl), 0, 0]"}
+  tib1_L:  {parent: fem1_L, pos: [0, 0, 0.30], rot: "[1.75 - 0.2*curl, 0, 0]"}
+  foot1_L: {parent: tib1_L, pos: [0, 0, 0.46]}
+  # leg 2 (middle): sideways
+  coxa2_L: {parent: body, pos: [0.08, -0.05, 0.0], rot: "[0, 1.45 + sw2_L, 0]"}
+  fem2_L:  {parent: coxa2_L, rot: "[-(0.85 + lf2_L - 1.15*curl), 0, 0]"}
+  tib2_L:  {parent: fem2_L, pos: [0, 0, 0.30], rot: "[1.75 - 0.2*curl, 0, 0]"}
+  foot2_L: {parent: tib2_L, pos: [0, 0, 0.46]}
+  # leg 3 (rear): points backward-out
+  coxa3_L: {parent: body, pos: [0.07, -0.05, -0.08], rot: "[0, 2.30 + sw3_L, 0]"}
+  fem3_L:  {parent: coxa3_L, rot: "[-(0.85 + lf3_L - 1.15*curl), 0, 0]"}
+  tib3_L:  {parent: fem3_L, pos: [0, 0, 0.34], rot: "[1.70 - 0.2*curl, 0, 0]"}
+  foot3_L: {parent: tib3_L, pos: [0, 0, 0.52]}
+
+parts:
+  thorax:
+    material: body
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.06], r: [0.10, 0.09, 0.15]}
+      - ellipsoid: {c: [0, 0.04, -0.06], r: [0.08, 0.08, 0.08]}
+      - sphere: {c: [0, 0.03, -0.14], r: 0.055}                     # petiole bead
+  head:
+    material: body
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.03], r: [0.16, 0.12, 0.14]}
+  gaster:
+    material: body
+    space: gaster
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.06, -0.20], r: [0.17, 0.15, 0.21]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - ellipsoid: {c: [0.105, 0.05, 0.11], r: [0.045, 0.05, 0.045]}
+  mand_L:
+    material: mand
+    space: mand_L
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.07, 0.0, 0.10], [0.05, 0.0, 0.21], [-0.04, 0.0, 0.28]], r: [0.05, 0.045, 0.035, 0.022]}
+  antenna_L:
+    material: leg
+    blend: 0.015
+    prims:
+      - cone: {a: "@ant_L", b: "@antel_L", r: [0.026, 0.024]}
+      - cone: {a: "@antel_L", b: {at: antel_L, off: [0, 0, 0.18]}, r: [0.024, 0.026]}
+  legs_L:
+    material: leg
+    blend: 0.025
+    prims:
+      - cone: {a: "@fem1_L", b: "@tib1_L", r: [0.045, 0.035]}
+      - sphere: {c: "@tib1_L", r: 0.04}
+      - cone: {a: "@tib1_L", b: "@foot1_L", r: [0.036, 0.026]}
+      - cone: {a: "@fem2_L", b: "@tib2_L", r: [0.045, 0.035]}
+      - sphere: {c: "@tib2_L", r: 0.04}
+      - cone: {a: "@tib2_L", b: "@foot2_L", r: [0.036, 0.026]}
+      - cone: {a: "@fem3_L", b: "@tib3_L", r: [0.045, 0.035]}
+      - sphere: {c: "@tib3_L", r: 0.04}
+      - cone: {a: "@tib3_L", b: "@foot3_L", r: [0.036, 0.026]}
+
+sockets:
+  hit: {bone: head, offset: [0, -0.05, 0.36]}
+  mouth: {bone: head, offset: [0, -0.04, 0.24]}
+  head: {bone: head, offset: [0, 0.15, 0]}
+
+timing: {attack: {hit: 190ms, total: 420ms}, cast: {release: 290ms}}
+
+animations:
+  idle:            # breathing gaster, antennae sweep, mandibles work
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.012*sin(p)"
+      gas: "1 + 0.03*sin(p)"
+      gas_tilt: "0.04*sin(p)"
+      antp_L: "0.25*sin(p)"
+      antp_R: "0.25*sin(p + 1.6)"
+      anty_L: "0.15*cos(p)"
+      anty_R: "-0.15*cos(p)"
+      mand_L: "0.15 + 0.15*sin(p)"
+      mand_R: "0.15 + 0.15*sin(p)"
+      lf1_L: "0.2*(f == 2)"
+  walk:            # alternating tripod gait: set A = L1 R2 L3, set B = R1 L2 R3
+    frames: 6
+    ms: 80
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.012*cos(2*p)"
+      roll: "0.03*sin(p)"
+      gas_tilt: "0.05*sin(2*p)"
+      antp_L: "0.1*sin(2*p)"
+      antp_R: "0.1*sin(2*p + 1)"
+      mand_L: 0.1
+      mand_R: 0.1
+      sw1_L: "-0.28*sin(p)"
+      lf1_L: "0.40*pos(cos(p))"
+      sw3_L: "-0.25*sin(p)"
+      lf3_L: "0.40*pos(cos(p))"
+      sw2_R: "-0.28*sin(p)"
+      lf2_R: "0.40*pos(cos(p))"
+      sw1_R: "0.28*sin(p)"
+      lf1_R: "0.40*pos(-cos(p))"
+      sw3_R: "0.25*sin(p)"
+      lf3_R: "0.40*pos(-cos(p))"
+      sw2_L: "0.28*sin(p)"
+      lf2_L: "0.40*pos(-cos(p))"
+  attack:          # rears with mandibles wide, then lunges and snaps them shut (hit at 190 ms, total 420 ms)
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.03], rear: 0.18, bob: 0.03, head_p: -0.15, gas_tilt: 0.1, mand_L: 0.5, mand_R: 0.5,
+              lf1_L: 0.3, lf1_R: 0.3, antp_L: 0.3, antp_R: 0.3}
+      - ms: 120
+        event: windup
+        set: {root: [0, 0, -0.07], rear: 0.38, bob: 0.06, head_p: -0.3, gas_tilt: 0.25, squash: 0.94,
+              mand_L: 0.95, mand_R: 0.95, lf1_L: 0.7, lf1_R: 0.7, sw1_L: -0.2, sw1_R: -0.2, antp_L: 0.5, antp_R: 0.5}
+      - ms: 70
+        event: hit
+        set: {root: [0, 0, 0.09], rear: -0.12, bob: -0.03, head_p: 0.2, gas_tilt: -0.1, squash: 1.06,
+              mand_L: -0.25, mand_R: -0.25, lf1_L: 0.1, lf1_R: 0.1, sw1_L: -0.3, sw1_R: -0.3, sw3_L: 0.15, sw3_R: 0.15,
+              antp_L: -0.3, antp_R: -0.3}
+      - ms: 80
+        set: {root: [0, 0, 0.06], rear: -0.06, bob: -0.02, head_p: 0.1, squash: 1.02, mand_L: -0.15, mand_R: -0.15,
+              sw1_L: -0.25, sw1_R: -0.25}
+      - ms: 80
+        set: {root: [0, 0, 0.02], rear: 0.0, mand_L: 0.05, mand_R: 0.05, sw1_L: -0.08, sw1_R: -0.08}
+  cast:            # (Ant Queen) rears high, gaster curls under, then lunges the head down and spits acid (release)
+    loop: false
+    keys:
+      - ms: 90
+        set: {root: [0, 0, -0.04], rear: 0.25, bob: 0.04, head_p: -0.2, gas_tilt: -0.25, mand_L: 0.4, mand_R: 0.4,
+              lf1_L: 0.4, lf1_R: 0.4, antp_L: 0.4, antp_R: 0.4}
+      - ms: 200
+        event: windup
+        set: {root: [0, 0, -0.08], rear: 0.55, bob: 0.08, head_p: -0.45, gas_tilt: -0.6, gas: 1.08, squash: 0.92,
+              mand_L: 0.8, mand_R: 0.8, lf1_L: 0.9, lf1_R: 0.9, sw1_L: -0.2, sw1_R: -0.2, lf2_L: 0.2, lf2_R: 0.2,
+              antp_L: 0.6, antp_R: 0.6, anty_L: 0.3, anty_R: 0.3}
+      - ms: 90
+        event: release
+        set: {root: [0, 0, 0.06], rear: -0.05, bob: 0.0, head_p: 0.15, gas_tilt: 0.2, gas: 0.94, squash: 1.08,
+              mand_L: 0.9, mand_R: 0.9, lf1_L: 0.15, lf1_R: 0.15, sw1_L: -0.25, sw1_R: -0.25, antp_L: -0.2, antp_R: -0.2}
+      - ms: 110
+        set: {root: [0, 0, 0.04], rear: 0.02, head_p: 0.08, gas_tilt: 0.08, squash: 1.03, mand_L: 0.5, mand_R: 0.5,
+              sw1_L: -0.15, sw1_R: -0.15}
+      - ms: 100
+        set: {root: [0, 0, 0.01], mand_L: 0.15, mand_R: 0.15}
+  hit:             # jolts back, legs splay, head tossed up
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.08], rear: 0.2, bob: 0.03, head_p: -0.3, squash: 0.88, gas_tilt: 0.15, mand_L: 0.6, mand_R: 0.6,
+              lf1_L: 0.3, lf1_R: 0.3, lf2_L: -0.12, lf2_R: -0.12, lf3_L: 0.1, lf3_R: 0.1, antp_L: 0.5, antp_R: 0.5}
+      - ms: 80
+        set: {root: [0, 0, -0.06], rear: 0.08, bob: 0.01, head_p: -0.12, squash: 0.95, gas_tilt: 0.06, mand_L: 0.3, mand_R: 0.3,
+              lf1_L: 0.15, lf1_R: 0.15, antp_L: 0.2, antp_R: 0.2}
+      - ms: 100
+        set: {root: [0, 0, -0.02], rear: 0.02, squash: 0.99, mand_L: 0.15, mand_R: 0.15}
+  death:           # rears in pain, flips onto its back, legs curl up
+    loop: false
+    keys:
+      - ms: 80
+        set: {root: [0, 0, -0.05], rear: 0.3, bob: 0.04, head_p: -0.3, squash: 0.9, mand_L: 0.7, mand_R: 0.7,
+              lf1_L: 0.35, lf1_R: 0.35, lf2_L: 0.25, lf2_R: 0.25, lf3_L: 0.25, lf3_R: 0.25, antp_L: 0.5, antp_R: 0.5}
+      - ms: 100
+        set: {root: [0, 0, -0.06], rear: 0.15, roll: 1.2, bob: 0.14, curl: 0.3, mand_L: 0.5, mand_R: 0.5}
+      - ms: 100
+        set: {root: [0, 0, -0.05], rear: 0.05, roll: 2.3, bob: 0.10, curl: 0.5, mand_L: 0.4, mand_R: 0.4}
+      - ms: 110
+        set: {root: [0, 0, -0.04], roll: 3.14159, bob: 0.10, curl: 0.8, squash: 0.95, mand_L: 0.3, mand_R: 0.3,
+              antp_L: -0.4, antp_R: -0.4}
+      - ms: 650
+        set: {root: [0, 0, -0.04], roll: 3.14159, bob: 0.10, curl: 1.0, squash: 0.94, mand_L: 0.35, mand_R: 0.35,
+              antp_L: -0.5, antp_R: -0.5}

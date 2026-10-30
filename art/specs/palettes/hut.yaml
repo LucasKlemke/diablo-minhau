@@ -1,0 +1,49 @@
+# Aldo's hut interior (prologue): one shared set of ramps so every hut prop has the same wood, straw,
+# stone and firelight. Used as `palette: ["farm", "hut"]`. Index 0 = shared near-black outline (#1c0f1a).
+# Warm, worn, poor - but still vivid like the Farm RPG pack (no grey mud).
+ramps:
+  # worn plank wood: floor, furniture, door (the hut's main wood)
+  hwood:    ["#1c0f1a", "#4f2c22", "#7a4630", "#a0663e", "#c48a52", "#dcae74"]
+  # old dark beams and posts (smoke-darkened)
+  hbeam:    ["#1c0f1a", "#2c1a1e", "#4a2a24", "#6a3e2c", "#8a5638"]
+  # freshly cut end grain, scrubbed table top, pale splinters
+  hcut:     ["#1c0f1a", "#9a6a3c", "#c8975a", "#e4bf82", "#f4dca6"]
+  # straw and thatch
+  hstraw:   ["#1c0f1a", "#7a4e16", "#b07c26", "#d8a840", "#f0d070", "#fae8a4"]
+  # wattle and daub (clay plaster between the posts)
+  hdaub:    ["#1c0f1a", "#6e4a3c", "#9a6e56", "#bf9474", "#d8b490"]
+  # hearth stone
+  hstone:   ["#1c0f1a", "#463a42", "#6a5c60", "#928280", "#b8a898"]
+  hsoot:    ["#1c0f1a", "#1c1216", "#2a1e22", "#3a2a2c"]
+  # black iron (cauldron, hoops, hinges)
+  hiron:    ["#1c0f1a", "#262634", "#3e4052", "#5e6478", "#8a92a6"]
+  # worn red wool blanket and its patches
+  hwool:    ["#1c0f1a", "#5a1e26", "#8e3030", "#b84e3a", "#d87a52"]
+  hpatch:   ["#1c0f1a", "#24406a", "#3a649a", "#5a8cc0", "#8ab8dc"]
+  hpatch2:  ["#1c0f1a", "#3a5422", "#5a7e30", "#80a444", "#a8c66a"]
+  # undyed linen / sackcloth (pillow, rags, sacks)
+  hlinen:   ["#1c0f1a", "#7e6a56", "#ae9a7e", "#d6c6a6", "#eee2c8"]
+  # dried herbs
+  hherb:    ["#1c0f1a", "#34481e", "#55702c", "#7c9440", "#a6b860"]
+  hlav:     ["#1c0f1a", "#46306a", "#6e4c9a", "#9a78c4", "#c4a8e2"]
+  hgarlic:  ["#1c0f1a", "#9a8a78", "#d2c6b4", "#f0e8dc"]
+  hchili:   ["#1c0f1a", "#6a1418", "#a82820", "#d84a2c"]
+  # glazed and unglazed clay (jars, bowls, pots)
+  hclay:    ["#1c0f1a", "#6a2c1c", "#9e4a2a", "#c8703e", "#e49a5e"]
+  hglaze:   ["#1c0f1a", "#24425a", "#36667e", "#5a92a0", "#94c4c4"]
+  # green glass vials
+  hglass:   ["#1c0f1a", "#1e4e46", "#2e7a62", "#58b08a", "#a8e6c4"]
+  # bread crust
+  hbread:   ["#1c0f1a", "#6e3418", "#a85c26", "#d08a3e", "#eab866"]
+  # tallow candle wax
+  hwax:     ["#1c0f1a", "#a08458", "#d0b886", "#ece0b8", "#fbf4dc"]
+  # water
+  hwater:   ["#1c0f1a", "#173a6a", "#22589a", "#3a7cc4", "#68ace0", "#bfe8f8"]
+  # firelight / flame (emissive)
+  hflame:   ["#1c0f1a", "#5a0a12", "#a8160f", "#e0361a", "#fe6607", "#ffa12e", "#ffd65c", "#fff4c8"]
+  # daylight through cracks and the thatch hole (emissive)
+  hsun:     ["#1c0f1a", "#c0803a", "#f2c26a", "#ffe6a0", "#fff8e0"]
+  # royal leftovers (only in the royal chest and the crown reflection)
+  hroyal:   ["#1c0f1a", "#2e1650", "#4c2484", "#7040b8", "#9a6ad8"]
+  hgold:    ["#1c0f1a", "#804a19", "#c88a20", "#e1a227", "#eddc83", "#f8f4dd"]
+  hruby:    ["#1c0f1a", "#5a0a1e", "#a8122e", "#e0364a", "#ff8a9a"]

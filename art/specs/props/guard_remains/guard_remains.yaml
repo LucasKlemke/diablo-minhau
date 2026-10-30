@@ -1,0 +1,370 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: guard_remains
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.2792, 0]}   # 4 px above the pivot -> pivot (32, 36)
+shadow: null             # everything lies on the floor; contact is the blood pool
+
+# Prologue (castle massacre): what is left of a royal guard after Jimmynelson.
+brief:
+  summary: a royal guard torn apart on the marble - a wide dark blood pool, the silver helmet with its
+    royal-blue plume lying on its side, the halberd dropped across the pool (or snapped in two), the
+    royal-blue tabard ripped and heaped with its gold hem and gold cat crest, bloody ribs sticking out of
+    a mass of raw flesh, a silver greave and a gauntlet torn off, scattered gibs
+  must_keep: [plumed silver helmet, halberd with gold point, torn blue tabard with gold, blood pool, ribs]
+  simplify: [no body silhouette (only pieces), 2-3 tones per material, gibs as 3-5 px lumps]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, shadow null, camera.center [0, 0.2792, 0] (integer
+    pivot). camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 36) = the ground point at the centre of the pool (where the guard stood);
+    footprint 0 (walkable). Sort it on the floor-decal layer, or by the pivot if the halberd should cover
+    actors' feet. VARIANTS: animation `variants` has 2 frames: 0 helmet left, halberd whole across the pool,
+    tabard heap with ribs; 1 helmet rolled to the right, halberd snapped in two, flat torn tabard, a
+    gauntlet and the greave. `idle` = variant 0. Materials and sizes copied from royal_guard (helmet x1.8,
+    plume, halberd 2 units long) and blood colours from blood_splat, so the pieces match the living guard.
+
+ramps:
+  gr_meat:  ["#1c0f1a", "#5a0a14", "#9c1a24", "#d0464a", "#f08a80"]
+  gr_plume: ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea", "#a8cff3"]
+  bl_edge:  ["#1c0f1a", "#4e0710"]
+  bl_pool:  ["#1c0f1a", "#86101a"]
+  bl_mid:   ["#1c0f1a", "#b41a20"]
+
+materials:
+  edge:   {ramp: bl_edge, bands: [1, 1], outline: false, line: false}
+  pool:   {ramp: bl_pool, bands: [1, 1], outline: false, line: false}
+  wet:    {ramp: bl_mid, bands: [1, 1], outline: false, line: false}
+  helm:   {ramp: steel, bands: [2, 4]}
+  plate:  {ramp: steel, bands: [2, 3]}
+  plume:  {ramp: gr_plume, bands: [2, 4]}
+  tabard: {ramp: cloth_blue, bands: [1, 3]}
+  gold:   {ramp: gold, bands: [2, 3]}
+  crest:  {ramp: gold, bands: [2, 3], outline: false, line: false}
+  haft:   {ramp: wood, bands: [1, 2]}
+  meat:   {ramp: gr_meat, bands: [2, 4]}
+  bone:   {ramp: bone, bands: [2, 4]}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..1
+
+bones:
+  body:   {parent: root}
+  # variant 0
+  helm0:  {parent: body, pos: [-0.95, 0.20, -0.35], rot: [0.3, 0.7, 1.35], scale: 1.8}
+  hb0y:   {parent: body, pos: [0.25, 0.05, 0.05], rot: [1.5708, 2.2, 0], scale: 1.15}   # lies flat (x pi/2), turned across the pool
+  torso0: {parent: body, pos: [0.15, 0.0, -0.45], rot: [0, -0.4, 0]}
+  # variant 1
+  helm1:  {parent: body, pos: [1.0, 0.24, 0.05], rot: [-0.5, -0.9, -0.3], scale: 1.8}
+  hbA1:   {parent: body, pos: [-0.45, 0.05, 0.45], rot: [1.5708, -2.0, 0], scale: 1.15}
+  hbB1:   {parent: body, pos: [0.55, 0.05, -0.75], rot: [1.5708, 1.2, 0], scale: 1.15}
+  torso1: {parent: body, pos: [-0.10, 0.0, -0.20], rot: [0, 0.6, 0]}
+
+parts:
+  # ---------- variant 0 ----------
+  edge_0:
+    when: "var == 0"
+    material: edge
+    space: body
+    prims:
+      - ellipsoid: {c: [0.05, 0.004, -0.15], r: [1.05, 0.004, 0.95], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [-0.75, 0.004, 0.45], r: [0.45, 0.004, 0.55], rot: [0, -0.5, 0]}
+      - ellipsoid: {c: [0.95, 0.004, 0.5], r: [0.25, 0.004, 0.32]}
+      - ellipsoid: {c: [-1.25, 0.004, -0.75], r: [0.10, 0.004, 0.12]}
+      - ellipsoid: {c: [1.30, 0.004, -0.9], r: [0.09, 0.004, 0.11]}
+      - ellipsoid: {c: [0.6, 0.004, 1.15], r: [0.08, 0.004, 0.10]}
+  pool_0:
+    when: "var == 0"
+    material: pool
+    space: body
+    prims:
+      - ellipsoid: {c: [0.05, 0.008, -0.15], r: [0.97, 0.004, 0.86], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [-0.75, 0.008, 0.45], r: [0.38, 0.004, 0.47], rot: [0, -0.5, 0]}
+      - ellipsoid: {c: [0.95, 0.008, 0.5], r: [0.19, 0.004, 0.25]}
+  wet_0:
+    when: "var == 0"
+    material: wet
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.3, 0.012, 0.1], r: [0.35, 0.004, 0.3], rot: [0, 0.3, 0]}
+  tabard_0:        # ripped blue tabard heaped over the torso
+    when: "var == 0"
+    material: tabard
+    space: torso0
+    blend: 0.04
+    prims:
+      - box: {c: [0, 0.08, 0.15], half: [0.36, 0.06, 0.30], rot: [0.15, 0, 0.1], round: 0.04}
+      - box: {c: [0.30, 0.05, -0.10], half: [0.25, 0.05, 0.22], rot: [-0.1, 0.4, -0.15], round: 0.04}
+    cut:
+      - box: {c: [-0.32, 0.08, 0.44], half: [0.10, 0.2, 0.14], rot: [0, 0.7, 0]}
+  hem_0:
+    when: "var == 0"
+    material: gold
+    space: torso0
+    prims:
+      - box: {c: [0.08, 0.13, 0.44], half: [0.25, 0.03, 0.035], rot: [0.15, 0, 0.1]}
+  crest_0:
+    when: "var == 0"
+    material: crest
+    space: torso0
+    prims:
+      - cylinder: {a: [0.0, 0.145, 0.16], b: [0.0, 0.16, 0.16], r: 0.1}
+  meat_0:          # torn flesh spilling out of the tabard
+    when: "var == 0"
+    material: meat
+    space: torso0
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [-0.18, 0.12, -0.18], r: [0.24, 0.14, 0.2]}
+      - ellipsoid: {c: [0.05, 0.10, -0.30], r: [0.16, 0.10, 0.14]}
+      - ellipsoid: {c: [-0.40, 0.07, 0.05], r: [0.12, 0.08, 0.12]}
+  ribs_0:          # ribs sticking up out of the flesh
+    when: "var == 0"
+    material: bone
+    space: torso0
+    prims:
+      - chain: {pts: [[-0.32, 0.16, -0.30], [-0.24, 0.34, -0.24], [-0.06, 0.40, -0.20]], r: [0.04, 0.035, 0.025]}
+      - chain: {pts: [[-0.30, 0.16, -0.16], [-0.22, 0.36, -0.10], [-0.04, 0.42, -0.06]], r: [0.04, 0.035, 0.025]}
+      - chain: {pts: [[-0.28, 0.16, -0.02], [-0.20, 0.32, 0.03], [-0.05, 0.36, 0.06]], r: [0.04, 0.035, 0.025]}
+      - cylinder: {a: [-0.36, 0.14, -0.36], b: [-0.32, 0.14, 0.06], r: 0.05, round: 0.02}
+  helm_0:
+    when: "var == 0"
+    material: helm
+    space: helm0
+    blend: 0.025
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0], r: [0.155, 0.12, 0.15]}
+      - cylinder: {a: [0, -0.015, 0], b: [0, 0.005, 0], r: 0.16, round: 0.008}
+      - ellipsoid: {c: [0.135, -0.10, 0], r: [0.03, 0.075, 0.07]}
+      - ellipsoid: {c: [-0.135, -0.10, 0], r: [0.03, 0.075, 0.07]}
+    cut:
+      - box: {c: [0, -0.13, 0.17], half: [0.115, 0.115, 0.1]}
+      - ellipsoid: {c: [0, -0.06, 0], r: [0.13, 0.10, 0.125]}
+  plume_0:
+    when: "var == 0"
+    material: plume
+    space: helm0
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, 0.08, 0.10], [0, 0.16, 0.03], [0, 0.17, -0.08], [0, 0.10, -0.17], [0, 0.0, -0.21]], r: [0.04, 0.065, 0.07, 0.06, 0.035]}
+  helmblood_0:
+    when: "var == 0"
+    material: meat
+    space: helm0
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.02], r: [0.10, 0.04, 0.10]}
+  haft_0:
+    when: "var == 0"
+    material: haft
+    space: hb0y
+    prims:
+      - cylinder: {a: [0, -0.80, 0], b: [0, 0.78, 0], r: 0.035}
+  hbsteel_0:
+    when: "var == 0"
+    material: plate
+    space: hb0y
+    blend: 0.02
+    prims:
+      - box: {c: [-0.10, 0.82, 0], half: [0.08, 0.11, 0.025], round: 0.01}
+      - ellipsoid: {c: [-0.175, 0.82, 0], r: [0.04, 0.14, 0.025]}
+      - cone: {a: [0.02, 0.84, 0], b: [0.13, 0.88, 0], r: [0.032, 0.012]}
+  hbgold_0:
+    when: "var == 0"
+    material: gold
+    space: hb0y
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.68, 0], b: [0, 0.73, 0], r: 0.048}
+      - cone: {a: [0, 0.90, 0], b: [0, 1.18, 0], r: [0.06, 0.01]}
+      - sphere: {c: [0, -0.80, 0], r: 0.04}
+  greave_0:        # torn-off silver greave with the stump
+    when: "var == 0"
+    material: plate
+    space: body
+    blend: 0.03
+    prims:
+      - cone: {a: [0.95, 0.07, 0.55], b: [1.30, 0.07, 0.30], r: [0.068, 0.064]}
+      - ellipsoid: {c: [1.36, 0.06, 0.32], r: [0.07, 0.05, 0.11], rot: [0, 0.9, 0]}
+  stump_0:
+    when: "var == 0"
+    material: meat
+    space: body
+    prims:
+      - sphere: {c: [0.92, 0.07, 0.57], r: 0.07}
+      - cone: {a: [0.90, 0.08, 0.58], b: [0.84, 0.09, 0.62], r: [0.03, 0.025]}
+  gibs_0:
+    when: "var == 0"
+    material: meat
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.55, 0.05, 0.80], r: [0.09, 0.05, 0.08]}
+      - ellipsoid: {c: [0.70, 0.05, -1.05], r: [0.08, 0.05, 0.07]}
+      - ellipsoid: {c: [-1.25, 0.04, 0.25], r: [0.06, 0.04, 0.06]}
+      - ellipsoid: {c: [0.30, 0.04, 0.95], r: [0.06, 0.04, 0.05]}
+  # ---------- variant 1 ----------
+  edge_1:
+    when: "var == 1"
+    material: edge
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.1, 0.004, -0.1], r: [1.15, 0.004, 0.80], rot: [0, -0.25, 0]}
+      - ellipsoid: {c: [0.7, 0.004, 0.55], r: [0.40, 0.004, 0.50], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [-1.05, 0.004, 0.65], r: [0.20, 0.004, 0.26]}
+      - ellipsoid: {c: [1.35, 0.004, -0.6], r: [0.09, 0.004, 0.11]}
+      - ellipsoid: {c: [-0.4, 0.004, 1.2], r: [0.10, 0.004, 0.11]}
+  pool_1:
+    when: "var == 1"
+    material: pool
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.1, 0.008, -0.1], r: [1.07, 0.004, 0.71], rot: [0, -0.25, 0]}
+      - ellipsoid: {c: [0.7, 0.008, 0.55], r: [0.33, 0.004, 0.42], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [-1.05, 0.008, 0.65], r: [0.14, 0.004, 0.19]}
+  wet_1:
+    when: "var == 1"
+    material: wet
+    space: body
+    prims:
+      - ellipsoid: {c: [0.2, 0.012, 0.1], r: [0.32, 0.004, 0.25], rot: [0, -0.3, 0]}
+  tabard_1:        # flat torn tabard with the gold star skirt
+    when: "var == 1"
+    material: tabard
+    space: torso1
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.04, 0], half: [0.34, 0.03, 0.42], round: 0.02}
+    cut:
+      - box: {c: [0.36, 0.04, -0.40], half: [0.14, 0.1, 0.2], rot: [0, 0.6, 0]}
+      - box: {c: [-0.36, 0.04, 0.40], half: [0.12, 0.1, 0.18], rot: [0, 0.7, 0]}
+      - box: {c: [0.12, 0.04, 0.46], half: [0.06, 0.1, 0.10], rot: [0, 0.8, 0]}
+  hem_1:
+    when: "var == 1"
+    material: gold
+    space: torso1
+    prims:
+      - box: {c: [-0.05, 0.06, 0.40], half: [0.06, 0.025, 0.035]}
+      - box: {c: [0.30, 0.06, 0.38], half: [0.05, 0.025, 0.035]}
+      - cone: {a: [0, 0.075, 0.05], b: [0.0, 0.075, 0.20], r: [0.07, 0.02]}
+      - cone: {a: [0, 0.075, 0.05], b: [0.14, 0.075, 0.0], r: [0.07, 0.02]}
+      - cone: {a: [0, 0.075, 0.05], b: [-0.14, 0.075, 0.0], r: [0.07, 0.02]}
+  meat_1:
+    when: "var == 1"
+    material: meat
+    space: torso1
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0.05, 0.10, -0.40], r: [0.26, 0.13, 0.20]}
+      - ellipsoid: {c: [-0.25, 0.08, -0.22], r: [0.12, 0.08, 0.11]}
+  ribs_1:
+    when: "var == 1"
+    material: bone
+    space: torso1
+    prims:
+      - chain: {pts: [[-0.12, 0.16, -0.50], [0.02, 0.32, -0.48], [0.20, 0.33, -0.44]], r: [0.04, 0.035, 0.025]}
+      - chain: {pts: [[-0.12, 0.16, -0.38], [0.02, 0.30, -0.34], [0.20, 0.28, -0.30]], r: [0.04, 0.035, 0.025]}
+      - cylinder: {a: [-0.14, 0.14, -0.58], b: [-0.14, 0.14, -0.28], r: 0.05, round: 0.02}
+  helm_1:
+    when: "var == 1"
+    material: helm
+    space: helm1
+    blend: 0.025
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0], r: [0.155, 0.12, 0.15]}
+      - cylinder: {a: [0, -0.015, 0], b: [0, 0.005, 0], r: 0.16, round: 0.008}
+      - ellipsoid: {c: [0.135, -0.10, 0], r: [0.03, 0.075, 0.07]}
+      - ellipsoid: {c: [-0.135, -0.10, 0], r: [0.03, 0.075, 0.07]}
+    cut:
+      - box: {c: [0, -0.13, 0.17], half: [0.115, 0.115, 0.1]}
+      - ellipsoid: {c: [0, -0.06, 0], r: [0.13, 0.10, 0.125]}
+      - sphere: {c: [0.12, 0.08, 0.08], r: 0.05}
+  plume_1:         # the crest snapped and bent
+    when: "var == 1"
+    material: plume
+    space: helm1
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, 0.08, 0.10], [0, 0.16, 0.03], [0, 0.17, -0.06], [0.05, 0.08, -0.12], [0.12, 0.02, -0.10]], r: [0.04, 0.065, 0.07, 0.06, 0.035]}
+  helmblood_1:
+    when: "var == 1"
+    material: meat
+    space: helm1
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.04], r: [0.10, 0.04, 0.09]}
+  hafta_1:         # snapped halberd: the head half ...
+    when: "var == 1"
+    material: haft
+    space: hbA1
+    prims:
+      - cylinder: {a: [0, -0.10, 0], b: [0, 0.78, 0], r: 0.035}
+      - cone: {a: [0, -0.10, 0], b: [0.02, -0.20, 0], r: [0.035, 0.012]}
+  hbsteel_1:
+    when: "var == 1"
+    material: plate
+    space: hbA1
+    blend: 0.02
+    prims:
+      - box: {c: [-0.10, 0.82, 0], half: [0.08, 0.11, 0.025], round: 0.01}
+      - ellipsoid: {c: [-0.175, 0.82, 0], r: [0.04, 0.14, 0.025]}
+      - cone: {a: [0.02, 0.84, 0], b: [0.13, 0.88, 0], r: [0.032, 0.012]}
+  hbgold_1:
+    when: "var == 1"
+    material: gold
+    space: hbA1
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.68, 0], b: [0, 0.73, 0], r: 0.048}
+      - cone: {a: [0, 0.90, 0], b: [0, 1.18, 0], r: [0.06, 0.01]}
+  haftb_1:         # ... and the butt half
+    when: "var == 1"
+    material: haft
+    space: hbB1
+    prims:
+      - cylinder: {a: [0, -0.40, 0], b: [0, 0.30, 0], r: 0.035}
+      - cone: {a: [0, 0.30, 0], b: [0.02, 0.42, 0], r: [0.035, 0.012]}
+  hbbutt_1:
+    when: "var == 1"
+    material: gold
+    space: hbB1
+    prims:
+      - sphere: {c: [0, -0.40, 0], r: 0.04}
+  gauntlet_1:
+    when: "var == 1"
+    material: plate
+    space: body
+    blend: 0.03
+    prims:
+      - box: {c: [-1.05, 0.07, -0.55], half: [0.10, 0.05, 0.08], rot: [0, 0.6, 0], round: 0.04}
+      - cone: {a: [-0.95, 0.07, -0.48], b: [-0.80, 0.07, -0.38], r: [0.065, 0.075]}
+  gibs_1:
+    when: "var == 1"
+    material: meat
+    space: body
+    prims:
+      - sphere: {c: [-0.76, 0.07, -0.36], r: 0.07}
+      - ellipsoid: {c: [0.95, 0.05, -0.75], r: [0.09, 0.05, 0.08]}
+      - ellipsoid: {c: [-0.80, 0.05, 0.95], r: [0.07, 0.04, 0.06]}
+      - ellipsoid: {c: [1.25, 0.04, 0.70], r: [0.06, 0.04, 0.05]}
+  bone_1:
+    when: "var == 1"
+    material: bone
+    space: body
+    prims:
+      - cylinder: {a: [0.40, 0.05, 1.00], b: [0.85, 0.05, 1.15], r: 0.04, round: 0.015}
+      - sphere: {c: [0.38, 0.06, 0.98], r: 0.06}
+      - sphere: {c: [0.88, 0.06, 1.16], r: 0.055}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 2
+    ms: 1000
+    channels: {var: "f"}

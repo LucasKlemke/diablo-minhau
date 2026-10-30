@@ -1,0 +1,228 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: lisa
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.42, -0.05]}
+shadow: {rx: 12, ry: 4.5, alpha: 120}
+
+# Lisa, a brown-and-white husky (Act I companion). Quadruped skeleton from wolf.yaml (same size as the
+# wolf: medium). `body` carries chest and hips, the head hangs on a neck in front, the tail curls up over
+# the back. Four 2-bone IK legs (_L mirrored), paw targets in body space (`plant` 1 cancels `bob`).
+brief:
+  summary: friendly brown-and-white husky, chibi-big head with a white face mask under a chocolate cap,
+    tall pointy brown ears, blue eyes, chocolate back, white chest, belly and legs, tail curled over the back
+  must_keep: [chocolate-brown back and head cap vs white mask, belly and legs, blue eyes,
+    tail curled over the back (brown with a white tip), tall pointy ears]
+  simplify: [no fur strands; the mask is one white blob over the lower face; no toes]
+  decisions: the brown is a warm, dark chocolate so she can never be confused with Kira (an all-white
+    husky); the brown covers the back, the whole top of the head, the ears and the top of the tail, which
+    is what the 3/4 camera sees most; blue eyes are emissive (unlit, no glow) so 1-2 px stay blue;
+    head scale 1.8 like the wolf; the tail curls forward over the hips (husky) instead of hanging (wolf).
+  exceptions: spec-local ramps; same camera scale/pitch/light.
+
+ramps:
+  lisa_brown: ["#1c0f1a", "#2e1610", "#55291a", "#7a4128", "#a0613c"]
+  lisa_white: ["#1c0f1a", "#8e8a96", "#c9c6cc", "#ecebe6", "#ffffff"]
+  lisa_dark:  ["#1c0f1a", "#24181c", "#3a2a2a", "#55403a"]
+  lisa_eye:   ["#1c0f1a", "#2a6ad0", "#62b8ff", "#c8ecff"]
+  lisa_pink:  ["#1c0f1a", "#8a4a52", "#c87a7e", "#e8a8a8"]
+
+materials:
+  fur:   {ramp: lisa_brown, bands: [1, 4]}
+  white: {ramp: lisa_white, bands: [2, 4]}
+  dark:  {ramp: lisa_dark, bands: [1, 2]}
+  pink:  {ramp: lisa_pink, bands: [1, 2], outline: false}
+  mouth: {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:   {ramp: lisa_eye, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes
+  rear: 0           # + raises the front of the body (sit)
+  roll: 0
+  twist: 0          # body yaw wiggle
+  squash: 1
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  head_tilt: 0
+  jaw: 0            # + opens the mouth
+  ear_L: 0          # + perks / - flattens back
+  tail: 0           # tail wag (yaw)
+  tail_up: 0        # + curls the tail higher
+  ffoot_L: [0.13, -0.39, 0.23]    # front paw target (body space)
+  hfoot_L: [0.13, -0.39, -0.23]   # hind paw target (body space)
+
+bones:
+  body:     {parent: root, pos: "[0, 0.45 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: [0, 0.31, 0.37], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.0 + head_pitch + 0.9*rear, head_yaw, head_tilt]", scale: 1.8}
+  jaw:      {parent: head, pos: [0, -0.01, 0.07], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.07, 0.10, -0.02], rot: "[ear_L, 0, -0.5]"}
+  tail:     {parent: body, pos: [0, 0.12, -0.31], rot: "[-0.2 - tail_up, tail, 0]"}
+  shoulder_L: {parent: body, pos: [0.12, -0.04, 0.21]}
+  hip_L:      {parent: body, pos: [0.12, -0.04, -0.21]}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.21, 0.20],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.21, 0.21],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # sturdy chest, hips (chocolate)
+    material: fur
+    space: body
+    blend: 0.09
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.15], r: [0.21, 0.20, 0.20]}
+      - ellipsoid: {c: [0, 0.03, -0.04], r: [0.18, 0.16, 0.15]}
+      - ellipsoid: {c: [0, 0.03, -0.20], r: [0.19, 0.17, 0.16]}
+      - cone: {a: [0, 0.08, 0.22], b: [0, 0.26, 0.35], r: [0.15, 0.11]}     # neck
+  belly:           # white underside, chest and throat bib
+    material: white
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.09, 0.15], r: [0.22, 0.13, 0.20]}
+      - ellipsoid: {c: [0, -0.09, -0.06], r: [0.195, 0.11, 0.20]}
+      - ellipsoid: {c: [0, 0.06, 0.34], r: [0.15, 0.18, 0.11], rot: [0.5, 0, 0]}   # bib
+  head:            # chocolate cap
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.01], r: [0.115, 0.09, 0.10]}
+      - ellipsoid: {c: [0.09, 0.0, -0.01], r: [0.05, 0.055, 0.05]}             # cheek ruff
+      - ellipsoid: {c: [-0.09, 0.0, -0.01], r: [0.05, 0.055, 0.05]}
+  mask:            # white face mask: muzzle, cheeks and the brow stripe
+    material: white
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.01, 0.05], r: [0.10, 0.06, 0.075]}
+      - cone: {a: [0, 0.03, 0.06], b: [0, 0.01, 0.19], r: [0.06, 0.036]}       # snout
+      - ellipsoid: {c: [0, 0.075, 0.075], r: [0.022, 0.05, 0.03], rot: [-0.4, 0, 0]}   # brow stripe
+  muzzle:
+    material: white
+    space: jaw
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.015, 0.11], r: [0.04, 0.025]}
+  mouth:
+    when: "jaw > 0.12"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.005, 0.12], r: [0.035, 0.02, 0.06]}
+  tongue:
+    when: "jaw > 0.12"
+    material: pink
+    space: jaw
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.11], r: [0.025, 0.012, 0.04]}
+  nose:
+    material: dark
+    space: head
+    prims:
+      - sphere: {c: [0, 0.025, 0.195], r: 0.028}
+  ear_L:
+    material: fur
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.15, -0.01], r: [0.055, 0.012]}
+  ear_in_L:
+    material: white
+    space: ear_L
+    prims:
+      - cone: {a: [0, 0.015, 0.024], b: [0, 0.085, 0.006], r: [0.022, 0.006]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.052, 0.06, 0.085], r: 0.027}
+  tail:            # thick tail curling up and forward over the hips
+    material: fur
+    space: tail
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.09, -0.07], [0, 0.17, -0.03], [0, 0.16, 0.07]], r: [0.065, 0.085, 0.08, 0.06]}
+  tail_tip:
+    material: white
+    space: tail
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.155, 0.09], r: 0.055}
+      - ellipsoid: {c: [0, 0.10, -0.12], r: [0.05, 0.07, 0.04]}               # pale underside
+  fleg_L:          # white legs, brown shoulder
+    material: white
+    blend: 0.03
+    prims:
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.06, 0.044]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.042, 0.036]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.01, 0.025]}, r: [0.045, 0.03, 0.05]}
+  hleg_L:
+    material: white
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.07, 0.046]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.043, 0.036]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.01, 0.025]}, r: [0.045, 0.03, 0.05]}
+  flank_L:         # brown shoulder and thigh over the white legs
+    material: fur
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.12, 0.02, 0.19], r: [0.085, 0.11, 0.09]}
+      - ellipsoid: {c: [0.12, 0.02, -0.21], r: [0.09, 0.12, 0.11]}
+
+sockets:
+  head: {bone: head, offset: [0, 0.16, 0]}
+  mouth: {bone: head, offset: [0, 0.0, 0.19]}
+
+animations:
+  idle:            # happy panting, tail wags
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.012*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      jaw: "0.22 + 0.06*sin(2*p)"
+      tail: "0.35*sin(2*p)"
+      ear_L: "0.2*(f == 2)"
+      head_tilt: "0.1*(f == 3)"
+  walk:            # trot, diagonal pairs
+    frames: 6
+    ms: 90
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.018*cos(2*p)"
+      twist: "0.04*sin(p)"
+      head_pitch: "0.03 + 0.04*cos(2*p)"
+      tail: "0.3*sin(p - 0.8)"
+      jaw: 0.2
+      ffoot_L: "[0.13, -0.39 + 0.09*pos(-sin(p)), 0.23 + 0.13*cos(p)]"
+      hfoot_R: "[0.13, -0.39 + 0.09*pos(-sin(p)), -0.23 + 0.13*cos(p)]"
+      ffoot_R: "[0.13, -0.39 + 0.09*pos(sin(p)), 0.23 - 0.13*cos(p)]"
+      hfoot_L: "[0.13, -0.39 + 0.09*pos(sin(p)), -0.23 - 0.13*cos(p)]"
+  sit:             # sits down (hips to the ground, front up) and holds; the last frame is the resting sit
+    loop: false
+    keys:
+      - ms: 90
+        set: {bob: -0.06, plant: 0, rear: 0.2, head_pitch: -0.05, tail: 0.2,
+              ffoot_L: [0.13, -0.37, 0.19], ffoot_R: [0.13, -0.37, 0.19], hfoot_L: [0.14, -0.30, -0.19], hfoot_R: [0.14, -0.30, -0.19]}
+      - ms: 110
+        set: {bob: -0.14, plant: 0, rear: 0.45, head_pitch: -0.05, jaw: 0.1,
+              ffoot_L: [0.13, -0.338, 0.134], ffoot_R: [0.13, -0.338, 0.134], hfoot_L: [0.15, -0.207, -0.136], hfoot_R: [0.15, -0.207, -0.136]}
+      - ms: 200
+        set: {bob: -0.15, plant: 0, rear: 0.45, squash: 0.97, head_pitch: 0.0, jaw: 0.25, tail: -0.25,
+              ffoot_L: [0.13, -0.338, 0.134], ffoot_R: [0.13, -0.338, 0.134], hfoot_L: [0.15, -0.207, -0.136], hfoot_R: [0.15, -0.207, -0.136]}
+      - ms: 400
+        set: {bob: -0.14, plant: 0, rear: 0.45, head_pitch: -0.05, jaw: 0.22, tail: 0.25, head_tilt: 0.12,
+              ffoot_L: [0.13, -0.338, 0.134], ffoot_R: [0.13, -0.338, 0.134], hfoot_L: [0.15, -0.207, -0.136], hfoot_R: [0.15, -0.207, -0.136]}

@@ -1,40 +1,65 @@
-// Procedural overworld zone: grass over dirt (blob autotile), roads, a fenced village (Act I) or a
-// portal clearing, forests, chests, abandoned houses leading to dungeons, and enemy camps whose level
-// grows with the distance from the centre.
+// Procedural overworld area: grass over dirt (blob autotile), roads leading to the neighbouring areas, a fenced
+// village (each act's first area) or a clearing (with a checkpoint in some areas), forests, chests, abandoned
+// houses leading to dungeons, and enemy camps whose level grows a little with the distance from the centre.
+import type { DungeonTheme } from "./dungeon";
 import type { EnemyType, UniqueId } from "../data/enemies";
-import { ZONES, type CampKind, type ZoneId } from "../data/zones";
+import { AREAS, exitsOf, type AreaId, type CampKind, type NpcSpots, type Side } from "../data/zones";
+import type { QuestItemId } from "../data/quests";
+import type { SpriteName } from "../kiln";
 
 export const TILE = 16;
 export const MAP_W = 128;
 export const MAP_H = 128;
 
 export type TreeKind = "big" | "medium" | "bush" | "stump";
-export interface Prop { kind: string; x: number; y: number; frame?: number }
+export interface Prop {
+  kind: string; x: number; y: number; frame?: number;
+  /** kind "kiln" (authored maps): a SpriteKiln prop, its fallback, variant/clip, ground decal, fading tree, pixel nudge. */
+  name?: SpriteName; alt?: string; variant?: number; anim?: string; floor?: boolean; tree?: boolean; off?: [number, number];
+}
 export interface Pack {
   x: number; y: number; level: number; count: number; champion: boolean;
   faction: CampKind;
   unique?: UniqueId;
   /** Explicit enemy mix (dungeons); otherwise derived from the camp kind. */
   types?: EnemyType[];
+  /** Story lair: only there while this quest is being done (the three mutts wait for their quest). */
+  quest?: string;
 }
 
 export interface WorldMap {
   kind: "zone" | "dungeon";
+  /** Dungeons: what kind of place it is (its tiles, dressing and light). */
+  theme?: DungeonTheme;
   grass: boolean[];
   blocked: boolean[];
   props: Prop[];
-  chests: { x: number; y: number; level: number }[];
+  chests: { x: number; y: number; level: number; safe?: boolean }[];
   packs: Pack[];
   spawn: { x: number; y: number };
-  /** Act I: where a new hero starts, at the far end of the forest road leading to the village. */
+  /** Act I: far end of the south trail leading to the village. */
   start?: { x: number; y: number };
   /** Act I: village exits closed by barricades until the first quest is accepted (tiles of the fence gaps). */
   gates: { x: number; y: number; kind: "fence_h" | "fence_v" }[];
-  portal: { x: number; y: number };
+  /** Checkpoint (or a dungeon's exit portal); null in areas without one. */
+  portal: { x: number; y: number } | null;
+  /** Roads off the map edge into the neighbouring areas: the tile at the edge and the area it leads to. */
+  exits: { side: Side; to: AreaId; x: number; y: number }[];
   /** Abandoned houses: entering one loads that zone's dungeon `index`. */
   dungeons: { x: number; y: number; index: number }[];
-  npcs: { elder: [number, number]; smith: [number, number]; hunter: [number, number] } | null;
+  npcs: NpcSpots | null;
   town: { x0: number; y0: number; x1: number; y1: number };
+  /** Authored villages: the gates in the fence (tile, facing); else the north, west and east gaps. */
+  gateSpots?: [number, number, number, number][];
+  /** Authored areas: where each kind of quest object lies. */
+  spots?: Partial<Record<QuestItemId, [number, number][]>>;
+  /** A fenced arena opened by the story (Lula's customs house): its rect, the barricade across its only gap
+   * (pivot tile and the tiles it closes), where the boss stands to make his speech, and the quest that opens it. */
+  arena?: { x0: number; y0: number; x1: number; y1: number; gate: { x: number; y: number }; gateTiles: { x: number; y: number }[];
+    stage: { x: number; y: number }; quest: string };
+  /** A story lair in a ring of standing stones (the three mutts): its centre and radius in tiles, the mouth's
+   * centre tile and the quest whose bosses wait in it. */
+  lair?: { x: number; y: number; r: number; mouth: { x: number; y: number }; quest: string };
 }
 
 export function rng(seed: number) {
@@ -64,9 +89,12 @@ function valueNoise(rand: () => number, cell: number) {
   };
 }
 
-export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
-  const zone = ZONES[zoneId];
-  const village = zone.hasVillage;
+export function generateMap(seed: number, areaId: AreaId = "minhau"): WorldMap {
+  const zone = AREAS[areaId];
+  const village = !!zone.village;
+  // Act I's village is reached by the long forest trail of the opening cutscene.
+  const arrival = areaId === "minhau";
+  const exitSides = exitsOf(areaId);
   const rand = rng(seed);
   const n1 = valueNoise(rand, 9);
   const n2 = valueNoise(rand, 4);
@@ -86,17 +114,22 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
   const cx = MAP_W >> 1, cy = MAP_H >> 1;
   const town = village ? { x0: cx - 13, y0: cy - 9, x1: cx + 13, y1: cy + 9 } : { x0: cx - 5, y0: cy - 4, x1: cx + 5, y1: cy + 4 };
 
-  // Roads: wobbling dirt lines from the village to the four edges.
-  const road = (dx: number, dy: number, straight = false) => {
+  // Roads: wobbling dirt lines from the centre to the edges (villages: all four; elsewhere: the exits). An exit road
+  // runs on through the border trees into the next area.
+  const exitGap = new Array<boolean>(MAP_W * MAP_H).fill(false);
+  const exits: WorldMap["exits"] = [];
+  const road = (dx: number, dy: number, straight = false, side?: Side) => {
     let x = cx, y = cy, wob = 0;
     const tiles: [number, number][] = [];
-    while (x > 3 && y > 3 && x < MAP_W - 4 && y < MAP_H - 4) {
+    const lim = side ? 0 : 3;
+    while (x > lim && y > lim && x < MAP_W - 1 - lim && y < MAP_H - 1 - lim) {
       tiles.push([x, y]);
       for (let oy = -1; oy <= 1; oy++)
         for (let ox = -1; ox <= 1; ox++) {
           if (!inside(x + ox, y + oy)) continue;
           grass[idx(x + ox, y + oy)] = false;
           reserved[idx(x + ox, y + oy)] = true;
+          if (side) exitGap[idx(x + ox, y + oy)] = true;
         }
       if (straight) {
         x += dx;
@@ -105,14 +138,22 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
       }
       wob += (rand() - 0.5) * 0.9;
       wob = Math.max(-1, Math.min(1, wob));
-      x += dx || (rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
-      y += dy || (rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
+      // Near the edge an exit road goes straight, so the way out is easy to find.
+      const nearEdge = Math.min(x, y, MAP_W - 1 - x, MAP_H - 1 - y) < 8;
+      x += dx || (!nearEdge && rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
+      y += dy || (!nearEdge && rand() < Math.abs(wob) * 0.5 ? Math.sign(wob) : 0);
     }
+    if (side) exits.push({ side, to: exitSides[side]!, x: Math.max(0, Math.min(MAP_W - 1, x)), y: Math.max(0, Math.min(MAP_H - 1, y)) });
     return tiles;
   };
-  road(1, 0); road(-1, 0);
-  const southRoad = road(0, 1, village); // Act I: the straight trail the hero arrives by
-  road(0, -1);
+  const dirs: [Side, number, number][] = [["e", 1, 0], ["w", -1, 0], ["s", 0, 1], ["n", 0, -1]];
+  let southRoad: [number, number][] = [];
+  for (const [side, dx, dy] of dirs) {
+    const exit = exitSides[side] ? side : undefined;
+    if (!exit && !village) continue;
+    const tiles = road(dx, dy, side === "s" && arrival, exit);
+    if (side === "s") southRoad = tiles; // Act I: the straight trail the hero arrives by
+  }
 
   // Village (or portal clearing): grass with a dirt plaza, reserved from trees.
   for (let y = town.y0; y <= town.y1; y++)
@@ -124,10 +165,10 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
 
   // Act I: south of the village there is only the trail the hero arrives by: a wide, straight road between
   // two walls of forest, from the hero's start to the village gate. Nothing else of the map is out there
-  // (no camps, chests or dungeons); the three goblins on it are the ones of the arrival cutscene.
+  // (no camps, chests or dungeons): the goblin scouts of the first quest prowl there.
   const corridor = new Array<boolean>(MAP_W * MAP_H).fill(false);
   const nearTrail = corridor; // no camps around the trail
-  const trail = village ? southRoad.filter(([, y]) => y >= town.y1 + 2) : [];
+  const trail = arrival ? southRoad.filter(([, y]) => y >= town.y1 + 2) : [];
   const OPEN = 6, WALL = 8; // open ground half-width, then this many tiles of dense forest
   if (trail.length) {
     const y0 = town.y1 + 2;
@@ -153,8 +194,8 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
       }
   }
 
-  const portal = village ? { x: cx - 3, y: cy - 1 } : { x: cx, y: cy - 2 };
-  block(portal.x, portal.y);
+  const portal = !zone.waypoint ? null : village ? { x: cx - 3, y: cy - 1 } : { x: cx, y: cy - 2 };
+  if (portal) block(portal.x, portal.y);
 
   // Abandoned houses that lead to dungeons.
   const dungeons: WorldMap["dungeons"] = [];
@@ -217,6 +258,7 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
     for (let x = 0; x < MAP_W; x++) {
       const i = idx(x, y);
       const border = x < 3 || y < 3 || x >= MAP_W - 3 || y >= MAP_H - 3;
+      if (border && exitGap[i]) continue; // the road out of the area
       if (border) {
         blocked[i] = true;
         if (corridor[i]) continue; // the trail's forest already fills it
@@ -240,7 +282,7 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
 
   const free = (x: number, y: number) => inside(x, y) && !blocked[idx(x, y)];
   const dist = (x: number, y: number) => Math.hypot(x - cx, y - cy);
-  const levelAt = (x: number, y: number) => 1 + zone.levelBase + Math.floor(Math.max(0, dist(x, y) - 16) / 9);
+  const levelAt = (x: number, y: number) => zone.level + Math.floor(Math.max(0, dist(x, y) - 16) / 20);
   const totalWeight = zone.camps.reduce((a, c) => a + c.weight, 0);
   const pickCamp = (nearRoad: boolean): CampKind => {
     let r = rand() * totalWeight;
@@ -255,10 +297,12 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
   // Goblin camps.
   const packs: Pack[] = [];
   let tries = 0;
-  while (packs.length < 42 && tries++ < 5000) {
+  const maxPacks = village ? 10 : 30;
+  while (packs.length < maxPacks && tries++ < 5000) {
     const x = 4 + Math.floor(rand() * (MAP_W - 8));
     const y = 4 + Math.floor(rand() * (MAP_H - 8));
-    if (!free(x, y) || nearTrail[idx(x, y)] || dist(x, y) < (village ? 25 : 14)) continue;
+    if (!free(x, y) || nearTrail[idx(x, y)] || exitGap[idx(x, y)] || dist(x, y) < (village ? 25 : 14)) continue;
+    if (exits.some((e) => Math.hypot(e.x - x, e.y - y) < 18)) continue; // a quiet stretch where the hero walks in
     if (packs.some((p) => Math.hypot(p.x - x, p.y - y) < 9)) continue;
     const level = levelAt(x, y);
     // Bandits camp along the roads, farther out; goblins everywhere.
@@ -280,7 +324,7 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
 
   const chests: WorldMap["chests"] = [];
   tries = 0;
-  while (chests.length < 14 && tries++ < 3000) {
+  while (chests.length < (village ? 4 : 10) && tries++ < 3000) {
     const x = 4 + Math.floor(rand() * (MAP_W - 8));
     const y = 4 + Math.floor(rand() * (MAP_H - 8));
     if (!free(x, y) || corridor[idx(x, y)] || dist(x, y) < 18 || chests.some((c) => Math.hypot(c.x - x, c.y - y) < 12)) continue;
@@ -288,14 +332,14 @@ export function generateMap(seed: number, zoneId: ZoneId = "forest"): WorldMap {
     block(x, y);
   }
 
-  // The hero starts near the far end of the trail (its goblins come with the arrival cutscene).
+  // Far end of the trail (unused since the Act I rewrite: the hero now starts in the plaza).
   let start: WorldMap["start"];
   if (trail.length > 12) {
     const [sx, sy] = trail[trail.length - 3];
     start = { x: sx, y: sy };
   }
 
-  const npcs: WorldMap["npcs"] = village ? { elder: [cx + 2, cy - 2], smith: [town.x0 + 8, cy - 4], hunter: [town.x1 - 3, cy + 3] } : null;
+  const npcs: WorldMap["npcs"] = village ? { leader: [cx + 2, cy - 2], shop: [town.x0 + 8, cy - 4], guide: [town.x1 - 3, cy + 3] } : null;
   if (npcs) for (const [x, y] of Object.values(npcs)) block(x, y);
-  return { kind: "zone", grass, blocked, props, chests, packs, spawn: { x: cx, y: cy + 1 }, start, gates, portal, dungeons, town, npcs };
+  return { kind: "zone", grass, blocked, props, chests, packs, spawn: { x: cx, y: cy + 1 }, start, gates, portal, exits, dungeons, town, npcs };
 }

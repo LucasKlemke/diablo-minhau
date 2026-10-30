@@ -1,0 +1,267 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: scorch_mark
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot = frame centre (24, 24) = the ground point
+shadow: null             # a decal on the ground
+
+# Prologue (the burning castle): burn marks on the marble floor where fire raged or something exploded.
+brief:
+  summary: black soot burns on the floor - an irregular charred blot with a near-black core, a brown-grey
+    scorched halo and blast streaks radiating out; three of the four still have a couple of glowing embers
+  must_keep: [near-black core, brown scorched halo that reads on white marble, radial streaks, 4 shapes]
+  simplify: [flat decals, 3 exact colours + an emissive ember tone]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. No outline (a decal);
+    the halo is the edge. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 24) = frame centre = the ground point under the mark; floor-decal layer.
+    VARIANTS: animation `variants` has 4 frames (frame i = variant i; 0, 2 and 3 have embers, emissive);
+    `idle` = variant 0. Geometry generated once from a seeded random layout (flat ellipsoids).
+
+ramps:
+  sc_halo: ["#1c0f1a", "#6e5a52"]
+  sc_soot: ["#1c0f1a", "#33262a"]
+  sc_core: ["#1c0f1a", "#170e12"]
+
+materials:
+  halo:  {ramp: sc_halo, bands: [1, 1], outline: false, line: false}
+  soot:  {ramp: sc_soot, bands: [1, 1], outline: false, line: false}
+  core:  {ramp: sc_core, bands: [1, 1], outline: false, line: false}
+  ember: {ramp: fire, emissive: true, band: 1, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..3
+
+bones:
+  body: {parent: root}
+
+parts:
+  halo_0:
+    when: "var == 0"
+    material: halo
+    space: body
+    prims:
+      - ellipsoid: {c: [0.075, 0.004, 0.022], r: [0.653, 0.004, 0.531], rot: [0, 2.666, 0]}
+      - ellipsoid: {c: [-0.000, 0.004, 0.004], r: [0.596, 0.004, 0.493], rot: [0, 0.050, 0]}
+      - ellipsoid: {c: [-0.031, 0.004, 0.173], r: [0.543, 0.004, 0.597], rot: [0, 0.930, 0]}
+      - ellipsoid: {c: [-0.041, 0.004, -0.128], r: [0.524, 0.004, 0.491], rot: [0, 2.126, 0]}
+      - ellipsoid: {c: [-0.245, 0.004, 0.020], r: [0.528, 0.004, 0.434], rot: [0, 0.403, 0]}
+      - ellipsoid: {c: [-0.329, 0.004, 0.018], r: [0.584, 0.004, 0.635], rot: [0, 0.345, 0]}
+      - ellipsoid: {c: [0.040, 0.004, 0.254], r: [0.669, 0.004, 0.723], rot: [0, 0.452, 0]}
+      - ellipsoid: {c: [0.859, 0.004, -0.252], r: [0.331, 0.004, 0.110], rot: [0, 0.260, 0]}
+      - ellipsoid: {c: [0.675, 0.004, 0.552], r: [0.283, 0.004, 0.110], rot: [0, -0.639, 0]}
+      - ellipsoid: {c: [-0.238, 0.004, 0.944], r: [0.333, 0.004, 0.110], rot: [0, -1.841, 0]}
+      - ellipsoid: {c: [-0.435, 0.004, 0.749], r: [0.250, 0.004, 0.110], rot: [0, -2.139, 0]}
+      - ellipsoid: {c: [-0.788, 0.004, -0.108], r: [0.236, 0.004, 0.110], rot: [0, -3.266, 0]}
+      - ellipsoid: {c: [-0.401, 0.004, -0.787], r: [0.263, 0.004, 0.110], rot: [0, -4.202, 0]}
+      - ellipsoid: {c: [-0.103, 0.004, -0.964], r: [0.324, 0.004, 0.110], rot: [0, -4.596, 0]}
+      - ellipsoid: {c: [0.384, 0.004, -0.790], r: [0.257, 0.004, 0.110], rot: [0, -5.203, 0]}
+  halo_1:
+    when: "var == 1"
+    material: halo
+    space: body
+    prims:
+      - ellipsoid: {c: [0.087, 0.004, 0.039], r: [0.413, 0.004, 0.367], rot: [0, 2.333, 0]}
+      - ellipsoid: {c: [-0.048, 0.004, -0.129], r: [0.535, 0.004, 0.504], rot: [0, 2.680, 0]}
+      - ellipsoid: {c: [-0.032, 0.004, -0.026], r: [0.505, 0.004, 0.481], rot: [0, 1.661, 0]}
+      - ellipsoid: {c: [0.044, 0.004, 0.198], r: [0.443, 0.004, 0.395], rot: [0, 0.743, 0]}
+      - ellipsoid: {c: [-0.006, 0.004, 0.053], r: [0.535, 0.004, 0.548], rot: [0, 0.094, 0]}
+      - ellipsoid: {c: [-0.020, 0.004, -0.010], r: [0.517, 0.004, 0.479], rot: [0, 1.670, 0]}
+      - ellipsoid: {c: [0.016, 0.004, -0.227], r: [0.523, 0.004, 0.462], rot: [0, 0.293, 0]}
+      - ellipsoid: {c: [0.606, 0.004, -0.160], r: [0.216, 0.004, 0.110], rot: [0, 0.236, 0]}
+      - ellipsoid: {c: [0.317, 0.004, 0.594], r: [0.218, 0.004, 0.110], rot: [0, -1.040, 0]}
+      - ellipsoid: {c: [0.170, 0.004, 0.651], r: [0.208, 0.004, 0.110], rot: [0, -1.291, 0]}
+      - ellipsoid: {c: [-0.424, 0.004, 0.506], r: [0.218, 0.004, 0.110], rot: [0, -2.315, 0]}
+      - ellipsoid: {c: [-0.657, 0.004, -0.145], r: [0.262, 0.004, 0.110], rot: [0, -3.339, 0]}
+      - ellipsoid: {c: [-0.555, 0.004, -0.356], r: [0.235, 0.004, 0.110], rot: [0, -3.669, 0]}
+      - ellipsoid: {c: [0.148, 0.004, -0.657], r: [0.208, 0.004, 0.110], rot: [0, -4.956, 0]}
+      - ellipsoid: {c: [0.312, 0.004, -0.587], r: [0.210, 0.004, 0.110], rot: [0, -5.242, 0]}
+  halo_2:
+    when: "var == 2"
+    material: halo
+    space: body
+    prims:
+      - ellipsoid: {c: [0.023, 0.004, -0.275], r: [0.645, 0.004, 0.539], rot: [0, 2.098, 0]}
+      - ellipsoid: {c: [0.179, 0.004, -0.036], r: [0.750, 0.004, 0.572], rot: [0, 1.636, 0]}
+      - ellipsoid: {c: [0.063, 0.004, 0.202], r: [0.693, 0.004, 0.766], rot: [0, 1.621, 0]}
+      - ellipsoid: {c: [0.095, 0.004, -0.103], r: [0.578, 0.004, 0.547], rot: [0, 2.217, 0]}
+      - ellipsoid: {c: [-0.004, 0.004, -0.015], r: [0.607, 0.004, 0.522], rot: [0, 1.462, 0]}
+      - ellipsoid: {c: [0.075, 0.004, -0.089], r: [0.558, 0.004, 0.624], rot: [0, 2.695, 0]}
+      - ellipsoid: {c: [0.002, 0.004, -0.016], r: [0.609, 0.004, 0.506], rot: [0, 2.836, 0]}
+      - ellipsoid: {c: [0.911, 0.004, 0.178], r: [0.293, 0.004, 0.110], rot: [0, -0.176, 0]}
+      - ellipsoid: {c: [0.541, 0.004, 0.819], r: [0.287, 0.004, 0.110], rot: [0, -0.942, 0]}
+      - ellipsoid: {c: [0.050, 0.004, 0.997], r: [0.275, 0.004, 0.110], rot: [0, -1.516, 0]}
+      - ellipsoid: {c: [-0.834, 0.004, 0.575], r: [0.352, 0.004, 0.110], rot: [0, -2.582, 0]}
+      - ellipsoid: {c: [-0.877, 0.004, 0.231], r: [0.270, 0.004, 0.110], rot: [0, -2.907, 0]}
+      - ellipsoid: {c: [-0.692, 0.004, -0.613], r: [0.256, 0.004, 0.110], rot: [0, -3.820, 0]}
+      - ellipsoid: {c: [0.091, 0.004, -1.028], r: [0.306, 0.004, 0.110], rot: [0, -4.810, 0]}
+  halo_3:
+    when: "var == 3"
+    material: halo
+    space: body
+    prims:
+      - ellipsoid: {c: [0.160, 0.004, 0.102], r: [0.420, 0.004, 0.362], rot: [0, 2.417, 0]}
+      - ellipsoid: {c: [-0.155, 0.004, -0.104], r: [0.421, 0.004, 0.440], rot: [0, 2.403, 0]}
+      - ellipsoid: {c: [-0.012, 0.004, 0.018], r: [0.457, 0.004, 0.376], rot: [0, 1.726, 0]}
+      - ellipsoid: {c: [0.079, 0.004, -0.005], r: [0.378, 0.004, 0.350], rot: [0, 0.627, 0]}
+      - ellipsoid: {c: [-0.000, 0.004, -0.067], r: [0.354, 0.004, 0.354], rot: [0, 0.804, 0]}
+      - ellipsoid: {c: [0.002, 0.004, 0.003], r: [0.450, 0.004, 0.413], rot: [0, 1.860, 0]}
+      - ellipsoid: {c: [-0.194, 0.004, 0.024], r: [0.353, 0.004, 0.357], rot: [0, 2.572, 0]}
+      - ellipsoid: {c: [0.456, 0.004, -0.140], r: [0.179, 0.004, 0.110], rot: [0, 0.273, 0]}
+      - ellipsoid: {c: [0.376, 0.004, 0.374], r: [0.212, 0.004, 0.110], rot: [0, -0.736, 0]}
+      - ellipsoid: {c: [-0.041, 0.004, 0.540], r: [0.198, 0.004, 0.110], rot: [0, -1.654, 0]}
+      - ellipsoid: {c: [-0.430, 0.004, 0.325], r: [0.227, 0.004, 0.110], rot: [0, -2.540, 0]}
+      - ellipsoid: {c: [-0.506, 0.004, -0.153], r: [0.229, 0.004, 0.110], rot: [0, -3.410, 0]}
+      - ellipsoid: {c: [-0.268, 0.004, -0.496], r: [0.229, 0.004, 0.110], rot: [0, -4.177, 0]}
+  soot_0:
+    when: "var == 0"
+    material: soot
+    space: body
+    prims:
+      - ellipsoid: {c: [0.075, 0.008, 0.022], r: [0.533, 0.004, 0.411], rot: [0, 2.666, 0]}
+      - ellipsoid: {c: [-0.000, 0.008, 0.004], r: [0.476, 0.004, 0.373], rot: [0, 0.050, 0]}
+      - ellipsoid: {c: [-0.031, 0.008, 0.173], r: [0.423, 0.004, 0.477], rot: [0, 0.930, 0]}
+      - ellipsoid: {c: [-0.041, 0.008, -0.128], r: [0.404, 0.004, 0.371], rot: [0, 2.126, 0]}
+      - ellipsoid: {c: [-0.245, 0.008, 0.020], r: [0.408, 0.004, 0.314], rot: [0, 0.403, 0]}
+      - ellipsoid: {c: [-0.329, 0.008, 0.018], r: [0.464, 0.004, 0.515], rot: [0, 0.345, 0]}
+      - ellipsoid: {c: [0.040, 0.008, 0.254], r: [0.549, 0.004, 0.603], rot: [0, 0.452, 0]}
+      - ellipsoid: {c: [0.859, 0.008, -0.252], r: [0.251, 0.004, 0.050], rot: [0, 0.260, 0]}
+      - ellipsoid: {c: [0.675, 0.008, 0.552], r: [0.203, 0.004, 0.050], rot: [0, -0.639, 0]}
+      - ellipsoid: {c: [-0.238, 0.008, 0.944], r: [0.253, 0.004, 0.050], rot: [0, -1.841, 0]}
+      - ellipsoid: {c: [-0.435, 0.008, 0.749], r: [0.170, 0.004, 0.050], rot: [0, -2.139, 0]}
+      - ellipsoid: {c: [-0.788, 0.008, -0.108], r: [0.156, 0.004, 0.050], rot: [0, -3.266, 0]}
+      - ellipsoid: {c: [-0.401, 0.008, -0.787], r: [0.183, 0.004, 0.050], rot: [0, -4.202, 0]}
+      - ellipsoid: {c: [-0.103, 0.008, -0.964], r: [0.244, 0.004, 0.050], rot: [0, -4.596, 0]}
+      - ellipsoid: {c: [0.384, 0.008, -0.790], r: [0.177, 0.004, 0.050], rot: [0, -5.203, 0]}
+  soot_1:
+    when: "var == 1"
+    material: soot
+    space: body
+    prims:
+      - ellipsoid: {c: [0.087, 0.008, 0.039], r: [0.293, 0.004, 0.247], rot: [0, 2.333, 0]}
+      - ellipsoid: {c: [-0.048, 0.008, -0.129], r: [0.415, 0.004, 0.384], rot: [0, 2.680, 0]}
+      - ellipsoid: {c: [-0.032, 0.008, -0.026], r: [0.385, 0.004, 0.361], rot: [0, 1.661, 0]}
+      - ellipsoid: {c: [0.044, 0.008, 0.198], r: [0.323, 0.004, 0.275], rot: [0, 0.743, 0]}
+      - ellipsoid: {c: [-0.006, 0.008, 0.053], r: [0.415, 0.004, 0.428], rot: [0, 0.094, 0]}
+      - ellipsoid: {c: [-0.020, 0.008, -0.010], r: [0.397, 0.004, 0.359], rot: [0, 1.670, 0]}
+      - ellipsoid: {c: [0.016, 0.008, -0.227], r: [0.403, 0.004, 0.342], rot: [0, 0.293, 0]}
+      - ellipsoid: {c: [0.606, 0.008, -0.160], r: [0.136, 0.004, 0.050], rot: [0, 0.236, 0]}
+      - ellipsoid: {c: [0.317, 0.008, 0.594], r: [0.138, 0.004, 0.050], rot: [0, -1.040, 0]}
+      - ellipsoid: {c: [0.170, 0.008, 0.651], r: [0.128, 0.004, 0.050], rot: [0, -1.291, 0]}
+      - ellipsoid: {c: [-0.424, 0.008, 0.506], r: [0.138, 0.004, 0.050], rot: [0, -2.315, 0]}
+      - ellipsoid: {c: [-0.657, 0.008, -0.145], r: [0.182, 0.004, 0.050], rot: [0, -3.339, 0]}
+      - ellipsoid: {c: [-0.555, 0.008, -0.356], r: [0.155, 0.004, 0.050], rot: [0, -3.669, 0]}
+      - ellipsoid: {c: [0.148, 0.008, -0.657], r: [0.128, 0.004, 0.050], rot: [0, -4.956, 0]}
+      - ellipsoid: {c: [0.312, 0.008, -0.587], r: [0.130, 0.004, 0.050], rot: [0, -5.242, 0]}
+  soot_2:
+    when: "var == 2"
+    material: soot
+    space: body
+    prims:
+      - ellipsoid: {c: [0.023, 0.008, -0.275], r: [0.525, 0.004, 0.419], rot: [0, 2.098, 0]}
+      - ellipsoid: {c: [0.179, 0.008, -0.036], r: [0.630, 0.004, 0.452], rot: [0, 1.636, 0]}
+      - ellipsoid: {c: [0.063, 0.008, 0.202], r: [0.573, 0.004, 0.646], rot: [0, 1.621, 0]}
+      - ellipsoid: {c: [0.095, 0.008, -0.103], r: [0.458, 0.004, 0.427], rot: [0, 2.217, 0]}
+      - ellipsoid: {c: [-0.004, 0.008, -0.015], r: [0.487, 0.004, 0.402], rot: [0, 1.462, 0]}
+      - ellipsoid: {c: [0.075, 0.008, -0.089], r: [0.438, 0.004, 0.504], rot: [0, 2.695, 0]}
+      - ellipsoid: {c: [0.002, 0.008, -0.016], r: [0.489, 0.004, 0.386], rot: [0, 2.836, 0]}
+      - ellipsoid: {c: [0.911, 0.008, 0.178], r: [0.213, 0.004, 0.050], rot: [0, -0.176, 0]}
+      - ellipsoid: {c: [0.541, 0.008, 0.819], r: [0.207, 0.004, 0.050], rot: [0, -0.942, 0]}
+      - ellipsoid: {c: [0.050, 0.008, 0.997], r: [0.195, 0.004, 0.050], rot: [0, -1.516, 0]}
+      - ellipsoid: {c: [-0.834, 0.008, 0.575], r: [0.272, 0.004, 0.050], rot: [0, -2.582, 0]}
+      - ellipsoid: {c: [-0.877, 0.008, 0.231], r: [0.190, 0.004, 0.050], rot: [0, -2.907, 0]}
+      - ellipsoid: {c: [-0.692, 0.008, -0.613], r: [0.176, 0.004, 0.050], rot: [0, -3.820, 0]}
+      - ellipsoid: {c: [0.091, 0.008, -1.028], r: [0.226, 0.004, 0.050], rot: [0, -4.810, 0]}
+  soot_3:
+    when: "var == 3"
+    material: soot
+    space: body
+    prims:
+      - ellipsoid: {c: [0.160, 0.008, 0.102], r: [0.300, 0.004, 0.242], rot: [0, 2.417, 0]}
+      - ellipsoid: {c: [-0.155, 0.008, -0.104], r: [0.301, 0.004, 0.320], rot: [0, 2.403, 0]}
+      - ellipsoid: {c: [-0.012, 0.008, 0.018], r: [0.337, 0.004, 0.256], rot: [0, 1.726, 0]}
+      - ellipsoid: {c: [0.079, 0.008, -0.005], r: [0.258, 0.004, 0.230], rot: [0, 0.627, 0]}
+      - ellipsoid: {c: [-0.000, 0.008, -0.067], r: [0.234, 0.004, 0.234], rot: [0, 0.804, 0]}
+      - ellipsoid: {c: [0.002, 0.008, 0.003], r: [0.330, 0.004, 0.293], rot: [0, 1.860, 0]}
+      - ellipsoid: {c: [-0.194, 0.008, 0.024], r: [0.233, 0.004, 0.237], rot: [0, 2.572, 0]}
+      - ellipsoid: {c: [0.456, 0.008, -0.140], r: [0.099, 0.004, 0.050], rot: [0, 0.273, 0]}
+      - ellipsoid: {c: [0.376, 0.008, 0.374], r: [0.132, 0.004, 0.050], rot: [0, -0.736, 0]}
+      - ellipsoid: {c: [-0.041, 0.008, 0.540], r: [0.118, 0.004, 0.050], rot: [0, -1.654, 0]}
+      - ellipsoid: {c: [-0.430, 0.008, 0.325], r: [0.147, 0.004, 0.050], rot: [0, -2.540, 0]}
+      - ellipsoid: {c: [-0.506, 0.008, -0.153], r: [0.149, 0.004, 0.050], rot: [0, -3.410, 0]}
+      - ellipsoid: {c: [-0.268, 0.008, -0.496], r: [0.149, 0.004, 0.050], rot: [0, -4.177, 0]}
+  core_0:
+    when: "var == 0"
+    material: core
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.049, 0.012, -0.013], r: [0.308, 0.004, 0.286], rot: [0, 2.066, 0]}
+      - ellipsoid: {c: [0.044, 0.012, -0.205], r: [0.272, 0.004, 0.339], rot: [0, 0.869, 0]}
+      - ellipsoid: {c: [0.016, 0.012, -0.015], r: [0.304, 0.004, 0.327], rot: [0, 1.665, 0]}
+  core_1:
+    when: "var == 1"
+    material: core
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.075, 0.012, -0.043], r: [0.250, 0.004, 0.248], rot: [0, 0.563, 0]}
+      - ellipsoid: {c: [-0.098, 0.012, 0.061], r: [0.203, 0.004, 0.257], rot: [0, 0.040, 0]}
+      - ellipsoid: {c: [-0.117, 0.012, 0.071], r: [0.255, 0.004, 0.212], rot: [0, 0.755, 0]}
+  core_2:
+    when: "var == 2"
+    material: core
+    space: body
+    prims:
+      - ellipsoid: {c: [0.021, 0.012, 0.021], r: [0.269, 0.004, 0.350], rot: [0, 0.594, 0]}
+      - ellipsoid: {c: [0.073, 0.012, -0.008], r: [0.330, 0.004, 0.265], rot: [0, 0.876, 0]}
+      - ellipsoid: {c: [0.157, 0.012, -0.178], r: [0.272, 0.004, 0.287], rot: [0, 0.172, 0]}
+  core_3:
+    when: "var == 3"
+    material: core
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.011, 0.012, 0.053], r: [0.150, 0.004, 0.149], rot: [0, 2.836, 0]}
+      - ellipsoid: {c: [0.012, 0.012, 0.091], r: [0.128, 0.004, 0.184], rot: [0, 0.241, 0]}
+      - ellipsoid: {c: [0.002, 0.012, -0.008], r: [0.141, 0.004, 0.145], rot: [0, 0.845, 0]}
+  ember_0:
+    when: "var == 0"
+    material: ember
+    space: body
+    prims:
+      - sphere: {c: [-0.016, 0.0, 0.102], r: 0.058}
+      - sphere: {c: [0.219, 0.0, -0.188], r: 0.056}
+      - sphere: {c: [-0.202, 0.0, 0.027], r: 0.067}
+  ember_2:
+    when: "var == 2"
+    material: ember
+    space: body
+    prims:
+      - sphere: {c: [0.049, 0.0, -0.007], r: 0.068}
+      - sphere: {c: [0.200, 0.0, 0.358], r: 0.062}
+      - sphere: {c: [0.139, 0.0, -0.038], r: 0.061}
+      - sphere: {c: [0.057, 0.0, -0.022], r: 0.050}
+  ember_3:
+    when: "var == 3"
+    material: ember
+    space: body
+    prims:
+      - sphere: {c: [0.049, 0.0, 0.014], r: 0.046}
+      - sphere: {c: [-0.057, 0.0, -0.219], r: 0.052}
+      - sphere: {c: [0.040, 0.0, 0.059], r: 0.048}
+      - sphere: {c: [-0.088, 0.0, -0.163], r: 0.061}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 4
+    ms: 1000
+    channels: {var: "f"}

@@ -1,0 +1,221 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: twisted_tree
+kind: prop
+view: topdown
+size: 64                 # ~40 x 50 px on screen at camera.scale 0.055 (like tree_big), 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3959, 0]}   # 20 px above the pivot -> pivot (32, 52)
+shadow: {rx: 13, ry: 4.5, alpha: 120}
+
+# Act I wilds (Bosque dos Goblins, Mata dos Lobos): gnarled, nearly leafless tree of a blighted land.
+brief:
+  summary: gnarled, twisted tree of the blighted Act I wilds, about the size of tree_big (~2.7 units, ~50 px);
+    a thick knotted trunk that corkscrews and leans, a split root flare gripping the ash, crooked arms
+    ending in claw-like twigs, and only a few sparse clumps of dark dead-olive foliage
+  must_keep: [crooked leaning trunk with knots, claw twigs, sparse dark foliage clumps (never a full crown),
+    root flare, dark outline]
+  simplify: [no single leaves; foliage clumps are flattened lumps; bark texture is a couple of inner lines]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.3959, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,52) is the ground point at the centre of the
+    trunk base. Footprint: the trunk blocks 1 tile (variants 0 and 2) or 2 tiles side by side (variant 1,
+    split twin trunk); the crown overhangs and does not block.
+    VARIANTS: animation `variants` has 3 frames (frame i = variant i); `idle` = variant 0.
+    0 leaning right with two crooked arms; 1 split twin trunk (a V with a dark hollow); 2 hunched, bent to
+    the left, drooping.
+    Colour: bark is a cold dark grey-brown, foliage a dark dead olive. Every foliage tone has green <= red+6,
+    so the game's biome recolour (greens only) leaves it untouched and it stays dead-looking on any skin.
+
+ramps:
+  tw_bark: ["#1c0f1a", "#2a1f22", "#3e3132", "#594a45", "#776656"]
+  tw_leaf: ["#1c0f1a", "#1b1a14", "#29271a", "#393621", "#4b462a"]
+  tw_hole: ["#1c0f1a", "#120a10", "#1c1216"]
+
+materials:
+  bark:      {ramp: tw_bark, bands: [1, 4]}
+  leaf:      {ramp: tw_leaf, bands: [2, 4]}
+  leaf_dark: {ramp: tw_leaf, bands: [1, 2]}
+  hole:      {ramp: tw_hole, bands: [1, 1], outline: false}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..2
+
+bones:
+  body: {parent: root}
+
+parts:
+  # =================== variant 0: leaning right, crooked arms ===================
+  v0_trunk:
+    when: "var < 0.5"
+    material: bark
+    space: body
+    blend: 0.07
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.14, 0.40, 0.02], [-0.06, 0.85, 0.04], [0.10, 1.25, 0], [0.34, 1.55, 0]], r: [0.21, 0.15, 0.13, 0.11, 0.08]}
+      - sphere: {c: [-0.08, 0.84, 0.08], r: 0.12}                                   # knot
+      - sphere: {c: [0.16, 0.42, 0.08], r: 0.10}
+      - cone: {a: [0, 0.10, 0], b: [0.48, 0.02, 0.14], r: [0.12, 0.04]}             # roots
+      - cone: {a: [0, 0.10, 0], b: [-0.52, 0.02, 0.08], r: [0.13, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [0.10, 0.02, 0.40], r: [0.10, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [-0.20, 0.02, -0.34], r: [0.09, 0.035]}
+  v0_arms:
+    when: "var < 0.5"
+    material: bark
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0.34, 1.55, 0], [0.70, 1.78, 0.05], [0.86, 2.12, 0], [1.14, 2.20, -0.05]], r: [0.07, 0.055, 0.04, 0.025]}
+      - chain: {pts: [[0.34, 1.55, 0], [0.24, 2.00, -0.05], [0.46, 2.38, 0], [0.32, 2.72, 0]], r: [0.07, 0.05, 0.04, 0.025]}
+      - chain: {pts: [[0.04, 1.15, 0.02], [-0.36, 1.42, 0.05], [-0.56, 1.82, 0], [-0.92, 1.92, 0]], r: [0.08, 0.055, 0.04, 0.025]}
+      - chain: {pts: [[-0.36, 1.42, 0.05], [-0.62, 1.40, 0.08], [-0.86, 1.22, 0.08]], r: [0.04, 0.03, 0.025]}  # drooping claw
+      - cone: {a: [-0.56, 1.82, 0], b: [-0.48, 2.22, 0], r: [0.035, 0.025]}       # claw twigs
+      - cone: {a: [0.86, 2.12, 0], b: [0.94, 2.46, 0], r: [0.035, 0.025]}
+      - cone: {a: [0.70, 1.78, 0.05], b: [1.04, 1.66, 0.08], r: [0.035, 0.025]}
+      - cone: {a: [0.46, 2.38, 0], b: [0.72, 2.56, 0], r: [0.03, 0.025]}
+      - cone: {a: [0.24, 2.00, -0.05], b: [-0.04, 2.30, 0], r: [0.035, 0.025]}
+  v0_leaf_back:
+    when: "var < 0.5"
+    material: leaf_dark
+    space: body
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.40, 2.57, -0.20], r: [0.246, 0.122, 0.196], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.62, 2.47, -0.18], r: [0.174, 0.086, 0.138], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [-0.62, 1.92, -0.18], r: [0.203, 0.101, 0.161], rot: [0, 0, -0.25]}
+  v0_leaf:
+    when: "var < 0.5"
+    material: leaf
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.30, 2.69, 0.02], r: [0.189, 0.094, 0.149], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.50, 2.55, 0.06], r: [0.160, 0.079, 0.127], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.72, 2.53, 0.02], r: [0.131, 0.065, 0.103], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [1.10, 2.19, 0.06], r: [0.174, 0.086, 0.138], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.94, 2.37, 0.02], r: [0.131, 0.065, 0.103], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [-0.86, 1.93, 0.08], r: [0.174, 0.086, 0.138], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.52, 2.09, 0.04], r: [0.145, 0.072, 0.115], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.04, 2.27, 0.06], r: [0.131, 0.065, 0.103], rot: [0, 0, -0.25]}
+
+  # =================== variant 1: split twin trunk (V) with a dark hollow, 2 tiles ===================
+  v1_trunk:
+    when: "abs(var - 1) < 0.5"
+    material: bark
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.22, 0], r: [0.42, 0.30, 0.28]}                          # fused base
+      - chain: {pts: [[-0.18, 0.30, 0], [-0.40, 0.80, 0.02], [-0.36, 1.25, 0], [-0.62, 1.70, 0]], r: [0.18, 0.13, 0.11, 0.08]}
+      - chain: {pts: [[0.18, 0.30, 0], [0.42, 0.75, 0.02], [0.50, 1.20, 0], [0.80, 1.55, 0]], r: [0.18, 0.13, 0.11, 0.08]}
+      - sphere: {c: [0.44, 0.78, 0.08], r: 0.11}
+      - cone: {a: [0, 0.10, 0], b: [0.70, 0.02, 0.16], r: [0.13, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [-0.72, 0.02, 0.10], r: [0.13, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [-0.12, 0.02, 0.44], r: [0.11, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [0.26, 0.02, 0.40], r: [0.10, 0.035]}
+  v1_hollow:
+    when: "abs(var - 1) < 0.5"
+    material: hole
+    space: body
+    prims:
+      - ellipsoid: {c: [0.02, 0.26, 0.24], r: [0.13, 0.22, 0.08]}
+  v1_arms:
+    when: "abs(var - 1) < 0.5"
+    material: bark
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - chain: {pts: [[-0.62, 1.70, 0], [-0.80, 2.10, -0.02], [-1.10, 2.25, 0]], r: [0.07, 0.05, 0.025]}
+      - chain: {pts: [[-0.62, 1.70, 0], [-0.46, 2.12, -0.04], [-0.56, 2.50, 0]], r: [0.06, 0.045, 0.025]}
+      - chain: {pts: [[0.80, 1.55, 0], [1.14, 1.80, 0.02], [1.24, 2.15, 0]], r: [0.07, 0.05, 0.025]}
+      - chain: {pts: [[0.80, 1.55, 0], [0.66, 2.00, -0.04], [0.82, 2.38, 0]], r: [0.06, 0.045, 0.025]}
+      - chain: {pts: [[-0.36, 1.25, 0], [-0.10, 1.55, 0.04], [0.02, 1.95, 0]], r: [0.05, 0.04, 0.025]}
+      - cone: {a: [1.14, 1.80, 0.02], b: [1.44, 1.72, 0.06], r: [0.035, 0.025]}
+      - cone: {a: [-0.80, 2.10, -0.02], b: [-0.78, 2.40, 0], r: [0.03, 0.025]}
+  v1_leaf_back:
+    when: "abs(var - 1) < 0.5"
+    material: leaf_dark
+    space: body
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.56, 2.45, -0.18], r: [0.217, 0.108, 0.172], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [0.80, 2.31, -0.18], r: [0.203, 0.101, 0.161], rot: [0, 0, 0.25]}
+  v1_leaf:
+    when: "abs(var - 1) < 0.5"
+    material: leaf
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.60, 2.53, 0.04], r: [0.174, 0.086, 0.138], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-1.08, 2.25, 0.06], r: [0.160, 0.079, 0.127], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [0.84, 2.39, 0.04], r: [0.174, 0.086, 0.138], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [1.24, 2.15, 0.06], r: [0.145, 0.072, 0.115], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.04, 1.97, 0.06], r: [0.145, 0.072, 0.115], rot: [0, 0, 0.25]}
+
+  # =================== variant 2: hunched, bent to the left, drooping ===================
+  v2_trunk:
+    when: "var > 1.5"
+    material: bark
+    space: body
+    blend: 0.08
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.10, 0.50, 0.02], [0.02, 1.05, 0.03], [-0.30, 1.50, 0.02], [-0.72, 1.70, 0]], r: [0.23, 0.17, 0.14, 0.11, 0.08]}
+      - sphere: {c: [0.12, 0.55, 0.10], r: 0.12}
+      - sphere: {c: [-0.06, 1.20, 0.08], r: 0.10}
+      - cone: {a: [0, 0.10, 0], b: [0.52, 0.02, 0.12], r: [0.13, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [-0.46, 0.02, 0.16], r: [0.13, 0.04]}
+      - cone: {a: [0, 0.10, 0], b: [0.16, 0.02, -0.38], r: [0.10, 0.04]}
+  v2_arms:
+    when: "var > 1.5"
+    material: bark
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - chain: {pts: [[-0.72, 1.70, 0], [-1.05, 1.62, 0.04], [-1.18, 1.30, 0.06], [-1.12, 1.05, 0.06]], r: [0.07, 0.05, 0.035, 0.025]}  # drooping tip
+      - chain: {pts: [[-0.30, 1.50, 0.02], [-0.30, 1.95, -0.02], [-0.06, 2.28, 0], [0.18, 2.38, 0]], r: [0.07, 0.05, 0.04, 0.025]}
+      - chain: {pts: [[0.02, 1.05, 0.03], [0.42, 1.38, 0.04], [0.68, 1.52, 0.04], [0.86, 1.36, 0.06]], r: [0.07, 0.05, 0.035, 0.025]}
+      - cone: {a: [0.42, 1.38, 0.04], b: [0.50, 1.80, 0], r: [0.035, 0.025]}
+      - cone: {a: [-0.30, 1.95, -0.02], b: [-0.62, 2.18, 0], r: [0.035, 0.025]}
+      - cone: {a: [-1.05, 1.62, 0.04], b: [-1.30, 1.80, 0.02], r: [0.03, 0.025]}
+  v2_leaf_back:
+    when: "var > 1.5"
+    material: leaf_dark
+    space: body
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.12, 2.27, -0.18], r: [0.246, 0.122, 0.196], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.86, 1.77, -0.16], r: [0.203, 0.101, 0.161], rot: [0, 0, -0.25]}
+  v2_leaf:
+    when: "var > 1.5"
+    material: leaf
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.14, 2.37, 0.04], r: [0.174, 0.086, 0.138], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [-0.14, 2.33, 0.06], r: [0.160, 0.079, 0.127], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-0.62, 2.17, 0.04], r: [0.145, 0.072, 0.115], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-1.10, 1.07, 0.08], r: [0.160, 0.079, 0.127], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [-1.28, 1.79, 0.06], r: [0.131, 0.065, 0.103], rot: [0, 0, -0.25]}
+      - ellipsoid: {c: [0.52, 1.81, 0.04], r: [0.145, 0.072, 0.115], rot: [0, 0, 0.25]}
+      - ellipsoid: {c: [0.86, 1.31, 0.08], r: [0.131, 0.065, 0.103], rot: [0, 0, 0.25]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {var: "f"}

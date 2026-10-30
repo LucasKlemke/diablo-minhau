@@ -1,0 +1,404 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: royal_guard
+mirror: true
+kind: character
+size: 64                 # exception: bigger frame, same density (halberd upright and lying on the floor)
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.85, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Act I prologue: royal guard of Minhau castle (white marble, royal blue and gold court).
+# Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi royal guard - polished silver open-face helmet with cheek guards and a royal-blue plume crest
+    running front to back, royal-blue tabard front and back down to the knees with the gold crest of
+    Minhau (a cat head on the chest, a gold star on the skirt), gold belt and gold hem trim, silver plate
+    armour (pauldrons, gorget, vambraces, greaves, sabatons) over dark mail, and a tall halberd (wood haft,
+    steel axe blade, gold spear point and collar) in the right hand.
+  must_keep: [silver helmet + blue plume, royal-blue tabard, gold cat crest, silver pauldrons, halberd taller than the guard with a gold point]
+  simplify: [no fingers (steel mitten gauntlets), cat crest is a gold disc with two ears, star is a 5-point gold blob,
+             mail is a flat dark-steel ramp, face is two eyes and a nose under the helmet rim]
+  exceptions: >
+    size 64 (not the 48 of the other humans) with the same camera.scale 0.055: the ~2 m halberd must fit
+    upright (idle, walk, n view) and lying flat on the floor (death) in every direction; the body is
+    still 32 px tall like aldo_young.
+  decisions: >
+    Head scale 1.8 and torso height like aldo_young / npc_captain so the guard stands next to the king at the
+    same size. Same royal-blue (cloth_blue = castle_tapestry tp_blue) and gold (= castle banner/tapestry gold)
+    as the castle props; no cape (the captain has one) so the plume and the halberd are the striking shapes.
+    The halberd lives in its own frame at the right wrist with world rotation (inherit_rot false), driven by
+    hb_pitch/hb_roll; hb_slide slides it along its axis in the hand during the thrust.
+    Death (choking in a fetid mist): the halberd is dropped (a second copy in root space, `drop`), both
+    hands go to the throat, the guard kneels and falls face down. Mirrored directions swap the halberd to
+    the left hand (mirror: true project style, like the bandit's scimitar).
+
+ramps:
+  mail:  ["#1c0f1a", "#2e3040", "#424557", "#5e6578"]    # dark steel mail under the plate
+  plume: ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea", "#a8cff3"]
+
+materials:
+  skin:   {ramp: skin, bands: [2, 3], line_band: 2}
+  plate:  {ramp: steel, bands: [2, 3]}
+  helm:   {ramp: steel, bands: [2, 4]}
+  mail:   {ramp: mail, bands: [1, 3]}
+  tabard: {ramp: cloth_blue, bands: [1, 3]}
+  plume:  {ramp: plume, bands: [2, 4]}
+  gold:   {ramp: gold, bands: [2, 3]}
+  crest:  {ramp: gold, bands: [2, 3], outline: false, line: false}
+  haft:   {ramp: wood, bands: [1, 2]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true, outline: false}
+  fx_mid:  {ramp: fx_mid, emissive: true, outline: false}
+  fx_core: {ramp: fx_core, emissive: true, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.0
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.04
+  head_yaw: 0
+  hand_L: [0.22, 0.04, 0.04]
+  hand_R: [0.28, 0.14, 0.08]
+  foot_L: [0.10, 0, 0.02]
+  pitch_foot_L: 0
+  plume: 0          # plume sway (-1..1)
+  skirt: 0          # tabard skirt sway (-1..1)
+  hb_pitch: 0       # halberd pitch in world space (+ tips the point forward)
+  hb_yaw: 0
+  hb_roll: 0.06     # + tips the point to the guard's right (outward of the right hand)
+  hb_slide: 0       # slides the halberd along its axis through the hand (+ = grip nearer the butt)
+  drop: 0           # 1: the halberd has left the hand and lies in root space
+  drop_pos: [-0.28, 0, 0.05]
+  drop_rot: [0, 0, 0]
+  streak: 0         # thrust speed lines behind the point
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.54 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.42, 0.02], inherit_scale: false, rot: "[-lean*0.3, 0, 0]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  plumebase: {parent: head, pos: [0, 0.30, -0.02], rot: "[-plume*0.35, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.20, 0.31, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.085, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  skirtbase:  {parent: pelvis, pos: [0, 0.02, 0], rot: "[-skirt*0.25, 0, 0]"}
+  # the yaw term turns the axe blade toward the camera in the profiles (it is edge-on there), fading out when levelled
+  halberd:    {parent: wrist_R, inherit_rot: false,
+               rot: "[hb_pitch, hb_yaw + 0.8*pulse(abs(yaw), 90, 70)*clamp(1 - abs(hb_pitch), 0, 1), hb_roll]"}
+  hb_held:    {parent: halberd, pos: "[0, -hb_slide, 0]"}
+  hb_floor:   {parent: root, pos: "drop_pos - root", rot: drop_rot}   # stays where it fell while the body moves
+  hb_lying:   {parent: hb_floor, pos: [0, 0.60, 0]}
+  fxspace:    {parent: hb_held}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.4, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.25, 0.23],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # silver breastplate
+    material: plate
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.15, 0.11, 0.115]}
+      - ellipsoid: {c: [0, 0.23, 0.0], r: [0.18, 0.13, 0.13]}
+  hips:            # dark mail skirt under the tabard
+    material: mail
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.02, 0], b: [0, -0.14, 0], r: [0.14, 0.16]}
+  tabard:          # royal-blue chest panel front and back
+    material: tabard
+    space: pelvis
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.17, 0.125], half: [0.10, 0.14, 0.03], round: 0.025, rot: [-0.06, 0, 0]}
+      - box: {c: [0, 0.17, -0.115], half: [0.11, 0.15, 0.03], round: 0.025, rot: [0.04, 0, 0]}
+  skirt:           # tabard flaps to the knees, front and back
+    material: tabard
+    space: skirtbase
+    blend: 0.02
+    prims:
+      - box: {c: [0, -0.15, 0.15], half: [0.11, 0.15, 0.022], round: 0.02, rot: [0.10, 0, 0]}
+      - box: {c: [0, -0.15, -0.14], half: [0.11, 0.15, 0.022], round: 0.02, rot: [-0.10, 0, 0]}
+  hem:             # gold trim at the bottom of the flaps
+    material: gold
+    space: skirtbase
+    prims:
+      - box: {c: [0, -0.285, 0.165], half: [0.112, 0.022, 0.026], round: 0.01, rot: [0.10, 0, 0]}
+      - box: {c: [0, -0.285, -0.155], half: [0.112, 0.022, 0.026], round: 0.01, rot: [-0.10, 0, 0]}
+  belt:            # gold belt with a buckle
+    material: gold
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.05, 0], r: 0.175}
+      - box: {c: [0, 0.025, 0.18], half: [0.035, 0.032, 0.015], round: 0.008}
+  cat_crest:       # gold cat head of Minhau on the chest
+    material: crest
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.15, 0.15], b: [0, 0.15, 0.17], r: 0.075}
+      - cone: {a: [0.045, 0.19, 0.16], b: [0.075, 0.27, 0.155], r: [0.035, 0.012]}
+      - cone: {a: [-0.045, 0.19, 0.16], b: [-0.075, 0.27, 0.155], r: [0.035, 0.012]}
+  star:            # gold star on the front flap
+    material: crest
+    space: skirtbase
+    prims:
+      - sphere: {c: [0, -0.13, 0.175], r: 0.03}
+      - cone: {a: [0, -0.13, 0.175], b: [0, -0.07, 0.17], r: [0.025, 0.008]}
+      - cone: {a: [0, -0.13, 0.175], b: [0.055, -0.115, 0.172], r: [0.025, 0.008]}
+      - cone: {a: [0, -0.13, 0.175], b: [-0.055, -0.115, 0.172], r: [0.025, 0.008]}
+      - cone: {a: [0, -0.13, 0.18], b: [0.035, -0.18, 0.182], r: [0.025, 0.008]}
+      - cone: {a: [0, -0.13, 0.18], b: [-0.035, -0.18, 0.182], r: [0.025, 0.008]}
+  gorget:          # steel collar around the neck
+    material: plate
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cylinder: {a: [0, 0.30, 0.0], b: [0, 0.37, 0.0], r: 0.08, round: 0.02}
+  pauldron_L:      # round silver shoulder plate
+    material: plate
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0.21, 0.33, 0.0], r: [0.10, 0.075, 0.10], rot: [0, 0, -0.35]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.145, 0.15, 0.14]}
+      - sphere: {c: [0, 0.10, 0.142], r: 0.022}
+  helmet:          # silver open-face helmet: dome, rim, cheek guards and neck guard
+    material: helm
+    space: head
+    blend: 0.025
+    prims:
+      - ellipsoid: {c: [0, 0.19, -0.01], r: [0.155, 0.12, 0.15]}
+      - cylinder: {a: [0, 0.175, -0.01], b: [0, 0.195, -0.01], r: 0.16, round: 0.008}
+      - ellipsoid: {c: [0.135, 0.09, -0.01], r: [0.03, 0.075, 0.07]}
+      - ellipsoid: {c: [-0.135, 0.09, -0.01], r: [0.03, 0.075, 0.07]}
+      - ellipsoid: {c: [0, 0.08, -0.10], r: [0.135, 0.08, 0.06]}
+    cut:
+      - box: {c: [0, 0.06, 0.16], half: [0.115, 0.115, 0.1]}
+  plume:           # royal-blue crest from the brow over the top to the nape
+    material: plume
+    space: plumebase
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, -0.02, 0.10], [0, 0.06, 0.03], [0, 0.07, -0.08], [0, 0.0, -0.17], [0, -0.10, -0.21]],
+                r: [0.03, 0.05, 0.055, 0.045, 0.025]}
+  plume_socket:    # small gold holder at the front of the crest
+    material: gold
+    space: head
+    prims:
+      - sphere: {c: [0, 0.29, 0.10], r: 0.026}
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.052, 0.125, 0.133], r: [0.022, 0.028, 0.02]}
+  arm_L:           # mail sleeve
+    material: mail
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.06}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.058, 0.052]}
+  vambrace_L:      # silver forearm
+    material: plate
+    blend: 0.02
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.056, 0.058]}
+  hand_L:          # steel gauntlet
+    material: plate
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.05}
+  leg_L:
+    material: mail
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.075, 0.062]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.062, 0.055]}
+  greave_L:        # silver greave and sabaton
+    material: plate
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.19, 0.01], b: [0, -0.02, 0.0], r: [0.068, 0.064]}
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.064, 0.044, 0.105]}
+  knee_L:
+    material: plate
+    prims:
+      - sphere: {c: {at: knee_L, off: [0, 0, 0.03]}, r: 0.058}
+  # --- halberd held in the right hand (no _L: not mirrored) ---
+  haft:
+    material: haft
+    space: hb_held
+    when: "drop < 0.5"
+    prims:
+      - cylinder: {a: [0, -0.60, 0], b: [0, 0.98, 0], r: 0.028}
+  hb_steel:        # axe blade (outward, -x) and back spike
+    material: plate
+    space: hb_held
+    when: "drop < 0.5"
+    blend: 0.02
+    prims:
+      - box: {c: [-0.10, 1.02, 0], half: [0.08, 0.11, 0.022], round: 0.01}
+      - ellipsoid: {c: [-0.175, 1.02, 0], r: [0.04, 0.14, 0.022]}
+      - cone: {a: [0.02, 1.04, 0], b: [0.13, 1.08, 0], r: [0.032, 0.01]}
+  hb_gold:         # gold collar, spear point and butt cap
+    material: gold
+    space: hb_held
+    when: "drop < 0.5"
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.88, 0], b: [0, 0.93, 0], r: 0.042}
+      - cone: {a: [0, 1.10, 0], b: [0, 1.38, 0], r: [0.055, 0.008]}
+      - sphere: {c: [0, -0.60, 0], r: 0.035}
+  # --- the same halberd dropped on the floor (death) ---
+  haft_drop:
+    material: haft
+    space: hb_lying
+    when: "drop >= 0.5"
+    prims:
+      - cylinder: {a: [0, -0.60, 0], b: [0, 0.98, 0], r: 0.028}
+  hb_steel_drop:
+    material: plate
+    space: hb_lying
+    when: "drop >= 0.5"
+    blend: 0.02
+    prims:
+      - box: {c: [-0.10, 1.02, 0], half: [0.08, 0.11, 0.022], round: 0.01}
+      - ellipsoid: {c: [-0.175, 1.02, 0], r: [0.04, 0.14, 0.022]}
+      - cone: {a: [0.02, 1.04, 0], b: [0.13, 1.08, 0], r: [0.032, 0.01]}
+  hb_gold_drop:
+    material: gold
+    space: hb_lying
+    when: "drop >= 0.5"
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.88, 0], b: [0, 0.93, 0], r: 0.042}
+      - cone: {a: [0, 1.10, 0], b: [0, 1.38, 0], r: [0.055, 0.008]}
+      - sphere: {c: [0, -0.60, 0], r: 0.035}
+  thrust_fx:       # speed streak along the haft behind the point
+    when: "streak > 0"
+    space: fxspace
+    material: fx_mid
+    prims:
+      - cone: {a: [0.0, 0.25, 0.05], b: [0.0, 1.02, 0.05], r: [0.006, "0.03*streak"]}
+      - cone: {a: [0.0, 0.40, -0.06], b: [0.0, 0.96, -0.06], r: [0.005, "0.022*streak"]}
+
+sockets:
+  hit: {bone: hb_held, offset: [0, 1.22, 0], when: "drop < 0.5"}   # spear point
+  head: {bone: head, offset: [0, 0.42, 0]}                            # above the plume
+  throat: {bone: pelvis, offset: [0, 0.38, 0.10]}                     # for the choking mist effect
+
+animations:
+  idle:            # at attention: halberd planted, slow breath, plume settles
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.04 - 0.03*sin(p - 0.5)"
+      hand_L: "[0.22, 0.04 + 0.012*sin(p - 0.6), 0.04]"
+      hand_R: "[0.28, 0.14 + 0.012*sin(p - 0.6), 0.08]"
+      plume: "0.25*sin(p - 1.0)"
+      skirt: "0.08*sin(p - 1.0)"
+  walk:            # measured march, halberd carried upright, plume and flaps bounce
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.04
+      bob: "-0.035*cos(2*p) + 0.008"
+      twist: "0.07*cos(p)"
+      foot_L: "[0.10, 0.08*pos(-sin(p)), 0.03 + 0.15*cos(p)]"
+      foot_R: "[0.10, 0.08*pos(sin(p)), 0.03 - 0.15*cos(p)]"
+      pitch_foot_L: "0.35*pos(-sin(p))"
+      pitch_foot_R: "0.35*pos(sin(p))"
+      hand_L: "[0.22, 0.05 + 0.03*pos(cos(p)), 0.04 - 0.12*cos(p)]"
+      hand_R: "[0.28, 0.15 + 0.015*cos(2*p), 0.10]"
+      hb_pitch: "0.10 + 0.04*cos(2*p)"
+      head_yaw: "-0.04*cos(p)"
+      plume: "0.3 + 0.35*sin(2*p - 0.8)"
+      skirt: "0.45*sin(2*p)"
+  attack:          # halberd thrust: pull back (held), stab with speed lines, impact, recover
+    loop: false
+    keys:
+      - ms: 160
+        event: windup
+        set: {twist: -0.35, lean: -0.06, bob: -0.04, squash: 0.94, head_pitch: 0.02,
+              hand_R: [0.22, 0.10, -0.10], hand_L: [-0.02, 0.14, 0.16],
+              hb_pitch: 1.40, hb_yaw: "0.12 + 0.5*pulse(abs(yaw), 0, 55) + 0.5*pulse(abs(yaw), 180, 55)", hb_roll: 0, hb_slide: 0.35,
+              foot_L: [0.10, 0, 0.14], foot_R: [0.10, 0, -0.08], plume: -0.4, skirt: -0.3}
+      - ms: 60
+        set: {root: [0, 0, 0.05], twist: 0.20, lean: 0.20, squash: 1.05, head_pitch: 0.0,
+              hand_R: [0.14, 0.15, 0.14], hand_L: [-0.04, 0.17, 0.30],
+              hb_pitch: 1.52, hb_yaw: "0.10 + 0.5*pulse(abs(yaw), 0, 55) + 0.5*pulse(abs(yaw), 180, 55)", hb_roll: 0, hb_slide: 0.55, streak: 1,
+              foot_L: [0.10, 0, 0.20], foot_R: [0.10, 0, -0.12], plume: 0.6, skirt: 0.5}
+      - ms: 110
+        event: hit
+        set: {root: [0, 0, 0.06], twist: 0.26, lean: 0.24, squash: 1.0, head_pitch: 0.0,
+              hand_R: [0.12, 0.16, 0.15], hand_L: [-0.05, 0.18, 0.31],
+              hb_pitch: 1.52, hb_yaw: "0.10 + 0.5*pulse(abs(yaw), 0, 55) + 0.5*pulse(abs(yaw), 180, 55)", hb_roll: 0, hb_slide: 0.55, streak: 0.5,
+              foot_L: [0.10, 0, 0.20], foot_R: [0.10, 0, -0.12], plume: 0.9, skirt: 0.6}
+      - ms: 120
+        set: {root: [0, 0, 0.06], twist: 0.10, lean: 0.10, hand_R: [0.24, 0.13, 0.06], hand_L: [0.12, 0.10, 0.18],
+              hb_pitch: 0.80, hb_yaw: "0.4*pulse(abs(yaw), 0, 55) + 0.4*pulse(abs(yaw), 180, 55)", hb_slide: 0.2, hb_roll: 0.03, foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0, -0.06],
+              plume: 0.4, skirt: 0.2}
+      - ms: 120
+        set: {root: [0, 0, 0.02], hand_R: [0.28, 0.14, 0.08], hb_pitch: 0.15, hb_slide: 0.05, plume: -0.1, skirt: -0.1}
+  hit:             # recoil: knocked back, halberd tips back, plume whips
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, hand_L: [0.30, 0.12, 0.0],
+                       hand_R: [0.30, 0.16, 0.02], hb_pitch: -0.25, hb_roll: 0.15, plume: 1.0, skirt: -0.5, foot_R: [0.10, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.12, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.10, hand_L: [0.26, 0.07, 0.03],
+                       hand_R: [0.29, 0.15, 0.05], hb_pitch: -0.12, hb_roll: 0.10, plume: 0.5, skirt: -0.2, foot_R: [0.10, 0, -0.04]}}
+      - {ms: 110, set: {lean: 0.0, root: [0, 0, -0.02], hand_R: [0.28, 0.14, 0.08], plume: 0.1}}
+  death:           # choking in the fetid mist: hand to the throat, drops the halberd, kneels, slumps forward-left
+    loop: false
+    keys:
+      - ms: 140
+        event: choke
+        set: {lean: -0.12, bob: 0.01, squash: 1.04, head_pitch: -0.30, hand_L: [0.04, 0.35, 0.17],
+              hand_R: [0.30, 0.16, 0.04], hb_roll: 0.20, hb_pitch: -0.05, plume: 0.5, skirt: -0.2}
+      - ms: 150
+        event: drop
+        set: {lean: 0.12, bob: -0.04, squash: 0.95, head_pitch: 0.12, hand_L: [0.05, 0.34, 0.17], hand_R: [0.05, 0.33, 0.17],
+              drop: 1, drop_pos: [-0.32, 0.0, 0.0], drop_rot: [0.30, -1.5708, 0], plume: -0.3, skirt: 0.2}
+      - ms: 130
+        set: {lean: 0.22, bob: -0.16, squash: 0.95, head_pitch: 0.18, hand_L: [0.05, 0.33, 0.18], hand_R: [0.05, 0.32, 0.18],
+              foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0.02, -0.10], pitch_foot_R: 0.4,
+              drop: 1, drop_pos: [0.38, 0.0, -0.03], drop_rot: [0.85, -1.5708, 0], plume: 0.3, skirt: 0.3}
+      - ms: 200
+        event: kneel
+        set: {lean: 0.30, bob: -0.25, squash: 0.96, head_pitch: 0.25, hand_L: [0.05, 0.33, 0.19], hand_R: [0.05, 0.32, 0.19],
+              foot_L: [0.10, 0, 0.16], foot_R: [0.10, 0.03, -0.20], pitch_foot_R: 1.0,
+              drop: 1, drop_pos: [0.82, 0.03, -0.04], drop_rot: [1.5708, -1.5708, 0], plume: 0.1, skirt: 0.1}
+      - ms: 120
+        set: {root: [0.06, 0, 0.04], lean: 0.65, roll: -0.45, bob: -0.32, head_pitch: 0.30, hand_L: [0.20, 0.22, 0.26], hand_R: [0.20, 0.22, 0.26],
+              foot_L: [0.10, 0.03, 0.04], foot_R: [0.10, 0.03, -0.22], pitch_foot_R: 1.0,
+              drop: 1, drop_pos: [0.82, 0.03, -0.04], drop_rot: [1.5708, -1.5708, 0], plume: -0.4, skirt: -0.3}
+      - ms: 110
+        event: fall
+        set: {root: [0.14, 0, 0.0], lean: 1.0, roll: -0.95, bob: -0.40, squash: 0.94, head_pitch: 0.20, hand_L: [0.30, 0.30, 0.20], hand_R: [0.28, 0.30, 0.20],
+              foot_L: [0.10, 0.02, -0.18], foot_R: [0.10, 0.02, -0.24], pitch_foot_L: 1.2, pitch_foot_R: 1.2,
+              drop: 1, drop_pos: [0.82, 0.03, -0.04], drop_rot: [1.5708, -1.5708, 0], plume: 0.6, skirt: 0.4}
+      - ms: 800
+        set: {root: [0.14, 0, 0.0], lean: 1.05, roll: -1.0, bob: -0.41, head_pitch: 0.25, hand_L: [0.32, 0.30, 0.18], hand_R: [0.30, 0.30, 0.18],
+              foot_L: [0.10, 0.0, -0.20], foot_R: [0.10, 0.0, -0.26], pitch_foot_L: 1.3, pitch_foot_R: 1.3,
+              drop: 1, drop_pos: [0.82, 0.03, -0.04], drop_rot: [1.5708, -1.5708, 0], plume: 0.3, skirt: 0.2}

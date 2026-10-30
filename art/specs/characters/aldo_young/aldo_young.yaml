@@ -1,0 +1,253 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: aldo_young
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Act I flashback: King Aldo on the throne, ten years before he became "o Anciao" (see npc_aldo).
+# Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi king in his prime - completely bald head (no hair), short dark-brown beard, upright proud
+    posture. Clean royal-blue cloak over back and sides with a thick white ermine collar and ermine hem
+    (black ermine tail dots), wine-red under-robe in front with a bright gold belt, bright gold crown
+    with a red gem on the bald dome.
+  must_keep: [bald head (no hair), short dark beard, bright gold crown + red gem, royal-blue cloak,
+              white ermine collar and hem, upright posture]
+  simplify: [no fingers, legs hidden under the robe (only boots peek out), ermine dots are tiny ink spheres,
+             crown is a ring + 5 points]
+  decisions: >
+    Same skeleton, proportions and cloak layout as npc_aldo (head 1.8, wine under-robe + blue cloak) so
+    the player recognises the same man; differences: no stoop (lean 0.02, chest out), no hood, no
+    patches, no cane, dark beard, ermine instead of an ash capelet, bright gold instead of dark iron.
+    The crown is the same shape as the iron one (ring + points, high on the dome so the 38 deg camera
+    does not push it over the eyes) but straight, gold, with a red gem in front. Cast = both arms raised
+    high and open, head up: the king shouting from the balcony.
+
+ramps:
+  beard_dark: ["#1c0f1a", "#2a1a14", "#4a2e20", "#6b4430"]
+  robe_wine:  ["#1c0f1a", "#5a1426", "#922838", "#c13a4a", "#e0707a"]
+  ermine:     ["#1c0f1a", "#9aa0b4", "#dde2ec", "#fbfcff"]
+  gem_red:    ["#1c0f1a", "#7a0f1e", "#d42a3a", "#ff8090"]
+
+materials:
+  skin:   {ramp: skin, bands: [2, 3], line_band: 2}
+  mantle: {ramp: cloth_blue, bands: [1, 3]}
+  robe:   {ramp: robe_wine, bands: [1, 3]}
+  ermine: {ramp: ermine, bands: [1, 3]}
+  gold:   {ramp: gold, bands: [2, 3]}
+  gem:    {ramp: gem_red, bands: [2, 3]}
+  beard:  {ramp: beard_dark, bands: [1, 3]}
+  boot:   {ramp: leather, bands: [1, 2]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.02        # upright
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.06
+  head_yaw: 0
+  hand_L: [0.24, 0.12, 0.06]
+  foot_L: [0.09, 0, 0.04]
+  pitch_foot_L: 0
+  coat: 0           # robe / cloak hem sway (-1..1)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.52 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.42, 0.03], inherit_scale: false, rot: "[-lean*0.5, 0, 0]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  shoulder_L: {parent: pelvis, pos: [0.19, 0.34, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: root, pos: "[0, 0.52 + bob, 0]", rot: "[-coat*0.25 + 0.03, twist*0.5, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.23, 0.22],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # wine under-robe, chest out
+    material: robe
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.18, 0.14, 0.16]}
+      - ellipsoid: {c: [0, 0.27, 0.01], r: [0.20, 0.15, 0.16]}
+  robe:            # wine skirt to the ground
+    material: robe
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.05, 0], b: [0, -0.46, 0], r: [0.18, 0.25]}
+  belt:            # bright gold belt with a buckle
+    material: gold
+    space: pelvis
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.08, 0], b: [0, 0.13, 0], r: 0.185}
+      - box: {c: [0, 0.105, 0.18], half: [0.04, 0.035, 0.015]}
+  cloak:           # clean royal-blue cloak over back and sides, open in front
+    material: mantle
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.32, -0.06], b: [0, -0.46, -0.06], r: [0.215, 0.29]}
+    cut:
+      - box: {c: [0, 0, 0.30], half: [0.13, 0.6, 0.12]}
+  hem:             # ermine hem around cloak and robe
+    material: ermine
+    space: coatbase
+    prims:
+      - cylinder: {a: [0, -0.48, -0.04], b: [0, -0.40, -0.04], r: 0.305, round: 0.02}
+  collar:          # thick ermine collar over the shoulders
+    material: ermine
+    space: pelvis
+    blend: 0.05
+    prims:
+      - torus: {c: [0, 0.35, -0.01], R: 0.15, r: 0.075}
+      - ellipsoid: {c: [0, 0.34, -0.07], r: [0.23, 0.085, 0.14]}
+  ermine_dots:     # black ermine tail dots on collar and hem
+    material: ink
+    space: coatbase
+    prims:
+      - sphere: {c: [0.18, -0.44, 0.20], r: 0.022}
+      - sphere: {c: [-0.18, -0.44, 0.20], r: 0.022}
+      - sphere: {c: [0.30, -0.44, -0.04], r: 0.022}
+      - sphere: {c: [-0.30, -0.44, -0.04], r: 0.022}
+      - sphere: {c: [0.0, -0.44, -0.345], r: 0.022}
+      - sphere: {c: [0.20, -0.44, -0.27], r: 0.022}
+      - sphere: {c: [-0.20, -0.44, -0.27], r: 0.022}
+  head:            # completely bald
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.15, 0.155, 0.145]}
+      - sphere: {c: [0, 0.10, 0.15], r: 0.028}      # nose
+  crown:           # bright gold crown: slim ring tilted back on the bald dome, short points
+    material: gold
+    space: head
+    blend: 0.01
+    prims:
+      - torus: {c: [0, 0.235, -0.01], R: 0.13, r: 0.022, rot: [-0.35, 0, 0]}
+      - cone: {a: [0, 0.27, 0.12], b: [0, 0.34, 0.125], r: [0.03, 0.011]}
+      - cone: {a: [0.09, 0.26, 0.085], b: [0.10, 0.32, 0.09], r: [0.025, 0.01]}
+      - cone: {a: [-0.09, 0.26, 0.085], b: [-0.10, 0.32, 0.09], r: [0.025, 0.01]}
+      - cone: {a: [0.13, 0.235, -0.01], b: [0.14, 0.30, -0.01], r: [0.025, 0.01]}
+      - cone: {a: [-0.13, 0.235, -0.01], b: [-0.14, 0.30, -0.01], r: [0.025, 0.01]}
+  gem:             # red gem on the front of the crown
+    material: gem
+    space: head
+    prims:
+      - sphere: {c: [0, 0.275, 0.135], r: 0.028}
+  beard:           # short dark beard
+    material: beard
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.045, 0.10], r: [0.125, 0.07, 0.07]}
+      - ellipsoid: {c: [0, 0.00, 0.11], r: [0.07, 0.05, 0.05]}
+      - ellipsoid: {c: [0.12, 0.09, 0.04], r: [0.035, 0.06, 0.05]}
+      - ellipsoid: {c: [-0.12, 0.09, 0.04], r: [0.035, 0.06, 0.05]}
+  brows_L:         # dark brows
+    material: beard
+    space: head
+    prims:
+      - ellipsoid: {c: [0.06, 0.185, 0.13], r: [0.04, 0.016, 0.02]}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.148, 0.135], r: 0.022}
+  arm_L:           # royal-blue sleeve
+    material: mantle
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.072}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.062, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.075]}
+  cuff_L:          # ermine cuff
+    material: ermine
+    space: wrist_L
+    prims:
+      - cylinder: {a: [0, 0, -0.035], b: [0, 0, 0.0], r: 0.08, round: 0.01}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.055}
+  boot_L:
+    material: boot
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.065, 0.05, 0.09]}
+
+animations:
+  idle:            # proud breath, chest out
+    frames: 4
+    ms: 190
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.06 - 0.03*sin(p - 0.5)"
+      hand_L: "[0.24, 0.12 + 0.015*sin(p - 0.6), 0.06]"
+      hand_R: "[0.24, 0.12 + 0.015*sin(p - 0.6), 0.06]"
+      coat: "0.10*sin(p - 1.0)"
+  talk:            # right hand on the belt, left hand gestures, head nods
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.015*sin(p)"
+      head_pitch: "-0.06 - 0.07*sin(2*p)"
+      hand_L: "[0.27 + 0.04*sin(p), 0.28 + 0.06*sin(p), 0.22]"
+      hand_R: "[0.18, 0.10, 0.16]"
+      coat: "0.08*sin(p - 1.0)"
+  walk:            # stately steps
+    frames: 6
+    ms: 115
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.05
+      bob: "-0.035*cos(2*p) + 0.008"
+      twist: "0.07*cos(p)"
+      foot_L: "[0.09, 0.07*pos(-sin(p)), 0.05 + 0.15*cos(p)]"
+      foot_R: "[0.09, 0.07*pos(sin(p)), 0.05 - 0.15*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.24, 0.13 + 0.03*pos(cos(p)), 0.06 - 0.12*cos(p)]"
+      hand_R: "[0.24, 0.13 + 0.03*pos(-cos(p)), 0.06 + 0.12*cos(p)]"
+      head_yaw: "-0.05*cos(p)"
+      coat: "0.45*sin(2*p)"
+  cast:            # arms thrown up and open: the king shouts from the balcony
+    loop: false
+    keys:
+      - ms: 110
+        set: {bob: -0.03, squash: 0.95, lean: 0.08, head_pitch: 0.05,
+              hand_L: [0.20, 0.10, 0.16], hand_R: [0.20, 0.10, 0.16], coat: -0.1}
+      - ms: 90
+        event: windup
+        set: {bob: 0.02, squash: 1.03, lean: -0.06, head_pitch: -0.15,
+              hand_L: [0.30, 0.42, 0.10], hand_R: [0.30, 0.42, 0.10], coat: 0.2}
+      - ms: 380
+        event: release
+        set: {bob: 0.03, squash: 1.05, lean: -0.10, head_pitch: -0.22,
+              hand_L: "[0.44 - 0.14*pulse(abs(yaw), 90, 50), 0.54, 0.12 + 0.16*pulse(abs(yaw), 90, 50)]", hand_R: "[0.44 - 0.14*pulse(abs(yaw), 90, 50), 0.54, 0.12 + 0.16*pulse(abs(yaw), 90, 50)]", coat: 0.35}
+      - ms: 140
+        set: {bob: 0.01, squash: 1.02, lean: -0.06, head_pitch: -0.15,
+              hand_L: [0.42, 0.48, 0.12], hand_R: [0.42, 0.48, 0.12], coat: 0.15}
+      - ms: 130
+        set: {hand_L: [0.26, 0.20, 0.08], hand_R: [0.26, 0.20, 0.08], coat: 0.05}

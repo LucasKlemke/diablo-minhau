@@ -1,0 +1,241 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: cave_entrance
+kind: prop
+view: topdown
+size: 96                 # outcrop ~4.4 units wide (80 px) at camera.scale 0.055, 2+ px margins
+directions: 1            # faces the camera (s)
+mirror: false
+palette: ["farm", "ruin"]
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3956, 0]}   # 20 px above the pivot -> pivot (48, 68)
+shadow: {rx: 42, ry: 12, alpha: 110}
+
+# Overworld entrance of the dungeon "Caverna dos Morcegos" in the Mata dos Lobos (replaces the crypt there).
+brief:
+  summary: a hulking outcrop of cold slate boulders furred with dark moss, jagged pointed tops, a big black
+    cave mouth at the bottom-centre framed by leaning slabs and toothed with small stalactites, roots and
+    dead vines hanging over the lip, bones, a skull and pale guano stains at the threshold; bats flit out of
+    the dark
+  must_keep: [black cave mouth at bottom-centre (big, the read), pointed slate outcrop, heavy moss on top,
+    stalactite teeth, bones and skull at the threshold, a flitting bat]
+  simplify: [boulders as rotated rounded boxes, moss as flattened lumps, bats as body + two triangle wings]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false; camera.center [0, 1.3956, 0] (integer pivot).
+    Same slate and moss ramps as mossy_rock / wolf_den (Mata dos Lobos). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT (like crypt): world origin (= exported pivot, frame px 48,68) is the ground point at the
+    centre of the 5x3-tile footprint. The rock mass blocks the back two rows (z -1.4..-0.1) and the outer
+    tiles of the front row; the mouth is at x -0.65..0.65, its floor reaching z ~0.45 (about 5 px below the
+    pivot): the hero walks into the middle tile of the front row. Clips: idle (8 frames: one bat circles out
+    of the mouth and back), hover (6 frames: three bats swirl faster and two red eyes open in the dark).
+
+ramps:
+  ca_stone: ["#1c0f1a", "#2c2a34", "#45424e", "#625e6a", "#87828c"]
+  ca_moss:  ["#1c0f1a", "#22301e", "#344a27", "#4b6232", "#66783e"]
+  ca_void:  ["#1c0f1a", "#0e080c", "#1a1014"]
+  ca_bone:  ["#1c0f1a", "#7a6a58", "#b4a488", "#ddd0b0"]
+  ca_guano: ["#1c0f1a", "#6a6650"]
+  ca_bat:   ["#1c0f1a", "#3a2a30", "#5a4048", "#7a5a5e"]
+  ca_eye:   ["#1c0f1a", "#c8301a", "#ff6a3a"]
+
+materials:
+  stone:  {ramp: ca_stone, bands: [1, 4]}
+  moss:   {ramp: ca_moss, bands: [1, 4], line: false}
+  void:   {ramp: ca_void, emissive: true, band: 1, outline: false, line: false}
+  bone:   {ramp: ca_bone, bands: [1, 3]}
+  guano:  {ramp: ca_guano, bands: [1, 1], outline: false, line: false}
+  root:   {ramp: rwood, bands: [1, 2]}
+  vine:   {ramp: rvine, bands: [1, 2], line: false}
+  dirt:   {ramp: rmud, bands: [1, 2], outline: false, line: false}
+  bat:    {ramp: ca_bat, bands: [1, 3], two_sided: true}
+  eye:    {ramp: ca_eye, emissive: true, band: 2, outline: false, line: false, glow: {color: "#ff5a1f", mix: 0.4, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bats: 1            # how many bats are out (0..3)
+  bp: 0              # bat path phase (radians)
+  flap: 0            # wing angle
+  eyes: 0            # 1 = red eyes in the mouth
+
+# Layout: outcrop x -2.1..2.1, z -1.5..0.2, peaks y ~2.6; mouth arch x +-0.65, y 0..1.15, front at z ~0.35.
+bones:
+  body:  {parent: root}
+  # bats loop out of the mouth (bottom of the loop), out past the sides and over the top of the outcrop
+  bat1:  {parent: body, pos: "[1.90*sin(bp), 1.90 + 1.10*cos(bp), 0.45 - 0.15*cos(bp)]", rot: [0, 0, "0.3*cos(bp)"], scale: 1.3}
+  bat2:  {parent: body, pos: "[-1.80*sin(bp + 2.1), 2.00 + 0.95*cos(bp + 2.1), 0.40]", rot: [0, 0, "-0.3*cos(bp + 2.1)"], scale: 1.15}
+  bat3:  {parent: body, pos: "[1.70*sin(bp + 4.2), 1.80 + 1.00*cos(bp + 4.2), 0.50]", rot: [0, 0, "0.3*cos(bp + 4.2)"], scale: 1.15}
+  wing1_L: {parent: bat1, rot: [0, 0, "flap"]}
+  wing2_L: {parent: bat2, rot: [0, 0, "-flap"]}
+  wing3_L: {parent: bat3, rot: [0, 0, "flap*0.8"]}
+
+parts:
+  apron:             # trodden dirt at the threshold
+    material: dirt
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.72], r: [1.30, 0.02, 0.55]}
+  guano:
+    material: guano
+    space: body
+    prims:
+      - ellipsoid: {c: [0.35, 0.006, 0.62], r: [0.28, 0.004, 0.12]}
+      - ellipsoid: {c: [-0.40, 0.006, 0.78], r: [0.12, 0.004, 0.06]}
+      - ellipsoid: {c: [0.80, 0.006, 0.90], r: [0.06, 0.004, 0.05]}
+  outcrop:
+    material: stone
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.85, -0.75], half: [1.30, 0.95, 0.70], rot: [-0.25, 0.08, 0.03], round: 0.25}      # core mass
+      - box: {c: [-1.40, 0.62, -0.45], half: [0.62, 0.68, 0.60], rot: [-0.15, -0.55, 0.20], round: 0.18}
+      - box: {c: [1.45, 0.55, -0.50], half: [0.62, 0.60, 0.58], rot: [-0.20, 0.60, -0.18], round: 0.18}
+      - box: {c: [-0.45, 1.85, -0.85], half: [0.48, 0.50, 0.45], rot: [0.10, 0.55, 0.10], round: 0.07}
+      - box: {c: [0.60, 1.75, -0.90], half: [0.46, 0.45, 0.42], rot: [-0.08, -0.50, -0.14], round: 0.07}
+      - cone: {a: [-0.40, 2.10, -0.90], b: [-0.55, 2.75, -1.05], r: [0.30, 0.03]}                         # peaks
+      - cone: {a: [0.65, 2.00, -0.95], b: [0.88, 2.50, -1.08], r: [0.26, 0.03]}
+      - cone: {a: [-1.50, 1.05, -0.50], b: [-1.80, 1.55, -0.55], r: [0.24, 0.03]}
+      - cone: {a: [1.55, 0.95, -0.55], b: [1.85, 1.38, -0.62], r: [0.22, 0.03]}
+      - cone: {a: [0.05, 2.20, -1.10], b: [0.12, 2.55, -1.20], r: [0.18, 0.03]}
+    cut:
+      - ellipsoid: {c: [0, 0.35, 0.10], r: [0.66, 1.00, 0.80]}       # the mouth carved into the mass
+  lintel:            # leaning slabs framing the mouth
+    material: stone
+    space: body
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0, 1.28, 0.08], half: [0.80, 0.18, 0.30], rot: [0.15, 0, -0.05], round: 0.06}
+      - box: {c: [-0.82, 0.55, 0.12], half: [0.22, 0.55, 0.26], rot: [0, 0.25, 0.12], round: 0.06}
+      - box: {c: [0.84, 0.50, 0.12], half: [0.22, 0.50, 0.26], rot: [0, -0.25, -0.10], round: 0.06}
+      - box: {c: [-1.20, 0.25, 0.30], half: [0.32, 0.25, 0.26], rot: [0.1, 0.7, 0.15], round: 0.10}     # front boulders
+      - box: {c: [1.22, 0.22, 0.30], half: [0.30, 0.22, 0.24], rot: [0.1, -0.6, -0.1], round: 0.10}
+  teeth:             # small stalactites hanging from the lintel
+    material: stone
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-0.42, 1.12, 0.26], b: [-0.40, 0.88, 0.28], r: [0.07, 0.015]}
+      - cone: {a: [-0.10, 1.12, 0.28], b: [-0.10, 0.80, 0.30], r: [0.08, 0.015]}
+      - cone: {a: [0.22, 1.12, 0.28], b: [0.24, 0.92, 0.30], r: [0.06, 0.015]}
+      - cone: {a: [0.48, 1.10, 0.26], b: [0.46, 0.84, 0.28], r: [0.07, 0.015]}
+  mouth:             # black cave mouth
+    material: void
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.50, 0.12], r: [0.66, 0.70, 0.14]}
+    cut:
+      - box: {c: [0, -0.5, 0.2], half: [1, 0.5, 1]}
+  mouth_floor:       # dark floor going in
+    material: void
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.01, 0.20], r: [0.60, 0.01, 0.22]}
+  moss:
+    material: moss
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 1.50, 0.05], r: [0.85, 0.12, 0.30]}       # on the lintel
+      - ellipsoid: {c: [-0.30, 1.75, -0.40], r: [0.95, 0.14, 0.55]}
+      - ellipsoid: {c: [0.70, 1.62, -0.45], r: [0.55, 0.12, 0.40]}
+      - ellipsoid: {c: [-1.40, 1.08, -0.15], r: [0.55, 0.12, 0.40]}
+      - ellipsoid: {c: [1.45, 0.98, -0.20], r: [0.50, 0.10, 0.38]}
+      - ellipsoid: {c: [-1.30, 0.50, 0.40], r: [0.35, 0.08, 0.20]}
+      - ellipsoid: {c: [1.25, 0.44, 0.42], r: [0.30, 0.08, 0.18]}
+      - ellipsoid: {c: [0.10, 2.25, -0.85], r: [0.45, 0.10, 0.35]}
+  vines:             # roots and dead vines over the lip
+    material: root
+    space: body
+    prims:
+      - chain: {pts: [[-0.55, 1.42, 0.30], [-0.60, 1.20, 0.36], [-0.56, 0.98, 0.38]], r: [0.03, 0.025, 0.015]}
+      - chain: {pts: [[0.62, 1.40, 0.30], [0.66, 1.15, 0.36], [0.70, 0.92, 0.36]], r: [0.03, 0.025, 0.015]}
+  vine_leaves:
+    material: vine
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.58, 1.15, 0.40], r: [0.07, 0.05, 0.03]}
+      - ellipsoid: {c: [0.68, 1.05, 0.40], r: [0.07, 0.05, 0.03]}
+  bones:
+    material: bone
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.70, 0.05, 0.92], b: [-0.28, 0.05, 1.08], r: 0.035}
+      - sphere: {c: [-0.72, 0.06, 0.92], r: 0.055}
+      - sphere: {c: [-0.26, 0.06, 1.08], r: 0.055}
+      - cylinder: {a: [0.55, 0.04, 1.10], b: [0.85, 0.04, 0.92], r: 0.03}
+      - sphere: {c: [0.54, 0.05, 1.11], r: 0.045}
+      - sphere: {c: [0.86, 0.05, 0.91], r: 0.045}
+      - ellipsoid: {c: [0.22, 0.11, 0.88], r: [0.13, 0.11, 0.13]}          # skull
+      - ellipsoid: {c: [0.22, 0.06, 0.98], r: [0.09, 0.05, 0.07]}
+  skull_eyes:
+    material: void
+    space: body
+    prims:
+      - sphere: {c: [0.17, 0.12, 0.99], r: 0.032}
+      - sphere: {c: [0.27, 0.12, 0.99], r: 0.032}
+  eyes:              # something watching from inside (hover)
+    material: eye
+    space: body
+    when: "eyes > 0.5"
+    prims:
+      - ellipsoid: {c: [-0.13, 0.48, 0.29], r: [0.06, 0.04, 0.01]}
+      - ellipsoid: {c: [0.13, 0.48, 0.29], r: [0.06, 0.04, 0.01]}
+  # ---------------- bats ----------------
+  bat1:
+    material: bat
+    space: bat1
+    when: "bats > 0.5"
+    blend: 0.02
+    prims: &batbody
+      - ellipsoid: {c: [0, 0, 0], r: [0.07, 0.09, 0.07]}
+      - cone: {a: [-0.04, 0.07, 0], b: [-0.06, 0.15, 0], r: [0.025, 0.008]}     # ears
+      - cone: {a: [0.04, 0.07, 0], b: [0.06, 0.15, 0], r: [0.025, 0.008]}
+  wing1_L:
+    material: bat
+    space: wing1_L
+    when: "bats > 0.5"
+    prims: &wing
+      - tri: {a: [0.04, 0.03, 0], b: [0.34, 0.10, 0], c: [0.22, -0.10, 0], th: 0.02}
+      - tri: {a: [0.04, 0.03, 0], b: [0.22, -0.10, 0], c: [0.06, -0.06, 0], th: 0.02}
+  bat2:
+    material: bat
+    space: bat2
+    when: "bats > 1.5"
+    blend: 0.02
+    prims: *batbody
+  wing2_L:
+    material: bat
+    space: wing2_L
+    when: "bats > 1.5"
+    prims: *wing
+  bat3:
+    material: bat
+    space: bat3
+    when: "bats > 2.5"
+    blend: 0.02
+    prims: *batbody
+  wing3_L:
+    material: bat
+    space: wing3_L
+    when: "bats > 2.5"
+    prims: *wing
+
+animations:
+  idle:              # one bat circles out of the mouth and back, wings snapping (seamless)
+    frames: 8
+    ms: 110
+    channels:
+      bats: 1
+      bp: "p"
+      flap: "0.75*sin(2*p)"
+      eyes: 0
+  hover:             # three bats swirl, red eyes open in the dark (seamless)
+    frames: 6
+    ms: 90
+    channels:
+      bats: 3
+      bp: "p"
+      flap: "0.8*sin(2*p)"
+      eyes: 1

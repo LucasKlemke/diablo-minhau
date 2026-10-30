@@ -1,0 +1,142 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: butcher_table
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.5584 = 8 px above the pivot -> pivot (24, 32), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.5584, 0]}
+shadow: {rx: 19, ry: 6, alpha: 100}
+
+# Act I dungeon "Porao do Acougueiro": the Butcher's work table.
+brief:
+  summary: a long heavy plank table on four thick legs, its top scrubbed pale but soaked with dark blood
+    stains; on it a bloody cleaver, a long knife, a bone saw and a lump of meat; a wooden bucket with iron
+    hoops full of blood standing at its front right; drips and a pool under the table
+  must_keep: [long table top with blood stains, tools on top (steel bright edges), blood bucket, drips]
+  simplify: [planks as two dark seam lines, tools as flat boxes, saw teeth as the blade's darker edge]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.5584, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local steel, meat and blood.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,32) is the ground point under the table's
+    centre. Table 1.8 x 0.75, 0.8 tall (~33 px wide) -> footprint 2x1 tiles, blocking (the bucket stands
+    inside the 2x1 rectangle's front edge). Static: idle 1 frame.
+
+ramps:
+  bt_steel: ["#1c0f1a", "#3e4250", "#646a7a", "#9aa0ae", "#d0d4dc"]
+  bt_blood: ["#1c0f1a", "#3a0610", "#5e0c16", "#86141e", "#a82a2a"]
+  bt_meat:  ["#1c0f1a", "#4a0f18", "#7a1e24", "#a83a36", "#cc6a5a"]
+
+materials:
+  top:    {ramp: rwood, bands: [3, 5]}
+  seam:   {ramp: rwood, bands: [2, 2], outline: false, line: false}
+  wood:   {ramp: hbeam, bands: [1, 3]}
+  steel:  {ramp: bt_steel, bands: [2, 4]}
+  handle: {ramp: hbeam, bands: [2, 3]}
+  stain:  {ramp: bt_blood, bands: [2, 2], outline: false, line: false}
+  blood:  {ramp: bt_blood, bands: [3, 3], outline: false, line: false}
+  meat:   {ramp: bt_meat, bands: [2, 4]}
+  bucket: {ramp: hwood, bands: [1, 3]}
+  iron:   {ramp: riron, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  pool:
+    material: stain
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.2, 0.005, 0.1], r: [0.5, 0.005, 0.28]}
+      - ellipsoid: {c: [0.4, 0.005, 0.45], r: [0.3, 0.005, 0.12]}
+  legs:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.78, 0.38, 0.28], half: [0.07, 0.38, 0.07]}
+      - box: {c: [0.78, 0.38, 0.28], half: [0.07, 0.38, 0.07]}
+      - box: {c: [-0.78, 0.38, -0.28], half: [0.07, 0.38, 0.07]}
+      - box: {c: [0.78, 0.38, -0.28], half: [0.07, 0.38, 0.07]}
+      - box: {c: [0, 0.18, 0.0], half: [0.75, 0.04, 0.04]}                # stretcher
+  table:
+    material: top
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.8, 0], half: [0.92, 0.06, 0.38], round: 0.015}
+  seams:
+    material: seam
+    space: body
+    prims:
+      - box: {c: [0, 0.862, 0.13], half: [0.88, 0.003, 0.008]}
+      - box: {c: [0, 0.862, -0.13], half: [0.88, 0.003, 0.008]}
+  stains:
+    material: stain
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.35, 0.864, 0.05], r: [0.3, 0.003, 0.2], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [0.3, 0.864, -0.12], r: [0.22, 0.003, 0.16], rot: [0, -0.5, 0]}
+      - box: {c: [-0.35, 0.72, 0.385], half: [0.12, 0.08, 0.004]}
+      - box: {c: [0.55, 0.75, 0.385], half: [0.05, 0.05, 0.004]}
+  meat:
+    material: meat
+    space: body
+    line: true
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [-0.38, 0.93, 0.0], r: [0.22, 0.08, 0.15], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [-0.2, 0.92, 0.08], r: [0.1, 0.06, 0.08]}
+  blades:
+    material: steel
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.22, 0.88, 0.1], half: [0.13, 0.012, 0.1], rot: [0, 0.3, 0]}          # cleaver
+      - box: {c: [0.58, 0.875, -0.15], half: [0.24, 0.01, 0.035], rot: [0, -0.4, 0]}     # long knife
+      - box: {c: [0.05, 0.875, -0.22], half: [0.22, 0.01, 0.06], rot: [0, 0.1, 0]}       # bone saw
+  handles:
+    material: handle
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.36, 0.89, 0.04], b: [0.55, 0.89, -0.04], r: 0.03}
+      - cylinder: {a: [0.82, 0.89, -0.25], b: [0.98, 0.89, -0.32], r: 0.026}
+      - box: {c: [-0.22, 0.89, -0.22], half: [0.06, 0.02, 0.07], rot: [0, 0.1, 0]}
+  tool_blood:
+    material: blood
+    space: body
+    prims:
+      - ellipsoid: {c: [0.2, 0.895, 0.14], r: [0.07, 0.004, 0.05]}
+  bucket:
+    material: bucket
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.62, 0.0, 0.5], b: [0.62, 0.38, 0.5], r: 0.17, round: 0.02}
+    cut:
+      - cylinder: {a: [0.62, 0.3, 0.5], b: [0.62, 0.5, 0.5], r: 0.13}
+  bucket_iron:
+    material: iron
+    space: body
+    prims:
+      - torus: {c: [0.62, 0.1, 0.5], R: 0.172, r: 0.022}
+      - torus: {c: [0.62, 0.3, 0.5], R: 0.172, r: 0.022}
+  bucket_blood:
+    material: blood
+    space: body
+    prims:
+      - cylinder: {a: [0.62, 0.3, 0.5], b: [0.62, 0.34, 0.5], r: 0.14}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

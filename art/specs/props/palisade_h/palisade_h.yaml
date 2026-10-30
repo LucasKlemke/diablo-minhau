@@ -1,0 +1,160 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: palisade_h
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.8376 = 12 px above the pivot -> pivot (24, 36), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}
+shadow: {rx: 10, ry: 3, alpha: 80}
+
+# Act I, Minhau: horizontal palisade TILE (one per 16 px tile, runs left-right).
+brief:
+  summary: crude palisade of three sharpened, crooked, weathered stakes per tile, of uneven height, lashed
+    together by two bands of green vine wound round them; ~24 px tall on screen
+  must_keep: [sharpened stake tips, crooked uneven stakes, two green vine lashings continuous between tiles]
+  simplify: [no bark texture, vine as a thin rope with a few knots and leaves]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.8376, 0] (integer pivot).
+    The vine material has outline off so its ends at the tile border get no outline cap (tileable).
+    camera.scale/pitch/light untouched. Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: pivot = ground point at the centre of the tile's run (world origin) = frame px (24, 36).
+    Stakes at x -0.293, 0, +0.293 (radius <= 0.14), so the spacing stays even (0.293) across tiles; the
+    vine bands span x [-0.44, 0.44] = exactly 16 px, so a piece every 16 px makes an unbroken lashing.
+    Place it like fence_h (pivot 3 px above the bottom of its tile); footprint 1x1, blocking.
+    Clips (1 frame each): idle and alt (other stake heights and tilts: alternate them so a long wall does
+    not repeat), broken (the middle stake snapped at the base and fallen to the ground in front, a gap
+    in the lashing with the cut vine hanging; blocking is up to the game, it reads as damaged, not open).
+
+materials:
+  wood:   {ramp: rwood, bands: [2, 4]}
+  tip:    {ramp: rwood, bands: [3, 5]}
+  cut:    {ramp: hcut, bands: [1, 2], outline: false}
+  vine:   {ramp: rvine, bands: [2, 4], outline: false}
+  leaf:   {ramp: rvine, bands: [3, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0          # 0 idle, 1 alt, 2 broken
+
+bones:
+  body: {parent: root}
+
+parts:
+  stake_a:      # left stake
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-0.293, 0, 0], b: ["-0.293 - 0.05*(v == 1)", "1.18 + 0.12*(v == 1)", 0.0], r: [0.135, 0.125]}
+      - cone: {a: ["-0.293 - 0.05*(v == 1)", "1.18 + 0.12*(v == 1)", 0], b: ["-0.30 - 0.06*(v == 1)", "1.5 + 0.12*(v == 1)", 0.02], r: [0.125, 0.02]}
+  stake_b:      # middle stake (fallen in `broken`)
+    material: wood
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - cone: {a: [0, 0, 0], b: ["0.04 - 0.08*(v == 1)", "1.36 - 0.24*(v == 1)", 0], r: [0.14, 0.13]}
+      - cone: {a: ["0.04 - 0.08*(v == 1)", "1.36 - 0.24*(v == 1)", 0], b: ["0.05 - 0.1*(v == 1)", "1.72 - 0.24*(v == 1)", 0.02], r: [0.13, 0.02]}
+  stake_c:      # right stake
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0.293, 0, 0], b: ["0.31 + 0.03*(v == 1)", "1.06 + 0.3*(v == 1)", 0], r: [0.135, 0.125]}
+      - cone: {a: ["0.31 + 0.03*(v == 1)", "1.06 + 0.3*(v == 1)", 0], b: ["0.33 + 0.03*(v == 1)", "1.36 + 0.3*(v == 1)", 0.02], r: [0.125, 0.02]}
+  stump_b:      # snapped base of the middle stake (broken)
+    material: wood
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.32, 0], r: [0.14, 0.13]}
+  stump_cut:
+    material: cut
+    space: body
+    when: "v > 1.5"
+    prims:
+      - cone: {a: [-0.08, 0.34, 0.02], b: [0.09, 0.26, 0.04], r: [0.07, 0.05]}
+  fallen_b:     # the middle stake lying on the ground in front, tip to the right
+    material: wood
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cone: {a: [-0.62, 0.12, 0.42], b: [0.58, 0.12, 0.62], r: [0.12, 0.11]}
+      - cone: {a: [0.58, 0.12, 0.62], b: [0.86, 0.12, 0.67], r: [0.11, 0.02]}
+  fallen_end:
+    material: cut
+    space: body
+    when: "v > 1.5"
+    prims:
+      - sphere: {c: [-0.66, 0.13, 0.415], r: 0.09}
+  vine_lo:      # lower lashing across the whole tile
+    material: vine
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - cylinder: {a: [-0.44, 0.42, 0.14], b: [0.44, 0.46, 0.14], r: 0.045}
+  vine_hi:      # upper lashing
+    material: vine
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - cylinder: {a: [-0.44, 0.92, 0.14], b: [0.44, 0.90, 0.14], r: 0.045}
+  vine_cut:     # broken: the lashing snapped where the middle stake fell, ends hanging
+    material: vine
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - cylinder: {a: [-0.44, 0.42, 0.14], b: [-0.16, 0.43, 0.14], r: 0.045}
+      - cylinder: {a: [-0.16, 0.43, 0.14], b: [-0.08, 0.22, 0.16], r: 0.04}
+      - cylinder: {a: [0.16, 0.45, 0.14], b: [0.44, 0.46, 0.14], r: 0.045}
+      - cylinder: {a: [-0.44, 0.92, 0.14], b: [-0.16, 0.91, 0.14], r: 0.045}
+      - cylinder: {a: [-0.16, 0.91, 0.14], b: [-0.1, 0.62, 0.16], r: 0.04}
+      - cylinder: {a: [0.16, 0.90, 0.14], b: [0.44, 0.90, 0.14], r: 0.045}
+      - cylinder: {a: [0.16, 0.90, 0.14], b: [0.1, 0.7, 0.16], r: 0.04}
+  knots:        # vine wound round each stake
+    material: vine
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.293, 0.44, 0.13], r: [0.08, 0.07, 0.04]}
+      - ellipsoid: {c: [-0.293, 0.91, 0.13], r: [0.08, 0.07, 0.04]}
+      - ellipsoid: {c: [0.30, 0.44, 0.13], r: [0.08, 0.07, 0.04]}
+      - ellipsoid: {c: [0.31, 0.90, 0.13], r: [0.08, 0.07, 0.04]}
+  knots_b:
+    material: vine
+    space: body
+    line: true
+    when: "v < 1.5"
+    prims:
+      - ellipsoid: {c: [0.0, 0.45, 0.14], r: [0.08, 0.07, 0.04]}
+      - ellipsoid: {c: [0.02, 0.91, 0.14], r: [0.08, 0.07, 0.04]}
+  leaves:
+    material: leaf
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.16, 0.86, 0.18], r: [0.06, 0.035, 0.02], rot: [0, 0, 0.6]}
+      - ellipsoid: {c: [0.16, 0.38, 0.18], r: [0.06, 0.035, 0.02], rot: [0, 0, -0.5]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  alt:
+    frames: 1
+    ms: 1000
+    channels: {v: 1}
+  broken:
+    frames: 1
+    ms: 1000
+    channels: {v: 2}

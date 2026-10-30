@@ -1,0 +1,116 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_wall_side
+kind: prop
+view: topdown
+size: 32                 # 16 px wide strip, 32 px period: tileable along y
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}
+shadow: null
+
+# Prologue: the side (west / east) walls of the castle hall, a vertically tileable strip.
+brief:
+  summary: the top of a side wall of the hall seen from above - a 16 px wide cream coping with a dark outline
+    on both sides, a light inner edge and a darker outer edge, coping stones jointed every 16 px with a bevel,
+    and a short gold inlay in the middle of each stone
+  must_keep: [same cap colours as castle_wall_back, dark outline on both long edges, joints every 16 px,
+    seamless repeat in y]
+  simplify: [only the top is drawn: at camera pitch 38 the side faces of a north-south wall are not seen]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. A pixel painting on
+    the ground plane (pixel-exact one-colour boxes, generated once from a 16x32 layout); the strip touches
+    the top and bottom frame edges on purpose (tile). camera.scale/pitch/light untouched.
+  decisions: |
+    TILING CONTRACT: pivot = frame centre (16, 16); the strip spans frame columns 8..23 (one world tile) and
+    all 32 rows. Draw one every 32 px down the west and east edges of the hall (pivot at the centre of the
+    wall tile column, rows aligned to the 16 px grid: joints fall on tile edges). Symmetric, so the same
+    piece serves both sides. It is the wall's top: the game draws it above the floor and actors (it
+    blocks). Where it meets castle_wall_back, the back wall's 4 px cap continues it.
+    Static: 1-frame idle.
+
+ramps:
+  p00: ["#1c0f1a", "#1c0f1a"]
+  p01: ["#1c0f1a", "#9a5a1c"]
+  p02: ["#1c0f1a", "#a89a86"]
+  p03: ["#1c0f1a", "#b7aa96"]
+  p04: ["#1c0f1a", "#cfc4b4"]
+  p05: ["#1c0f1a", "#e1a227"]
+  p06: ["#1c0f1a", "#e3dacb"]
+
+materials:
+  p00: {ramp: p00, bands: [1, 1], outline: false, line: false}
+  p01: {ramp: p01, bands: [1, 1], outline: false, line: false}
+  p02: {ramp: p02, bands: [1, 1], outline: false, line: false}
+  p03: {ramp: p03, bands: [1, 1], outline: false, line: false}
+  p04: {ramp: p04, bands: [1, 1], outline: false, line: false}
+  p05: {ramp: p05, bands: [1, 1], outline: false, line: false}
+  p06: {ramp: p06, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  p00:   # out
+    material: p00
+    space: body
+    prims:
+      - box: {c: [-0.4125, 0.004, 0.0000], half: [0.0275, 0.002, 1.4294]}
+      - box: {c: [0.4125, 0.004, 0.0000], half: [0.0275, 0.002, 1.4294]}
+  p01:   # gold_dk
+    material: p01
+    space: body
+    prims:
+      - box: {c: [0.0275, 0.004, -0.6700], half: [0.0275, 0.002, 0.4020]}
+      - box: {c: [0.0275, 0.004, 0.7593], half: [0.0275, 0.002, 0.4020]}
+  p02:   # mortar
+    material: p02
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.004, -1.3847], half: [0.3300, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.004, 0.0447], half: [0.3300, 0.002, 0.0447]}
+  p03:   # cap_sh
+    material: p03
+    space: body
+    prims:
+      - box: {c: [0.0275, 0.004, -0.0447], half: [0.3575, 0.002, 0.0447]}
+      - box: {c: [0.0275, 0.004, 1.3847], half: [0.3575, 0.002, 0.0447]}
+      - box: {c: [0.3575, 0.004, -0.7593], half: [0.0275, 0.002, 0.6700]}
+      - box: {c: [0.3575, 0.004, 0.6700], half: [0.0275, 0.002, 0.6700]}
+  p04:   # cap
+    material: p04
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.004, -1.1614], half: [0.3300, 0.002, 0.0893]}
+      - box: {c: [-0.1925, 0.004, -0.6700], half: [0.1375, 0.002, 0.4020]}
+      - box: {c: [0.0000, 0.004, -0.1787], half: [0.3300, 0.002, 0.0893]}
+      - box: {c: [0.0000, 0.004, 0.2680], half: [0.3300, 0.002, 0.0893]}
+      - box: {c: [-0.1925, 0.004, 0.7593], half: [0.1375, 0.002, 0.4020]}
+      - box: {c: [0.0000, 0.004, 1.2507], half: [0.3300, 0.002, 0.0893]}
+      - box: {c: [0.1925, 0.004, -0.6700], half: [0.1375, 0.002, 0.4020]}
+      - box: {c: [0.1925, 0.004, 0.7593], half: [0.1375, 0.002, 0.4020]}
+  p05:   # gold
+    material: p05
+    space: body
+    prims:
+      - box: {c: [-0.0275, 0.004, -0.6700], half: [0.0275, 0.002, 0.4020]}
+      - box: {c: [-0.0275, 0.004, 0.7593], half: [0.0275, 0.002, 0.4020]}
+  p06:   # cap_hi
+    material: p06
+    space: body
+    prims:
+      - box: {c: [-0.3575, 0.004, -1.3847], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.0275, 0.004, -1.2954], half: [0.3575, 0.002, 0.0447]}
+      - box: {c: [-0.3575, 0.004, -0.5807], half: [0.0275, 0.002, 0.6700]}
+      - box: {c: [-0.0275, 0.004, 0.1340], half: [0.3575, 0.002, 0.0447]}
+      - box: {c: [-0.3575, 0.004, 0.8040], half: [0.0275, 0.002, 0.6253]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

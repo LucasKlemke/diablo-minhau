@@ -1,0 +1,307 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: gargoyle
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.78, -0.05]}
+shadow: {rx: 10, ry: 3.6, alpha: 120}
+
+# Stone gargoyle: crypt / ruins enemy. Sits as a perfectly still statue (invulnerable, frozen) until the hero
+# comes near, then wakes: eyes ignite, it hops and flaps toward the hero and rakes with its claws.
+# Rig: the goblin's crouched biped (torso_rot / pelvis / IK arms and legs) plus membrane wings on a wing_L bone
+# (flap = roll, fold = yaw back), a tail chain and a horned chibi head.
+brief:
+  summary: crouched grey stone gargoyle ~30 px tall, chibi horned head with a short snout and fangs,
+    bat wings raised up and back, knuckles on the ground like a statue on a ledge, clawed hands and feet,
+    long tail with a spade tip; eyes glow orange once it is awake
+  must_keep: [crouched statue silhouette, bat wings, curved horns, claws, grey stone]
+  simplify: [3 claws per hand and foot, no wing fingers beyond 3 spars, no surface cracks]
+  decisions: |
+    Statue idle is one held frame (frames: 1) with the eyes off (eyes: 0): stone everywhere, so it reads
+    as a statue. Every other clip sets eyes: 1 (orange emissive accent), which is also the "awake" tell.
+    Wings and horns use a darker stone than the body so the silhouette separates in every direction.
+    Walk is a two-footed hop with a wing beat (both feet leave the ground; step event on landing).
+    Attack: rears with wings spread, right claw rakes down-across with a smear (mirrored directions swap hands).
+    Death: cracks and crumbles; the body slumps into a rubble pile with broken stones around it.
+
+ramps:
+  garg_stone: ["#1c0f1a", "#4c4b5c", "#78798c", "#a5a9b5", "#d0d4d9"]
+  garg_dark:  ["#1c0f1a", "#34324a", "#535370", "#757892", "#999cb0"]
+  garg_eye:   ["#1c0f1a", "#ff6a1f", "#ffd08a"]
+
+materials:
+  stone: {ramp: garg_stone, bands: [1, 3]}
+  dark:  {ramp: garg_dark, bands: [1, 3]}
+  wing:  {ramp: garg_dark, bands: [1, 3], two_sided: true}
+  fang:  {ramp: garg_stone, bands: [3, 4], outline: false}
+  horn:  {ramp: garg_stone, bands: [2, 4]}
+  eye:   {ramp: garg_eye, emissive: true, band: 1, outline: false, glow: {color: "#ff6a1f", mix: 0.45, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.62        # crouch forward
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.25
+  head_yaw: 0
+  hand_L: [0.16, -0.06, 0.40]
+  foot_L: [0.15, 0, 0.12]
+  pitch_foot_L: 0
+  claw_L: 0         # finger spread
+  flap_L: 0.30      # wing roll (+ up)
+  fold_L: 0.25      # wing swing back (+ behind)
+  wpitch: 0         # tips both wings back (death, counters the slump)
+  tail: 0           # tail side sweep
+  eyes: 1           # 0 = statue (stone eyes)
+  jaw: 0
+  crumble: 0        # death rubble
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.60
+  smear_y: 0.55
+  smear_z: 0.15
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.36 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.10], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.6 - 0.25, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 2.05}
+  jawb:      {parent: head, pos: [0, 0.05, 0.06], rot: "[jaw, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.18, 0.30, 0.02]}
+  hip_L:      {parent: pelvis, pos: [0.11, -0.02, 0.0]}
+  wing_L:     {parent: pelvis, pos: [0.08, 0.30, -0.12], rot: "[-0.55 - wpitch, fold_L, flap_L]", scale: 1.15}
+  tailb:      {parent: pelvis, pos: [0, -0.02, -0.14], rot: "[0, tail*0.5, 0]"}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.3, 0]"}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.27, 0.27],
+          pole: [0.4, 0.2, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.06, -0.03]", lengths: [0.23, 0.23],
+          pole: [0.25, 0.3, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # barrel chest over a narrow waist
+    material: stone
+    space: pelvis
+    blend: 0.07
+    prims:
+      - ellipsoid: {c: [0, 0.04, 0.0], r: [0.15, 0.12, 0.13]}
+      - ellipsoid: {c: [0, 0.24, 0.02], r: [0.21, 0.15, 0.16]}
+      - ellipsoid: {c: [0, 0.34, 0.03], r: [0.24, 0.07, 0.12]}    # shoulders
+  head:
+    material: stone
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.0], r: [0.125, 0.11, 0.115]}
+      - ellipsoid: {c: [0, 0.075, 0.085], r: [0.08, 0.055, 0.075]}   # snout
+  jaw:
+    material: stone
+    space: jawb
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.04], r: [0.07, 0.03, 0.07]}
+  fangs_L:
+    material: fang
+    space: jawb
+    prims:
+      - cone: {a: [0.035, 0.03, 0.10], b: [0.04, -0.02, 0.105], r: [0.014, 0.004]}
+  brow:
+    material: dark
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.155, 0.085], r: [0.11, 0.028, 0.045], rot: [0.25, 0, 0]}
+  horn_L:          # curved horn sweeping back (light stone so it separates from the dark wings)
+    material: horn
+    space: head
+    blend: 0.01
+    prims:
+      - chain: {pts: [[0.07, 0.19, 0.03], [0.13, 0.27, -0.03], [0.15, 0.31, -0.13], [0.13, 0.30, -0.21]], r: [0.032, 0.024, 0.015, 0.006]}
+  ear_L:
+    material: stone
+    space: head
+    prims:
+      - cone: {a: [0.10, 0.12, -0.01], b: [0.20, 0.17, -0.05], r: [0.035, 0.006]}
+  eye_L:
+    when: "eyes > 0.05"
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.048, 0.125, 0.10], r: "0.026*eyes"}
+  arm_L:
+    material: stone
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.085}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.08, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.055]}
+  hand_L:
+    material: stone
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.065}
+  claws_L:
+    material: dark
+    space: wrist_L
+    blend: 0.01
+    prims:
+      - cone: {a: [0.035, -0.01, 0.07], b: ["0.07 + 0.05*claw_L", -0.05, 0.16], r: [0.03, 0.008]}
+      - cone: {a: [0, -0.01, 0.08], b: [0, -0.06, 0.18], r: [0.03, 0.008]}
+      - cone: {a: [-0.035, -0.01, 0.07], b: ["-0.07 - 0.05*claw_L", -0.05, 0.16], r: [0.03, 0.008]}
+  leg_L:           # thick haunches, digitigrade shin
+    material: stone
+    blend: 0.04
+    prims:
+      - sphere: {c: "@hip_L", r: 0.10}
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.065]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.06, 0.045]}
+  foot_L:
+    material: stone
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.065, 0.035, 0.09]}
+  toes_L:
+    material: dark
+    space: sole_L
+    prims:
+      - cone: {a: [0.03, -0.03, 0.12], b: [0.05, -0.05, 0.19], r: [0.022, 0.006]}
+      - cone: {a: [-0.03, -0.03, 0.12], b: [-0.05, -0.05, 0.19], r: [0.022, 0.006]}
+  wing_spar_L:     # arm bone of the wing and 3 finger spars
+    material: dark
+    space: wing_L
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.20, 0.26, -0.06], [0.36, 0.44, -0.12]], r: [0.045, 0.035, 0.03]}
+      - cone: {a: [0.36, 0.44, -0.12], b: [0.58, 0.62, -0.20], r: [0.026, 0.008]}
+      - cone: {a: [0.36, 0.44, -0.12], b: [0.66, 0.34, -0.20], r: [0.024, 0.008]}
+      - cone: {a: [0.36, 0.44, -0.12], b: [0.56, 0.08, -0.16], r: [0.022, 0.008]}
+  wing_L:
+    material: wing
+    space: wing_L
+    prims:
+      - membrane:
+          hub: [0.0, 0.02, -0.02]
+          ring: [[0.36, 0.44, -0.12], [0.58, 0.62, -0.20], [0.66, 0.34, -0.20], [0.56, 0.08, -0.16], [0.16, -0.08, -0.08]]
+          th: 0.016
+          scallop: [1, 2, 3]
+          scallop_depth: 0.28
+  tail:
+    material: stone
+    space: tailb
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, 0, 0], [0.06, -0.24, -0.20], [0.20, -0.38, -0.30], [0.34, -0.40, -0.22]], r: [0.06, 0.045, 0.03, 0.02]}
+  tail_tip:
+    material: dark
+    space: tailb
+    prims:
+      - tri: {a: [0.30, -0.40, -0.24], b: [0.46, -0.39, -0.22], c: [0.38, -0.40, -0.10], th: 0.02}
+      - tri: {a: [0.30, -0.40, -0.24], b: [0.46, -0.39, -0.22], c: [0.36, -0.40, -0.36], th: 0.02}
+  rubble:          # broken stones (death)
+    when: "crumble > 0.05"
+    material: stone
+    space: root
+    prims:
+      - ellipsoid: {c: [0.34, "0.06*crumble", 0.22], r: ["0.09*crumble", "0.06*crumble", "0.08*crumble"], rot: [0.3, 0.5, 0.2]}
+      - ellipsoid: {c: [-0.30, "0.05*crumble", 0.28], r: ["0.07*crumble", "0.05*crumble", "0.07*crumble"], rot: [0.2, -0.3, 0.4]}
+      - ellipsoid: {c: [0.10, "0.05*crumble", 0.42], r: ["0.06*crumble", "0.045*crumble", "0.06*crumble"], rot: [0.5, 0.2, 0]}
+      - ellipsoid: {c: [-0.36, "0.06*crumble", -0.16], r: ["0.08*crumble", "0.06*crumble", "0.07*crumble"], rot: [0, 0.8, 0.3]}
+      - ellipsoid: {c: [0.38, "0.05*crumble", -0.20], r: ["0.06*crumble", "0.05*crumble", "0.06*crumble"], rot: [0.4, 0, 0.6]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.12}
+
+sockets:
+  hit: {bone: fxspace, offset: [0, 0.45, 0.55]}
+  head: {bone: head, offset: [0, 0.30, 0]}
+
+animations:
+  idle:            # frozen statue: one held frame, eyes are stone
+    frames: 1
+    ms: 1000
+    channels:
+      eyes: 0
+  walk:            # hop with a wing beat: crouch, launch (wings down), airborne, land (step on landing)
+    frames: 6
+    ms: 100
+    events: {3: step_l}
+    channels:
+      lean: 0.55
+      bob: "0.16*pos(sin(p)) - 0.03*pos(-sin(p))"
+      squash: "1 + 0.06*pos(sin(p)) - 0.07*pos(-sin(p))"
+      foot_L: "[0.15, 0.13*pos(sin(p)), 0.12 + 0.04*cos(p)]"
+      foot_R: "[0.15, 0.13*pos(sin(p)), 0.12 + 0.04*cos(p)]"
+      pitch_foot_L: "0.4*pos(sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.20, 0.02 + 0.10*pos(sin(p)), 0.36]"
+      hand_R: "[0.20, 0.02 + 0.10*pos(sin(p)), 0.36]"
+      flap_L: "0.25 + 0.65*cos(p)"
+      flap_R: "0.25 + 0.65*cos(p)"
+      fold_L: -0.05
+      fold_R: -0.05
+      tail: "0.5*sin(p - 1.0)"
+      head_pitch: "-0.25 - 0.08*sin(p)"
+  attack:          # rears with wings up, right claw rakes down across (hit 250 ms, total 520 ms)
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {lean: 0.20, bob: 0.08, squash: 1.05, twist: -0.40, head_pitch: -0.35, jaw: 0.3,
+              hand_R: [0.34, 0.45, -0.05], claw_R: 1, hand_L: [0.20, 0.0, 0.34],
+              flap_L: 0.9, flap_R: 0.9, fold_L: -0.1, fold_R: -0.1, tail: -0.6}
+      - ms: 120
+        set: {lean: 0.12, bob: 0.10, squash: 1.07, twist: -0.50, head_pitch: -0.38, jaw: 0.35,
+              hand_R: [0.36, 0.55, -0.10], claw_R: 1, hand_L: [0.20, 0.02, 0.32],
+              flap_L: 1.0, flap_R: 1.0, fold_L: -0.15, fold_R: -0.15, tail: -0.8}
+      - ms: 60
+        event: hit
+        set: {root: [0, 0, 0.12], lean: 0.80, bob: -0.02, squash: 0.95, twist: 0.35, head_pitch: -0.15, jaw: 0.45,
+              hand_R: [-0.10, 0.0, 0.48], claw_R: 1, hand_L: [0.22, -0.04, 0.30],
+              flap_L: -0.1, flap_R: -0.1, fold_L: 0.0, fold_R: 0.0, tail: 0.7,
+              smear_y: 0.62, smear_a0: -1.2, smear_a1: 1.0, smear_w: 0.09}
+      - ms: 100
+        set: {root: [0, 0, 0.12], lean: 0.78, twist: 0.50, head_pitch: -0.18, jaw: 0.2,
+              hand_R: [-0.20, -0.06, 0.36], claw_R: 0.6, hand_L: [0.22, -0.04, 0.30],
+              flap_L: 0.0, flap_R: 0.0, tail: 0.8,
+              smear_y: 0.62, smear_a0: -0.2, smear_a1: 1.4, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 110
+        set: {root: [0, 0, 0.04], lean: 0.62, twist: 0.15, hand_R: [0.16, -0.04, 0.38], tail: 0.3}
+  hit:             # stone jolts back, eyes flare
+    loop: false
+    keys:
+      - {ms: 70, event: hit, set: {root: [0, 0, -0.08], lean: 0.30, bob: 0.03, squash: 0.92, head_pitch: -0.45, jaw: 0.3, eyes: 1.4,
+                                   hand_L: [0.24, 0.10, 0.26], hand_R: [0.24, 0.10, 0.26], flap_L: 0.8, flap_R: 0.8, tail: 0.6}}
+      - {ms: 80, set: {root: [0, 0, -0.06], lean: 0.45, squash: 0.97, head_pitch: -0.32, eyes: 1.1, flap_L: 0.5, flap_R: 0.5, tail: -0.3}}
+      - {ms: 100, set: {root: [0, 0, -0.02], lean: 0.58}}
+  death:           # cracks, slumps and crumbles into a rubble pile (last frame 700 ms)
+    loop: false
+    keys:
+      - {ms: 90, set: {root: [0, 0, -0.05], lean: 0.25, bob: 0.03, head_pitch: -0.5, jaw: 0.4, eyes: 1.4,
+                       hand_L: [0.26, 0.14, 0.24], hand_R: [0.26, 0.14, 0.24], flap_L: 0.9, flap_R: 0.9}}
+      - {ms: 110, set: {root: [0, 0, -0.03], lean: 0.85, bob: -0.04, squash: 0.88, head_pitch: 0.1, jaw: 0.2, eyes: 0.6,
+                        hand_L: [0.24, -0.06, 0.40], hand_R: [0.24, -0.06, 0.40], flap_L: -0.1, flap_R: -0.1, fold_L: 0.3, fold_R: 0.3, wpitch: 0.5, crumble: 0.3}}
+      - {ms: 120, set: {lean: 1.0, bob: -0.12, squash: 0.68, head_pitch: 0.25, eyes: 0.2,
+                        hand_L: [0.26, -0.10, 0.40], hand_R: [0.26, -0.10, 0.40], flap_L: -0.35, flap_R: -0.35, fold_L: 0.25, fold_R: 0.25, wpitch: 0.9, crumble: 0.7}}
+      - {ms: 130, set: {lean: 1.1, bob: -0.18, squash: 0.52, head_pitch: 0.3, eyes: 0,
+                        hand_L: [0.28, -0.10, 0.40], hand_R: [0.28, -0.10, 0.40], flap_L: -0.55, flap_R: -0.55, fold_L: 0.2, fold_R: 0.2, wpitch: 1.1, crumble: 1.0}}
+      - {ms: 700, event: dead, set: {lean: 1.1, bob: -0.20, squash: 0.50, head_pitch: 0.3, eyes: 0,
+                        hand_L: [0.28, -0.10, 0.40], hand_R: [0.28, -0.10, 0.40], flap_L: -0.6, flap_R: -0.6, fold_L: 0.2, fold_R: 0.2, wpitch: 1.15, crumble: 1.05}}
+
+timing: {attack: {hit: 250ms, total: 520ms}}

@@ -1,0 +1,300 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_gate
+kind: prop
+view: topdown
+size: 128                # 80 px wide; the fallen leaf of `broken` lies ~36 px in front of the pivot
+directions: 1            # faces the camera (s): the gate stands in the hall's north wall
+mirror: false
+palette: "farm"
+# centre y 0.9073 = 13 px above the pivot -> pivot (64, 77), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.9073, 0]}
+shadow: null             # flat wall piece
+
+# Prologue: the great white double gate of Minhau's castle hall (it is forced open by the invaders).
+brief:
+  summary: tall white double gate between two white marble pillars under a marble lintel with a gold star
+    crest; each leaf is white-painted wood with two raised panels framed in gold, two gold straps, gold
+    studs and a gold ring handle, gold studs and corner brackets, a gold astragal strip down the centre seam; the
+    lintel carries the hall's blue frieze with gold studs
+  must_keep: [two white leaves with gold trim, marble pillars and lintel, gold star crest, ring handles,
+    broken state with one leaf hanging crooked and the other knocked flat]
+  simplify: [panels as thin gold frames, studs as 1-2 px dots, splinters as a few pointed shards]
+  exceptions: |
+    kind prop, size 128, directions 1, mirror false, shadow null, camera.center [0, 0.9073, 0] (integer
+    pivot). camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 64,77) is the ground point at the CENTRE of the
+    doorway on the wall line (z 0). Pillars span x +-1.76..+-2.2 (the opening is x -1.76..1.76 = 4 tiles,
+    the whole gate 5 tiles = 80 px). The wall line is the pillars' front face (z +0.3). Footprint: 5x1 tiles,
+    blocking while closed; the 4 middle tiles become walkable on `opened`/`broken`.
+    The two leaves are explicit (leaf_a on the screen's right, leaf_b on the left: no _L/_R twins, because
+    the broken state is asymmetric). Leaves open INTO the hall (towards the camera, +z), as castle gates
+    open inwards; in `burst` the invaders break in from outside, so leaf_a is torn half off its hinges and
+    hangs crooked while leaf_b is knocked flat onto the floor in front, with splinters and chips around.
+    Clips: idle (closed), open (one-shot; events unlatch, opened), opened (static), burst (one-shot; events
+    impact, broken), broken (static). Gameplay picks `opened` or `broken` as the resting state.
+
+ramps:
+  cg_white:  ["#1c0f1a", "#a8988c", "#d6ccc0", "#efe9e0", "#fdfaf4"]
+  cg_marble: ["#1c0f1a", "#a69caf", "#d3ccd9", "#ece8ef", "#ffffff"]
+  cg_gold:   ["#1c0f1a", "#804a19", "#e1a227", "#eddc83", "#f8f4dd"]
+  cg_blue:   ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea"]
+  cg_dark:   ["#1c0f1a", "#2a1f2c", "#3a2a36", "#4a3644"]
+  cg_split:  ["#1c0f1a", "#8f6a4a", "#c49a6c", "#e6c890"]
+
+materials:
+  white:  {ramp: cg_white, bands: [2, 4]}
+  marble: {ramp: cg_marble, bands: [2, 4]}
+  gold:   {ramp: cg_gold, bands: [2, 4]}
+  dark:   {ramp: cg_dark, bands: [1, 2]}
+  blue:   {ramp: cg_blue, bands: [2, 3], outline: false, line: false}
+  split:  {ramp: cg_split, bands: [1, 3]}       # raw wood showing in the splinters
+
+channels:
+  root: [0, 0, 0]
+  open_a: 0          # leaf a swing towards the camera (radians, 1.25 = resting open)
+  open_b: 0
+  sag_a: 0           # leaf a torn off its upper hinge: roll around the lower hinge (radians)
+  fall_b: 0          # leaf b knocked flat: tilt forward around its bottom edge (radians, ~1.5 flat)
+  push_b: 0          # leaf b slides forward while falling (units)
+  shake: 0           # rattle of both leaves (units in z)
+  broken: 0          # 1 = splinters, chips and cracks visible
+
+bones:
+  body:   {parent: root}
+  hinge_a: {parent: body, pos: "[1.74, 0, shake]", rot: "[0, open_a, sag_a]"}
+  hinge_b: {parent: body, pos: "[-1.74, 0, -shake + push_b]", rot: "[fall_b, -open_b, 0]"}
+
+parts:
+  # ---------- frame: pillars, lintel, crest, dark doorway behind the leaves ----------
+  doorway:
+    material: dark
+    space: body
+    prims:
+      - box: {c: [0, 1.85, -0.25], half: [1.76, 1.85, 0.05]}
+  pillars:
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.98, 1.95, 0], half: [0.22, 1.95, 0.3], round: 0.02}
+      - box: {c: [-1.98, 1.95, 0], half: [0.22, 1.95, 0.3], round: 0.02}
+      - box: {c: [1.98, 0.12, 0], half: [0.27, 0.12, 0.35], round: 0.02}
+      - box: {c: [-1.98, 0.12, 0], half: [0.27, 0.12, 0.35], round: 0.02}
+  lintel:
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.92, 0], half: [2.3, 0.22, 0.34], round: 0.02}
+  lintel_trim:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.74, 0.33], half: [2.28, 0.04, 0.03]}
+      - box: {c: [1.98, 3.58, 0.3], half: [0.24, 0.06, 0.03]}
+      - box: {c: [-1.98, 3.58, 0.3], half: [0.24, 0.06, 0.03]}
+  lintel_frieze:      # blue band with gold studs, as on castle_wall_back
+    material: blue
+    space: body
+    prims:
+      - box: {c: [0, 3.95, 0.345], half: [2.2, 0.1, 0.01]}
+  lintel_studs:
+    material: gold
+    space: body
+    prims:
+      - sphere: {c: [-1.80, 3.95, 0.36], r: 0.05}
+      - sphere: {c: [-1.20, 3.95, 0.36], r: 0.05}
+      - sphere: {c: [-0.60, 3.95, 0.36], r: 0.05}
+      - sphere: {c: [0.60, 3.95, 0.36], r: 0.05}
+      - sphere: {c: [1.20, 3.95, 0.36], r: 0.05}
+      - sphere: {c: [1.80, 3.95, 0.36], r: 0.05}
+  pillar_gold:        # gold capitals and bases on the pillars
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.98, 0.27, 0.32], half: [0.25, 0.04, 0.04]}
+      - box: {c: [-1.98, 0.27, 0.32], half: [0.25, 0.04, 0.04]}
+  crest:              # gold star of Minhau on the lintel
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0, 4.46, 0.12], b: [0.000, 4.860, 0.12], r: [0.15, 0.045]}
+      - cone: {a: [0, 4.46, 0.12], b: [-0.380, 4.584, 0.12], r: [0.15, 0.045]}
+      - cone: {a: [0, 4.46, 0.12], b: [-0.235, 4.136, 0.12], r: [0.15, 0.045]}
+      - cone: {a: [0, 4.46, 0.12], b: [0.235, 4.136, 0.12], r: [0.15, 0.045]}
+      - cone: {a: [0, 4.46, 0.12], b: [0.380, 4.584, 0.12], r: [0.15, 0.045]}
+
+  # ---------- leaf a (screen right, hinge x +1.74, extends towards -x) ----------
+  leaf_a:
+    material: white
+    space: hinge_a
+    line: true
+    prims:
+      - box: {c: [-0.87, 1.8, 0], half: [0.86, 1.8, 0.08], round: 0.02}
+      - box: {c: [-0.87, 1.8, -0.1], half: [0.1, 1.5, 0.04], rot: [0, 0, 0.5]}    # back brace
+  leaf_a_gold:
+    material: gold
+    space: hinge_a
+    line: true
+    prims:
+      - box: {c: [-0.87, 2.65, 0.08], half: [0.6, 0.65, 0.02]}       # upper panel frame
+      - box: {c: [-0.87, 1.0, 0.08], half: [0.6, 0.65, 0.02]}       # lower panel frame
+      - box: {c: [-0.87, 1.82, 0.09], half: [0.86, 0.06, 0.025]}
+      - box: {c: [-0.87, 0.6, -0.09], half: [0.86, 0.06, 0.025]}      # back straps
+      - box: {c: [-0.87, 3.0, -0.09], half: [0.86, 0.06, 0.025]}      # strap
+      - box: {c: [-0.87, 0.18, 0.09], half: [0.86, 0.06, 0.025]}     # kick strap
+      - torus: {c: [-1.5, 1.7, 0.12], R: 0.14, r: 0.035, rot: [1.5708, 0, 0]}
+    cut:
+      - box: {c: [-0.87, 2.65, 0.08], half: [0.52, 0.57, 0.05]}
+      - box: {c: [-0.87, 1.0, 0.08], half: [0.52, 0.57, 0.05]}
+  studs_a:          # gold studs and corner brackets
+    material: gold
+    space: hinge_a
+    line: true
+    prims:
+      - sphere: {c: [-0.30, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [-0.87, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [-1.44, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [-0.30, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [-0.87, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [-1.44, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [-0.30, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [-0.87, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [-1.44, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [-0.30, 3.22, 0.1], r: 0.045}
+      - sphere: {c: [-0.87, 3.22, 0.1], r: 0.045}
+      - sphere: {c: [-1.44, 3.22, 0.1], r: 0.045}
+      - box: {c: [-0.12, 0.12, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [-1.62, 0.12, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [-0.12, 3.48, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [-1.62, 3.48, 0.09], half: [0.11, 0.11, 0.02]}
+  leaf_a_crack:
+    material: dark
+    space: hinge_a
+    when: "broken > 0.5"
+    prims:
+      - box: {c: [-1.1, 2.4, 0.09], half: [0.3, 0.03, 0.02], rot: [0, 0, -0.9]}
+      - box: {c: [-0.75, 1.2, 0.09], half: [0.22, 0.03, 0.02], rot: [0, 0, 0.7]}
+
+  # ---------- leaf b (screen left, hinge x -1.74, extends towards +x) ----------
+  leaf_b:
+    material: white
+    space: hinge_b
+    line: true
+    prims:
+      - box: {c: [0.87, 1.8, 0], half: [0.86, 1.8, 0.08], round: 0.02}
+      - box: {c: [0.87, 1.8, -0.1], half: [0.1, 1.5, 0.04], rot: [0, 0, -0.5]}    # back brace
+  leaf_b_gold:
+    material: gold
+    space: hinge_b
+    line: true
+    prims:
+      - box: {c: [0.87, 2.65, 0.08], half: [0.6, 0.65, 0.02]}
+      - box: {c: [0.87, 1.0, 0.08], half: [0.6, 0.65, 0.02]}
+      - box: {c: [0.87, 1.82, 0.09], half: [0.86, 0.06, 0.025]}
+      - box: {c: [0.87, 0.6, -0.09], half: [0.86, 0.06, 0.025]}      # back straps
+      - box: {c: [0.87, 3.0, -0.09], half: [0.86, 0.06, 0.025]}
+      - box: {c: [0.87, 0.18, 0.09], half: [0.86, 0.06, 0.025]}
+      - torus: {c: [1.5, 1.7, 0.12], R: 0.14, r: 0.035, rot: [1.5708, 0, 0]}
+    cut:
+      - box: {c: [0.87, 2.65, 0.08], half: [0.52, 0.57, 0.05]}
+      - box: {c: [0.87, 1.0, 0.08], half: [0.52, 0.57, 0.05]}
+
+  studs_b:          # gold studs and corner brackets
+    material: gold
+    space: hinge_b
+    line: true
+    prims:
+      - sphere: {c: [0.30, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [0.87, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [1.44, 0.42, 0.1], r: 0.045}
+      - sphere: {c: [0.30, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [0.87, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [1.44, 1.62, 0.1], r: 0.045}
+      - sphere: {c: [0.30, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [0.87, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [1.44, 2.02, 0.1], r: 0.045}
+      - sphere: {c: [0.30, 3.22, 0.1], r: 0.045}
+      - sphere: {c: [0.87, 3.22, 0.1], r: 0.045}
+      - sphere: {c: [1.44, 3.22, 0.1], r: 0.045}
+      - box: {c: [0.12, 0.12, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [1.62, 0.12, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [0.12, 3.48, 0.09], half: [0.11, 0.11, 0.02]}
+      - box: {c: [1.62, 3.48, 0.09], half: [0.11, 0.11, 0.02]}
+  seam:               # gold astragal strip covering the meeting edge (on leaf b)
+    material: gold
+    space: hinge_b
+    line: true
+    prims:
+      - box: {c: [1.71, 1.8, 0.1], half: [0.05, 1.78, 0.03]}
+
+  # ---------- debris of the broken state ----------
+  splinters:          # torn wood where leaf a ripped and at the hinges
+    material: split
+    space: body
+    when: "broken > 0.5"
+    line: true
+    prims:
+      - cone: {a: [1.72, 3.1, 0.05], b: [1.45, 3.35, 0.15], r: [0.07, 0.015]}
+      - cone: {a: [1.72, 2.9, 0.05], b: [1.4, 2.85, 0.2], r: [0.06, 0.015]}
+      - cone: {a: [-1.72, 0.25, 0.1], b: [-1.45, 0.5, 0.2], r: [0.07, 0.015]}
+      - cone: {a: [-0.6, 0.05, 2.9], b: [-0.2, 0.08, 3.2], r: [0.07, 0.015]}
+      - cone: {a: [0.5, 0.05, 1.2], b: [0.95, 0.06, 1.0], r: [0.07, 0.015]}
+      - cone: {a: [0.9, 0.05, 2.2], b: [1.3, 0.06, 2.45], r: [0.06, 0.015]}
+  chips:              # white and gold chips on the floor
+    material: white
+    space: body
+    when: "broken > 0.5"
+    line: true
+    prims:
+      - box: {c: [0.3, 0.05, 0.75], half: [0.12, 0.05, 0.09], rot: [0, 0.6, 0], round: 0.02}
+      - box: {c: [1.2, 0.04, 1.6], half: [0.09, 0.04, 0.07], rot: [0, -0.4, 0], round: 0.02}
+      - box: {c: [-0.3, 0.04, 0.5], half: [0.08, 0.04, 0.06], rot: [0, 1.0, 0], round: 0.02}
+      - box: {c: [1.6, 0.04, 0.6], half: [0.1, 0.04, 0.07], rot: [0, 0.3, 0], round: 0.02}
+  chips_gold:
+    material: gold
+    space: body
+    when: "broken > 0.5"
+    prims:
+      - sphere: {c: [0.75, 0.04, 1.9], r: 0.06}
+      - sphere: {c: [1.4, 0.04, 1.1], r: 0.05}
+
+animations:
+  idle:               # closed
+    frames: 1
+    ms: 1000
+    channels: {}
+  open:
+    loop: false
+    keys:
+      - {ms: 140, event: unlatch, set: {shake: 0.03}}
+      - {ms: 90, set: {open_a: 0.2, open_b: 0.2}}
+      - {ms: 90, set: {open_a: 0.55, open_b: 0.5}}
+      - {ms: 90, set: {open_a: 0.95, open_b: 0.9}}
+      - {ms: 100, set: {open_a: 1.3, open_b: 1.25}}
+      - {ms: 110, set: {open_a: 1.32, open_b: 1.3}}
+      - {ms: 300, event: opened, set: {open_a: 1.25, open_b: 1.25}}
+  opened:
+    frames: 1
+    ms: 1000
+    channels: {open_a: 1.25, open_b: 1.25}
+  burst:              # the invaders break the gate from outside
+    loop: false
+    keys:
+      - {ms: 110, set: {shake: 0.06}}
+      - {ms: 90, set: {shake: -0.02}}
+      - {ms: 70, set: {shake: 0.1}}
+      - {ms: 60, event: impact, set: {open_a: 0.35, sag_a: 0.12, fall_b: 0.45, push_b: 0.2, broken: 1}}
+      - {ms: 70, set: {open_a: 0.6, sag_a: 0.3, fall_b: 1.0, push_b: 0.45, broken: 1}}
+      - {ms: 80, set: {open_a: 0.5, sag_a: 0.55, fall_b: 1.56, push_b: 0.55, broken: 1}}
+      - {ms: 90, set: {open_a: 0.43, sag_a: 0.47, fall_b: 1.48, push_b: 0.6, broken: 1}}
+      - {ms: 300, event: broken, set: {open_a: 0.45, sag_a: 0.5, fall_b: 1.52, push_b: 0.6, broken: 1}}
+  broken:
+    frames: 1
+    ms: 1000
+    channels: {open_a: 0.45, sag_a: 0.5, fall_b: 1.52, push_b: 0.6, broken: 1}

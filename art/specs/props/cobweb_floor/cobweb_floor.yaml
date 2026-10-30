@@ -1,0 +1,229 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cobweb_floor
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot = frame centre (24, 24) = the ground point
+shadow: null             # a decal on the floor
+
+# Act I dungeon "Casa Abandonada": floor decals of the flea-infested cellar.
+brief:
+  summary: flat floor decals - thick grey-white sticky cobwebs (spokes and rings), sickly yellow-green
+    larva goo puddles with clumps of pale glossy parasite eggs; four looks - a big web, a goo puddle with a
+    clutch of eggs, a web over goo with eggs, a torn web corner with a few eggs
+  must_keep: [pale web strands that read on a dark floor, sickly goo, outlined pale eggs]
+  simplify: [strands as thin flat boxes, goo as flat blobs, eggs as tiny ellipsoids]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. Webs and goo have
+    no outline (an outlined decal looks like a hole, as in blood_splat); the eggs keep the dark outline so
+    they pop. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 24) = frame centre = the ground point under the decal. Draw it on the floor
+    layer (below actors and props), NOT blocking. Up to ~1.9 units wide (~2x2 tiles). VARIANTS: `variants`
+    has 4 frames (frame i = variant i); `idle` = variant 0. Layout generated once from a seeded script.
+
+ramps:
+  cw_web:   ["#1c0f1a", "#cdc6be"]
+  cw_dust:  ["#1c0f1a", "#3a3438"]
+  cw_goo:   ["#1c0f1a", "#5a6a1a"]
+  cw_shine: ["#1c0f1a", "#a6b43a"]
+  cw_egg:   ["#1c0f1a", "#9a8a5a", "#d6cc98", "#f2ecc8"]
+
+materials:
+  web:      {ramp: cw_web, bands: [1, 1], outline: false, line: false}
+  dust:     {ramp: cw_dust, bands: [1, 1], outline: false, line: false}
+  goo:      {ramp: cw_goo, bands: [1, 1], outline: false, line: false}
+  gooshine: {ramp: cw_shine, bands: [1, 1], outline: false, line: false}
+  egg:      {ramp: cw_egg, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+
+parts:
+  web0:
+    material: web
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - box: {c: [0.512, 0.006, -0.012], half: [0.522, 0.004, 0.03], rot: [0, 0.024, 0]}
+      - box: {c: [0.295, 0.006, 0.263], half: [0.406, 0.004, 0.03], rot: [0, -0.728, 0]}
+      - box: {c: [-0.016, 0.006, 0.430], half: [0.440, 0.004, 0.03], rot: [0, -1.608, 0]}
+      - box: {c: [-0.192, 0.006, 0.345], half: [0.405, 0.004, 0.03], rot: [0, -2.077, 0]}
+      - box: {c: [-0.484, 0.006, 0.174], half: [0.525, 0.004, 0.03], rot: [0, -2.796, 0]}
+      - box: {c: [-0.458, 0.006, -0.190], half: [0.505, 0.004, 0.03], rot: [0, 2.749, 0]}
+      - box: {c: [-0.244, 0.006, -0.301], half: [0.397, 0.004, 0.03], rot: [0, 2.252, 0]}
+      - box: {c: [0.098, 0.006, -0.534], half: [0.553, 0.004, 0.03], rot: [0, 1.390, 0]}
+      - box: {c: [0.436, 0.006, -0.320], half: [0.550, 0.004, 0.03], rot: [0, 0.633, 0]}
+      - box: {c: [0.241, 0.006, 0.075], half: [0.115, 0.004, 0.024], rot: [0, -2.243, 0]}
+      - box: {c: [0.077, 0.006, 0.189], half: [0.107, 0.004, 0.024], rot: [0, -2.674, 0]}
+      - box: {c: [-0.057, 0.006, 0.221], half: [0.067, 0.004, 0.024], rot: [0, 2.547, 0]}
+      - box: {c: [-0.189, 0.006, 0.145], half: [0.105, 0.004, 0.024], rot: [0, 2.621, 0]}
+      - box: {c: [-0.265, 0.006, -0.008], half: [0.112, 0.004, 0.024], rot: [0, 1.587, 0]}
+      - box: {c: [-0.208, 0.006, -0.147], half: [0.079, 0.004, 0.024], rot: [0, 0.579, 0]}
+      - box: {c: [-0.042, 0.006, -0.248], half: [0.133, 0.004, 0.024], rot: [0, 0.618, 0]}
+      - box: {c: [0.159, 0.006, -0.252], half: [0.129, 0.004, 0.024], rot: [0, -0.535, 0]}
+      - box: {c: [0.271, 0.006, -0.096], half: [0.101, 0.004, 0.024], rot: [0, -1.373, 0]}
+      - box: {c: [0.466, 0.006, 0.145], half: [0.212, 0.004, 0.024], rot: [0, -2.237, 0]}
+      - box: {c: [0.158, 0.006, 0.387], half: [0.207, 0.004, 0.024], rot: [0, -2.670, 0]}
+      - box: {c: [-0.107, 0.006, 0.402], half: [0.111, 0.004, 0.024], rot: [0, 2.665, 0]}
+      - box: {c: [-0.342, 0.006, 0.266], half: [0.180, 0.004, 0.024], rot: [0, 2.570, 0]}
+      - box: {c: [-0.512, 0.006, -0.003], half: [0.209, 0.004, 0.024], rot: [0, 1.426, 0]}
+      - box: {c: [-0.387, 0.006, -0.265], half: [0.150, 0.004, 0.024], rot: [0, 0.376, 0]}
+      - box: {c: [-0.085, 0.006, -0.474], half: [0.244, 0.004, 0.024], rot: [0, 0.586, 0]}
+      - box: {c: [0.271, 0.006, -0.428], half: [0.212, 0.004, 0.024], rot: [0, -0.523, 0]}
+      - box: {c: [0.521, 0.006, -0.189], half: [0.188, 0.004, 0.024], rot: [0, -1.431, 0]}
+      - box: {c: [0.655, 0.006, 0.192], half: [0.303, 0.004, 0.024], rot: [0, -2.331, 0]}
+      - box: {c: [0.202, 0.006, 0.534], half: [0.283, 0.004, 0.024], rot: [0, -2.559, 0]}
+      - box: {c: [-0.157, 0.006, 0.610], half: [0.169, 0.004, 0.024], rot: [0, 2.540, 0]}
+      - box: {c: [-0.508, 0.006, 0.385], half: [0.268, 0.004, 0.024], rot: [0, 2.657, 0]}
+      - box: {c: [-0.776, 0.006, -0.008], half: [0.311, 0.004, 0.024], rot: [0, 1.459, 0]}
+      - box: {c: [-0.519, 0.006, -0.364], half: [0.186, 0.004, 0.024], rot: [0, 0.512, 0]}
+      - box: {c: [-0.108, 0.006, -0.609], half: [0.311, 0.004, 0.024], rot: [0, 0.595, 0]}
+      - box: {c: [0.402, 0.006, -0.673], half: [0.324, 0.004, 0.024], rot: [0, -0.685, 0]}
+      - box: {c: [0.739, 0.006, -0.261], half: [0.258, 0.004, 0.024], rot: [0, -1.355, 0]}
+  dust0:
+    material: dust
+    space: body
+    when: "abs(v - 0) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.156, 0.002, 0.243], r: [0.134, 0.003, 0.150], rot: [0, 0.35, 0]}
+      - ellipsoid: {c: [0.061, 0.002, 0.121], r: [0.146, 0.003, 0.173], rot: [0, 2.41, 0]}
+      - ellipsoid: {c: [0.038, 0.002, 0.275], r: [0.141, 0.003, 0.133], rot: [0, 2.56, 0]}
+  goo1:
+    material: goo
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.028, 0.003, 0.015], r: [0.448, 0.003, 0.257], rot: [0, 0.77, 0]}
+      - ellipsoid: {c: [0.021, 0.003, -0.097], r: [0.318, 0.003, 0.236], rot: [0, 0.27, 0]}
+      - ellipsoid: {c: [-0.095, 0.003, -0.004], r: [0.375, 0.003, 0.281], rot: [0, 1.36, 0]}
+      - ellipsoid: {c: [0.211, 0.003, -0.005], r: [0.370, 0.003, 0.355], rot: [0, 0.55, 0]}
+      - ellipsoid: {c: [0.232, 0.003, 0.387], r: [0.416, 0.003, 0.262], rot: [0, 0.57, 0]}
+      - ellipsoid: {c: [-0.028, 0.003, -0.372], r: [0.299, 0.003, 0.368], rot: [0, 2.65, 0]}
+      - ellipsoid: {c: [-0.151, 0.003, -0.065], r: [0.282, 0.003, 0.231], rot: [0, 2.89, 0]}
+  gooh1:
+    material: gooshine
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.092, 0.005, 0.055], r: [0.104, 0.003, 0.116], rot: [0, 1.79, 0]}
+      - ellipsoid: {c: [-0.107, 0.005, -0.025], r: [0.133, 0.003, 0.078], rot: [0, 0.69, 0]}
+      - ellipsoid: {c: [-0.219, 0.005, -0.097], r: [0.126, 0.003, 0.089], rot: [0, 2.75, 0]}
+  eggs1:
+    material: egg
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.067, 0.053, 0.056], r: [0.067, 0.053, 0.083], rot: [0, 1.34, 0]}
+      - ellipsoid: {c: [0.225, 0.055, 0.070], r: [0.069, 0.055, 0.087], rot: [0, 1.72, 0]}
+      - ellipsoid: {c: [0.233, 0.066, 0.199], r: [0.082, 0.066, 0.103], rot: [0, 2.94, 0]}
+      - ellipsoid: {c: [-0.157, 0.060, -0.312], r: [0.075, 0.060, 0.093], rot: [0, 0.42, 0]}
+      - ellipsoid: {c: [0.109, 0.066, 0.013], r: [0.083, 0.066, 0.103], rot: [0, 2.10, 0]}
+      - ellipsoid: {c: [0.114, 0.061, -0.015], r: [0.076, 0.061, 0.095], rot: [0, 1.45, 0]}
+      - ellipsoid: {c: [0.019, 0.068, -0.252], r: [0.085, 0.068, 0.106], rot: [0, 0.23, 0]}
+      - ellipsoid: {c: [-0.320, 0.066, -0.110], r: [0.083, 0.066, 0.103], rot: [0, 2.21, 0]}
+      - ellipsoid: {c: [-0.065, 0.066, -0.384], r: [0.083, 0.066, 0.104], rot: [0, 1.06, 0]}
+      - ellipsoid: {c: [-0.119, 0.065, -0.392], r: [0.082, 0.065, 0.102], rot: [0, 1.25, 0]}
+      - ellipsoid: {c: [0.155, 0.059, -0.405], r: [0.074, 0.059, 0.093], rot: [0, 1.87, 0]}
+  goo2:
+    material: goo
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.184, 0.003, 0.356], r: [0.226, 0.003, 0.142], rot: [0, 1.92, 0]}
+      - ellipsoid: {c: [0.537, 0.003, 0.240], r: [0.239, 0.003, 0.170], rot: [0, 2.21, 0]}
+      - ellipsoid: {c: [0.196, 0.003, 0.192], r: [0.252, 0.003, 0.143], rot: [0, 2.25, 0]}
+      - ellipsoid: {c: [0.460, 0.003, 0.280], r: [0.212, 0.003, 0.156], rot: [0, 2.10, 0]}
+      - ellipsoid: {c: [0.134, 0.003, 0.253], r: [0.261, 0.003, 0.158], rot: [0, 0.03, 0]}
+  web2:
+    material: web
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [0.293, 0.006, -0.144], half: [0.455, 0.004, 0.03], rot: [0, 0.099, 0]}
+      - box: {c: [0.052, 0.006, 0.205], half: [0.376, 0.004, 0.03], rot: [0, -0.987, 0]}
+      - box: {c: [-0.181, 0.006, 0.312], half: [0.423, 0.004, 0.03], rot: [0, -1.646, 0]}
+      - box: {c: [-0.434, 0.006, 0.100], half: [0.358, 0.004, 0.03], rot: [0, -2.528, 0]}
+      - box: {c: [-0.452, 0.006, -0.331], half: [0.390, 0.004, 0.03], rot: [0, 2.490, 0]}
+      - box: {c: [-0.212, 0.006, -0.528], half: [0.443, 0.004, 0.03], rot: [0, 1.715, 0]}
+      - box: {c: [0.119, 0.006, -0.458], half: [0.458, 0.004, 0.03], rot: [0, 0.927, 0]}
+      - box: {c: [0.077, 0.006, -0.014], half: [0.160, 0.004, 0.024], rot: [0, -2.234, 0]}
+      - box: {c: [-0.091, 0.006, 0.142], half: [0.096, 0.004, 0.024], rot: [0, -2.770, 0]}
+      - box: {c: [-0.257, 0.006, 0.101], half: [0.118, 0.004, 0.024], rot: [0, 2.504, 0]}
+      - box: {c: [-0.361, 0.006, -0.111], half: [0.165, 0.004, 0.024], rot: [0, 1.614, 0]}
+      - box: {c: [-0.279, 0.006, -0.338], half: [0.122, 0.004, 0.024], rot: [0, 0.730, 0]}
+      - box: {c: [-0.083, 0.006, -0.357], half: [0.121, 0.004, 0.024], rot: [0, -0.229, 0]}
+      - box: {c: [0.087, 0.006, -0.236], half: [0.130, 0.004, 0.024], rot: [0, -1.097, 0]}
+      - box: {c: [0.275, 0.006, 0.077], half: [0.290, 0.004, 0.024], rot: [0, -2.149, 0]}
+      - box: {c: [-0.031, 0.006, 0.393], half: [0.186, 0.004, 0.024], rot: [0, -2.740, 0]}
+      - box: {c: [-0.375, 0.006, 0.317], half: [0.234, 0.004, 0.024], rot: [0, 2.527, 0]}
+      - box: {c: [-0.563, 0.006, -0.109], half: [0.313, 0.004, 0.024], rot: [0, 1.559, 0]}
+      - box: {c: [-0.382, 0.006, -0.518], half: [0.207, 0.004, 0.024], rot: [0, 0.680, 0]}
+      - box: {c: [-0.024, 0.006, -0.636], half: [0.241, 0.004, 0.024], rot: [0, -0.363, 0]}
+      - box: {c: [0.345, 0.006, -0.383], half: [0.260, 0.004, 0.024], rot: [0, -1.089, 0]}
+  eggs2:
+    material: egg
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.269, 0.048, 0.507], r: [0.060, 0.048, 0.076], rot: [0, 0.41, 0]}
+      - ellipsoid: {c: [0.312, 0.065, 0.311], r: [0.081, 0.065, 0.101], rot: [0, 0.71, 0]}
+      - ellipsoid: {c: [0.384, 0.061, 0.342], r: [0.076, 0.061, 0.095], rot: [0, 1.34, 0]}
+      - ellipsoid: {c: [0.211, 0.064, 0.153], r: [0.080, 0.064, 0.100], rot: [0, 2.88, 0]}
+      - ellipsoid: {c: [0.305, 0.058, 0.198], r: [0.072, 0.058, 0.090], rot: [0, 0.54, 0]}
+      - ellipsoid: {c: [0.521, 0.062, 0.312], r: [0.078, 0.062, 0.097], rot: [0, 0.54, 0]}
+  web3:
+    material: web
+    space: body
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - box: {c: [0.126, 0.006, -0.237], half: [0.338, 0.004, 0.03], rot: [0, 0.114, 0]}
+      - box: {c: [0.013, 0.006, 0.111], half: [0.387, 0.004, 0.03], rot: [0, -0.970, 0]}
+      - box: {c: [-0.428, 0.006, 0.118], half: [0.401, 0.004, 0.03], rot: [0, -2.193, 0]}
+      - box: {c: [-0.491, 0.006, -0.203], half: [0.301, 0.004, 0.03], rot: [0, 3.131, 0]}
+      - box: {c: [-0.377, 0.006, -0.552], half: [0.404, 0.004, 0.03], rot: [0, 2.037, 0]}
+      - box: {c: [0.024, 0.006, -0.493], half: [0.378, 0.004, 0.03], rot: [0, 0.919, 0]}
+      - box: {c: [0.002, 0.006, -0.093], half: [0.149, 0.004, 0.024], rot: [0, -1.843, 0]}
+      - box: {c: [-0.210, 0.006, 0.055], half: [0.189, 0.004, 0.024], rot: [0, -3.096, 0]}
+      - box: {c: [-0.381, 0.006, -0.340], half: [0.154, 0.004, 0.024], rot: [0, 1.279, 0]}
+      - box: {c: [-0.182, 0.006, -0.465], half: [0.176, 0.004, 0.024], rot: [0, -0.156, 0]}
+      - box: {c: [0.020, 0.006, -0.337], half: [0.123, 0.004, 0.024], rot: [0, -1.270, 0]}
+      - box: {c: [0.193, 0.006, -0.011], half: [0.273, 0.004, 0.024], rot: [0, -1.942, 0]}
+      - box: {c: [-0.595, 0.006, 0.038], half: [0.258, 0.004, 0.024], rot: [0, 1.777, 0]}
+      - box: {c: [-0.551, 0.006, -0.468], half: [0.287, 0.004, 0.024], rot: [0, 1.265, 0]}
+      - box: {c: [-0.150, 0.006, -0.674], half: [0.308, 0.004, 0.024], rot: [0, -0.063, 0]}
+      - box: {c: [0.231, 0.006, -0.459], half: [0.226, 0.004, 0.024], rot: [0, -1.190, 0]}
+  goo3:
+    material: goo
+    space: body
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.348, 0.003, 0.326], r: [0.095, 0.003, 0.106], rot: [0, 2.57, 0]}
+      - ellipsoid: {c: [0.444, 0.003, 0.359], r: [0.101, 0.003, 0.090], rot: [0, 2.30, 0]}
+      - ellipsoid: {c: [0.446, 0.003, 0.350], r: [0.122, 0.003, 0.069], rot: [0, 2.40, 0]}
+  eggs3:
+    material: egg
+    space: body
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.482, 0.064, 0.411], r: [0.080, 0.064, 0.100], rot: [0, 0.42, 0]}
+      - ellipsoid: {c: [0.501, 0.062, 0.419], r: [0.078, 0.062, 0.098], rot: [0, 2.52, 0]}
+      - ellipsoid: {c: [0.407, 0.058, 0.242], r: [0.072, 0.058, 0.090], rot: [0, 2.85, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 4
+    ms: 1000
+    channels: {v: "f"}

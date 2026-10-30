@@ -1,0 +1,164 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: forge_chimney
+kind: prop
+view: topdown
+size: 96                 # tall stack plus the smoke column of `lit`
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 2.3033, 0]}   # 33 px above the pivot -> pivot (48, 81)
+shadow: {rx: 14, ry: 5, alpha: 90}
+
+# Ruined village: the brick chimney of the rebuilt smithy.
+brief:
+  summary: tall square chimney of red-brown bricks with pale mortar lines, a wider stepped base with an arched
+    forge mouth at the front, a grey stone cap with a dark flue on top; cold and dark in idle, lit with a
+    glowing forge mouth and grey smoke puffs rising from the top in `lit`
+  must_keep: [red-brown bricks with mortar courses, arched forge mouth, stone cap, smoke when lit]
+  simplify: [bricks as horizontal mortar courses plus a few staggered joints, smoke as 3-4 round puffs]
+  exceptions: |
+    kind prop, size 96, directions 1, mirror false, camera.center [0, 2.3033, 0] (integer pivot).
+    The forge glow is emissive; smoke has no outline. camera.scale/pitch/light untouched.
+    Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 48,81) is the ground point at the centre of the
+    base. Base 1.2 x 1.0 units (~22 px wide) -> footprint 2x1 tiles (it stands at the back of the smithy),
+    blocking. Stack 3.2 units tall (~46 px). Clips: idle (cold: dark mouth, no smoke, the state before the
+    smithy is rebuilt / fired), lit (loop 8 frames: glowing coals in the mouth, 4 smoke puffs rising,
+    growing and drifting right, fading as they shrink back at the top of the cycle).
+
+ramps:
+  fc_brick:  ["#1c0f1a", "#5a1e18", "#8a3625", "#ae4924", "#c45a32"]
+  fc_mortar: ["#1c0f1a", "#8a7a6a", "#b4a48e", "#cdbfa6"]
+  fc_stone:  ["#1c0f1a", "#3d3440", "#6b6070", "#8a7f8c", "#a3969c"]
+  fc_soot:   ["#1c0f1a", "#1f1418", "#2d2024", "#3a2a2e"]
+  fc_smoke:  ["#1c0f1a", "#5a5460", "#857f8a", "#aaa4ae", "#cdc8d0"]
+  fc_flame:  ["#1c0f1a", "#5a0a12", "#a8160f", "#e0361a", "#fe6607", "#ffa12e", "#ffd65c", "#fff4c8"]
+
+materials:
+  brick:  {ramp: fc_brick, bands: [1, 4]}
+  mortar: {ramp: fc_mortar, bands: [1, 2], outline: false, line: false}
+  stone:  {ramp: fc_stone, bands: [1, 4]}
+  soot:   {ramp: fc_soot, bands: [1, 2], line: false}
+  smoke:  {ramp: fc_smoke, bands: [2, 4], outline: false, line: false}
+  coal:   {ramp: fc_flame, emissive: true, band: 3, outline: false, line: false}
+  glow:   {ramp: fc_flame, emissive: true, band: 5, outline: false, line: false, glow: {color: "#fe6607", mix: 0.4, radius: 1}}
+  hot:    {ramp: fc_flame, emissive: true, band: 6, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  lit: 0             # 1 = forge burning, smoke rising
+  glow: 1            # coal pulse
+
+bones:
+  body: {parent: root}
+
+parts:
+  base:
+    material: brick
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.5, 0], half: [0.6, 0.5, 0.5], round: 0.02}
+      - box: {c: [0, 1.15, -0.05], half: [0.5, 0.15, 0.42], round: 0.02}
+  stack:
+    material: brick
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.2, -0.1], half: [0.38, 1.0, 0.32], round: 0.02}
+  cap:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.25, -0.1], half: [0.46, 0.08, 0.4], round: 0.02}
+    cut:
+      - box: {c: [0, 3.3, -0.1], half: [0.22, 0.1, 0.18]}
+  flue:
+    material: soot
+    space: body
+    prims:
+      - box: {c: [0, 3.22, -0.1], half: [0.22, 0.03, 0.18]}
+  mortar:             # mortar courses on the front faces
+    material: mortar
+    space: body
+    prims:
+      - box: {c: [0, 0.25, 0.502], half: [0.58, 0.012, 0.004]}
+      - box: {c: [0, 0.5, 0.502], half: [0.58, 0.012, 0.004]}
+      - box: {c: [0, 0.75, 0.502], half: [0.58, 0.012, 0.004]}
+      - box: {c: [0, 1.6, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 1.85, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 2.1, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 2.35, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 2.6, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 2.85, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0, 3.1, 0.222], half: [0.36, 0.012, 0.004]}
+      - box: {c: [0.15, 1.72, 0.222], half: [0.012, 0.12, 0.004]}
+      - box: {c: [-0.12, 1.97, 0.222], half: [0.012, 0.12, 0.004]}
+      - box: {c: [0.18, 2.22, 0.222], half: [0.012, 0.12, 0.004]}
+      - box: {c: [-0.15, 2.47, 0.222], half: [0.012, 0.12, 0.004]}
+      - box: {c: [0.1, 2.72, 0.222], half: [0.012, 0.12, 0.004]}
+      - box: {c: [-0.18, 2.97, 0.222], half: [0.012, 0.12, 0.004]}
+  mouth:              # arched forge opening
+    material: soot
+    space: body
+    prims:
+      - box: {c: [0, 0.3, 0.46], half: [0.3, 0.3, 0.06]}
+      - cylinder: {a: [0, 0.6, 0.4], b: [0, 0.6, 0.52], r: 0.3}
+  arch_stones:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - torus: {c: [0, 0.6, 0.5], R: 0.36, r: 0.06, rot: [1.5708, 0, 0]}
+      - box: {c: [0, 0.03, 0.55], half: [0.42, 0.03, 0.08]}
+    cut:
+      - box: {c: [0, 0.3, 0.5], half: [0.6, 0.3, 0.3]}
+  coals_cold:
+    material: soot
+    space: body
+    when: "lit < 0.5"
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0.1, 0.48], r: [0.22, 0.06, 0.05]}
+  coals:
+    material: coal
+    space: body
+    when: "lit > 0.5"
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.5], r: [0.26, 0.08, 0.05]}
+  coals_glow:
+    material: glow
+    space: body
+    when: "lit > 0.5"
+    prims:
+      - sphere: {c: [-0.1, 0.16, 0.53], r: "0.06*glow"}
+      - sphere: {c: [0.1, 0.15, 0.53], r: "0.055*(2 - glow)"}
+      - cone: {a: [0.0, 0.14, 0.52], b: [0.02, "0.3 + 0.08*glow", 0.52], r: [0.08, 0.02]}
+  coals_hot:
+    material: hot
+    space: body
+    when: "lit > 0.5"
+    prims:
+      - sphere: {c: [0, 0.16, 0.56], r: 0.035}
+  smoke:              # 4 puffs, each at its own phase of the rise (s = fractional part of t + k/4)
+    material: smoke
+    space: body
+    when: "lit > 0.5"
+    prims:
+      - sphere: {c: "[0.25*(t - floor(t)), 3.35 + 1.5*(t - floor(t)), -0.1]", r: "0.12 + 0.2*sin(pi*(t - floor(t)))"}
+      - sphere: {c: "[0.25*(t + 0.25 - floor(t + 0.25)), 3.35 + 1.5*(t + 0.25 - floor(t + 0.25)), -0.1]", r: "0.12 + 0.2*sin(pi*(t + 0.25 - floor(t + 0.25)))"}
+      - sphere: {c: "[0.25*(t + 0.5 - floor(t + 0.5)), 3.35 + 1.5*(t + 0.5 - floor(t + 0.5)), -0.1]", r: "0.12 + 0.2*sin(pi*(t + 0.5 - floor(t + 0.5)))"}
+      - sphere: {c: "[0.25*(t + 0.75 - floor(t + 0.75)), 3.35 + 1.5*(t + 0.75 - floor(t + 0.75)), -0.1]", r: "0.12 + 0.2*sin(pi*(t + 0.75 - floor(t + 0.75)))"}
+
+animations:
+  idle:               # cold
+    frames: 1
+    ms: 1000
+    channels: {}
+  lit:
+    frames: 8
+    ms: 120
+    channels: {lit: 1, glow: "1 + 0.25*sin(p)"}

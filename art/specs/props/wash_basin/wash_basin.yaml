@@ -1,0 +1,191 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: wash_basin
+kind: prop
+view: topdown
+size: 32
+directions: 1            # round tub on a stool: one view serves every angle
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.4886 = 7 px above the pivot -> pivot (16, 23), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4886, 0]}
+shadow: {rx: 9, ry: 3, alpha: 80}
+
+# Aldo's hut: wooden wash basin on a stool. Story beat: the hero looks into it and sees Aldo's crown.
+brief:
+  summary: round wooden wash tub of staves bound by two black iron hoops, set on a little three-legged
+    stool; full of clear blue water with a pale glint; a linen rag hangs over the rim. In the `crown`
+    clip the water shows the reflection of a golden crown with three ruby points, shimmering, with small
+    ripples spreading
+  must_keep: [stave tub with iron hoops, three-legged stool, blue water with a glint, rag on the rim,
+    the golden crown reflection must read at 1x (crown clip)]
+  simplify: [staves as a few dark grooves, crown as a band plus three points and one centre ruby]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, camera.center [0, 0.4886, 0] (integer pivot).
+    The crown reflection, ripples and the glint are emissive (reflected light). camera.scale/pitch/light
+    untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 16,23) is the floor point under the tub's
+    centre. Tub radius 0.4 on a stool seat of radius 0.48 (~19 px wide), stool 0.37 tall -> footprint 1x1 tile, blocking.
+    The crown is modelled flat on the water, upright on screen (points toward the back), z stretched by
+    1/sin(38) so it keeps its proportions after the camera squash; reading beats optical truth here.
+    Clips: idle (4 x 220 ms, the glint drifts), crown (8 x 110 ms loop: the crown shimmers sideways,
+    its gems twinkle, a ripple ring grows and fades). The game swaps idle -> crown when the hero leans in.
+
+materials:
+  wood:    {ramp: hwood, bands: [2, 4]}
+  wood_in: {ramp: hwood, bands: [1, 2], line: false}
+  stool:   {ramp: hbeam, bands: [2, 4]}
+  seat:    {ramp: hcut, bands: [1, 3]}
+  iron:    {ramp: hiron, bands: [1, 3]}
+  groove:  {ramp: hwood, bands: [1, 1], outline: false, line: false}
+  water:   {ramp: hwater, bands: [3, 3], outline: false, line: false}
+  water_dk: {ramp: hwater, bands: [2, 2], outline: false, line: false}
+  glint:   {ramp: hwater, emissive: true, band: 5, outline: false, line: false}
+  ripple:  {ramp: hwater, emissive: true, band: 4, outline: false, line: false}
+  rag:     {ramp: hlinen, bands: [2, 4]}
+  crown:   {ramp: hgold, emissive: true, band: 4, outline: false, line: false}
+  crown_dk: {ramp: hgold, emissive: true, band: 2, outline: false, line: false}
+  gem:     {ramp: hruby, emissive: true, band: 3, outline: false, line: false}
+  gem_hi:  {ramp: hgold, emissive: true, band: 5, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  glint_x: -0.1      # glint position on the water
+  crown: 0           # crown reflection (0 off .. 1 full)
+  wob: 0             # crown sideways shimmer (units)
+  twinkle: 0         # gem highlight on/off
+  ripple: 0          # ripple ring radius (0 = none)
+
+bones:
+  body: {parent: root}
+  water: {parent: body, pos: [0, 0.62, 0]}
+  crown: {parent: water, pos: "[wob, 0.004, 0.02]", scale: "[1, 1, 1.62]"}
+
+parts:
+  # ---------- stool ----------
+  legs:
+    material: stool
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0.22, 0.34, 0.2], b: [0.36, 0.0, 0.33], r: [0.055, 0.045]}
+      - cone: {a: [-0.22, 0.34, 0.2], b: [-0.36, 0.0, 0.33], r: [0.055, 0.045]}
+      - cone: {a: [0.0, 0.34, -0.28], b: [0.0, 0.0, -0.44], r: [0.055, 0.045]}
+  stool_seat:
+    material: seat
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.29, 0], b: [0, 0.37, 0], r: 0.48, round: 0.02}
+
+  # ---------- tub ----------
+  tub:
+    material: wood
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.37, 0], b: [0, 0.7, 0], r: 0.4, round: 0.02}
+    cut:
+      - cylinder: {a: [0, 0.48, 0], b: [0, 0.9, 0], r: 0.34}
+  tub_inside:
+    material: wood_in
+    space: body
+    prims:
+      - cylinder: {a: [0, 0.48, 0], b: [0, 0.69, 0], r: 0.345}
+    cut:
+      - cylinder: {a: [0, 0.4, 0], b: [0, 0.9, 0], r: 0.335}
+  grooves:            # stave joints on the front
+    material: groove
+    space: body
+    prims:
+      - box: {c: [0.0, 0.53, 0.415], half: [0.014, 0.15, 0.02]}
+      - box: {c: [0.24, 0.53, 0.34], half: [0.014, 0.15, 0.02], rot: [0, 0.62, 0]}
+      - box: {c: [-0.24, 0.53, 0.34], half: [0.014, 0.15, 0.02], rot: [0, -0.62, 0]}
+      - box: {c: [0.38, 0.53, 0.14], half: [0.014, 0.15, 0.02], rot: [0, 1.22, 0]}
+      - box: {c: [-0.38, 0.53, 0.14], half: [0.014, 0.15, 0.02], rot: [0, -1.22, 0]}
+  hoops:
+    material: iron
+    space: body
+    line: true
+    prims:
+      - torus: {c: [0, 0.45, 0], R: 0.405, r: 0.025}
+      - torus: {c: [0, 0.63, 0], R: 0.405, r: 0.025}
+
+  # ---------- water ----------
+  water:
+    material: water
+    space: water
+    prims:
+      - cylinder: {a: [0, -0.04, 0], b: [0, 0, 0], r: 0.34}
+  water_shade:        # darker water near the far rim (the tub's shadow)
+    material: water_dk
+    space: water
+    prims:
+      - ellipsoid: {c: [0.04, 0.001, -0.22], r: [0.3, 0.002, 0.12]}
+  glint:
+    material: glint
+    space: water
+    when: "crown < 0.5"
+    prims:
+      - box: {c: "[glint_x, 0.004, 0.12]", half: [0.09, 0.003, 0.03], rot: [0, 0.25, 0]}
+      - box: {c: "[glint_x + 0.16, 0.004, 0.2]", half: [0.03, 0.003, 0.025], rot: [0, 0.25, 0]}
+  ripples:
+    material: ripple
+    space: water
+    when: "ripple > 0.05"
+    prims:
+      - torus: {c: [0, 0.003, 0.02], R: "0.08 + 0.24*ripple", r: 0.012}
+
+  # ---------- crown reflection ----------
+  crown_band:
+    material: crown
+    space: crown
+    when: "crown > 0.5"
+    prims:
+      - box: {c: [0, 0, 0.05], half: [0.18, 0.002, 0.045]}
+      - tri: {a: [-0.18, 0, 0.02], b: [-0.07, 0, 0.02], c: [-0.19, 0, -0.12], th: 0.003}
+      - tri: {a: [-0.07, 0, 0.02], b: [0.07, 0, 0.02], c: [0, 0, -0.15], th: 0.003}
+      - tri: {a: [0.07, 0, 0.02], b: [0.18, 0, 0.02], c: [0.19, 0, -0.12], th: 0.003}
+  crown_line:         # darker gold line along the band
+    material: crown_dk
+    space: crown
+    when: "crown > 0.5"
+    prims:
+      - box: {c: [0, 0.002, 0.088], half: [0.17, 0.002, 0.012]}
+  crown_gems:
+    material: gem
+    space: crown
+    when: "crown > 0.5"
+    prims:
+      - box: {c: [0, 0.006, 0.04], half: [0.05, 0.002, 0.032]}
+  crown_twinkle:
+    material: gem_hi
+    space: crown
+    when: "crown > 0.5 and twinkle > 0.5"
+    prims:
+      - sphere: {c: [-0.19, 0.006, -0.12], r: 0.02}
+
+  # ---------- rag ----------
+  rag:
+    material: rag
+    space: body
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0.32, 0.72, 0.17], half: [0.1, 0.02, 0.09], rot: [0, 0.5, 0.15], round: 0.02}
+      - box: {c: [0.41, 0.56, 0.23], half: [0.025, 0.15, 0.08], rot: [0, 0.5, 0.08], round: 0.02}
+
+animations:
+  idle:
+    frames: 4
+    ms: 220
+    channels: {glint_x: "-0.1 + 0.03*sin(p)"}
+  crown:
+    frames: 8
+    ms: 110
+    channels:
+      crown: 1
+      wob: "0.018*sin(p)"
+      twinkle: "1.0*(f % 4 == 0)"
+      ripple: "t"

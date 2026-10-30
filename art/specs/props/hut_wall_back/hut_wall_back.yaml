@@ -1,0 +1,326 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_wall_back
+kind: prop
+view: topdown
+size: 64                 # 64 px wide = 4 tiles, tileable in x; ~58 px tall
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+# centre y 1.9542 = 28 px above the floor line -> pivot (32, 60), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.9542, 0]}
+shadow: null             # wall piece
+
+# Aldo's hut (prologue): the back (north) wall, seen from inside.
+brief:
+  summary: back wall of a poor hut - two rough logs as a sill on the floor, wattle-and-daub clay panels in a
+    smoke-darkened timber frame (posts every 2 tiles, one diagonal brace), a patch where the clay fell off
+    and shows the woven wattle, a wall-plate log on top and the bottom of the straw thatch roof above it,
+    with hanging fringe and a ragged hole where warm daylight comes through
+  must_keep: [log sill, clay panels, dark posts and brace, exposed wattle patch, thatch fringe, sunlit hole]
+  simplify: [straw as vertical strokes and a fringe of cones, wattle as 3 sticks]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, shadow null, camera.center [0, 1.9542, 0] (integer
+    pivot). The wall spans the WHOLE frame width on purpose (tileable; QA side-margin warnings expected).
+    The sunlight in the thatch hole is emissive. camera.scale/pitch/light untouched. Ramps from
+    palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,60) is the floor point at the centre of the
+    wall's face (z 0). Draw it every 64 px in x with the pivot on the top edge of the first floor tile row
+    (the wall stands on the row above the floor). Posts sit at x 0 and on both frame edges (half a post on
+    each side), so repeats join on a post. Height: wall face 34 px, wall plate, thatch up to ~58 px.
+    Two looks: idle (sunlit hole in the thatch, clay fallen off the wattle) and `plain` (thatch intact, clay
+    mended) so a long wall can
+    alternate them; both 1 frame. The game's light shafts (IntroScene) should start at the hole:
+    about (+11, -46) px from the pivot.
+
+materials:
+  daub:    {ramp: hdaub, bands: [3, 4]}
+  plaster_hi: {ramp: hdaub, bands: [4, 4], outline: false, line: false}
+  grime:   {ramp: hdaub, bands: [2, 2], outline: false, line: false}
+  fleck:   {ramp: hstraw, bands: [3, 3], outline: false, line: false}
+  crack:   {ramp: hdaub, bands: [2, 2], outline: false, line: false}
+  wattle_bg: {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  stick:   {ramp: hwood, bands: [2, 3], outline: false}
+  post:    {ramp: hbeam, bands: [2, 4]}
+  log:     {ramp: hwood, bands: [2, 4]}
+  logend:  {ramp: hcut, bands: [1, 2]}
+  thatch:  {ramp: hstraw, bands: [3, 3], line: false}
+  fringe:  {ramp: hstraw, bands: [3, 4], line: false}
+  thatch_dk: {ramp: hstraw, bands: [1, 1], outline: false, line: false}
+  thatch_md: {ramp: hstraw, bands: [2, 2], outline: false, line: false}
+  thatch_hi: {ramp: hstraw, bands: [5, 5], outline: false, line: false}
+  hole_dk: {ramp: hbeam, bands: [2, 2], outline: false, line: false}
+  sun:     {ramp: hsun, emissive: true, band: 3, outline: false, line: false, glow: {color: "#ffe6a0", mix: 0.45, radius: 1}}
+  sun_core: {ramp: hsun, emissive: true, band: 4, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  hole: 1             # 1 = sunlit hole in the thatch, 0 = intact thatch
+
+bones:
+  body: {parent: root}
+
+parts:
+  # ---------- wattle-and-daub panels ----------
+  daub:
+    material: daub
+    space: body
+    prims:
+      - box: {c: [0, 1.4, -0.1], half: [2.2, 1.2, 0.1]}
+  plaster_hi:         # lighter, newer patches of clay (mended)
+    material: plaster_hi
+    space: body
+    prims:
+      - ellipsoid: {c: "[0.8, 1.45, 0.02*(1 - hole)]", r: [0.34, 0.24, 0.01]}
+      - ellipsoid: {c: [-1.25, 2.0, 0.0], r: [0.28, 0.2, 0.01]}
+      - ellipsoid: {c: [0.35, 2.1, 0.0], r: [0.22, 0.16, 0.01]}
+      - ellipsoid: {c: [-0.45, 1.05, 0.0], r: [0.2, 0.14, 0.01]}
+  grime:              # damp, darker clay near the floor
+    material: grime
+    space: body
+    prims:
+      - box: {c: [0, 0.72, 0.0], half: [2.2, 0.14, 0.008]}
+      - ellipsoid: {c: [-1.2, 0.86, 0.0], r: [0.3, 0.1, 0.008]}
+      - ellipsoid: {c: [1.15, 0.84, 0.0], r: [0.24, 0.08, 0.008]}
+  cracks:             # hairline cracks in the clay
+    material: crack
+    space: body
+    prims:
+      - box: {c: [-0.55, 0.95, 0.014], half: [0.16, 0.02, 0.004], rot: [0, 0, 0.5]}
+      - box: {c: [-0.4, 0.82, 0.014], half: [0.1, 0.02, 0.004], rot: [0, 0, -0.3]}
+      - box: {c: [1.25, 2.05, 0.014], half: [0.14, 0.02, 0.004], rot: [0, 0, -0.6]}
+      - box: {c: [0.45, 0.85, 0.014], half: [0.12, 0.02, 0.004], rot: [0, 0, 0.2]}
+  flecks:             # straw chopped into the clay
+    material: fleck
+    space: body
+    prims:
+      - box: {c: [-1.2, 1.9, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, 0.3]}
+      - box: {c: [-0.35, 1.6, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, -0.4]}
+      - box: {c: [0.5, 2.2, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, 0.1]}
+      - box: {c: [1.3, 1.0, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, -0.2]}
+      - box: {c: [-1.35, 1.0, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, 0.5]}
+      - box: {c: [0.25, 1.3, 0.014], half: [0.05, 0.018, 0.004], rot: [0, 0, 0.2]}
+  wattle_bg:          # where the clay fell off: dark hollow behind the woven sticks (ragged)
+    material: wattle_bg
+    when: "hole > 0.5"
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.78, 1.42, 0.012], r: [0.36, 0.24, 0.006]}
+      - ellipsoid: {c: [1.08, 1.62, 0.012], r: [0.2, 0.16, 0.006]}
+      - ellipsoid: {c: [0.52, 1.28, 0.012], r: [0.18, 0.14, 0.006]}
+  wattle:             # woven hazel sticks: horizontal withies round vertical stakes
+    material: stick
+    when: "hole > 0.5"
+    space: body
+    prims:
+      - cylinder: {a: [0.42, 1.24, 0.03], b: [1.06, 1.28, 0.03], r: 0.035}
+      - cylinder: {a: [0.4, 1.44, 0.03], b: [1.12, 1.42, 0.03], r: 0.035}
+      - cylinder: {a: [0.6, 1.62, 0.03], b: [1.24, 1.64, 0.03], r: 0.035}
+  stakes:
+    material: post
+    when: "hole > 0.5"
+    space: body
+    prims:
+      - cylinder: {a: [0.66, 1.14, 0.025], b: [0.66, 1.66, 0.025], r: 0.04}
+      - cylinder: {a: [0.98, 1.2, 0.025], b: [0.98, 1.78, 0.025], r: 0.04}
+
+  # ---------- timber frame ----------
+  posts:              # x 0 and both frame edges (half a post each side: repeats join on a post)
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.3, 0.04], half: [0.12, 1.3, 0.08]}
+      - box: {c: [1.76, 1.3, 0.04], half: [0.12, 1.3, 0.08]}
+      - box: {c: [-1.76, 1.3, 0.04], half: [0.12, 1.3, 0.08]}
+  brace:              # diagonal brace in the left panel
+    material: post
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.88, 1.6, 0.03], half: [0.07, 0.95, 0.06], rot: [0, 0, -0.72]}
+  sill:               # two rough logs along the floor
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-2.2, 0.15, 0.06], b: [2.2, 0.15, 0.06], r: 0.15}
+      - cylinder: {a: [-2.2, 0.43, 0.03], b: [2.2, 0.43, 0.03], r: 0.14}
+  wall_plate:         # log on top of the wall carrying the roof
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-2.2, 2.5, 0.1], b: [2.2, 2.5, 0.1], r: 0.13}
+  plate_pegs:         # wooden pegs holding the plate to the posts
+    material: logend
+    space: body
+    prims:
+      - sphere: {c: [0, 2.5, 0.22], r: 0.045}
+      - sphere: {c: [1.76, 2.5, 0.22], r: 0.045}
+      - sphere: {c: [-1.76, 2.5, 0.22], r: 0.045}
+
+  # ---------- thatch ----------
+  thatch:
+    material: thatch
+    space: body
+    prims:
+      - box: {c: [0, 3.2, -0.05], half: [2.2, 0.42, 0.1]}
+    cut:
+      - ellipsoid: {c: [0.62, 3.24, 0], r: "[0.46*hole + 0.001, 0.3*hole + 0.001, 0.4]"}
+  fringe_low:         # straw fringe hanging over the wall plate, uneven lengths
+    material: fringe
+    space: body
+    blend: 0.05
+    prims:
+      - box: {c: [0, 2.94, 0.1], half: [2.2, 0.1, 0.06]}
+      - cone: {a: [-2.0, 2.9, 0.14], b: [-2.02, 2.68, 0.2], r: [0.12, 0.04]}
+      - cone: {a: [-1.62, 2.9, 0.14], b: [-1.58, 2.80, 0.2], r: [0.14, 0.05]}
+      - cone: {a: [-1.3, 2.9, 0.14], b: [-1.34, 2.66, 0.2], r: [0.12, 0.04]}
+      - cone: {a: [-0.92, 2.9, 0.14], b: [-0.9, 2.84, 0.2], r: [0.15, 0.06]}
+      - cone: {a: [-0.5, 2.9, 0.14], b: [-0.54, 2.70, 0.2], r: [0.13, 0.04]}
+      - cone: {a: [-0.16, 2.9, 0.14], b: [-0.14, 2.78, 0.2], r: [0.12, 0.05]}
+      - cone: {a: [0.3, 2.9, 0.14], b: [0.34, 2.66, 0.2], r: [0.14, 0.04]}
+      - cone: {a: [0.68, 2.9, 0.14], b: [0.66, 2.82, 0.2], r: [0.12, 0.05]}
+      - cone: {a: [1.06, 2.9, 0.14], b: [1.08, 2.70, 0.2], r: [0.14, 0.04]}
+      - cone: {a: [1.42, 2.9, 0.14], b: [1.4, 2.82, 0.2], r: [0.12, 0.05]}
+      - cone: {a: [1.78, 2.9, 0.14], b: [1.8, 2.66, 0.2], r: [0.13, 0.04]}
+  strokes_dk:        # straw strokes (thatch_dk)
+    material: thatch_dk
+    space: body
+    prims:
+      - box: {c: [-1.492, 3.012, 0.06], half: [0.018, 0.171, 0.01], rot: [0, 0, -0.11]}
+      - box: {c: [-1.137, 3.062, 0.06], half: [0.018, 0.183, 0.01], rot: [0, 0, -0.07]}
+      - box: {c: [-0.831, 3.120, 0.06], half: [0.018, 0.108, 0.01], rot: [0, 0, -0.10]}
+      - box: {c: [-0.792, 3.280, 0.06], half: [0.018, 0.084, 0.01], rot: [0, 0, -0.05]}
+      - box: {c: [-0.593, 3.413, 0.06], half: [0.018, 0.162, 0.01], rot: [0, 0, 0.11]}
+      - box: {c: [-0.574, 3.234, 0.06], half: [0.018, 0.132, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [-0.516, 3.270, 0.06], half: [0.018, 0.082, 0.01], rot: [0, 0, 0.03]}
+      - box: {c: [-0.352, 3.225, 0.06], half: [0.018, 0.151, 0.01], rot: [0, 0, -0.06]}
+      - box: {c: [-0.171, 3.366, 0.06], half: [0.018, 0.083, 0.01], rot: [0, 0, -0.07]}
+      - box: {c: [-0.149, 3.382, 0.06], half: [0.018, 0.109, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [-0.060, 3.385, 0.06], half: [0.018, 0.195, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [0.077, 3.422, 0.06], half: [0.018, 0.134, 0.01], rot: [0, 0, -0.11]}
+      - box: {c: [0.082, 3.459, 0.06], half: [0.018, 0.118, 0.01], rot: [0, 0, -0.04]}
+      - box: {c: [1.173, 3.144, 0.06], half: [0.018, 0.095, 0.01], rot: [0, 0, -0.03]}
+      - box: {c: [1.277, 3.251, 0.06], half: [0.018, 0.156, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [1.406, 3.192, 0.06], half: [0.018, 0.131, 0.01], rot: [0, 0, -0.03]}
+      - box: {c: [1.598, 3.262, 0.06], half: [0.018, 0.092, 0.01], rot: [0, 0, -0.06]}
+      - box: {c: [1.610, 3.174, 0.06], half: [0.018, 0.143, 0.01], rot: [0, 0, -0.03]}
+  strokes_md:        # straw strokes (thatch_md)
+    material: thatch_md
+    space: body
+    prims:
+      - box: {c: [-1.675, 3.099, 0.06], half: [0.018, 0.145, 0.01], rot: [0, 0, -0.01]}
+      - box: {c: [-1.265, 3.198, 0.06], half: [0.018, 0.155, 0.01], rot: [0, 0, 0.08]}
+      - box: {c: [-1.121, 3.321, 0.06], half: [0.018, 0.191, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [-1.063, 3.396, 0.06], half: [0.018, 0.149, 0.01], rot: [0, 0, -0.00]}
+      - box: {c: [-1.022, 3.299, 0.06], half: [0.018, 0.138, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [-0.927, 3.287, 0.06], half: [0.018, 0.085, 0.01], rot: [0, 0, 0.10]}
+      - box: {c: [-0.721, 3.112, 0.06], half: [0.018, 0.163, 0.01], rot: [0, 0, 0.11]}
+      - box: {c: [-0.519, 3.109, 0.06], half: [0.018, 0.116, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [-0.373, 3.213, 0.06], half: [0.018, 0.162, 0.01], rot: [0, 0, -0.05]}
+      - box: {c: [-0.289, 3.208, 0.06], half: [0.018, 0.151, 0.01], rot: [0, 0, -0.08]}
+      - box: {c: [-0.282, 3.359, 0.06], half: [0.018, 0.181, 0.01], rot: [0, 0, -0.03]}
+      - box: {c: [-0.040, 3.029, 0.06], half: [0.018, 0.152, 0.01], rot: [0, 0, -0.07]}
+      - box: {c: [1.158, 3.020, 0.06], half: [0.018, 0.101, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [1.265, 3.166, 0.06], half: [0.018, 0.140, 0.01], rot: [0, 0, 0.05]}
+      - box: {c: [1.392, 3.210, 0.06], half: [0.018, 0.109, 0.01], rot: [0, 0, -0.10]}
+      - box: {c: [1.467, 3.429, 0.06], half: [0.018, 0.175, 0.01], rot: [0, 0, 0.05]}
+  strokes_hi:        # straw strokes (thatch_hi)
+    material: thatch_hi
+    space: body
+    prims:
+      - box: {c: [-1.714, 3.270, 0.06], half: [0.018, 0.153, 0.01], rot: [0, 0, -0.06]}
+      - box: {c: [-1.596, 3.478, 0.06], half: [0.018, 0.136, 0.01], rot: [0, 0, 0.09]}
+      - box: {c: [-1.576, 3.096, 0.06], half: [0.018, 0.098, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [-1.467, 3.413, 0.06], half: [0.018, 0.137, 0.01], rot: [0, 0, 0.10]}
+      - box: {c: [-1.342, 3.177, 0.06], half: [0.018, 0.176, 0.01], rot: [0, 0, -0.09]}
+      - box: {c: [-1.387, 3.163, 0.06], half: [0.018, 0.084, 0.01], rot: [0, 0, 0.11]}
+      - box: {c: [-1.255, 3.267, 0.06], half: [0.018, 0.144, 0.01], rot: [0, 0, 0.10]}
+      - box: {c: [-0.908, 3.055, 0.06], half: [0.018, 0.115, 0.01], rot: [0, 0, -0.11]}
+      - box: {c: [-0.688, 3.428, 0.06], half: [0.018, 0.125, 0.01], rot: [0, 0, -0.03]}
+      - box: {c: [1.500, 3.450, 0.06], half: [0.018, 0.168, 0.01], rot: [0, 0, 0.06]}
+  hole_dk:          # strokes where the hole is (intact thatch only)
+    material: thatch_dk
+    space: body
+    when: "hole < 0.5"
+    prims:
+      - box: {c: [0.519, 3.409, 0.06], half: [0.018, 0.197, 0.01], rot: [0, 0, -0.11]}
+      - box: {c: [0.524, 3.432, 0.06], half: [0.018, 0.163, 0.01], rot: [0, 0, 0.10]}
+      - box: {c: [0.590, 3.268, 0.06], half: [0.018, 0.082, 0.01], rot: [0, 0, -0.05]}
+      - box: {c: [0.700, 3.090, 0.06], half: [0.018, 0.095, 0.01], rot: [0, 0, 0.07]}
+      - box: {c: [0.829, 3.441, 0.06], half: [0.018, 0.177, 0.01], rot: [0, 0, 0.02]}
+      - box: {c: [0.816, 3.180, 0.06], half: [0.018, 0.171, 0.01], rot: [0, 0, 0.01]}
+      - box: {c: [0.961, 3.191, 0.06], half: [0.018, 0.137, 0.01], rot: [0, 0, 0.07]}
+  hole_md:          # strokes where the hole is (intact thatch only)
+    material: thatch_md
+    space: body
+    when: "hole < 0.5"
+    prims:
+      - box: {c: [0.175, 3.394, 0.06], half: [0.018, 0.090, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [0.413, 3.240, 0.06], half: [0.018, 0.115, 0.01], rot: [0, 0, 0.09]}
+      - box: {c: [1.029, 3.023, 0.06], half: [0.018, 0.140, 0.01], rot: [0, 0, -0.10]}
+      - box: {c: [1.042, 3.173, 0.06], half: [0.018, 0.127, 0.01], rot: [0, 0, -0.07]}
+  hole_hi:          # strokes where the hole is (intact thatch only)
+    material: thatch_hi
+    space: body
+    when: "hole < 0.5"
+    prims:
+      - box: {c: [0.161, 3.239, 0.06], half: [0.018, 0.182, 0.01], rot: [0, 0, -0.02]}
+      - box: {c: [0.259, 3.190, 0.06], half: [0.018, 0.129, 0.01], rot: [0, 0, -0.12]}
+      - box: {c: [0.284, 3.452, 0.06], half: [0.018, 0.186, 0.01], rot: [0, 0, 0.12]}
+      - box: {c: [0.410, 3.339, 0.06], half: [0.018, 0.084, 0.01], rot: [0, 0, 0.04]}
+      - box: {c: [0.583, 3.311, 0.06], half: [0.018, 0.143, 0.01], rot: [0, 0, 0.10]}
+      - box: {c: [0.739, 3.037, 0.06], half: [0.018, 0.095, 0.01], rot: [0, 0, -0.11]}
+      - box: {c: [0.968, 3.003, 0.06], half: [0.018, 0.086, 0.01], rot: [0, 0, 0.09]}
+  fringe_high:        # top of the visible thatch: ragged edge where the roof is cut away
+    material: fringe
+    space: body
+    blend: 0.03
+    prims:
+      - box: {c: [0, 3.66, 0.04], half: [2.2, 0.08, 0.08]}
+      - cone: {a: [-1.84, 3.62, 0.1], b: [-1.86, 3.47, 0.13], r: [0.11, 0.05]}
+      - cone: {a: [-1.12, 3.62, 0.1], b: [-1.1, 3.5, 0.13], r: [0.1, 0.04]}
+      - cone: {a: [-0.5, 3.62, 0.1], b: [-0.52, 3.44, 0.13], r: [0.12, 0.05]}
+      - cone: {a: [1.38, 3.62, 0.1], b: [1.36, 3.46, 0.13], r: [0.11, 0.05]}
+  sky:                # daylight seen through the hole
+    material: sun
+    space: body
+    when: "hole > 0.5"
+    prims:
+      - ellipsoid: {c: [0.64, 3.25, -0.12], r: [0.36, 0.22, 0.02]}
+  hole_rim:           # dark broken straw around the opening
+    material: hole_dk
+    space: body
+    when: "hole > 0.5"
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0.62, 3.24, -0.14], r: [0.5, 0.32, 0.02]}
+      - sphere: {c: [0.3, 3.08, -0.13], r: 0.08}
+      - sphere: {c: [0.98, 3.4, -0.13], r: 0.07}
+  sky_core:
+    material: sun_core
+    space: body
+    when: "hole > 0.5"
+    prims:
+      - ellipsoid: {c: [0.68, 3.28, -0.1], r: [0.24, 0.14, 0.02]}
+  hole_straws:        # loose straws across the hole, dark against the light
+    material: thatch_dk
+    space: body
+    when: "hole > 0.5"
+    prims:
+      - cone: {a: [0.26, 3.42, -0.04], b: [0.6, 3.08, -0.04], r: [0.025, 0.02]}
+      - cone: {a: [1.0, 3.46, -0.04], b: [0.86, 3.12, -0.04], r: [0.022, 0.02]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {hole: 1}
+  plain:
+    frames: 1
+    ms: 1000
+    channels: {hole: 0}

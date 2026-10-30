@@ -3,16 +3,17 @@ import type { ClassId, DeathKind } from "../data/classes";
 import { KilnSprite } from "../kiln";
 import { CinematicUi } from "../ui/cinematic";
 import { cine, sfx } from "./audio";
+import { L } from "../i18n";
 
 // The last part of the opening cutscene, played inside the game on the real map: the hero walks up the
 // starting road, cuts down a goblin ambush with their class's attack, walks on, looks at the smoke over the
 // village, does their class's signature move, the title shows, and control is handed over right there.
 
 export const ARRIVAL_LINE: Record<ClassId, string> = {
-  barbarian: "Das terras do norte, um bárbaro ouviu o chamado da guerra.",
-  archer: "Um arqueiro que nunca errou um alvo seguiu o rastro da fumaça.",
-  mage: "Um mago errante sentiu no ar o cheiro de magia sombria.",
-  sorcerer: "Um feiticeiro de olhar verde sorriu. Havia almas a colher.",
+  barbarian: L("Das terras do norte, um bárbaro ouviu o chamado da guerra.", "From the northern lands, a barbarian heard the call of war."),
+  archer: L("Um arqueiro que nunca errou um alvo seguiu o rastro da fumaça.", "An archer who had never missed a mark followed the trail of smoke."),
+  mage: L("Um mago errante sentiu no ar o cheiro de magia sombria.", "A wandering mage caught the scent of dark magic on the wind."),
+  sorcerer: L("Um feiticeiro de olhar verde sorriu. Havia almas a colher.", "A green-eyed sorcerer smiled. There were souls to reap."),
 };
 
 /** What the game scene lends the cutscene. */
@@ -92,7 +93,7 @@ export function playArrival(api: ArrivalApi) {
     await ambush();
     if (over) return;
     // Walk on, stop and look toward the smoke over the village.
-    const line = ui.say("onward", "A estrada para Minhau estava tomada. E a vila precisava dele.", 3600, wait);
+    const line = ui.say("onward", L("A estrada para Minhau estava tomada. E a vila precisava dele.", "The road to Minhau was overrun. And the village needed a hero."), 3600, wait);
     await walk(api.path.slice(half));
     if (over) return;
     hero.play2("idle");
@@ -106,7 +107,7 @@ export function playArrival(api: ArrivalApi) {
     ui.title(cls);
     cine.play("title", 0.8);
     cam.zoomTo(baseZoom, 1600, "Sine.easeInOut");
-    await ui.say("last", "E assim começa a sua lenda.", 2600, wait);
+    await ui.say("last", L("E assim começa a sua lenda.", "And so your legend begins."), 2600, wait);
     finish();
   })();
 

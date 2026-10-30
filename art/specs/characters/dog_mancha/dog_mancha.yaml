@@ -1,0 +1,279 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dog_mancha
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.36, -0.02]}
+shadow: {rx: 12, ry: 4.5, alpha: 120}
+
+# Mancha, one of the three village mutts that guard the barns (Act I). This is the NORMAL, purified dog;
+# dog_mancha_demon.yaml is the corrupted boss form (same rig, swollen). Quadruped skeleton copied from
+# wolf.yaml: `body` carries chest and hips, the head hangs on a short thick neck in front, a stub tail
+# behind; four 2-bone IK legs (_L mirrored) with paw targets in body space (`plant` 1 cancels `bob`).
+# Legs are shorter than the wolf's (body at 0.36 instead of 0.45): paw target y = 0.06 - body height.
+brief:
+  summary: stocky muscular short-legged mutt (bulldog / pit mix), white short coat with big black patches
+    (one around the left eye and ear, one on the back and hip, one on the right shoulder), wide head with a
+    big jaw, short rose ears, stubby wagging tail, red barn collar, goofy friendly panting face
+  must_keep: [white coat vs black patches, black patch around one eye, wide head and big jaw, rose ears,
+    stub tail, short thick legs, red collar (also on the demon, torn), pink tongue]
+  simplify: [no toes, no fur, patches as a few blended ellipsoids, rose ears as small folded flaps]
+  decisions: head scale 1.95 (a bit above the wolf 1.8, the wide head is his trait); the eye patch sits on the dog's left eye and swaps
+    sides in the mirrored directions (project style is mirror true; accepted); eyes are a warm amber
+    emissive so 1-2 px still read on both the white face and the black patch; the red collar is an
+    invented detail that ties him to the barns and survives into the demon form; tongue out in idle and
+    walk for the goofy look.
+  exceptions: spec-local ramps; same camera scale/pitch/light as the wolf.
+
+ramps:
+  mancha_white: ["#1c0f1a", "#8f8288", "#cbbfb9", "#ebe3da", "#fffaf2"]
+  mancha_black: ["#1c0f1a", "#221c2a", "#352e40", "#4d4660"]
+  mancha_pink:  ["#1c0f1a", "#8a4a52", "#d77f86", "#f0aaae"]
+  mancha_eye:   ["#1c0f1a", "#7a4a1a", "#d89a3c", "#ffd88a"]
+
+materials:
+  fur:    {ramp: mancha_white, bands: [2, 4]}
+  patch:  {ramp: mancha_black, bands: [1, 3]}
+  pink:   {ramp: mancha_pink, bands: [1, 3], outline: false}
+  collar: {ramp: cloth_red, bands: [1, 3]}
+  mouth:  {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:    {ramp: mancha_eye, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes; 0: paws follow the body (sit)
+  rear: 0           # + raises the front of the body (sit)
+  roll: 0           # roll around the body length (shake)
+  twist: 0          # body yaw wiggle
+  squash: 1
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  head_tilt: 0      # head roll (goofy tilt, shake)
+  jaw: 0            # + opens the mouth
+  tongue: 1         # 1: tongue hangs out when the mouth is open
+  ear_L: 0          # + flaps the rose ear up / - back
+  tail: 0           # stub wag (yaw)
+  tail_up: 0        # + raises the stub
+  ffoot_L: [0.15, -0.30, 0.19]    # front paw target (body space)
+  hfoot_L: [0.14, -0.30, -0.19]   # hind paw target (body space)
+
+bones:
+  body:     {parent: root, pos: "[0, 0.36 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: [0, 0.25, 0.36], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.05 + head_pitch + 0.9*rear, head_yaw, head_tilt]", scale: 1.95}
+  jaw:      {parent: head, pos: [0, -0.04, 0.03], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.11, 0.07, -0.02], rot: "[ear_L, 0, -0.3]"}
+  tail:     {parent: body, pos: [0, 0.10, -0.29], rot: "[-0.6 - tail_up, tail, 0]"}
+  shoulder_L: {parent: body, pos: [0.14, -0.06, 0.19]}
+  hip_L:      {parent: body, pos: [0.13, -0.06, -0.19]}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.13, 0.13],
+           pole: [0.3, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.04 - bob*plant, 0]", lengths: [0.14, 0.13],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # barrel chest, short waist, muscular hips
+    material: fur
+    space: body
+    blend: 0.09
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.13], r: [0.25, 0.21, 0.21]}
+      - ellipsoid: {c: [0, 0.03, -0.04], r: [0.19, 0.16, 0.15]}
+      - ellipsoid: {c: [0, 0.03, -0.19], r: [0.20, 0.17, 0.15]}
+      - cone: {a: [0, 0.06, 0.20], b: [0, 0.22, 0.34], r: [0.17, 0.13]}     # thick neck
+  patch_back:      # big black patch over the back and the left hip
+    material: patch
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0.05, 0.10, -0.13], r: [0.17, 0.11, 0.14], rot: [0, 0, -0.35]}
+      - ellipsoid: {c: [0.13, 0.04, -0.20], r: [0.11, 0.12, 0.10]}
+  patch_shoulder:  # smaller patch on the right shoulder
+    material: patch
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [-0.16, 0.08, 0.13], r: [0.11, 0.12, 0.11]}
+  collar:
+    material: collar
+    space: body
+    prims:
+      - torus: {c: [0, 0.17, 0.30], R: 0.16, r: 0.035, rot: [0.85, 0, 0]}
+  head:            # wide skull and jowls
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.01], r: [0.14, 0.10, 0.10]}
+      - ellipsoid: {c: [0.085, -0.02, 0.05], r: [0.06, 0.06, 0.06]}             # cheeks
+      - ellipsoid: {c: [-0.085, -0.02, 0.05], r: [0.06, 0.06, 0.06]}
+      - cone: {a: [0, 0.02, 0.06], b: [0, 0.025, 0.165], r: [0.085, 0.065]}     # short broad muzzle
+  eye_patch:       # black patch around the left eye and up to the ear
+    material: patch
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.065, 0.065, 0.06], r: [0.06, 0.05, 0.055]}
+      - ellipsoid: {c: [0.10, 0.08, -0.02], r: [0.05, 0.05, 0.06]}
+  muzzle:          # big lower jaw / chin
+    material: fur
+    space: jaw
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.11], r: [0.085, 0.045, 0.09]}
+  mouth:
+    when: "jaw > 0.1"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.04, 0.14], r: [0.07, 0.025, 0.07]}
+  tongue:
+    when: "jaw > 0.1 and tongue > 0.5"
+    material: pink
+    space: jaw
+    prims:
+      - ellipsoid: {c: [0.025, -0.035, 0.19], r: [0.032, 0.015, 0.055], rot: [0.7, 0, 0]}
+  nose:
+    material: patch
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.225], r: [0.05, 0.034, 0.03]}
+  ear_L:           # rose ear: a small black flap folded back
+    material: patch
+    space: ear_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.02, 0.02, -0.01], r: [0.05, 0.03, 0.055], rot: [0.3, 0, 0.5]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.068, 0.078, 0.095], r: 0.026}
+  tail:            # stub tail
+    material: fur
+    space: tail
+    blend: 0.03
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0, -0.06], [0, 0, -0.11]], r: [0.05, 0.042, 0.032]}
+  fleg_L:          # short thick front legs
+    material: fur
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: body, off: [0.15, -0.01, 0.17]}, r: [0.09, 0.12, 0.09]}    # shoulder muscle
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.075, 0.055]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.05, 0.045]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.01, 0.03]}, r: [0.055, 0.035, 0.06]}
+  hleg_L:
+    material: fur
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: body, off: [0.13, -0.01, -0.19]}, r: [0.09, 0.13, 0.11]}   # thigh
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.08, 0.05]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.048, 0.042]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.01, 0.03]}, r: [0.052, 0.035, 0.055]}
+
+sockets:
+  head: {bone: head, offset: [0, 0.16, 0]}
+  mouth: {bone: head, offset: [0, 0.0, 0.17]}
+
+animations:
+  idle:            # happy panting, stub tail wags
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.015*cos(2*p)"
+      squash: "1 + 0.025*cos(2*p)"
+      jaw: "0.30 + 0.07*cos(2*p)"
+      tail: "0.55*cos(2*p)"
+      ear_L: "0.15*(f == 2)"
+      head_tilt: "0.08*(f == 3)"
+  walk:            # trot, diagonal pairs (front L + hind R, front R + hind L), tongue out
+    frames: 6
+    ms: 95
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.016*cos(2*p)"
+      twist: "0.05*sin(p)"
+      roll: "0.03*sin(p)"
+      head_pitch: "0.03 + 0.04*cos(2*p)"
+      tail: "0.45*sin(2*p)"
+      jaw: 0.25
+      ffoot_L: "[0.15, -0.30 + 0.07*pos(-sin(p)), 0.19 + 0.10*cos(p)]"
+      hfoot_R: "[0.14, -0.30 + 0.07*pos(-sin(p)), -0.19 + 0.10*cos(p)]"
+      ffoot_R: "[0.15, -0.30 + 0.07*pos(sin(p)), 0.19 - 0.10*cos(p)]"
+      hfoot_L: "[0.14, -0.30 + 0.07*pos(sin(p)), -0.19 - 0.10*cos(p)]"
+  run:             # bounding gallop: front pair and hind pair alternate, body rocks, ears back
+    frames: 6
+    ms: 75
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.035*sin(p) + 0.01"
+      rear: "0.10*sin(p + 0.6)"
+      squash: "1 + 0.04*sin(p + 0.6)"
+      head_pitch: "0.06 - 0.08*sin(p + 0.6)"
+      ear_L: -0.4
+      tail: "0.3*sin(2*p)"
+      tail_up: 0.2
+      jaw: 0.3
+      ffoot_L: "[0.15, -0.30 + 0.09*pos(sin(p)), 0.19 + 0.14*cos(p)]"
+      ffoot_R: "[0.15, -0.30 + 0.09*pos(sin(p - 0.5)), 0.19 + 0.14*cos(p - 0.5)]"
+      hfoot_L: "[0.14, -0.30 + 0.09*pos(-sin(p)), -0.19 - 0.14*cos(p)]"
+      hfoot_R: "[0.14, -0.30 + 0.09*pos(-sin(p - 0.5)), -0.19 - 0.14*cos(p - 0.5)]"
+  sit:             # sits down (hips to the ground, front up) and holds; the last frame is the resting sit
+    loop: false
+    keys:
+      - ms: 90
+        set: {bob: -0.04, plant: 0, rear: 0.2, head_pitch: -0.05, tail: 0.3, jaw: 0.1,
+              ffoot_L: [0.15, -0.30, 0.16], ffoot_R: [0.15, -0.30, 0.16], hfoot_L: [0.15, -0.24, -0.15], hfoot_R: [0.15, -0.24, -0.15]}
+      - ms: 110
+        set: {bob: -0.10, plant: 0, rear: 0.45, head_pitch: -0.05, jaw: 0.15,
+              ffoot_L: [0.15, -0.28, 0.13], ffoot_R: [0.15, -0.28, 0.13], hfoot_L: [0.16, -0.16, -0.12], hfoot_R: [0.16, -0.16, -0.12]}
+      - ms: 200
+        set: {bob: -0.11, plant: 0, rear: 0.45, squash: 0.97, head_pitch: 0.0, jaw: 0.3, tail: -0.4,
+              ffoot_L: [0.15, -0.27, 0.13], ffoot_R: [0.15, -0.27, 0.13], hfoot_L: [0.16, -0.15, -0.12], hfoot_R: [0.16, -0.15, -0.12]}
+      - ms: 400
+        set: {bob: -0.10, plant: 0, rear: 0.45, head_pitch: -0.05, jaw: 0.3, tail: 0.4, head_tilt: 0.15,
+              ffoot_L: [0.15, -0.28, 0.13], ffoot_R: [0.15, -0.28, 0.13], hfoot_L: [0.16, -0.16, -0.12], hfoot_R: [0.16, -0.16, -0.12]}
+  bark:            # two barks: dip, head snaps up with the mouth wide open, twice
+    loop: false
+    keys:
+      - ms: 110
+        set: {bob: -0.03, squash: 0.94, head_pitch: 0.2, ear_L: -0.2, tongue: 0, tail_up: 0.1}
+      - ms: 120
+        event: bark
+        set: {root: [0, 0, 0.03], bob: 0.02, rear: 0.08, squash: 1.06, head_pitch: -0.3, jaw: 0.6, tongue: 0, ear_L: 0.35, tail: 0.4, tail_up: 0.3}
+      - ms: 100
+        set: {bob: -0.02, squash: 0.96, head_pitch: 0.12, jaw: 0.1, tongue: 0, ear_L: 0.1, tail: -0.4, tail_up: 0.2}
+      - ms: 120
+        event: bark
+        set: {root: [0, 0, 0.03], bob: 0.02, rear: 0.08, squash: 1.06, head_pitch: -0.3, jaw: 0.6, tongue: 0, ear_L: 0.35, tail: 0.4, tail_up: 0.3}
+      - ms: 110
+        set: {bob: -0.01, head_pitch: 0.05, jaw: 0.2, ear_L: 0.1, tail: -0.3, tail_up: 0.1}
+      - ms: 150
+        set: {jaw: 0.3, tail: 0.3, head_tilt: 0.1}
+  shake:           # wet-dog shake after purification: whole body twists side to side, ears flap, then a happy pant
+    loop: false
+    keys:
+      - ms: 120
+        set: {bob: -0.03, squash: 0.95, head_pitch: 0.15, ear_L: -0.2, tongue: 0}
+      - ms: 60
+        set: {roll: 0.30, twist: -0.18, head_tilt: -0.45, head_yaw: -0.25, ear_L: 0.7, tail: 0.6, tongue: 0, root: [0.02, 0, 0]}
+      - ms: 60
+        set: {roll: -0.35, twist: 0.20, head_tilt: 0.5, head_yaw: 0.3, ear_L: -0.6, tail: -0.6, tongue: 0, root: [-0.02, 0, 0]}
+      - ms: 60
+        set: {roll: 0.35, twist: -0.20, head_tilt: -0.5, head_yaw: -0.3, ear_L: 0.7, tail: 0.6, tongue: 0, root: [0.02, 0, 0]}
+      - ms: 60
+        set: {roll: -0.30, twist: 0.16, head_tilt: 0.45, head_yaw: 0.25, ear_L: -0.6, tail: -0.6, tongue: 0, root: [-0.02, 0, 0]}
+      - ms: 60
+        set: {roll: 0.20, twist: -0.10, head_tilt: -0.3, head_yaw: -0.15, ear_L: 0.5, tail: 0.5, tongue: 0}
+      - ms: 70
+        set: {roll: -0.10, twist: 0.05, head_tilt: 0.15, ear_L: -0.3, tail: -0.4, tongue: 0}
+      - ms: 300
+        set: {bob: 0.01, squash: 1.03, head_pitch: -0.1, head_tilt: 0.12, jaw: 0.35, tail: 0.5, ear_L: 0.15}

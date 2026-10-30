@@ -1,0 +1,204 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cellar_sacks
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.4188 = 6 px above the pivot -> pivot (24, 30), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4188, 0]}
+shadow: {rx: 15, ry: 5, alpha: 90}
+
+# Act I dungeon "Casa Abandonada": rotting provisions in the root cellar.
+brief:
+  summary: rotting grain sacks of dirty sackcloth tied with rope, stained with dark green mould, and old
+    grey plank crates; four looks - two slumped sacks against a crate, a stack of two crates (the top one
+    askew), one torn sack spilling mouldy grain, and a smashed crate with a sack fallen out of it
+  must_keep: [slumped lumpy sack shape with rope tie, crate plank edges, mould patches, spilled grain]
+  simplify: [sack folds as blended ellipsoids, plank lines as thin dark boxes, grain as a flat heap]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.4188, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local mould.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,30) is the ground point at the centre of the
+    group. Sack ~0.7 tall, crate 0.6 cube. Footprints: v0 2x1, v1 1x1, v2 1x1, v3 2x1 tiles, blocking.
+    Clips: idle (= variant 0) and `variants` (4 frames, frame i = variant i).
+
+ramps:
+  cs_mould: ["#1c0f1a", "#1e2a16", "#2e401e", "#46582a"]
+
+materials:
+  sack:   {ramp: rcanvas, bands: [1, 3]}
+  rope:   {ramp: rrope, bands: [1, 3], outline: false}
+  crate:  {ramp: rwood, bands: [2, 5]}
+  edge:   {ramp: hbeam, bands: [1, 2], outline: false}
+  seam:   {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  mould:  {ramp: cs_mould, bands: [2, 3], outline: false, line: false}
+  grain:  {ramp: rstraw, bands: [2, 4]}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+  # crate A: v0 behind the sacks, v1 bottom of the stack, v3 smashed (hidden, debris parts instead)
+  cA: {parent: body, pos: "[0.35, 0.3, -0.25]*(v < 0.5) + [0, 0.3, 0]*(abs(v - 1) < 0.5) + [0, -5, 0]*(v > 1.5)",
+       rot: "[0, -0.25, 0]*(v < 0.5) + [0, 0.15, 0]*(abs(v - 1) < 0.5)"}
+  cB: {parent: body, pos: "[0.05, 0.86, 0.02]*(abs(v - 1) < 0.5) + [0, -5, 0]*(abs(v - 1) > 0.5)", rot: [0, -0.45, 0.04], scale: 0.85}
+
+parts:
+  # ---------- crates (generic, local centre, 0.6 cube) ----------
+  crateA:
+    material: crate
+    space: cA
+    line: true
+    prims:
+      - box: {c: [0, 0, 0], half: [0.3, 0.3, 0.3], round: 0.015}
+  edgeA:
+    material: edge
+    space: cA
+    prims:
+      - box: {c: [0, 0.27, 0.295], half: [0.31, 0.03, 0.012]}
+      - box: {c: [0, -0.27, 0.295], half: [0.31, 0.03, 0.012]}
+      - box: {c: [0.27, 0, 0.295], half: [0.03, 0.3, 0.012]}
+      - box: {c: [-0.27, 0, 0.295], half: [0.03, 0.3, 0.012]}
+      - box: {c: [0, 0.295, 0.27], half: [0.31, 0.012, 0.03]}
+      - box: {c: [0, 0.295, -0.27], half: [0.31, 0.012, 0.03]}
+  seamA:
+    material: seam
+    space: cA
+    prims:
+      - box: {c: [0, 0.0, 0.302], half: [0.25, 0.008, 0.005]}
+      - box: {c: [0, 0.302, 0.0], half: [0.25, 0.005, 0.008]}
+  crateB:
+    material: crate
+    space: cB
+    line: true
+    prims:
+      - box: {c: [0, 0, 0], half: [0.3, 0.3, 0.3], round: 0.015}
+  edgeB:
+    material: edge
+    space: cB
+    prims:
+      - box: {c: [0, 0.27, 0.295], half: [0.31, 0.03, 0.012]}
+      - box: {c: [0, -0.27, 0.295], half: [0.31, 0.03, 0.012]}
+      - box: {c: [0.27, 0, 0.295], half: [0.03, 0.3, 0.012]}
+      - box: {c: [-0.27, 0, 0.295], half: [0.03, 0.3, 0.012]}
+      - box: {c: [0, 0.295, 0.27], half: [0.31, 0.012, 0.03]}
+      - box: {c: [0, 0.295, -0.27], half: [0.31, 0.012, 0.03]}
+  seamB:
+    material: seam
+    space: cB
+    prims:
+      - box: {c: [0, 0.302, 0.0], half: [0.25, 0.005, 0.008]}
+  mouldCrate:
+    material: mould
+    space: cA
+    prims:
+      - ellipsoid: {c: [-0.1, -0.2, 0.3], r: [0.14, 0.09, 0.02]}
+  # ---------- v0: two slumped sacks ----------
+  sacks0:
+    material: sack
+    space: body
+    line: true
+    blend: 0.08
+    when: "v < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.35, 0.28, 0.05], r: [0.3, 0.3, 0.26], rot: [0, 0.3, 0.1]}
+      - ellipsoid: {c: [-0.38, 0.6, 0.02], r: [0.17, 0.12, 0.15]}
+      - ellipsoid: {c: [0.05, 0.2, 0.32], r: [0.32, 0.2, 0.24], rot: [0.0, -0.5, -0.4]}
+      - ellipsoid: {c: [0.32, 0.28, 0.42], r: [0.12, 0.1, 0.1]}
+  rope0:
+    material: rope
+    space: body
+    when: "v < 0.5"
+    prims:
+      - torus: {c: [-0.38, 0.58, 0.02], R: 0.11, r: 0.03}
+      - cone: {a: [-0.38, 0.66, 0.02], b: [-0.4, 0.78, 0.04], r: [0.06, 0.03]}
+      - torus: {c: [0.34, 0.3, 0.42], R: 0.08, r: 0.03, rot: [0, 0, 1.2]}
+  mould0:
+    material: mould
+    space: body
+    when: "v < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.3, 0.12, 0.3], r: [0.14, 0.08, 0.04]}
+      - ellipsoid: {c: [0.0, 0.32, 0.4], r: [0.12, 0.04, 0.08]}
+  # ---------- v2: torn sack spilling grain ----------
+  sack2:
+    material: sack
+    space: body
+    line: true
+    blend: 0.08
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.05, 0.25, -0.1], r: [0.3, 0.26, 0.28], rot: [0, 0.4, 0.15]}
+      - ellipsoid: {c: [0.22, 0.14, 0.15], r: [0.18, 0.12, 0.18]}
+    cut:
+      - ellipsoid: {c: [0.28, 0.2, 0.3], r: [0.14, 0.1, 0.12]}
+  grain2:
+    material: grain
+    space: body
+    blend: 0.06
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.3, 0.05, 0.35], r: [0.3, 0.07, 0.2]}
+      - ellipsoid: {c: [0.05, 0.03, 0.45], r: [0.18, 0.04, 0.12]}
+  mould2:
+    material: mould
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.25, 0.3, 0.12], r: [0.12, 0.12, 0.06]}
+      - ellipsoid: {c: [0.38, 0.1, 0.42], r: [0.1, 0.03, 0.06]}
+  rope2:
+    material: rope
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - torus: {c: [-0.16, 0.44, -0.18], R: 0.09, r: 0.03, rot: [0.3, 0, 0.4]}
+  # ---------- v3: smashed crate with a sack ----------
+  planks3:
+    material: crate
+    space: body
+    line: true
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - box: {c: [0.3, 0.2, -0.25], half: [0.3, 0.2, 0.03], rot: [0, -0.2, 0]}
+      - box: {c: [0.58, 0.18, -0.05], half: [0.03, 0.18, 0.26], rot: [0, -0.2, 0.1]}
+      - box: {c: [0.2, 0.04, 0.3], half: [0.3, 0.03, 0.08], rot: [0, 0.5, 0]}
+      - box: {c: [-0.55, 0.04, 0.25], half: [0.08, 0.03, 0.28], rot: [0, 0.3, 0]}
+      - box: {c: [0.55, 0.04, 0.42], half: [0.25, 0.03, 0.07], rot: [0, -0.6, 0]}
+  sack3:
+    material: sack
+    space: body
+    line: true
+    blend: 0.08
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.15, 0.18, 0.0], r: [0.34, 0.18, 0.24], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [-0.42, 0.14, -0.1], r: [0.12, 0.1, 0.12]}
+  grain3:
+    material: grain
+    space: body
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.25, 0.03, 0.05], r: [0.26, 0.05, 0.18]}
+  mould3:
+    material: mould
+    space: body
+    when: "abs(v - 3) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.1, 0.3, 0.1], r: [0.14, 0.05, 0.1]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 4
+    ms: 1000
+    channels: {v: "f"}

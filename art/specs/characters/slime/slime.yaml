@@ -1,0 +1,117 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: slime
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.30, 0]}
+shadow: {rx: 7, ry: 2.5, alpha: 120}
+
+# Green slime: a gelatinous dome (~0.62 wide, ~0.45 tall => ~12 px on screen). One `body` bone carries
+# squash and stretch (volume-preserving scale); eyes and gloss ride on it so they deform with the jelly.
+brief:
+  summary: small bright-green gelatinous slime blob, a soft dome wider than tall, glossy white highlight on
+    the upper left, two big dark eyes with a white glint, bouncy squash-and-stretch
+  must_keep: [dome silhouette, glossy highlight, two eyes, squash-and-stretch bounce]
+  simplify: [no mouth, no inner bubbles, no drips]
+  decisions: |
+    The game scales it down (split slimes) and tints it cyan/translucent (gelatinous cube), so the body
+    ramp is a light, clean green with strong value steps and the eyes are big (2-3 px each) so it still
+    reads at half size and under a tint. Eyes face +z; from the back (n) only the jelly and gloss show.
+    Gloss is an unlit near-white blob (no outline) placed on the light side.
+
+ramps:
+  slime:     ["#1c0f1a", "#1f6a2c", "#3fa23a", "#74cc48", "#b4ec7c"]
+  slime_eye: ["#1c0f1a", "#1c0f1a", "#2a1a2e"]
+  gloss:     ["#1c0f1a", "#f2ffe0", "#ffffff"]
+
+materials:
+  jelly: {ramp: slime, bands: [1, 3]}
+  eye:   {ramp: slime_eye, emissive: true, band: 1, outline: false, line: false}
+  gloss: {ramp: gloss, emissive: true, band: 1, outline: false, line: false}
+  glint: {ramp: gloss, emissive: true, band: 2, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body lift off the ground
+  squash: 1         # <1 flatter and wider, >1 taller and thinner
+  lean: 0           # + tips the top forward (toward +z)
+  eye_y: 0          # eye height offset (blink/squint)
+  eye_s: 1          # eye vertical scale (0.3 = squint)
+
+bones:
+  body: {parent: root, pos: "[0, bob, 0]", rot: "[lean, 0, 0]",
+         scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  eye_L: {parent: body, pos: "[0.11, 0.24 + eye_y, 0.25]", rot: [-0.15, 0.30, 0], scale: "[1, eye_s, 1]"}
+
+parts:
+  jelly:
+    material: jelly
+    space: body
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0.20, 0], r: [0.31, 0.24, 0.29]}
+      - ellipsoid: {c: [0, 0.07, 0], r: [0.34, 0.08, 0.32]}       # wide soft base
+    cut:
+      - box: {c: [0, -0.2, 0], half: [0.6, 0.2, 0.6]}               # flat bottom on the ground
+  gloss:
+    material: gloss
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.13, 0.385, 0.12], r: [0.09, 0.05, 0.07], rot: [0, 0, 0.45]}
+      - sphere: {c: [-0.24, 0.29, 0.15], r: 0.035}
+  eye_L:
+    material: eye
+    space: eye_L
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.06, 0.085, 0.035]}
+  glint_L:
+    material: glint
+    space: eye_L
+    prims:
+      - sphere: {c: [-0.02, 0.03, 0.03], r: 0.025}
+
+sockets:
+  hit: {bone: body, offset: [0, 0.15, 0.35]}
+  head: {bone: body, offset: [0, 0.48, 0]}
+
+timing: {attack: {hit: 210ms}}
+
+animations:
+  idle:            # jelly breathing: squash/stretch 1 px
+    frames: 4
+    ms: 160
+    channels:
+      squash: "1 + 0.06*sin(p)"
+  walk:            # in-place hop: squash on landing, stretch on take-off, airborne at the top
+    frames: 6
+    ms: 90
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.11*pos(sin(p - 0.4))"
+      squash: "1 + 0.16*pos(sin(p + 0.35)) - 0.22*pos(-sin(p - 0.52))"
+      lean: "0.12*sin(p)"
+  attack:          # gather (squash), lunge forward stretched (hit), splat, recover
+    loop: false
+    keys:
+      - {ms: 120, event: windup, set: {squash: 0.70, lean: -0.15, root: [0, 0, -0.04]}}
+      - {ms: 90, set: {squash: 1.30, lean: 0.25, bob: 0.10, root: [0, 0, 0.10]}}
+      - {ms: 90, event: hit, set: {squash: 0.78, lean: 0.35, root: [0, 0, 0.22], eye_s: 0.5}}
+      - {ms: 110, set: {squash: 1.08, lean: 0.10, root: [0, 0, 0.12]}}
+      - {ms: 80, set: {squash: 0.97, root: [0, 0, 0.04]}}
+  hit:             # wobbles back
+    loop: false
+    keys:
+      - {ms: 70, set: {squash: 0.72, lean: -0.30, root: [0, 0, -0.06], eye_s: 0.35}}
+      - {ms: 80, set: {squash: 1.15, lean: -0.10, root: [0, 0, -0.07], eye_s: 0.6}}
+      - {ms: 90, set: {squash: 0.95, root: [0, 0, -0.03]}}
+  death:           # quivers, then melts into a flat puddle
+    loop: false
+    keys:
+      - {ms: 80, set: {squash: 1.20, eye_s: 0.4}}
+      - {ms: 100, set: {squash: 0.70, eye_s: 0.3}}
+      - {ms: 110, set: {squash: 0.55, eye_s: 0.25, eye_y: -0.04}}
+      - {ms: 120, set: {squash: 0.42, eye_s: 0.2, eye_y: -0.08}}
+      - {ms: 500, set: {squash: 0.38, eye_s: 0.2, eye_y: -0.10}}

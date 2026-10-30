@@ -1,0 +1,135 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: crow
+kind: character
+view: topdown
+size: 48
+directions: 8
+mirror: true
+palette: ["farm", "hut", "ruin"]
+# centre y 0.8376 = 12 px above the pivot -> pivot (24, 36), integer (room above for the flight)
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}
+shadow: {rx: 5, ry: 2, alpha: 90}
+
+# Act I, Minhau: carrion crows on the fields and graves (ambient critter).
+brief:
+  summary: a ragged black carrion crow, chibi - plump blue-black body, big head with a heavy grey beak and
+    a pale eye glint, wedge tail, thin grey legs; idle pecks at the ground twice and looks up; fly flaps
+    broad fingered wings with the legs tucked
+  must_keep: [blue-black body readable on dark mud (blue sheen highlights), heavy grey beak, wedge tail,
+    fingered wing tips in flight]
+  simplify: [feathers as 2-3 flat tones, wings as flattened ellipsoids with a separate tip]
+  exceptions: |
+    kind character, size 48, 8 directions mirrored (symmetric bird), camera.center [0, 0.8376, 0]
+    (integer pivot). The crow is ~1.5x a real crow (~14 px long, body bone scale 1.3) so it reads at the game's density; it
+    is an ambient critter, not a human-sized character. camera.scale/pitch/light untouched.
+    Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: pivot (frame px 24,36) = the ground point under the crow's feet. Non-blocking.
+    Clips: idle (pose to pose, snappy, ~1.4 s: stand, peck, up, peck, look up and hold) and fly (6-frame
+    flap loop at 80 ms, body ~0.9 units above the ground, legs tucked; the game moves the sprite and
+    can raise it further; the shadow stays on the ground pivot). The model faces +z (s).
+
+materials:
+  feather: {ramp: rcrow, bands: [2, 4]}
+  wingtip: {ramp: rcrow, bands: [1, 3]}
+  beak:    {ramp: rbeak, bands: [2, 3]}
+  leg:     {ramp: rbeak, bands: [1, 2], outline: false}
+  eye:     {ramp: rbone, bands: [4, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  lift: 0          # body height above the standing pose (flight)
+  pitch: 0         # body pitch (lean forward to peck)
+  peck: 0          # head pitch
+  flap: 0          # wing angle (fly)
+  fly: 0           # 1 = wings spread, legs tucked
+
+bones:
+  body:   {parent: root, pos: "[0, 0.31 + lift, 0]", rot: "[pitch, 0, 0]", scale: 1.3}
+  head:   {parent: body, pos: [0, 0.1, 0.2], rot: "[peck, 0, 0]"}
+  wing_L: {parent: body, pos: [0.11, 0.07, 0.0], rot: "[0, 0, flap]"}
+
+parts:
+  body:
+    material: feather
+    space: body
+    blend: 0.05
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.15, 0.14, 0.24]}
+      - ellipsoid: {c: [0, 0.05, 0.14], r: [0.12, 0.12, 0.12]}
+  tail:
+    material: wingtip
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.02, -0.3], half: [0.09, 0.025, 0.14], rot: [-0.25, 0, 0]}
+  head:
+    material: feather
+    space: head
+    line: true
+    prims:
+      - sphere: {c: [0, 0.06, 0.02], r: 0.12}
+  beak:
+    material: beak
+    space: head
+    line: true
+    prims:
+      - cone: {a: [0, 0.05, 0.1], b: [0, 0.02, 0.27], r: [0.055, 0.012]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.09, 0.09, 0.08], r: 0.022}
+  wing_fold_L:     # folded wing on the side of the body
+    material: wingtip
+    space: body
+    line: true
+    when: "fly < 0.5"
+    prims:
+      - ellipsoid: {c: [0.12, 0.03, -0.06], r: [0.05, 0.1, 0.22], rot: [0.15, 0, 0.15]}
+  wing_L:          # spread wing (fly)
+    material: feather
+    space: wing_L
+    line: true
+    when: "fly > 0.5"
+    prims:
+      - ellipsoid: {c: [0.26, 0, -0.02], r: [0.28, 0.03, 0.13]}
+  wing_tip_L:      # fingered primaries
+    material: wingtip
+    space: wing_L
+    line: true
+    when: "fly > 0.5"
+    prims:
+      - ellipsoid: {c: [0.56, 0, -0.07], r: [0.12, 0.025, 0.04], rot: [0, 0.25, 0]}
+      - ellipsoid: {c: [0.58, 0, -0.0], r: [0.12, 0.025, 0.035], rot: [0, 0.0, 0]}
+      - ellipsoid: {c: [0.55, 0, 0.06], r: [0.11, 0.025, 0.035], rot: [0, -0.25, 0]}
+  legs_L:
+    material: leg
+    space: body
+    when: "fly < 0.5"
+    prims:
+      - cone: {a: [0.06, -0.08, 0.02], b: [0.06, -0.24, 0.04], r: [0.025, 0.018]}
+      - cone: {a: [0.06, -0.24, 0.04], b: [0.06, -0.24, 0.12], r: [0.018, 0.012]}
+  legs_tucked_L:
+    material: leg
+    space: body
+    when: "fly > 0.5"
+    prims:
+      - cone: {a: [0.05, -0.1, -0.08], b: [0.04, -0.12, -0.22], r: [0.022, 0.015]}
+
+animations:
+  idle:
+    loop: true
+    keys:
+      - {ms: 400, set: {}}
+      - {ms: 90, set: {pitch: 0.45, peck: 0.7}}
+      - {ms: 120, set: {pitch: 0.1, peck: 0.1}}
+      - {ms: 90, set: {pitch: 0.45, peck: 0.75}}
+      - {ms: 200, set: {pitch: 0.0, peck: 0.0}}
+      - {ms: 500, set: {pitch: -0.1, peck: -0.25}}
+  fly:
+    frames: 6
+    ms: 80
+    channels: {fly: 1, lift: "0.66 + 0.04*sin(p)", flap: "0.75*cos(p)", pitch: -0.1}

@@ -1,0 +1,127 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cellar_stairs
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 1.5354 = 22 px above the pivot -> pivot (32, 54), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.5354, 0]}
+shadow: {rx: 17, ry: 5, alpha: 90}
+
+# Act I dungeon "Casa Abandonada": the entrance - steep wooden stairs down from the farmhouse trapdoor.
+brief:
+  summary: steep old wooden cellar stairs (two side stringers, eight treads, one missing) rising toward the
+    back up to the open trapdoor of the farmhouse floor - a square frame of dark beams with pale grey
+    daylight in it and the plank hatch lid standing open behind - a crooked handrail on the right, a few
+    cobwebs; reads as "you came down from here"
+  must_keep: [stairs rising to the back, bright trapdoor opening at the top, open hatch lid, missing tread]
+  simplify: [treads as flat boxes, the light as one flat pale emissive square, cobweb as one triangle]
+  exceptions: |
+    kind prop, size 64 (tall), directions 1, mirror false, camera.center [0, 1.5354, 0] (integer pivot).
+    camera.scale/pitch/light untouched. The trapdoor daylight is emissive (a cold pale accent).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,54) is the ground point at the centre of the
+    stairs' footprint; the bottom tread is at z +0.45 (front), the top under the trapdoor at z -0.85, 1.6
+    up (ceiling cheated low so it fits the frame). 1.6 wide x ~1.5 deep -> footprint 2x2 tiles, blocking;
+    spawn the party just in front of it (about 1 tile south of the pivot). Static: idle 1 frame.
+
+ramps:
+  st_light: ["#1c0f1a", "#8a8a80", "#c4c2b0", "#e8e4cc", "#fbf6e0"]
+  st_web:   ["#1c0f1a", "#8a8488", "#b4aeac", "#d6d0c8"]
+
+materials:
+  tread:  {ramp: rwood, bands: [3, 5]}
+  riser:  {ramp: rchar, bands: [1, 2]}
+  beam:   {ramp: hbeam, bands: [1, 3]}
+  hatch:  {ramp: rplank, bands: [2, 4]}
+  light:  {ramp: st_light, emissive: true, band: 3, outline: false, line: false, glow: {color: "#e8e4cc", mix: 0.3, radius: 1}}
+  web:    {ramp: st_web, bands: [1, 2], outline: false, line: false}
+  iron:   {ramp: riron, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  risers:             # dark gaps between the treads (the void under the stairs)
+    material: riser
+    space: body
+    prims:
+      - box: {c: [0, 0.090, 0.360], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 0.290, 0.190], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 0.490, 0.020], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 0.690, -0.150], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 0.890, -0.320], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 1.090, -0.490], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 1.290, -0.660], half: [0.7, 0.09, 0.015]}
+      - box: {c: [0, 1.490, -0.830], half: [0.7, 0.09, 0.015]}
+  treads:
+    material: tread
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.175, 0.450], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 0.375, 0.280], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 0.575, 0.110], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 0.975, -0.230], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 1.175, -0.400], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 1.375, -0.570], half: [0.72, 0.03, 0.11], round: 0.01}
+      - box: {c: [0, 1.575, -0.740], half: [0.72, 0.03, 0.11], round: 0.01}
+  stringers:
+    material: beam
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.77, 0.82, -0.17], half: [0.05, 0.1, 1.1], rot: [0.848, 0, 0]}
+      - box: {c: [-0.77, 0.82, -0.17], half: [0.05, 0.1, 1.1], rot: [0.848, 0, 0]}
+  frame:              # the trapdoor's frame in the farmhouse floor
+    material: beam
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.75, -0.52], half: [0.95, 0.07, 0.08]}
+      - box: {c: [0, 1.75, -1.32], half: [0.95, 0.07, 0.08]}
+      - box: {c: [0.88, 1.75, -0.92], half: [0.08, 0.07, 0.4]}
+      - box: {c: [-0.88, 1.75, -0.92], half: [0.08, 0.07, 0.4]}
+  daylight:           # the opening up into the house
+    material: light
+    space: body
+    prims:
+      - box: {c: [0, 1.76, -0.92], half: [0.8, 0.02, 0.33]}
+  hatch:              # the plank lid, standing open behind the frame
+    material: hatch
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.06, -1.44], half: [0.78, 0.32, 0.04], rot: [-0.2, 0, 0], round: 0.01}
+  hinges:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [0.45, 1.92, -1.4], half: [0.06, 0.13, 0.05], rot: [-0.2, 0, 0]}
+      - box: {c: [-0.45, 1.92, -1.4], half: [0.06, 0.13, 0.05], rot: [-0.2, 0, 0]}
+      - torus: {c: [0.0, 2.2, -1.43], R: 0.07, r: 0.02, rot: [1.37, 0, 0]}
+  rail:               # crooked handrail on the right
+    material: beam
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0.86, 0.0, 0.5], b: [0.86, 0.85, 0.5], r: 0.045}
+      - cylinder: {a: [0.86, 0.85, 0.5], b: [0.88, 1.85, -0.55], r: 0.035}
+  web:
+    material: web
+    space: body
+    prims:
+      - tri: {a: [-0.72, 1.7, -0.45], b: [-0.3, 1.7, -0.45], c: [-0.72, 1.25, -0.45], th: 0.01}
+      - tri: {a: [0.86, 0.85, 0.5], b: [0.86, 0.45, 0.5], c: [0.72, 0.25, 0.42], th: 0.01}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

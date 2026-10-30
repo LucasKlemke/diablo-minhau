@@ -1,0 +1,136 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: grave_mound
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.5584 = 8 px above the pivot -> pivot (24, 32), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.5584, 0]}
+shadow: {rx: 9, ry: 5, alpha: 70}
+
+# Act I, Minhau: shallow graves of the villagers.
+brief:
+  summary: shallow grave - a long low mound of dark churned earth with a few stones, a crude cross of two
+    weathered sticks lashed with rope at the head (back end); three looks - fresh mound with an upright
+    cross and a wilted flower, an older sunken mound with a leaning cross and stones, a mound whose cross
+    snapped and lies on it with a rag tied to the stump
+  must_keep: [low earth mound longer than wide, wooden cross at the back, rope lashing]
+  simplify: [earth as blended ellipsoids, stones as rounded boxes]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.5584, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,32) is the ground point at the centre of
+    the mound. Mound 0.8 x 1.7 units (~15 px wide, ~19 px deep on screen), cross ~1.1 tall at its back
+    end -> footprint 1x1 tile (the mound spills a little into the tile behind), blocking or not as the
+    game prefers. Clips: idle (= variant 0) and `variants` (3 frames, frame i = variant i).
+
+materials:
+  earth:  {ramp: rmud, bands: [1, 3]}
+  earth_hi: {ramp: rmud, bands: [4, 4], outline: false, line: false}
+  spill:  {ramp: rmud, bands: [2, 2], outline: false, line: false}
+  stone:  {ramp: rstone, bands: [2, 4]}
+  wood:   {ramp: rwood, bands: [2, 4]}
+  rope:   {ramp: rrope, bands: [2, 3], outline: false}
+  flower: {ramp: rwool, bands: [3, 4], outline: false}
+  rag:    {ramp: rcanvas, bands: [2, 4]}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+  cross: {parent: root, pos: [0, 0, -0.85], rot: "[-0.32*(v == 1), 0, 0.22*(v == 1)]"}
+
+parts:
+  spill:          # loose dirt spilled round the mound, flat (no outline)
+    material: spill
+    space: body
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.01, 0.05], r: [0.56, 0.02, 1.02]}
+      - ellipsoid: {c: [0.3, 0.01, 0.6], r: [0.32, 0.02, 0.3]}
+  mound:
+    material: earth
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.0], r: "[0.4, 0.2 - 0.08*(v == 1), 0.88]"}
+  clods:          # lumps of turned earth on top
+    material: earth_hi
+    space: body
+    prims:
+      - ellipsoid: {c: [0.08, "0.17 - 0.07*(v == 1)", 0.25], r: [0.1, 0.04, 0.09]}
+      - ellipsoid: {c: [-0.1, "0.18 - 0.07*(v == 1)", -0.15], r: [0.09, 0.04, 0.08]}
+      - ellipsoid: {c: [0.12, "0.16 - 0.07*(v == 1)", -0.45], r: [0.08, 0.04, 0.07]}
+  stones:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.36, 0.07, 0.62], half: [0.1, 0.07, 0.08], rot: [0, 0.4, 0], round: 0.04}
+      - box: {c: [0.38, 0.06, -0.4], half: [0.09, 0.06, 0.08], rot: [0, 0.9, 0], round: 0.04}
+  stones1:        # older grave: stones laid on the sunken mound
+    material: stone
+    space: body
+    line: true
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - box: {c: [0.05, 0.14, 0.3], half: [0.12, 0.08, 0.1], rot: [0, 0.3, 0.1], round: 0.04}
+      - box: {c: [-0.12, 0.13, -0.1], half: [0.1, 0.07, 0.09], rot: [0, -0.5, 0], round: 0.04}
+      - box: {c: [0.14, 0.12, -0.35], half: [0.09, 0.07, 0.08], rot: [0, 1.0, 0], round: 0.04}
+  cross_post:
+    material: wood
+    space: cross
+    line: true
+    prims:
+      - box: {c: [0, "0.55 - 0.3*(v > 1.5)", 0], half: ["0.055", "0.55 - 0.3*(v > 1.5)", 0.05]}
+  cross_arm:
+    material: wood
+    space: cross
+    line: true
+    when: "v < 1.5"
+    prims:
+      - box: {c: [0, 0.82, 0.03], half: [0.3, 0.05, 0.045], rot: [0, 0, 0.05]}
+  lashing:
+    material: rope
+    space: cross
+    when: "v < 1.5"
+    prims:
+      - box: {c: [0, 0.82, 0.08], half: [0.07, 0.07, 0.02], rot: [0, 0, 0.78]}
+  fallen_cross:   # snapped cross lying across the mound
+    material: wood
+    space: body
+    line: true
+    when: "v > 1.5"
+    prims:
+      - box: {c: [0.05, 0.28, -0.05], half: [0.05, 0.05, 0.5], rot: [0.12, 0.35, 0]}
+      - box: {c: [0.0, 0.3, -0.25], half: [0.28, 0.05, 0.045], rot: [0.1, 0.35, 0]}
+  rag:            # rag tied to the snapped stump
+    material: rag
+    space: cross
+    when: "v > 1.5"
+    prims:
+      - box: {c: [0.04, 0.42, 0.07], half: [0.08, 0.07, 0.02]}
+      - box: {c: [0.1, 0.27, 0.08], half: [0.05, 0.1, 0.015], rot: [0, 0, 0.3]}
+  flower:         # wilted red flower at the foot (fresh grave)
+    material: flower
+    space: body
+    when: "v < 0.5"
+    prims:
+      - sphere: {c: [0.1, 0.27, 0.45], r: 0.06}
+      - sphere: {c: [0.18, 0.25, 0.5], r: 0.05}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {v: "f"}

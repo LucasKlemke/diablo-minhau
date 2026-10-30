@@ -1,0 +1,198 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_floor
+kind: prop
+view: topdown
+size: 64                 # exactly 4x4 world tiles of 16 px: the whole frame is floor, no margin (tileable)
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}
+shadow: null             # it is the ground itself
+
+# Aldo's hut (prologue): worn plank floor, tileable.
+brief:
+  summary: old, worn plank floor of a poor hut - horizontal boards 8 px apart (2 boards per 16 px tile),
+    dark gaps between boards, staggered butt joints with a pair of iron nail heads, a darker bottom bevel
+    on every board, short grain streaks, a few knots and lighter foot-polished streaks
+  must_keep: [warm worn wood matching every hut prop (hut palette hwood), seamless every 64 px,
+    readable board rhythm without noise]
+  simplify: [grain as 1 px streaks, no cracks or holes (props sit on it), no straw (the rug and bed bring it)]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. Fills the WHOLE
+    frame on purpose (QA margin warnings expected). No outlines (boards join without seams).
+    camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    TILING CONTRACT: the frame is a 64x64 px tile = 4x4 game tiles; draw it every 64 px in x and y (pivot =
+    frame centre 32,32), e.g. a Phaser tileSprite. Boards run along x and wrap across the frame edge; joints
+    are placed so they never line up between neighbouring boards. 1 px = 0.055 units in x and
+    0.0893 units in z (ground). Every board segment has a fixed tone (bands [n, n]) so lighting cannot
+    add noise. Tones sit one step darker than the furniture wood so every prop
+    stands off the floor (review: floor L* ~38, props ~45). Static: 1-frame idle.
+
+materials:
+  pa:    {ramp: hwood, bands: [2, 2], outline: false, line: false}     # mid board
+  pb:    {ramp: hwood, bands: [3, 3], outline: false, line: false}     # lighter board
+  pc:    {ramp: hbeam, bands: [4, 4], outline: false, line: false}      # greyer, older board
+  gap:   {ramp: hbeam, bands: [1, 1], outline: false, line: false}     # gaps and butt joints
+  bev:   {ramp: hbeam, bands: [3, 3], outline: false, line: false}     # bottom bevel of each board
+  grain: {ramp: hbeam, bands: [3, 3], outline: false, line: false}
+  knot:  {ramp: hbeam, bands: [2, 2], outline: false, line: false}
+  nail:  {ramp: hiron, bands: [2, 2], outline: false, line: false}
+  hi:    {ramp: hwood, bands: [4, 4], outline: false, line: false}     # foot-polished streak
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  pa:               # boards, mid tone
+    material: pa
+    space: body
+    prims:
+      - box: {c: [1.0725, 0.004, -2.4567], half: [0.6875, 0.004, 0.3127]}
+      - box: {c: [-1.3750, 0.004, -2.4567], half: [0.3850, 0.004, 0.3127]}
+      - box: {c: [0.0550, 0.004, -1.7420], half: [0.6600, 0.004, 0.3127]}
+      - box: {c: [0.9075, 0.004, -1.0274], half: [0.8525, 0.004, 0.3127]}
+      - box: {c: [-1.5675, 0.004, -1.0274], half: [0.1925, 0.004, 0.3127]}
+      - box: {c: [1.2375, 0.004, -0.3127], half: [0.5225, 0.004, 0.3127]}
+      - box: {c: [-1.1825, 0.004, -0.3127], half: [0.5775, 0.004, 0.3127]}
+      - box: {c: [1.5400, 0.004, 0.4020], half: [0.2200, 0.004, 0.3127]}
+      - box: {c: [-0.9900, 0.004, 0.4020], half: [0.7700, 0.004, 0.3127]}
+      - box: {c: [0.1650, 0.004, 1.1167], half: [0.7700, 0.004, 0.3127]}
+      - box: {c: [1.0450, 0.004, 1.8314], half: [0.7150, 0.004, 0.3127]}
+      - box: {c: [-1.5400, 0.004, 1.8314], half: [0.2200, 0.004, 0.3127]}
+      - box: {c: [0.5775, 0.004, 2.5460], half: [0.8525, 0.004, 0.3127]}
+  pb:               # boards, light tone
+    material: pb
+    space: body
+    prims:
+      - box: {c: [-0.3025, 0.004, -2.4567], half: [0.6325, 0.004, 0.3127]}
+      - box: {c: [0.5500, 0.004, 0.4020], half: [0.7150, 0.004, 0.3127]}
+      - box: {c: [-0.4950, 0.004, 1.8314], half: [0.7700, 0.004, 0.3127]}
+  pc:               # boards, old grey tone
+    material: pc
+    space: body
+    prims:
+      - box: {c: [1.2650, 0.004, -1.7420], half: [0.4950, 0.004, 0.3127]}
+      - box: {c: [-1.2100, 0.004, -1.7420], half: [0.5500, 0.004, 0.3127]}
+      - box: {c: [-0.6600, 0.004, -1.0274], half: [0.6600, 0.004, 0.3127]}
+      - box: {c: [0.0550, 0.004, -0.3127], half: [0.6050, 0.004, 0.3127]}
+      - box: {c: [1.3750, 0.004, 1.1167], half: [0.3850, 0.004, 0.3127]}
+      - box: {c: [-1.2100, 0.004, 1.1167], half: [0.5500, 0.004, 0.3127]}
+      - box: {c: [1.6225, 0.004, 2.5460], half: [0.1375, 0.004, 0.3127]}
+      - box: {c: [-1.0450, 0.004, 2.5460], half: [0.7150, 0.004, 0.3127]}
+  gap:               # 1 px gap on top of every board and the butt joints
+    material: gap
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.008, -2.8140], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.9625, 0.008, -2.5014], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.3575, 0.008, -2.5014], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, -2.0994], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.6325, 0.008, -1.7867], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.7425, 0.008, -1.7867], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, -1.3847], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-1.3475, 0.008, -1.0720], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0275, 0.008, -1.0720], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, -0.6700], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.5775, 0.008, -0.3573], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.6875, 0.008, -0.3573], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, 0.0447], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.1925, 0.008, 0.3573], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [1.2925, 0.008, 0.3573], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, 0.7593], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.6325, 0.008, 1.0720], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.9625, 0.008, 1.0720], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, 1.4740], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-1.2925, 0.008, 1.7867], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.3025, 0.008, 1.7867], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [0.0000, 0.008, 2.1887], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [-0.3025, 0.008, 2.5014], half: [0.0275, 0.002, 0.3573]}
+      - box: {c: [1.4575, 0.008, 2.5014], half: [0.0275, 0.002, 0.3573]}
+  bev:               # darker bottom row of every board
+    material: bev
+    space: body
+    prims:
+      - box: {c: [0.0000, 0.007, -2.1887], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, -1.4740], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, -0.7593], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, -0.0447], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, 0.6700], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, 1.3847], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, 2.0994], half: [1.7600, 0.002, 0.0447]}
+      - box: {c: [0.0000, 0.007, 2.8140], half: [1.7600, 0.002, 0.0447]}
+  grain:               # short grain streaks
+    material: grain
+    space: body
+    prims:
+      - box: {c: [-0.8800, 0.0085, -2.4567], half: [0.2200, 0.002, 0.0447]}
+      - box: {c: [1.4300, 0.0085, -1.9207], half: [0.2200, 0.002, 0.0447]}
+      - box: {c: [-0.1100, 0.0085, -1.2060], half: [0.1100, 0.002, 0.0447]}
+      - box: {c: [-0.6050, 0.0085, -1.0274], half: [0.2200, 0.002, 0.0447]}
+      - box: {c: [-0.9350, 0.0085, -0.1340], half: [0.1650, 0.002, 0.0447]}
+      - box: {c: [0.4950, 0.0085, 0.3127], half: [0.1650, 0.002, 0.0447]}
+      - box: {c: [0.0825, 0.0085, 0.2233], half: [0.1375, 0.002, 0.0447]}
+      - box: {c: [-1.0450, 0.0085, 0.9380], half: [0.2200, 0.002, 0.0447]}
+      - box: {c: [1.3750, 0.0085, 1.0274], half: [0.2200, 0.002, 0.0447]}
+      - box: {c: [0.8250, 0.0085, 2.0100], half: [0.1650, 0.002, 0.0447]}
+      - box: {c: [1.5950, 0.0085, 1.6527], half: [0.1650, 0.002, 0.0447]}
+      - box: {c: [1.1825, 0.0085, 2.5460], half: [0.2475, 0.002, 0.0447]}
+      - box: {c: [1.5950, 0.0085, 2.5460], half: [0.1100, 0.002, 0.0447]}
+  knot:               # knots
+    material: knot
+    space: body
+    prims:
+      - box: {c: [-1.2100, 0.009, 2.6354], half: [0.0550, 0.002, 0.0447]}
+  nail:               # nail heads beside every joint
+    material: nail
+    space: body
+    prims:
+      - box: {c: [-1.0725, 0.009, -2.4567], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.8525, 0.009, -2.4567], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.2475, 0.009, -2.4567], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.4675, 0.009, -2.4567], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.7425, 0.009, -1.7420], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.5225, 0.009, -1.7420], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.6325, 0.009, -1.7420], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.8525, 0.009, -1.7420], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-1.4575, 0.009, -1.0274], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-1.2375, 0.009, -1.0274], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.0825, 0.009, -1.0274], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.1375, 0.009, -1.0274], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.6875, 0.009, -0.3127], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.4675, 0.009, -0.3127], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.5775, 0.009, -0.3127], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.7975, 0.009, -0.3127], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.3025, 0.009, 0.4020], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.0825, 0.009, 0.4020], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [1.1825, 0.009, 0.4020], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [1.4025, 0.009, 0.4020], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.7425, 0.009, 1.1167], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.5225, 0.009, 1.1167], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.8525, 0.009, 1.1167], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [1.0725, 0.009, 1.1167], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-1.4025, 0.009, 1.8314], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-1.1825, 0.009, 1.8314], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.1925, 0.009, 1.8314], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [0.4125, 0.009, 1.8314], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.4125, 0.009, 2.5460], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [-0.1925, 0.009, 2.5460], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [1.3475, 0.009, 2.5460], half: [0.0275, 0.002, 0.0447]}
+      - box: {c: [1.5675, 0.009, 2.5460], half: [0.0275, 0.002, 0.0447]}
+  hi:               # foot-polished light streaks
+    material: hi
+    space: body
+    prims:
+      - box: {c: [1.4575, 0.0085, -2.0100], half: [0.1925, 0.002, 0.0447]}
+      - box: {c: [0.2475, 0.0085, -0.5807], half: [0.1925, 0.002, 0.0447]}
+      - box: {c: [-0.3575, 0.0085, 1.5634], half: [0.3575, 0.002, 0.0447]}
+      - box: {c: [-0.8250, 0.0085, 2.2780], half: [0.3300, 0.002, 0.0447]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

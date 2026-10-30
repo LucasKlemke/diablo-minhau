@@ -1,0 +1,217 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: mimic
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.42, 0]}
+shadow: {rx: 9, ry: 3, alpha: 120}
+
+# Mimic: the chest prop (art/specs/props/chest) brought to life. Box, bands, lock and lid are copied 1:1
+# from the chest (same dimensions, ramps, materials) so the closed mimic is the chest. The mouth (dark
+# interior, teeth, tongue, eyes) only exists while the lid is open (`when: lid > ...`).
+brief:
+  summary: treasure-chest monster identical to the chest prop while shut; opens its lid like jaws to show
+    a dark red maw with bone-white fangs on both lips, a long pink tongue and two small glowing eyes under
+    the lid
+  must_keep: [chest look while closed (arched lid, iron bands, gold lock), fangs, tongue, lid chomp]
+  simplify: [no legs, it hops on its base; no saliva]
+  reference: art/specs/props/chest/chest.yaml
+  exceptions: |
+    size 48 and 8 directions (the chest prop is size 32, 1 direction) because it moves; same
+    camera.center, camera.scale, pitch and light as the chest so the s view matches it pixel for pixel.
+  decisions: |
+    Idle is one still frame equal to the chest's resting idle frame (no glint): it is the disguise. The
+    mouth parts appear only with the lid lifted, so nothing gives it away while closed. Hops in place for
+    walk with the lid flapping; attack opens wide and chomps shut on a forward lunge (hit on the shut
+    frame). Death: lid flops open, tongue lolls out, the chest tips onto its side. From the back (n) the
+    flapping lid and the tongue tip are what read.
+
+# copied from the chest prop: the shared `wood` ramp pushed warmer and redder
+ramps:
+  chest_wood: ["#1c0f1a", "#4f2416", "#8a4424", "#bf6e34", "#e09a52"]
+  tongue:     ["#1c0f1a", "#8a2440", "#d4546e", "#f08aa0"]
+  maw:        ["#1c0f1a", "#3a0712", "#5a0d1c"]
+  mimic_eye:  ["#1c0f1a", "#ffe14d", "#fff6b0"]
+
+materials:
+  wood:    {ramp: chest_wood, bands: [2, 4]}
+  wood_in: {ramp: chest_wood, bands: [1, 2], line: false}
+  steel:   {ramp: steel, bands: [1, 3]}
+  gold:    {ramp: gold, bands: [2, 4]}
+  keyhole: {ramp: mouth, emissive: true, band: 0, outline: false, line: false}
+  maw:     {ramp: maw, emissive: true, band: 1, outline: false, line: false}
+  tooth:   {ramp: bone, bands: [3, 4]}
+  tongue:  {ramp: tongue, bands: [1, 3]}
+  eye:     {ramp: mimic_eye, emissive: true, band: 1, outline: false, line: false,
+            glow: {color: "#ffe14d", mix: 0.4, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # hop height
+  squash: 1         # body squash and stretch
+  lean: 0           # + tips forward
+  roll: 0           # side tip (death)
+  lid: 0            # lid opening angle (radians, 0 closed)
+  tongue: 0         # 0 hidden, 1 hanging over the front lip
+  alive: 1          # 0 = eyes out (death)
+
+bones:
+  # roll pivots on the bottom edge (x = -0.38) so the chest tips onto its side instead of sinking
+  base: {parent: root, pos: "[-0.38 + 0.38*cos(roll) + 0.26*sin(roll)**2, bob + 0.38*sin(roll), 0]", rot: "[lean, 0, roll]"}
+  body: {parent: base, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  lid:  {parent: body, pos: [0, 0.33, -0.25], rot: "[-lid, 0, 0]"}
+
+parts:
+  # ---- the chest (identical to art/specs/props/chest) ----
+  box:
+    material: wood
+    space: body
+    prims:
+      - box: {c: [0, 0.165, 0], half: [0.38, 0.165, 0.24], round: 0.02}
+    cut:
+      - box: {c: [0, 0.33, 0], half: [0.33, 0.07, 0.19]}
+  inside:
+    material: wood_in
+    space: body
+    prims:
+      - box: {c: [0, 0.24, 0], half: [0.335, 0.02, 0.195]}
+  box_bands:
+    material: steel
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.25, 0.165, 0], half: [0.035, 0.168, 0.25]}
+      - box: {c: [-0.25, 0.165, 0], half: [0.035, 0.168, 0.25]}
+      - box: {c: [0.36, 0.06, 0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [-0.36, 0.06, 0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [0.36, 0.06, -0.22], half: [0.045, 0.06, 0.045]}
+      - box: {c: [-0.36, 0.06, -0.22], half: [0.045, 0.06, 0.045]}
+  lock:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.25, 0.25], half: [0.075, 0.075, 0.02], round: 0.01}
+  keyhole:
+    material: keyhole
+    space: body
+    prims:
+      - box: {c: [0, 0.24, 0.272], half: [0.018, 0.03, 0.01]}
+  lid_wood:
+    material: wood
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [-0.39, -0.04, 0.26], b: [0.39, -0.04, 0.26], r: 0.275, round: 0.02}
+    cut:
+      - box: {c: [0, -0.2, 0.25], half: [0.5, 0.2, 0.4]}
+  lid_bands:
+    material: steel
+    space: lid
+    line: true
+    prims:
+      - cylinder: {a: [0.215, -0.04, 0.26], b: [0.285, -0.04, 0.26], r: 0.29}
+      - cylinder: {a: [-0.285, -0.04, 0.26], b: [-0.215, -0.04, 0.26], r: 0.29}
+    cut:
+      - box: {c: [0, -0.2, 0.25], half: [0.5, 0.2, 0.4]}
+  hasp:
+    material: gold
+    space: lid
+    line: true
+    prims:
+      - box: {c: [0, 0.03, 0.54], half: [0.045, 0.05, 0.02]}
+  # ---- the monster (only while the lid is open) ----
+  maw:              # dark red throat inside the box and on the lid underside
+    material: maw
+    space: body
+    when: "lid > 0.05"
+    prims:
+      - box: {c: [0, 0.27, 0], half: [0.33, 0.02, 0.19]}
+  lid_maw:
+    material: maw
+    space: lid
+    when: "lid > 0.05"
+    prims:
+      - box: {c: [0, -0.005, 0.26], half: [0.34, 0.008, 0.22]}
+  teeth_low:        # fangs on the box rim, pointing up
+    material: tooth
+    space: body
+    when: "lid > 0.12"
+    prims:
+      - cone: {a: [-0.22, 0.29, 0.20], b: [-0.22, 0.43, 0.19], r: [0.055, 0.012]}
+      - cone: {a: [0.0, 0.29, 0.20], b: [0.0, 0.41, 0.19], r: [0.048, 0.012]}
+      - cone: {a: [0.22, 0.29, 0.20], b: [0.22, 0.43, 0.19], r: [0.055, 0.012]}
+      - cone: {a: [0.33, 0.29, 0.03], b: [0.33, 0.41, 0.03], r: [0.045, 0.012]}
+      - cone: {a: [-0.33, 0.29, 0.03], b: [-0.33, 0.41, 0.03], r: [0.045, 0.012]}
+  teeth_up:         # fangs on the lid's front lip, pointing down (into the mouth)
+    material: tooth
+    space: lid
+    when: "lid > 0.12"
+    prims:
+      - cone: {a: [-0.11, 0.0, 0.48], b: [-0.11, -0.15, 0.47], r: [0.055, 0.012]}
+      - cone: {a: [0.11, 0.0, 0.48], b: [0.11, -0.15, 0.47], r: [0.055, 0.012]}
+      - cone: {a: [0.31, 0.0, 0.36], b: [0.31, -0.13, 0.36], r: [0.05, 0.012]}
+      - cone: {a: [-0.31, 0.0, 0.36], b: [-0.31, -0.13, 0.36], r: [0.05, 0.012]}
+  eyes:             # two little glowing eyes peering from under the lid
+    material: eye
+    space: lid
+    when: "lid > 0.25 and alive > 0.5"
+    prims:
+      - sphere: {c: [0.12, -0.03, 0.22], r: 0.04}
+      - sphere: {c: [-0.12, -0.03, 0.22], r: 0.04}
+  tongue:
+    material: tongue
+    space: body
+    when: "tongue > 0.05"
+    blend: 0.03
+    prims:
+      - chain: {pts: ["[0, 0.27, -0.06]", "[0, 0.31 + 0.02*tongue, 0.10]", "[0, 0.33, 0.20 + 0.06*tongue]",
+                      "[0, 0.30 - 0.14*tongue, 0.25 + 0.10*tongue]"],
+                r: [0.08, 0.075, 0.065, 0.055]}
+
+sockets:
+  hit: {bone: body, offset: [0, 0.30, 0.40]}
+  head: {bone: body, offset: [0, 0.70, 0]}
+
+timing: {attack: {hit: 220ms}}
+
+animations:
+  idle:            # the disguise: exactly the chest at rest
+    frames: 1
+    ms: 1000
+    channels: {}
+  walk:            # hops in place, lid flapping open in the air, slapping shut on landing
+    frames: 6
+    ms: 90
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.13*pos(sin(p - 0.4))"
+      squash: "1 + 0.10*pos(sin(p + 0.35)) - 0.14*pos(-sin(p - 0.52))"
+      lean: "0.10*sin(p)"
+      lid: "0.05 + 0.65*pos(sin(p - 0.3))"
+      tongue: "0.6*pos(sin(p - 0.9))"
+  attack:          # gape, lunge and chomp shut, recoil
+    loop: false
+    keys:
+      - {ms: 90, set: {squash: 0.90, lean: -0.12, lid: 0.5, root: [0, 0, -0.03]}}
+      - {ms: 130, event: windup, set: {squash: 0.86, lean: -0.22, lid: 1.25, tongue: 0.5, bob: 0.02, root: [0, 0, -0.05]}}
+      - {ms: 60, event: hit, set: {squash: 1.08, lean: 0.22, lid: 0.0, bob: 0.08, root: [0, 0, 0.18]}}
+      - {ms: 100, set: {squash: 0.94, lean: 0.10, lid: 0.15, root: [0, 0, 0.14]}}
+      - {ms: 100, set: {squash: 1.0, lean: 0.0, lid: 0.04, root: [0, 0, 0.05]}}
+  hit:             # jolts back, lid bangs up
+    loop: false
+    keys:
+      - {ms: 70, set: {squash: 0.88, lean: -0.20, lid: 0.55, root: [0, 0, -0.06]}}
+      - {ms: 80, set: {squash: 1.05, lean: -0.06, lid: 0.15, root: [0, 0, -0.07], bob: 0.03}}
+      - {ms: 90, set: {squash: 0.98, lid: 0.04, root: [0, 0, -0.03]}}
+  death:           # lid flops open, tongue lolls, tips over on its side
+    loop: false
+    keys:
+      - {ms: 90, set: {squash: 0.88, lid: 0.9, tongue: 0.4, bob: 0.02}}
+      - {ms: 110, set: {squash: 1.04, lid: 1.5, tongue: 0.8, bob: 0.06, roll: 0.25}}
+      - {ms: 110, set: {squash: 0.98, lid: 1.7, tongue: 1.0, bob: 0.02, roll: 0.80}}
+      - {ms: 100, set: {squash: 0.94, lid: 1.6, tongue: 1.0, roll: 1.45, alive: 0}}
+      - {ms: 600, set: {squash: 0.97, lid: 1.5, tongue: 1.0, roll: 1.5708, alive: 0}}

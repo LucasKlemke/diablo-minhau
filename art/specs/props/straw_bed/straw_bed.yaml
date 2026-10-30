@@ -1,0 +1,186 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: straw_bed
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.2094 = 3 px above the pivot -> pivot (24, 27), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.2094, 0]}
+shadow: {rx: 21, ry: 6, alpha: 70}
+
+# Aldo's hut: the poor straw bed where the hero wakes after ten years.
+brief:
+  summary: humble box bed on the floor - a frame of rough worn planks on four stubby corner posts with a
+    taller headboard, heaped with golden straw that spills over the sides, a sack-cloth pillow at the head
+    and a worn red wool blanket with a blue and a green patch, its top edge folded back, covering the lower
+    two thirds
+  must_keep: [rough plank frame with headboard, golden straw spilling out, sack pillow,
+    red wool blanket with two patches and a folded edge]
+  simplify: [straw as lumps plus a few stray stalks, patches as flat squares with a light stitch edge]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.2094, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,27) is the centre of the bed on the floor.
+    The bed lies ACROSS the screen, head on the LEFT, because IntroScene lays the sleeping hero sideways
+    (setAngle(-90), head to the left) on a 40x14 px spot. Modelled along z (head at -z) and turned 90
+    degrees by the body bone. 2.3 x 1.16 units: ~42 px wide, ~20 px tall on screen -> footprint 3 tiles
+    wide x 1 tile tall (blocking). The pillow is at about (-14, -4) px from the pivot.
+    The blanket stops short of the pillow so a sleeping sprite laid on top reads.
+    Static: 1-frame idle.
+
+materials:
+  plank:   {ramp: hwood, bands: [2, 4]}
+  board:   {ramp: hbeam, bands: [2, 4]}
+  nail:    {ramp: hiron, bands: [3, 3], outline: false, line: false}
+  straw:   {ramp: hstraw, bands: [2, 4]}
+  stalk:   {ramp: hstraw, bands: [4, 5], line: false}
+  linen:   {ramp: hlinen, bands: [2, 4]}
+  tie:     {ramp: hlinen, bands: [1, 1], outline: false, line: false}
+  wool:    {ramp: hwool, bands: [2, 3]}
+  fold:    {ramp: hwool, bands: [3, 4]}
+  patch:   {ramp: hpatch, bands: [2, 3], line: false}
+  patch2:  {ramp: hpatch2, bands: [2, 3], line: false}
+  stitch:  {ramp: hlinen, bands: [4, 4], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root, rot: [0, 1.5708, 0]}   # modelled head at -z, turned so the head is on the screen's LEFT
+
+parts:
+  # ---------- frame (1.16 x 2.3) ----------
+  posts:              # stubby corner posts at the foot
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.54, 0.19, 1.1], half: [0.07, 0.19, 0.07], round: 0.02}
+      - box: {c: [-0.54, 0.19, 1.1], half: [0.07, 0.19, 0.07], round: 0.02}
+  headboard:          # low headboard of two planks between two posts
+    material: board
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.3, -1.12], half: [0.56, 0.22, 0.05], round: 0.02}
+      - box: {c: [0.56, 0.32, -1.12], half: [0.08, 0.32, 0.08], round: 0.02}
+      - box: {c: [-0.56, 0.32, -1.12], half: [0.08, 0.32, 0.08], round: 0.02}
+  headboard_seam:
+    material: tie
+    space: body
+    prims:
+      - box: {c: [0, 0.3, -1.065], half: [0.5, 0.012, 0.005]}
+  sides:              # side and foot planks
+    material: plank
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.54, 0.14, 0], half: [0.06, 0.14, 1.12], rot: [0, 0.01, 0], round: 0.02}
+      - box: {c: [-0.54, 0.14, 0], half: [0.06, 0.14, 1.12], rot: [0, -0.01, 0], round: 0.02}
+      - box: {c: [0, 0.13, 1.11], half: [0.52, 0.13, 0.05], round: 0.02}
+  nails:
+    material: nail
+    space: body
+    prims:
+      - sphere: {c: [0.38, 0.18, 1.165], r: 0.025}
+      - sphere: {c: [-0.38, 0.18, 1.165], r: 0.025}
+
+  # ---------- straw mattress ----------
+  straw:
+    material: straw
+    space: body
+    blend: 0.1
+    line: true
+    prims:
+      - ellipsoid: {c: [0, 0.25, -0.6], r: [0.56, 0.11, 0.5]}
+      - ellipsoid: {c: [0.04, 0.26, 0.1], r: [0.56, 0.12, 0.55]}
+      - ellipsoid: {c: [-0.04, 0.24, 0.75], r: [0.52, 0.1, 0.4]}
+      - ellipsoid: {c: [0.6, 0.24, -0.4], r: [0.11, 0.07, 0.3]}     # spilling over the right side
+      - ellipsoid: {c: [-0.6, 0.24, 0.2], r: [0.11, 0.07, 0.26]}    # and the left
+  straw_tufts:        # lighter tufts on the visible mattress
+    material: stalk
+    space: body
+    prims:
+      - cone: {a: [-0.3, 0.355, -0.32], b: [-0.05, 0.36, -0.28], r: [0.025, 0.02]}
+      - cone: {a: [0.12, 0.36, -0.36], b: [0.38, 0.355, -0.42], r: [0.025, 0.02]}
+      - cone: {a: [0.3, 0.35, -0.22], b: [0.45, 0.35, -0.12], r: [0.025, 0.02]}
+  stalks:             # stray stalks poking out
+    material: stalk
+    space: body
+    prims:
+      - cone: {a: [0.55, 0.28, -0.7], b: [0.8, 0.2, -0.8], r: [0.025, 0.018]}
+      - cone: {a: [0.6, 0.28, -0.4], b: [0.82, 0.22, -0.34], r: [0.025, 0.018]}
+      - cone: {a: [-0.55, 0.28, -0.55], b: [-0.78, 0.2, -0.66], r: [0.025, 0.018]}
+      - cone: {a: [-0.62, 0.28, 0.28], b: [-0.85, 0.18, 0.4], r: [0.025, 0.018]}
+      - cone: {a: [0.2, 0.26, 1.1], b: [0.3, 0.14, 1.2], r: [0.025, 0.018]}
+      - cone: {a: [-0.3, 0.26, 1.1], b: [-0.42, 0.12, 1.19], r: [0.025, 0.018]}
+
+  # ---------- pillow ----------
+  pillow:
+    material: linen
+    space: body
+    blend: 0.05
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.02, 0.38, -0.8], r: [0.36, 0.1, 0.2], rot: [0, 0.08, 0]}
+      - ellipsoid: {c: [0.34, 0.36, -0.84], r: [0.08, 0.07, 0.1]}    # tied ear
+  pillow_tie:
+    material: tie
+    space: body
+    prims:
+      - box: {c: [0.27, 0.4, -0.8], half: [0.012, 0.08, 0.012], rot: [0, 0, 0.2]}
+  pillow_dent:        # the dent where a head lay for years
+    material: tie
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.06, 0.475, -0.8], r: [0.12, 0.006, 0.06]}
+
+  # ---------- blanket ----------
+  blanket:
+    material: wool
+    space: body
+    blend: 0.05
+    line: true
+    prims:
+      - box: {c: [0.02, 0.34, 0.6], half: [0.6, 0.06, 0.52], rot: [0, 0.04, 0], round: 0.05}
+      - box: {c: [0.63, 0.24, 0.62], half: [0.035, 0.1, 0.46], rot: [0, 0.04, 0.1], round: 0.03}    # hanging over the right side
+      - box: {c: [-0.59, 0.24, 0.58], half: [0.035, 0.1, 0.46], rot: [0, 0.04, -0.1], round: 0.03}  # and the left
+  blanket_crease:     # a ridge where the wool bunches
+    material: wool
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.45, 0.39, 0.62], b: [0.05, 0.39, 0.92], r: 0.04}
+  blanket_fold:       # top edge folded back
+    material: fold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.6, 0.39, 0.1], b: [0.62, 0.39, 0.13], r: 0.075, round: 0.02}
+  patch_blue:
+    material: patch
+    space: body
+    prims:
+      - box: {c: [0.28, 0.405, 0.62], half: [0.15, 0.008, 0.13], rot: [0, 0.18, 0]}
+  patch_green:
+    material: patch2
+    space: body
+    prims:
+      - box: {c: [-0.3, 0.405, 0.36], half: [0.11, 0.008, 0.1], rot: [0, -0.12, 0]}
+  stitches:           # light stitch dashes on the patch edges
+    material: stitch
+    space: body
+    prims:
+      - box: {c: [0.3, 0.417, 0.48], half: [0.05, 0.004, 0.014], rot: [0, 0.18, 0]}
+      - box: {c: [0.14, 0.417, 0.66], half: [0.014, 0.004, 0.05], rot: [0, 0.18, 0]}
+      - box: {c: [-0.3, 0.417, 0.25], half: [0.04, 0.004, 0.014], rot: [0, -0.12, 0]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

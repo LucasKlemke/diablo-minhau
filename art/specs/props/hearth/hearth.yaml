@@ -1,0 +1,286 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hearth
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s): built against the hut's back wall
+mirror: false
+palette: ["farm", "hut"]
+# centre y 1.2562 = 18 px above the pivot -> pivot (32, 50), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 1.2562, 0]}
+shadow: null             # wall piece
+
+# Aldo's hut: a humble fieldstone hearth with a hanging cauldron and a dying fire.
+brief:
+  summary: fieldstone hearth against the back wall - jambs of rounded warm-grey stones, a big stone lintel,
+    a smoke-blackened oak mantel with a small clay pot, the chimney breast tapering up into the thatch;
+    in the dark sooty firebox an iron bar holds a chain and a black cauldron over a bed of weak embers with
+    two tiny flames; flat hearthstones in front with a little spilled ash
+  must_keep: [rounded fieldstones, dark sooty firebox, oak mantel, hanging cauldron on a chain,
+    weak pulsing embers with a warm emissive glow under the pot]
+  simplify: [stones as rounded boxes in courses, flames 3-5 px tall, chain as 3 links]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, shadow null, camera.center [0, 1.2562, 0] (integer
+    pivot). Embers, flames and the glow are emissive without outline. camera.scale/pitch/light untouched.
+    Ramps from palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,50) is the floor point on the back wall's
+    face (z 0) at the hearth's centre, the same convention as hut_wall_back, hut_shelf, hut_door: put the
+    pivot on the wall's floor line. The breast stands in front of the wall (z 0..0.58), 1.9 wide (~35 px,
+    2 tiles); the hearthstones reach z 0.95 -> footprint 2 tiles wide x 1 tile deep in front of the wall,
+    blocking. The chimney breast rises to y 3.0 so it overlaps the wall's thatch band (draw the hearth
+    above the wall). The fire is weak on purpose (poverty, ten years of waiting): mostly embers.
+    idle loops 6 frames x 140 ms: embers pulse out of phase, flames flicker, the glow under the cauldron
+    breathes. The firebox mouth centre is at about (0, -7) px from the pivot (for a game light).
+
+materials:
+  stone:    {ramp: hstone, bands: [2, 3]}
+  stone_lt: {ramp: hstone, bands: [3, 4]}
+  stone_dk: {ramp: hstone, bands: [1, 2]}
+  mortar:   {ramp: hsoot, bands: [3, 3], outline: false, line: false}
+  soot:     {ramp: hsoot, bands: [1, 2], line: false}
+  oak:      {ramp: hbeam, bands: [2, 4]}
+  clay:     {ramp: hclay, bands: [2, 4]}
+  iron:     {ramp: hiron, bands: [1, 3]}
+  ash:      {ramp: hstone, bands: [4, 4], outline: false, line: false}
+  char:     {ramp: hbeam, bands: [1, 2]}
+  ember_bed: {ramp: hflame, emissive: true, band: 2, outline: false, line: false}
+  ember:    {ramp: hflame, emissive: true, band: 4, outline: false, line: false, glow: {color: "#fe6607", mix: 0.35, radius: 1}}
+  ember_hot: {ramp: hflame, emissive: true, band: 6, outline: false, line: false}
+  flame:    {ramp: hflame, emissive: true, band: 5, outline: false, line: false, glow: {color: "#ffa12e", mix: 0.3, radius: 1}}
+  flame_core: {ramp: hflame, emissive: true, band: 7, outline: false, line: false}
+  underglow: {ramp: hflame, emissive: true, band: 3, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  e1: 1              # ember pulses
+  e2: 1
+  e3: 1
+  f1: 1              # flame heights
+  f2: 1
+  glow: 1            # glow under the cauldron
+
+bones:
+  body: {parent: root}
+
+parts:
+  # ---------- masonry ----------
+  core:               # mortar mass behind the stones
+    material: mortar
+    space: body
+    prims:
+      - box: {c: [0, 0.7, 0.24], half: [0.95, 0.7, 0.28]}
+      - box: {c: [0, 2.2, 0.17], half: [0.58, 0.84, 0.2]}
+      - box: {c: [0, 1.52, 0.2], half: [0.92, 0.12, 0.2]}
+    cut:
+      - box: {c: [0, 0.48, 0.5], half: [0.5, 0.48, 0.4]}
+  stones:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.725, 0.407, 0.530], half: [0.205, 0.100, 0.05], rot: [0, 0, 0.05], round: 0.07}
+      - box: {c: [0.725, 0.630, 0.512], half: [0.205, 0.110, 0.05], rot: [0, 0, -0.04], round: 0.07}
+      - box: {c: [0.725, 0.869, 0.517], half: [0.205, 0.100, 0.05], rot: [0, 0, 0.02], round: 0.07}
+      - box: {c: [-0.145, 1.534, 0.367], half: [0.173, 0.115, 0.05], rot: [0, 0, 0.07], round: 0.07}
+      - box: {c: [0.235, 1.551, 0.376], half: [0.167, 0.115, 0.05], rot: [0, 0, 0.04], round: 0.07}
+      - box: {c: [0.845, 1.571, 0.369], half: [0.085, 0.115, 0.05], rot: [0, 0, 0.07], round: 0.07}
+      - box: {c: [0.589, 1.800, 0.392], half: [0.136, 0.115, 0.05], rot: [0, 0, -0.03], round: 0.07}
+      - box: {c: [-0.417, 2.101, 0.375], half: [0.133, 0.115, 0.05], rot: [0, 0, -0.08], round: 0.07}
+      - box: {c: [0.173, 2.077, 0.368], half: [0.150, 0.115, 0.05], rot: [0, 0, -0.07], round: 0.07}
+      - box: {c: [0.456, 2.101, 0.383], half: [0.094, 0.115, 0.05], rot: [0, 0, 0.01], round: 0.07}
+      - box: {c: [-0.388, 2.354, 0.369], half: [0.162, 0.115, 0.05], rot: [0, 0, 0.00], round: 0.07}
+      - box: {c: [-0.005, 2.360, 0.379], half: [0.180, 0.115, 0.05], rot: [0, 0, -0.04], round: 0.07}
+      - box: {c: [-0.401, 2.618, 0.366], half: [0.149, 0.115, 0.05], rot: [0, 0, -0.04], round: 0.07}
+      - box: {c: [-0.081, 2.617, 0.378], half: [0.132, 0.115, 0.05], rot: [0, 0, -0.04], round: 0.07}
+      - box: {c: [0.480, 2.659, 0.380], half: [0.070, 0.115, 0.05], rot: [0, 0, -0.07], round: 0.07}
+      - box: {c: [-0.421, 2.927, 0.375], half: [0.129, 0.115, 0.05], rot: [0, 0, 0.03], round: 0.07}
+  stone_lts:
+    material: stone_lt
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.632, 0.133, 0.529], half: [0.112, 0.110, 0.05], rot: [0, 0, 0.04], round: 0.07}
+      - box: {c: [0.857, 0.132, 0.528], half: [0.073, 0.110, 0.05], rot: [0, 0, 0.05], round: 0.07}
+      - box: {c: [0.725, 0.362, 0.514], half: [0.205, 0.100, 0.05], rot: [0, 0, 0.06], round: 0.07}
+      - box: {c: [-0.725, 0.651, 0.508], half: [0.205, 0.110, 0.05], rot: [0, 0, 0.02], round: 0.07}
+      - box: {c: [-0.725, 0.899, 0.505], half: [0.205, 0.100, 0.05], rot: [0, 0, -0.03], round: 0.07}
+      - box: {c: [-0.781, 1.535, 0.373], half: [0.149, 0.115, 0.05], rot: [0, 0, 0.05], round: 0.07}
+      - box: {c: [-0.475, 1.553, 0.381], half: [0.117, 0.115, 0.05], rot: [0, 0, 0.02], round: 0.07}
+      - box: {c: [0.582, 1.559, 0.368], half: [0.139, 0.115, 0.05], rot: [0, 0, -0.07], round: 0.07}
+      - box: {c: [-0.589, 1.797, 0.386], half: [0.136, 0.115, 0.05], rot: [0, 0, 0.06], round: 0.07}
+      - box: {c: [-0.217, 1.839, 0.366], half: [0.196, 0.115, 0.05], rot: [0, 0, -0.03], round: 0.07}
+      - box: {c: [-0.131, 2.075, 0.395], half: [0.114, 0.115, 0.05], rot: [0, 0, 0.01], round: 0.07}
+      - box: {c: [0.230, 2.658, 0.382], half: [0.139, 0.115, 0.05], rot: [0, 0, 0.08], round: 0.07}
+  stone_dks:
+    material: stone_dk
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.725, 0.106, 0.519], half: [0.205, 0.110, 0.05], rot: [0, 0, -0.07], round: 0.07}
+      - box: {c: [0.216, 1.842, 0.391], half: [0.197, 0.115, 0.05], rot: [0, 0, 0.06], round: 0.07}
+      - box: {c: [0.382, 2.337, 0.378], half: [0.168, 0.115, 0.05], rot: [0, 0, 0.02], round: 0.07}
+      - box: {c: [-0.070, 2.914, 0.381], half: [0.182, 0.115, 0.05], rot: [0, 0, 0.02], round: 0.07}
+      - box: {c: [0.351, 2.891, 0.394], half: [0.199, 0.115, 0.05], rot: [0, 0, -0.07], round: 0.07}
+  lintel:             # one big stone over the opening
+    material: stone_lt
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.07, 0.54], half: [0.66, 0.1, 0.07], rot: [0, 0, 0.02], round: 0.04}
+  mantel:             # smoke-blackened oak beam
+    material: oak
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.28, 0.5], half: [1.02, 0.1, 0.16], round: 0.03}
+  mantel_pot:         # small clay pot on the mantel
+    material: clay
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [-0.7, 1.48, 0.48], r: [0.1, 0.1, 0.1]}
+      - cylinder: {a: [-0.7, 1.52, 0.48], b: [-0.7, 1.62, 0.48], r: 0.06}
+  chimney_cap:        # flat stones where the breast meets the roof
+    material: stone_dk
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.02, 0.2], half: [0.6, 0.05, 0.2], round: 0.03}
+  shoulder:           # stone ledge on top of the wide lower part, behind the mantel
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.6, 1.42, 0.3], half: [0.36, 0.06, 0.26], rot: [0, 0, 0.04], round: 0.03}
+      - box: {c: [0.6, 1.42, 0.3], half: [0.36, 0.06, 0.26], rot: [0, 0, -0.03], round: 0.03}
+
+  # ---------- firebox ----------
+  firebox:
+    material: soot
+    space: body
+    prims:
+      - box: {c: [0, 0.5, 0.06], half: [0.5, 0.5, 0.06]}
+      - box: {c: [0.46, 0.5, 0.3], half: [0.04, 0.5, 0.24]}
+      - box: {c: [-0.46, 0.5, 0.3], half: [0.04, 0.5, 0.24]}
+      - box: {c: [0, 0.02, 0.3], half: [0.5, 0.02, 0.24]}
+  back_glow:          # embers lighting the sooty back wall
+    material: ember_bed
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.1, 0.13], r: ["0.3*glow", "0.1*glow", 0.01]}
+  ember_bed:
+    material: ember_bed
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.3], r: [0.36, 0.04, 0.17]}
+  logs:               # two charred logs
+    material: char
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.38, 0.08, 0.34], b: [0.22, 0.11, 0.22], r: 0.065, round: 0.02}
+      - cylinder: {a: [-0.18, 0.11, 0.2], b: [0.38, 0.07, 0.36], r: 0.06, round: 0.02}
+  coals:
+    material: ember
+    space: body
+    prims:
+      - sphere: {c: [-0.22, 0.08, 0.42], r: "0.045*e1"}
+      - sphere: {c: [0.04, 0.09, 0.44], r: "0.05*e2"}
+      - sphere: {c: [0.27, 0.08, 0.42], r: "0.04*e3"}
+      - sphere: {c: [0.02, 0.15, 0.28], r: "0.04*e3"}
+      - sphere: {c: [-0.32, 0.07, 0.3], r: "0.035*e2"}
+  coals_hot:
+    material: ember_hot
+    space: body
+    when: "e2 > 1.08"
+    prims:
+      - sphere: {c: [0.04, 0.11, 0.48], r: 0.022}
+  coals_hot2:
+    material: ember_hot
+    space: body
+    when: "e1 > 1.08"
+    prims:
+      - sphere: {c: [-0.22, 0.1, 0.46], r: 0.02}
+  flames:
+    material: flame
+    space: body
+    prims:
+      - cone: {a: [-0.12, 0.12, 0.32], b: "[-0.15, 0.12 + 0.2*f1, 0.32]", r: [0.065, 0.015]}
+      - cone: {a: [0.16, 0.12, 0.3], b: "[0.19, 0.12 + 0.15*f2, 0.3]", r: [0.05, 0.012]}
+  flame_cores:
+    material: flame_core
+    space: body
+    prims:
+      - cone: {a: [-0.12, 0.12, 0.36], b: "[-0.13, 0.12 + 0.09*f1, 0.36]", r: [0.03, 0.01]}
+
+  # ---------- cauldron ----------
+  crane_bar:          # iron bar across the firebox
+    material: iron
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.5, 0.86, 0.32], b: [0.5, 0.86, 0.32], r: 0.03}
+  chain:
+    material: iron
+    space: body
+    prims:
+      - torus: {c: [0, 0.79, 0.32], R: 0.04, r: 0.015, rot: [0, 0, 1.5708]}
+      - torus: {c: [0, 0.71, 0.32], R: 0.04, r: 0.015, rot: [0, 1.5708, 1.5708]}
+      - torus: {c: [0, 0.63, 0.32], R: 0.04, r: 0.015, rot: [0, 0, 1.5708]}
+  bail:               # the cauldron's handle
+    material: iron
+    space: body
+    prims:
+      - torus: {c: [0, 0.48, 0.32], R: 0.2, r: 0.018, rot: [0, 0, 0]}
+    cut:
+      - box: {c: [0, 0.38, 0.32], half: [0.3, 0.1, 0.3]}
+  cauldron:
+    material: iron
+    space: body
+    line: true
+    blend: 0.03
+    prims:
+      - sphere: {c: [0, 0.38, 0.32], r: 0.22}
+      - torus: {c: [0, 0.5, 0.32], R: 0.17, r: 0.035, rot: [1.5708, 0, 0]}
+    cut:
+      - box: {c: [0, 0.68, 0.32], half: [0.3, 0.16, 0.3]}
+  stew:
+    material: char
+    space: body
+    prims:
+      - cylinder: {a: [0, 0.48, 0.32], b: [0, 0.5, 0.32], r: 0.15}
+  underglow:          # firelight on the cauldron's belly
+    material: underglow
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.22, 0.42], r: ["0.13*glow", 0.035, 0.08]}
+
+  # ---------- hearthstones ----------
+  hearthstones:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.48, 0.035, 0.76], half: [0.46, 0.035, 0.18], rot: [0, 0.03, 0], round: 0.025}
+      - box: {c: [0.46, 0.035, 0.75], half: [0.45, 0.035, 0.17], rot: [0, -0.02, 0], round: 0.025}
+  ash:
+    material: ash
+    space: body
+    prims:
+      - ellipsoid: {c: [0.12, 0.075, 0.68], r: [0.22, 0.01, 0.08]}
+      - ellipsoid: {c: [-0.3, 0.075, 0.72], r: [0.1, 0.01, 0.05]}
+
+animations:
+  idle:
+    frames: 6
+    ms: 140
+    channels:
+      e1: "1 + 0.3*sin(p)"
+      e2: "1 + 0.3*sin(p + 2.1)"
+      e3: "1 + 0.3*sin(p + 4.2)"
+      f1: "0.9 + 0.4*sin(p + 0.5)"
+      f2: "0.8 + 0.45*sin(p + 3.1)"
+      glow: "1 + 0.15*sin(p + 1.0)"

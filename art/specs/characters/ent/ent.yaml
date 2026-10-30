@@ -1,0 +1,274 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: ent
+mirror: true
+kind: character
+size: 64
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 11, ry: 4, alpha: 120}
+
+# Young ent: a walking tree ~1.85 units tall (~34 px). `torso_rot` carries the trunk, the face and the
+# crown bone; two IK branch arms and two short IK root legs (written once as _L, mirrored to _R).
+brief:
+  summary: young ent, a thick red-brown bark trunk with a knothole face and glowing amber eyes, a bumpy
+    round leafy crown like the Farm RPG trees, two long branch arms with twig fingers, stubby root feet
+  must_keep: [leafy crown with the tree_medium greens, red-brown bark, amber emissive eyes, branch arms]
+  simplify: [no individual leaves, twig fingers as 3 short cones, no bark texture beyond knots]
+  exceptions: |
+    size 64 (frame) because ~34 px of body plus arms does not fit 48 with margins; camera.scale/pitch
+    and light untouched.
+  decisions: |
+    Leaf and bark ramps copied from tree_medium so the disguised ent reads as the same species. Idle is the
+    disguise: one still frame, arms raised up into the crown like boughs, root feet together, eyes shut
+    (only two dark knotholes show). Eyes open (amber glow) in walk, attack and hit; they go dark in death.
+    The attack swings the right branch arm overhead and down (hit on the down-stroke). Death topples the
+    ent backwards like a felled tree. The back (n) shows plain bark and crown.
+
+ramps:
+  tree_leaf: ["#1c0f1a", "#174438", "#0f6542", "#1a8321", "#38a129", "#6ebd3c"]
+  tree_bark: ["#1c0f1a", "#4a2123", "#8a3625", "#ae4924", "#c46120"]
+  ent_eye:   ["#1c0f1a", "#ff9a1f", "#ffd36b"]
+  knot:      ["#1c0f1a", "#2a1214", "#3a1a1a"]
+
+materials:
+  leaf:      {ramp: tree_leaf, bands: [2, 5]}
+  leaf_dark: {ramp: tree_leaf, bands: [1, 2]}
+  bark:      {ramp: tree_bark, bands: [1, 4]}
+  limb:      {ramp: tree_bark, bands: [1, 2]}
+  knot:      {ramp: knot, emissive: true, band: 1, outline: false, line: false}
+  eye:       {ramp: ent_eye, emissive: true, band: 1, outline: false, line: false,
+              glow: {color: "#ff9a1f", mix: 0.45, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0           # + tips forward
+  twist: 0
+  roll: 0
+  squash: 1
+  crown: 0          # crown lag (+ tips the crown back)
+  eye: 1            # 0 shut (knotholes only), 1 open
+  hand_L: [0.46, 0.22, 0.14]
+  foot_L: [0.13, 0, 0.02]
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.6
+  smear_y: 0.9
+  smear_z: 0.2
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.30 + bob, 0]", rot: "[lean, twist, roll]"}
+  trunk:     {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  crown:     {parent: trunk, pos: [0, 0.82, -0.02], rot: "[-crown, 0, 0]", inherit_scale: false}
+  face:      {parent: trunk, pos: [0, 0.55, 0.17], inherit_scale: false}
+  shoulder_L: {parent: trunk, pos: [0.18, 0.60, 0.0], inherit_scale: false}
+  hip_L:      {parent: torso_rot, pos: [0.11, 0.0, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  sole_L:     {parent: root, at: ankle_L, rot: [0, 0.3, 0]}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.30, 0.30],
+          pole: [0.6, 0.2, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.06, 0]", lengths: [0.16, 0.16],
+          pole: [0.2, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  trunk:            # thick, slightly flared bark body
+    material: bark
+    space: trunk
+    blend: 0.08
+    prims:
+      - cone: {a: [0, -0.02, 0], b: [0, 0.80, -0.02], r: [0.25, 0.19]}
+      - sphere: {c: [0.06, 0.30, 0.20], r: 0.07}                         # bark knot
+      - cone: {a: [0, 0.70, 0], b: [0.16, 0.88, -0.05], r: [0.10, 0.06]}   # bough into the crown
+      - cone: {a: [0, 0.70, 0], b: [-0.15, 0.90, 0.02], r: [0.10, 0.06]}
+  face_knots:       # eye sockets and mouth: dark knotholes (all that shows while disguised)
+    material: knot
+    space: face
+    prims:
+      - ellipsoid: {c: [0.085, 0.0, 0.05], r: [0.06, 0.055, 0.03]}
+      - ellipsoid: {c: [-0.085, 0.0, 0.05], r: [0.06, 0.055, 0.03]}
+      - ellipsoid: {c: [0, -0.17, 0.065], r: [0.065, "0.022 + 0.02*eye", 0.03]}
+  brow:             # heavy bark brow over the eyes
+    material: bark
+    space: face
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.04], r: [0.17, 0.035, 0.045], rot: [0.2, 0, 0]}
+  eyes:
+    material: eye
+    space: face
+    when: "eye > 0.05"
+    prims:
+      - ellipsoid: {c: [0.085, 0.0, 0.07], r: ["0.045", "0.042*eye", 0.03]}
+      - ellipsoid: {c: [-0.085, 0.0, 0.07], r: ["0.045", "0.042*eye", 0.03]}
+  crown_back:       # back mass (lit like the front so the back view is not a dark ball)
+    material: leaf
+    space: crown
+    line: true
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.40, -0.14], r: [0.44, 0.40, 0.36]}
+  crown_under:      # dark underside
+    material: leaf_dark
+    space: crown
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.20, -0.02], r: [0.42, 0.20, 0.40]}
+      - sphere: {c: [-0.30, 0.10, 0.04], r: 0.20}
+      - sphere: {c: [0.30, 0.10, 0.04], r: 0.20}
+  crown_left:
+    material: leaf
+    space: crown
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [-0.24, 0.36, 0.14], r: 0.27}
+      - sphere: {c: [-0.38, 0.18, 0.06], r: 0.15}
+  crown_right:
+    material: leaf
+    space: crown
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [0.24, 0.34, 0.14], r: 0.26}
+      - sphere: {c: [0.38, 0.16, 0.06], r: 0.15}
+  crown_top:
+    material: leaf
+    space: crown
+    line: true
+    blend: 0.04
+    prims:
+      - sphere: {c: [0, 0.62, 0.08], r: 0.24}
+      - sphere: {c: [-0.17, 0.72, -0.12], r: 0.18}
+      - sphere: {c: [0.17, 0.70, -0.13], r: 0.18}
+  crown_tufts:
+    material: leaf
+    space: crown
+    blend: 0.02
+    prims:
+      - sphere: {c: [-0.43, 0.42, -0.05], r: 0.10}
+      - sphere: {c: [0.43, 0.40, -0.05], r: 0.10}
+      - sphere: {c: [0, 0.84, -0.14], r: 0.11}
+  arm_L:            # branch arm
+    material: limb
+    blend: 0.03
+    prims:
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.075, 0.055]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.055, 0.04]}
+      - cone: {a: {between: ["@shoulder_L", "@elbow_L"], t: 0.6}, b: {at: elbow_L, off: [0.0, 0.10, -0.06]}, r: [0.03, 0.015]}  # side twig
+  twigs_L:          # three twig fingers
+    material: limb
+    space: wrist_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.0, 0.15], r: [0.04, 0.02]}
+      - cone: {a: [0, 0, 0], b: [0.07, 0.03, 0.12], r: [0.035, 0.018]}
+      - cone: {a: [0, 0, 0], b: [-0.07, 0.02, 0.12], r: [0.035, 0.018]}
+  arm_leaves_L:     # little leaf tuft on the elbow
+    material: leaf
+    space: elbow_L
+    prims:
+      - sphere: {c: [0.0, 0.06, 0.0], r: 0.085}
+  leg_L:            # stubby root leg
+    material: bark
+    blend: 0.05
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.12, 0.10]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.10, 0.09]}
+  foot_L:           # root clump: splayed root toes
+    material: bark
+    space: sole_L
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.03, 0.03], r: [0.10, 0.05, 0.11]}
+      - cone: {a: [0, -0.04, 0.05], b: [0.05, -0.06, 0.20], r: [0.05, 0.025]}
+      - cone: {a: [0, -0.04, 0.03], b: [0.14, -0.06, 0.06], r: [0.045, 0.02]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hand_R: {bone: wrist_R}
+  hit: {bone: wrist_R, offset: [0, 0, 0.12]}
+  head: {bone: crown, offset: [0, 0.9, 0]}
+  eyes: {bone: face, offset: [0, 0, 0.08]}
+
+timing: {attack: {hit: 190ms}}
+
+animations:
+  idle:            # the disguise: a still tree, boughs up, roots together, eyes shut
+    frames: 1
+    ms: 1000
+    channels:
+      eye: 0
+      hand_L: [0.36, 0.86, -0.04]
+      foot_L: [0.10, 0, 0.0]
+  walk:            # heavy lumbering stomp
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.08
+      bob: "-0.03*cos(2*p)"
+      roll: "0.05*sin(p)"
+      twist: "0.10*cos(p)"
+      crown: "0.06*sin(2*p - 0.8)"
+      foot_L: "[0.13, 0.08*pos(-sin(p)), 0.02 + 0.13*cos(p)]"
+      foot_R: "[0.13, 0.08*pos(sin(p)), 0.02 - 0.13*cos(p)]"
+      hand_L: "[0.46, 0.20 + 0.05*pos(cos(p)), 0.12 - 0.16*cos(p)]"
+      hand_R: "[0.46, 0.20 + 0.05*pos(-cos(p)), 0.12 + 0.16*cos(p)]"
+  attack:          # raises the right branch overhead, slams it down
+    loop: false
+    keys:
+      - ms: 140
+        event: windup
+        set: {lean: -0.12, twist: -0.25, squash: 1.04, crown: 0.10, hand_R: [0.60, 0.78, -0.06], hand_L: [0.38, 0.20, 0.10],
+              foot_L: [0.13, 0, 0.10], foot_R: [0.13, 0, -0.05]}
+      - ms: 50
+        set: {root: [0, 0, 0.06], lean: 0.12, twist: 0.05, squash: 0.98, crown: -0.04, hand_R: [0.36, 0.66, 0.40], hand_L: [0.38, 0.16, 0.0],
+              foot_L: [0.13, 0, 0.14], foot_R: [0.13, 0, -0.06],
+              smear_y: 0.85, smear_z: 0.25, smear_a0: -2.3, smear_a1: -0.9, smear_w: 0.09}
+      - ms: 110
+        event: hit
+        set: {root: [0, 0, 0.10], lean: 0.28, twist: 0.15, squash: 0.95, crown: -0.12, hand_R: [0.12, 0.10, 0.52], hand_L: [0.40, 0.14, -0.06],
+              foot_L: [0.13, 0, 0.16], foot_R: [0.13, 0, -0.06],
+              smear_y: 0.60, smear_z: 0.30, smear_a0: -1.6, smear_a1: 0.1, smear_w: 0.10}
+      - ms: 100
+        set: {root: [0, 0, 0.08], lean: 0.22, twist: 0.12, crown: -0.04, hand_R: [0.18, 0.06, 0.46], hand_L: [0.40, 0.14, -0.04],
+              foot_L: [0.13, 0, 0.14], foot_R: [0.13, 0, -0.06],
+              smear_y: 0.60, smear_z: 0.30, smear_a0: -0.6, smear_a1: 0.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 110
+        set: {root: [0, 0, 0.03], lean: 0.08, crown: 0.03, hand_R: [0.32, 0.12, 0.22]}
+  hit:             # jolts back, crown whips
+    loop: false
+    keys:
+      - {ms: 70, set: {root: [0, 0, -0.06], lean: -0.14, squash: 0.95, crown: -0.16, eye: 0.4,
+                       hand_L: [0.42, 0.30, -0.02], hand_R: [0.42, 0.30, -0.02]}}
+      - {ms: 90, set: {root: [0, 0, -0.07], lean: -0.06, squash: 0.98, crown: 0.10, eye: 0.7,
+                       hand_L: [0.38, 0.20, 0.04], hand_R: [0.38, 0.20, 0.04]}}
+      - {ms: 100, set: {root: [0, 0, -0.03], lean: 0.0, crown: -0.03}}
+  death:           # creaks, eyes go dark, topples backwards like a felled tree
+    loop: false
+    keys:
+      - {ms: 100, set: {root: [0, 0, -0.03], lean: -0.10, crown: -0.12, eye: 0.5, squash: 0.96,
+                        hand_L: [0.44, 0.40, 0.0], hand_R: [0.44, 0.40, 0.0]}}
+      - {ms: 120, set: {root: [0, 0, -0.08], lean: -0.40, crown: 0.10, eye: 0.2,
+                        hand_L: [0.46, 0.45, -0.08], hand_R: [0.46, 0.45, -0.08], foot_L: [0.13, 0, 0.10], foot_R: [0.13, 0, 0.08]}}
+      - {ms: 120, set: {root: [0, 0, 0.12], lean: -0.95, bob: -0.08, crown: 0.18, eye: 0,
+                        hand_L: [0.46, 0.40, -0.10], hand_R: [0.46, 0.40, -0.10], foot_L: [0.13, 0.04, 0.16], foot_R: [0.13, 0.02, 0.14]}}
+      - {ms: 100, set: {root: [0, 0, 0.36], lean: -1.32, bob: -0.18, crown: -0.08, eye: 0, squash: 0.92,
+                        hand_L: [0.46, 0.20, -0.06], hand_R: [0.46, 0.20, -0.06], foot_L: [0.13, 0.08, 0.20], foot_R: [0.13, 0.05, 0.18]}}
+      - {ms: 600, set: {root: [0, 0, 0.38], lean: -1.38, bob: -0.20, crown: 0.0, eye: 0, squash: 0.92,
+                        hand_L: [0.46, 0.14, -0.06], hand_R: [0.46, 0.14, -0.06], foot_L: [0.13, 0.06, 0.20], foot_R: [0.13, 0.04, 0.18]}}

@@ -1,0 +1,198 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: cellar_barrels
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 0.4188 = 6 px above the pivot -> pivot (24, 30), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4188, 0]}
+shadow: {rx: 15, ry: 5, alpha: 90}
+
+# Act I dungeon "Casa Abandonada": the wine cellar under the abandoned farmhouse.
+brief:
+  summary: old dark oak wine barrels with black iron hoops, some split and leaking dark wine into puddles;
+    three looks - two upright barrels side by side (the right one split and leaking), a single barrel lying
+    on its side on two wooden chocks with a dripping spigot, and a burst barrel (staves splayed, hoops on
+    the floor, a wine stain)
+  must_keep: [bulging barrel shape, two dark iron hoops, pale end-grain lids, dark wine puddles,
+    barrel about hip height of a 32 px human]
+  simplify: [no individual staves except a few dark lines, wine as flat blobs]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.4188, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Ramps from palettes ruin/hut plus spec-local wine (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,30) is the ground point at the centre of
+    the group. Barrel 0.86 tall, radius 0.37 (~14 px wide, ~hip height). Footprints: v0 2x1 tiles,
+    v1 2x1, v2 1x1 (debris, could be walkable). Clips: idle (= variant 0) and `variants` (3 frames,
+    frame i = variant i; the game picks a frame and holds it).
+
+ramps:
+  cb_wine:  ["#1c0f1a", "#2a0a16", "#4a0f22", "#6e1a30"]
+  cb_shine: ["#1c0f1a", "#a04a5a"]
+
+materials:
+  wood:   {ramp: hbeam, bands: [2, 4]}
+  lid:    {ramp: rwood, bands: [3, 5], line_band: 2}
+  iron:   {ramp: riron, bands: [1, 3]}
+  stave:  {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  wine:   {ramp: cb_wine, bands: [2, 3], outline: false, line: false}
+  shine:  {ramp: cb_shine, bands: [1, 1], outline: false, line: false}
+  chock:  {ramp: rwood, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+  v: 0
+
+bones:
+  body: {parent: root}
+  # barrel A: v0 upright left, v1 lying on its side at the centre
+  bA: {parent: body, pos: "[-0.36, 0.43, 0.05]*(v < 0.5) + [0.0, 0.37, 0.0]*(v >= 0.5)",
+       rot: "[0, 0.2, 0]*(v < 0.5) + [0, 0.75, 1.5708]*(v >= 0.5)"}
+  # barrel B: v0 upright right (split and leaking)
+  bB: {parent: body, pos: [0.38, 0.43, -0.12], rot: [0, -0.4, 0]}
+
+parts:
+  # ---------- barrel A (generic barrel, local y -0.43..0.43) ----------
+  barrelA:
+    material: wood
+    space: bA
+    line: true
+    when: "v < 1.5"
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.37, 0.7, 0.37]}
+    cut:
+      - box: {c: [0, 0.73, 0], half: [0.6, 0.3, 0.6]}
+      - box: {c: [0, -0.73, 0], half: [0.6, 0.3, 0.6]}
+  hoopsA:
+    material: iron
+    space: bA
+    when: "v < 1.5"
+    prims:
+      - torus: {c: [0, 0.29, 0], R: 0.325, r: 0.035}
+      - torus: {c: [0, -0.29, 0], R: 0.325, r: 0.035}
+  linesA:
+    material: stave
+    space: bA
+    when: "v < 1.5"
+    prims:
+      - box: {c: [0.12, 0, 0.345], half: [0.012, 0.36, 0.02], rot: [0, 0.33, 0]}
+      - box: {c: [-0.16, 0, 0.335], half: [0.012, 0.36, 0.02], rot: [0, -0.45, 0]}
+  lidA:
+    material: lid
+    space: bA
+    when: "v < 1.5"
+    prims:
+      - cylinder: {a: [0, 0.4, 0], b: [0, 0.445, 0], r: 0.26}
+      - cylinder: {a: [0, -0.4, 0], b: [0, -0.445, 0], r: 0.26}
+  spigotA:            # v1: a wooden spigot near the lower lid
+    material: chock
+    space: bA
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - cylinder: {a: [0.0, -0.42, 0.12], b: [0.0, -0.52, 0.12], r: 0.04}
+  chocks:             # v1: the two wedges the barrel rests on
+    material: chock
+    space: bA
+    line: true
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - box: {c: [-0.3, 0.24, 0], half: [0.07, 0.06, 0.34], round: 0.01}
+      - box: {c: [-0.3, -0.24, 0], half: [0.07, 0.06, 0.34], round: 0.01}
+  # ---------- barrel B (v0, split) ----------
+  barrelB:
+    material: wood
+    space: bB
+    line: true
+    when: "v < 0.5"
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.37, 0.7, 0.37]}
+    cut:
+      - box: {c: [0, 0.73, 0], half: [0.6, 0.3, 0.6]}
+      - box: {c: [0, -0.73, 0], half: [0.6, 0.3, 0.6]}
+      - box: {c: [0.05, 0.05, 0.38], half: [0.05, 0.22, 0.12], rot: [0, 0, 0.15]}   # the split
+  hoopsB:
+    material: iron
+    space: bB
+    when: "v < 0.5"
+    prims:
+      - torus: {c: [0, 0.29, 0], R: 0.325, r: 0.035}
+      - torus: {c: [0, -0.29, 0], R: 0.325, r: 0.035}
+  lidB:
+    material: lid
+    space: bB
+    when: "v < 0.5"
+    prims:
+      - cylinder: {a: [0, 0.4, 0], b: [0, 0.445, 0], r: 0.26}
+  leakB:              # wine running out of the split
+    material: wine
+    space: bB
+    when: "v < 0.5"
+    prims:
+      - box: {c: [0.05, 0.05, 0.31], half: [0.04, 0.2, 0.06], rot: [0, 0, 0.15]}
+      - cone: {a: [0.06, -0.1, 0.36], b: [0.08, -0.42, 0.4], r: [0.035, 0.05]}
+  # ---------- v2: burst barrel ----------
+  staves2:
+    material: wood
+    space: body
+    line: true
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - box: {c: [-0.05, 0.25, -0.15], half: [0.09, 0.25, 0.03], rot: [-0.25, 0.1, 0.05], round: 0.02}
+      - box: {c: [0.18, 0.24, -0.08], half: [0.09, 0.24, 0.03], rot: [-0.3, -0.9, -0.2], round: 0.02}
+      - box: {c: [-0.27, 0.22, -0.02], half: [0.09, 0.22, 0.03], rot: [-0.3, 0.9, 0.25], round: 0.02}
+      - box: {c: [0.42, 0.04, 0.25], half: [0.1, 0.035, 0.32], rot: [0, 0.6, 0], round: 0.02}
+      - box: {c: [-0.48, 0.04, 0.2], half: [0.1, 0.035, 0.3], rot: [0, -0.4, 0], round: 0.02}
+      - box: {c: [0.05, 0.04, 0.42], half: [0.3, 0.035, 0.09], rot: [0, 0.2, 0], round: 0.02}
+  hoops2:
+    material: iron
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - torus: {c: [-0.02, 0.04, 0.02], R: 0.33, r: 0.035, rot: [0.1, 0, 0.05]}
+      - torus: {c: [0.3, 0.12, -0.3], R: 0.3, r: 0.035, rot: [1.2, 0.4, 0]}
+  lid2:
+    material: lid
+    space: body
+    line: true
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - cylinder: {a: [-0.45, 0.02, -0.35], b: [-0.45, 0.06, -0.35], r: 0.22}
+  # ---------- wine puddles ----------
+  puddle0:
+    material: wine
+    space: body
+    when: "v < 0.5"
+    prims:
+      - ellipsoid: {c: [0.5, 0.005, 0.4], r: [0.32, 0.005, 0.2]}
+      - ellipsoid: {c: [0.2, 0.005, 0.5], r: [0.18, 0.005, 0.1]}
+  puddle1:
+    material: wine
+    space: body
+    when: "abs(v - 1) < 0.5"
+    prims:
+      - ellipsoid: {c: [-0.25, 0.005, 0.45], r: [0.3, 0.005, 0.16]}
+  puddle2:
+    material: wine
+    space: body
+    when: "abs(v - 2) < 0.5"
+    prims:
+      - ellipsoid: {c: [0.0, 0.005, 0.1], r: [0.55, 0.005, 0.4]}
+      - ellipsoid: {c: [0.45, 0.005, 0.45], r: [0.25, 0.005, 0.15]}
+  shine:
+    material: shine
+    space: body
+    prims:
+      - ellipsoid: {c: "[0.42, 0.012, 0.36]*(v < 0.5) + [-0.3, 0.012, 0.42]*(abs(v - 1) < 0.5) + [-0.2, 0.012, 0.3]*(abs(v - 2) < 0.5)", r: [0.07, 0.004, 0.03]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {v: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {v: "f"}

@@ -1,0 +1,211 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_column_broken
+kind: prop
+view: topdown
+size: 128                # bigger than castle_column (64): the standing column and the fallen half both fit
+directions: 1
+mirror: false
+palette: "farm"
+# centre y 1.3959 = 20 px above the pivot -> pivot (64, 84)
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3959, 0]}
+shadow: null             # the plinth sits on the floor; the fallen half gets its own contact shadow part
+
+# Prologue (the castle destroyed): a hall column smashed by Jimmynelson.
+brief:
+  summary: the white marble hall column snapped at two-thirds of its height - a fluted stump with a jagged,
+    cracked top on its square plinth and gold foot ring; the upper third (shaft, gold neck ring, capital with
+    gold band and square abacus) lies on the floor toward the front-right, the capital cracked off its shaft,
+    marble chunks and chips scattered around. `fall` shows it giving way and crashing in a puff of dust.
+  must_keep: [castle_column's white marble, flutes, gold rings and square plinth/abacus, jagged break, rubble]
+  simplify: [flutes as 4 shadow lines, cracks as dark bars, dust as pale puffs]
+  exceptions: |
+    size 128 (castle_column is 64) with the same camera.scale/pitch/light: the fallen half needs the room. No
+    ground-shadow ellipse (it would sit under the fallen half); a flat dark part under the lying shaft is its
+    contact. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 84) = the ground point at the bottom-centre of the plinth's front face, the
+    same point as castle_column's pivot (32, 62), so it swaps in place (only the frame is bigger); the stump
+    keeps the 1x1-tile blocking footprint, the fallen half adds ~2 tiles toward the front-right (walkable or
+    blocking: game call). `idle` = the broken state (1 frame). `fall` (one-shot, 8 frames, ~1.1 s) starts
+    from the standing, cracked column, tips the upper third over the break toward the front-right, crashes it
+    on the floor (event `crash` on the impact frame, socket `impact` at the middle of the fallen shaft for a
+    shake/dust effect) and ends exactly on the `idle` state. The column is modelled in 3D (SDF), not as
+    castle_column's pixel painting, so it can tip; its colours are castle_column's marble and gold.
+
+ramps:
+  cb_marble: ["#1c0f1a", "#9a8fa8", "#cbc2d3", "#e8e3ec", "#ffffff"]
+  cb_gold:   ["#1c0f1a", "#9a5a1c", "#e1a227", "#f8e08a"]
+  cb_line:   ["#1c0f1a", "#b9afc4"]
+  cb_crack:  ["#1c0f1a", "#5a4e66"]
+  cb_dust:   ["#1c0f1a", "#d8d0c8", "#ece6e0"]
+  cb_shadow: ["#1c0f1a", "#9a8f98"]
+
+materials:
+  marble: {ramp: cb_marble, bands: [1, 4]}
+  broken: {ramp: cb_marble, bands: [2, 3]}
+  gold:   {ramp: cb_gold, bands: [1, 3]}
+  flute:  {ramp: cb_line, bands: [1, 1], outline: false, line: false}
+  crack:  {ramp: cb_crack, bands: [1, 1], outline: false, line: false}
+  dust:   {ramp: cb_dust, bands: [1, 2], outline: false, line: false}
+  contact: {ramp: cb_shadow, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  tilt: 1.57        # rotation of the upper third over the break (0 standing, 1.57 lying)
+  drop: 1           # 0..1: the upper third's pivot comes down from the break to the floor
+  crash: 1          # 1: on the floor (rubble, contact, capital cracked off)
+  cap: 1            # 0..1: the capital rolls off its shaft after the crash
+  dust: 0           # 0..1: impact dust puff
+  gap: 0            # crack widening before the fall
+
+bones:
+  body:    {parent: root}
+  fallyaw: {parent: body, pos: [0, 0, -0.05], rot: [0, 1.05, 0]}           # falls toward the front-right
+  upper:   {parent: fallyaw, pos: "[0, 2.2 - 1.86*drop, 0.40*drop + gap]", rot: "[tilt, 0, 0]"}
+  capb:    {parent: upper, pos: "[0, 1.55 + 0.25*cap, 0.0]", rot: "[0, 0, 0.35*cap]"}
+  dustspace: {parent: fallyaw, pos: [0, 0.2, 1.3]}
+
+parts:
+  plinth:
+    material: marble
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.16, -0.05], half: [0.60, 0.16, 0.60], round: 0.02}
+  base_torus:
+    material: marble
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.32, -0.05], b: [0, 0.44, -0.05], r: 0.47, round: 0.05}
+  foot_ring:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.44, -0.05], b: [0, 0.50, -0.05], r: 0.40, round: 0.01}
+  stump:           # fluted shaft broken off in a jagged top
+    material: marble
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.48, -0.05], b: [0, 2.35, -0.05], r: 0.35}
+    cut:
+      - box: {c: [0.25, 2.45, -0.05], half: [0.35, 0.25, 0.6], rot: [0, 0, 0.55]}
+      - box: {c: [-0.30, 2.40, -0.05], half: [0.25, 0.30, 0.6], rot: [0, 0, -0.7]}
+      - box: {c: [0.0, 2.38, 0.30], half: [0.6, 0.22, 0.25], rot: [0.6, 0, 0]}
+  stump_flutes:
+    material: flute
+    space: body
+    prims:
+      - box: {c: [-0.17, 1.30, 0.258], half: [0.022, 0.78, 0.01], rot: [0, -0.5, 0]}
+      - box: {c: [0.0, 1.30, 0.302], half: [0.022, 0.78, 0.01]}
+      - box: {c: [0.17, 1.30, 0.258], half: [0.022, 0.78, 0.01], rot: [0, 0.5, 0]}
+      - box: {c: [0.29, 1.30, 0.13], half: [0.022, 0.78, 0.01], rot: [0, 1.1, 0]}
+    cut:
+      - box: {c: [0.25, 2.45, -0.05], half: [0.35, 0.40, 0.6], rot: [0, 0, 0.55]}
+      - box: {c: [-0.30, 2.40, -0.05], half: [0.25, 0.45, 0.6], rot: [0, 0, -0.7]}
+      - box: {c: [0.0, 2.38, 0.30], half: [0.6, 0.35, 0.25], rot: [0.6, 0, 0]}
+  stump_cracks:
+    material: crack
+    space: body
+    prims:
+      - box: {c: [0.08, 1.95, 0.31], half: [0.015, 0.22, 0.01], rot: [0, 0, 0.35]}
+      - box: {c: [-0.12, 1.70, 0.30], half: [0.015, 0.12, 0.01], rot: [0, 0, -0.5]}
+      - box: {c: [0.20, 0.25, 0.555], half: [0.015, 0.09, 0.01], rot: [0, 0, 0.4]}
+  upper_shaft:     # the fallen upper third, jagged at the break end
+    material: marble
+    space: upper
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.05, 0], b: [0, 1.50, 0], r: 0.35}
+    cut:
+      - box: {c: [-0.25, -0.05, 0], half: [0.35, 0.22, 0.6], rot: [0, 0, 0.55]}
+      - box: {c: [0.30, 0.0, 0], half: [0.25, 0.25, 0.6], rot: [0, 0, -0.7]}
+  upper_flutes:
+    material: flute
+    space: upper
+    prims:
+      - box: {c: [-0.17, 0.85, 0.258], half: [0.022, 0.6, 0.01], rot: [0, -0.5, 0]}
+      - box: {c: [0.0, 0.85, 0.302], half: [0.022, 0.6, 0.01]}
+      - box: {c: [0.17, 0.85, 0.258], half: [0.022, 0.6, 0.01], rot: [0, 0.5, 0]}
+      - box: {c: [-0.29, 0.85, 0.13], half: [0.022, 0.6, 0.01], rot: [0, -1.1, 0]}
+  neck_ring:
+    material: gold
+    space: upper
+    line: true
+    prims:
+      - cylinder: {a: [0, 1.48, 0], b: [0, 1.56, 0], r: 0.37, round: 0.01}
+  capital:         # echinus with a gold egg-and-dart band and the square abacus
+    material: marble
+    space: capb
+    line: true
+    prims:
+      - cone: {a: [0, 0.0, 0], b: [0, 0.28, 0], r: [0.36, 0.50]}
+      - box: {c: [0, 0.40, 0], half: [0.58, 0.10, 0.58], round: 0.02}
+  capital_gold:
+    material: gold
+    space: capb
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.14, 0], b: [0, 0.22, 0], r: 0.45, round: 0.01}
+      - sphere: {c: [0.52, 0.30, 0.52], r: 0.09}
+      - sphere: {c: [-0.52, 0.30, 0.52], r: 0.09}
+      - sphere: {c: [0.52, 0.30, -0.52], r: 0.09}
+  contact:         # dark contact under the lying shaft
+    when: "crash > 0.5"
+    material: contact
+    space: fallyaw
+    prims:
+      - box: {c: [0, 0.004, 1.25], half: [0.30, 0.003, 0.95]}
+  chunks:          # marble chunks and chips around the stump and the fallen half
+    when: "crash > 0.5"
+    material: broken
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.75, 0.10, 0.35], half: [0.14, 0.10, 0.11], rot: [0.3, 0.6, 0.2], round: 0.02}
+      - box: {c: [-0.55, 0.06, 0.70], half: [0.09, 0.06, 0.08], rot: [0.1, 0.2, 0.4], round: 0.02}
+      - box: {c: [0.70, 0.08, 0.15], half: [0.12, 0.08, 0.10], rot: [0.2, 0.9, 0.1], round: 0.02}
+      - box: {c: [0.95, 0.05, 0.55], half: [0.07, 0.05, 0.06], rot: [0.4, 0.3, 0.2], round: 0.02}
+      - box: {c: [0.20, 0.06, 0.85], half: [0.10, 0.06, 0.08], rot: [0.2, 1.3, 0.3], round: 0.02}
+      - box: {c: [1.75, 0.07, 1.10], half: [0.10, 0.07, 0.09], rot: [0.3, 0.5, 0.2], round: 0.02}
+      - box: {c: [-0.35, 0.05, -0.75], half: [0.08, 0.05, 0.07], rot: [0.3, 0.2, 0.1], round: 0.02}
+  falling_chips:   # chips dropping from the opening crack
+    when: "(gap > 0.01) * (crash < 0.5)"
+    material: broken
+    space: body
+    prims:
+      - box: {c: [0.38, "2.0 - 8*gap", 0.15], half: [0.06, 0.05, 0.05], rot: [0.5, 0.3, 0.6], round: 0.01}
+      - box: {c: [-0.35, "1.8 - 10*gap", 0.20], half: [0.05, 0.04, 0.04], rot: [0.2, 0.7, 0.3], round: 0.01}
+  dust:            # impact puff
+    when: "dust > 0.02"
+    material: dust
+    space: dustspace
+    prims:
+      - sphere: {c: "[-0.55 - 0.3*dust, 0.15 + 0.25*dust, 0.0]", r: "0.5*(1 - 0.5*dust)"}
+      - sphere: {c: "[0.55 + 0.3*dust, 0.15 + 0.2*dust, 0.2]", r: "0.46*(1 - 0.5*dust)"}
+      - sphere: {c: "[0.0, 0.2 + 0.35*dust, 0.6 + 0.2*dust]", r: "0.44*(1 - 0.5*dust)"}
+      - sphere: {c: "[-0.3, 0.2 + 0.3*dust, -0.7]", r: "0.4*(1 - 0.5*dust)"}
+      - sphere: {c: "[0.35, 0.25 + 0.4*dust, 1.1]", r: "0.38*(1 - 0.5*dust)"}
+
+sockets:
+  impact: {bone: dustspace, offset: [0, 0, 0]}
+
+animations:
+  idle:            # the broken state
+    frames: 1
+    ms: 1000
+    channels: {tilt: 1.57, drop: 1, crash: 1, cap: 1}
+  fall:            # gives way and crashes; ends on the idle state
+    loop: false
+    keys:
+      - {ms: 160, set: {tilt: 0, drop: 0, crash: 0, cap: 0}}
+      - {ms: 120, event: crack, set: {tilt: 0.06, drop: 0, crash: 0, cap: 0, gap: 0.04}}
+      - {ms: 90, set: {tilt: 0.40, drop: 0.05, crash: 0, cap: 0, gap: 0.10}}
+      - {ms: 70, set: {tilt: 0.90, drop: 0.25, crash: 0, cap: 0, gap: 0.16}}
+      - {ms: 60, set: {tilt: 1.35, drop: 0.70, crash: 0, cap: 0, gap: 0.20}}
+      - {ms: 100, event: crash, set: {tilt: 1.57, drop: 1, crash: 1, cap: 0.5, dust: 0.3}}
+      - {ms: 130, set: {tilt: 1.57, drop: 1, crash: 1, cap: 0.9, dust: 0.75}}
+      - {ms: 450, set: {tilt: 1.57, drop: 1, crash: 1, cap: 1}}

@@ -1,3 +1,4 @@
+import { L } from "../i18n";
 export interface Stats {
   maxHp: number;
   maxMana: number;
@@ -12,6 +13,16 @@ export interface Stats {
   lifeSteal: number; // 0.03 = 3%
   hpRegen: number; // per second
   manaRegen: number; // per second
+  statusRes: number; // 0.20 = poison, stun and slow last 20% less
+  dmgBeast: number; // 0.20 = +20% damage to beasts
+  dmgUndead: number; // 0.20 = +20% damage to the undead
+  fireDmg: number; // flat fire damage per hit: ignores physical resistance, stops regeneration
+  coldDmg: number; // flat cold damage per hit: ignores physical resistance, chills (slows) briefly
+  lightningDmg: number; // flat lightning damage per hit: ignores physical resistance
+  poisonDmg: number; // flat poison damage per hit: ignores physical resistance
+  thorns: number; // damage returned to melee attackers
+  goldFind: number; // 0.20 = +20% gold
+  magicFind: number; // 0.20 = +20% chance of better items
 }
 
 export type StatKey = keyof Stats;
@@ -19,6 +30,7 @@ export type StatKey = keyof Stats;
 export const emptyStats = (): Stats => ({
   maxHp: 0, maxMana: 0, dmgMin: 0, dmgMax: 0, dmgFlat: 0, dmgPct: 0, armor: 0,
   attackSpeed: 0, moveSpeed: 0, crit: 0, lifeSteal: 0, hpRegen: 0, manaRegen: 0,
+  statusRes: 0, dmgBeast: 0, dmgUndead: 0, fireDmg: 0, coldDmg: 0, lightningDmg: 0, poisonDmg: 0, thorns: 0, goldFind: 0, magicFind: 0,
 });
 
 export function addStats(into: Stats, add: Partial<Stats>, times = 1): Stats {
@@ -26,18 +38,24 @@ export function addStats(into: Stats, add: Partial<Stats>, times = 1): Stats {
   return into;
 }
 
-const PCT: StatKey[] = ["dmgPct", "attackSpeed", "moveSpeed", "crit", "lifeSteal"];
+const PCT: StatKey[] = ["dmgPct", "attackSpeed", "moveSpeed", "crit", "lifeSteal", "statusRes", "dmgBeast", "dmgUndead", "goldFind", "magicFind"];
 
 export const STAT_LABEL: Record<StatKey, string> = {
-  maxHp: "Vida", maxMana: "Recurso", dmgMin: "Dano mín.", dmgMax: "Dano máx.", dmgFlat: "Dano",
-  dmgPct: "Dano", armor: "Armadura", attackSpeed: "Velocidade de ataque", moveSpeed: "Velocidade de movimento",
-  crit: "Chance de crítico", lifeSteal: "Roubo de vida", hpRegen: "Vida por segundo", manaRegen: "Recurso por segundo",
+  maxHp: L("Vida", "Life"), maxMana: L("Recurso", "Resource"), dmgMin: L("Dano mín.", "Min damage"), dmgMax: L("Dano máx.", "Max damage"), dmgFlat: L("Dano", "Damage"),
+  dmgPct: L("Dano", "Damage"), armor: L("Armadura", "Armor"), attackSpeed: L("Velocidade de ataque", "Attack speed"), moveSpeed: L("Velocidade de movimento", "Movement speed"),
+  crit: L("Chance de crítico", "Critical chance"), lifeSteal: L("Roubo de vida", "Life steal"), hpRegen: L("Vida por segundo", "Life per second"), manaRegen: L("Recurso por segundo", "Resource per second"),
+  statusRes: L("Resistência a veneno, atordoamento e lentidão", "Poison, stun and slow resistance"),
+  dmgBeast: L("Dano contra Feras", "Damage to Beasts"), dmgUndead: L("Dano contra Mortos-vivos", "Damage to Undead"),
+  fireDmg: L("Dano de Fogo", "Fire Damage"), coldDmg: L("Dano de Gelo", "Cold Damage"),
+  lightningDmg: L("Dano de Raio", "Lightning Damage"), poisonDmg: L("Dano de Veneno", "Poison Damage"), thorns: L("Espinhos", "Thorns"),
+  goldFind: L("Ouro encontrado", "Gold Find"), magicFind: L("Achado mágico", "Magic Find"),
 };
 
 export function formatStat(k: StatKey, v: number): string {
-  if (PCT.includes(k)) return `+${Math.round(v * 100)}% ${STAT_LABEL[k]}`;
-  if (k === "hpRegen" || k === "manaRegen") return `+${v.toFixed(1)} ${STAT_LABEL[k]}`;
-  return `+${Math.round(v)} ${STAT_LABEL[k]}`;
+  const sign = v < 0 ? "" : "+"; // negative implicits (heavy armour, slow weapons) already carry their "-"
+  if (PCT.includes(k)) return `${sign}${Math.round(v * 100)}% ${STAT_LABEL[k]}`;
+  if (k === "hpRegen" || k === "manaRegen") return `${sign}${v.toFixed(1)} ${STAT_LABEL[k]}`;
+  return `${sign}${Math.round(v)} ${STAT_LABEL[k]}`;
 }
 
 /** Damage reduction from armor against an attacker of a given level. */

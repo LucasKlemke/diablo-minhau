@@ -1,0 +1,313 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: patched_house
+kind: prop
+view: topdown
+size: 128
+directions: 1
+mirror: false
+palette: ["farm", "hut", "ruin"]
+# centre y 2.5127 = 36 px above the pivot -> pivot (64, 100), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 2.5127, 0]}
+shadow: {rx: 44, ry: 10, alpha: 80}
+
+# Act I, Minhau: a house that survived the raid, patched up and lived in (replaces generic houses).
+brief:
+  summary: the same cottage plan as `house`, ten years after the war - weathered grey plank walls in a dark
+    timber frame, the gable roof of old dark wooden shingles with missing ones, a big dirty canvas tarp
+    tied over the left slope with ropes and stone weights; mismatched brown boards nailed across the
+    walls, a canvas patch on the gable, the left window half boarded with warm firelight inside, a
+    mended door with a newer plank, a stone chimney with a thin plume of smoke; a woodpile by the door
+  must_keep: [same footprint and silhouette family as house, grey weathered planks, dark shingle roof,
+    canvas tarp with ropes and stones, nailed patch boards, lit window (inhabited), smoking chimney]
+  simplify: [shingles as courses plus a few cross grooves (house's layout), planks as lines,
+    smoke as 4 round puffs]
+  exceptions: |
+    kind prop, size 128, directions 1, mirror false, camera.center [0, 2.5127, 0] (integer pivot).
+    The window light is emissive (hearth fire inside: the warm accent); smoke has no outline.
+    camera.scale/pitch/light untouched. Ramps from palettes/ruin.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT (same as house): world origin (= exported pivot, frame px 64,100) is the ground point
+    at the centre of the FRONT wall's base. Walls x -1.75..1.75, z -2.64..0, eaves to x +-2.2: footprint
+    5x3 tiles, blocking all 15, placed exactly like house. Door at x +0.70 (+13 px), like house.
+    Clip idle: 8 frames x 140 ms, only the chimney smoke moves (puffs rise, grow, drift right, fade).
+
+materials:
+  wall:    {ramp: rplank, bands: [2, 4]}
+  plank_ln: {ramp: rplank, bands: [1, 1], outline: false, line: false}
+  timber:  {ramp: rwood, bands: [1, 3]}
+  patch:   {ramp: rwood, bands: [3, 5]}
+  roof:    {ramp: rwood, bands: [1, 3]}
+  roof_ln: {ramp: rchar, bands: [2, 2], outline: false, line: false}
+  gap:     {ramp: rchar, bands: [1, 1], outline: false, line: false}
+  tarp:    {ramp: rcanvas, bands: [2, 4], two_sided: true}
+  rope:    {ramp: rrope, bands: [2, 3], outline: false}
+  stone:   {ramp: rstone, bands: [2, 4]}
+  mortar:  {ramp: rstone, bands: [1, 1], outline: false, line: false}
+  soot:    {ramp: rchar, bands: [1, 2]}
+  door:    {ramp: rwood, bands: [2, 4]}
+  iron:    {ramp: riron, bands: [1, 3]}
+  lamp:    {ramp: rlamp, emissive: true, band: 3, outline: false, line: false, glow: {color: "#f0a040", mix: 0.4, radius: 1}}
+  lamp_hi: {ramp: rlamp, emissive: true, band: 4, outline: false, line: false}
+  smoke:   {ramp: rsmoke, bands: [2, 4], outline: false, line: false}
+  logend:  {ramp: hcut, bands: [1, 2]}
+  log:     {ramp: rwood, bands: [2, 4]}
+  mud:     {ramp: rmud, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  mud:
+    material: mud
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.7, 0.01, 0.6], r: [0.65, 0.02, 0.35]}
+  walls:
+    material: wall
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.975, -1.32], half: [1.75, 0.975, 1.32]}
+  attic:
+    material: wall
+    space: body
+    prims:
+      - box: {c: [0, 1.95, -1.32], half: [1.237, 1.237, 1.32], rot: [0, 0, 0.7854]}
+  planks:
+    material: plank_ln
+    space: body
+    prims:
+      - box: {c: [0, 0.36, 0.01], half: [1.70, 0.03, 0.01]}
+      - box: {c: [0, 0.76, 0.01], half: [1.70, 0.03, 0.01]}
+      - box: {c: [0, 1.16, 0.01], half: [1.70, 0.03, 0.01]}
+      - box: {c: [0, 1.56, 0.01], half: [1.70, 0.03, 0.01]}
+      - box: {c: [0, 2.40, 0.01], half: [1.25, 0.03, 0.01]}
+      - box: {c: [0, 2.80, 0.01], half: [0.85, 0.03, 0.01]}
+      - box: {c: [0, 3.20, 0.01], half: [0.45, 0.03, 0.01]}
+      - box: {c: [-0.3, 0.56, 0.01], half: [0.015, 0.2, 0.01]}
+      - box: {c: [1.3, 0.96, 0.01], half: [0.015, 0.2, 0.01]}
+      - box: {c: [-1.4, 1.36, 0.01], half: [0.015, 0.2, 0.01]}
+  frame_L:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.68, 0.975, -0.02], half: [0.11, 0.975, 0.10]}
+  beam:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 1.98, 0.02], half: [1.82, 0.08, 0.08]}
+      - box: {c: [0, 0.05, 0.02], half: [1.80, 0.05, 0.06]}
+  patches:          # mismatched boards nailed over holes
+    material: patch
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.15, 0.55, 0.04], half: [0.42, 0.07, 0.025], rot: [0, 0, 0.12]}
+      - box: {c: [-0.2, 0.33, 0.04], half: [0.36, 0.07, 0.025], rot: [0, 0, -0.06]}
+      - box: {c: [1.38, 1.45, 0.04], half: [0.08, 0.3, 0.025], rot: [0, 0, 0.1]}
+      - box: {c: [0.42, 2.6, 0.04], half: [0.3, 0.06, 0.025], rot: [0, 0, -0.3]}
+  nails:
+    material: iron
+    space: body
+    prims:
+      - sphere: {c: [-0.5, 0.51, 0.07], r: 0.025}
+      - sphere: {c: [0.2, 0.6, 0.07], r: 0.025}
+      - sphere: {c: [-0.5, 0.35, 0.07], r: 0.025}
+      - sphere: {c: [0.1, 0.31, 0.07], r: 0.025}
+  wall_tarp:        # canvas patch on the gable
+    material: tarp
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.42, 2.55, 0.03], half: [0.3, 0.26, 0.015], rot: [0, 0, 0.08]}
+  # ---------- roof ----------
+  roof_L:
+    material: roof
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.075, 2.765, -1.30], half: [1.48, 0.10, 1.60], rot: [0, 0, -0.7854]}
+  tiles_L:
+    material: roof_ln
+    space: body
+    prims:
+      - box: {c: [0.548, 3.467, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [1.078, 2.937, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [1.609, 2.407, -1.30], half: [0.035, 0.02, 1.60], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, 0.00], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -0.60], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -1.20], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -1.80], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.283, 3.733, -2.40], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -0.30], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -0.90], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -1.50], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -2.10], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [0.813, 3.202, -2.70], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, 0.00], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -0.60], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -1.20], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -1.80], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.344, 2.672, -2.40], half: [0.37, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -0.30], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -0.90], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -1.50], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -2.10], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+      - box: {c: [1.845, 2.171, -2.70], half: [0.33, 0.02, 0.03], rot: [0, 0, -0.7854]}
+  gaps:             # missing shingles on the right slope
+    material: gap
+    space: body
+    prims:
+      - box: {c: [1.35, 2.74, -1.75], half: [0.2, 0.02, 0.24], rot: [0, 0, -0.7854]}
+      - box: {c: [0.75, 3.34, -0.55], half: [0.14, 0.02, 0.16], rot: [0, 0, -0.7854]}
+      - box: {c: [1.6, 2.49, -0.25], half: [0.16, 0.02, 0.14], rot: [0, 0, -0.7854]}
+  barge_L:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.03, 2.61, 0.27], half: [1.50, 0.13, 0.06], rot: [0, 0, -0.7854]}
+  ridge:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 3.86, -1.30], half: [0.13, 0.13, 1.62], round: 0.02}
+      - box: {c: [0, 3.70, 0.30], half: [0.17, 0.20, 0.10], round: 0.02}
+  tarp:             # big canvas tarp tied over the left slope
+    material: tarp
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.0, 3.02, -1.15], half: [0.75, 0.025, 0.95], rot: [0, 0, 0.7854]}
+  tarp_folds:
+    material: tarp
+    space: body
+    prims:
+      - cylinder: {a: [-0.55, 3.5, -0.4], b: [-1.5, 2.55, -0.55], r: 0.04}
+  ropes:
+    material: rope
+    space: body
+    prims:
+      - cylinder: {a: [-0.12, 3.92, -0.6], b: [-1.62, 2.42, -0.6], r: 0.025}
+      - cylinder: {a: [-0.12, 3.92, -1.7], b: [-1.62, 2.42, -1.7], r: 0.025}
+  weights:          # stones holding the tarp down
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [-1.62, 2.5, -0.6], half: [0.12, 0.1, 0.1], round: 0.04}
+      - box: {c: [-1.62, 2.5, -1.7], half: [0.12, 0.1, 0.1], round: 0.04}
+  # ---------- door (mended) ----------
+  door_frame:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.70, 0.72, 0.03], half: [0.46, 0.74, 0.05]}
+  door:
+    material: door
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.70, 0.66, 0.07], half: [0.36, 0.66, 0.03]}
+  door_new:         # newer pale plank
+    material: wall
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.88, 0.66, 0.1], half: [0.1, 0.64, 0.02]}
+  door_bands:
+    material: iron
+    space: body
+    prims:
+      - box: {c: [0.7, 1.05, 0.11], half: [0.34, 0.035, 0.01]}
+      - box: {c: [0.7, 0.3, 0.11], half: [0.34, 0.035, 0.01]}
+  doorstep:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.70, 0.06, 0.22], half: [0.48, 0.06, 0.2], round: 0.03}
+  # ---------- lit window, half boarded ----------
+  win_frame:
+    material: timber
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.90, 1.02, 0.03], half: [0.42, 0.36, 0.05]}
+  win_light:
+    material: lamp
+    space: body
+    prims:
+      - box: {c: [-0.90, 1.04, 0.07], half: [0.32, 0.27, 0.02]}
+  win_core:
+    material: lamp_hi
+    space: body
+    prims:
+      - box: {c: [-0.98, 0.98, 0.075], half: [0.12, 0.1, 0.02]}
+  win_boards:       # boards nailed across the window
+    material: patch
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.9, 1.16, 0.11], half: [0.48, 0.06, 0.025], rot: [0, 0, -0.18]}
+      - box: {c: [-0.9, 0.86, 0.11], half: [0.48, 0.06, 0.025], rot: [0, 0, 0.1]}
+  # ---------- chimney and smoke ----------
+  chimney:
+    material: stone
+    space: body
+    line: true
+    prims:
+      - box: {c: [1.25, 3.10, -0.75], half: [0.28, 1.05, 0.28]}
+      - box: {c: [1.25, 4.10, -0.75], half: [0.34, 0.08, 0.34]}
+  chimney_joints:
+    material: mortar
+    space: body
+    prims:
+      - box: {c: [1.25, 3.55, -0.46], half: [0.28, 0.022, 0.01]}
+      - box: {c: [1.25, 3.85, -0.46], half: [0.28, 0.022, 0.01]}
+      - box: {c: [1.12, 3.70, -0.46], half: [0.022, 0.15, 0.01]}
+  chimney_hole:
+    material: soot
+    space: body
+    prims:
+      - box: {c: [1.25, 4.16, -0.75], half: [0.18, 0.03, 0.18]}
+  smoke:
+    material: smoke
+    space: body
+    prims:
+      - sphere: {c: "[1.25 + 0.35*(t - floor(t)), 4.3 + 1.3*(t - floor(t)), -0.75]", r: "0.08 + 0.17*sin(pi*(t - floor(t)))"}
+      - sphere: {c: "[1.25 + 0.35*(t + 0.25 - floor(t + 0.25)), 4.3 + 1.3*(t + 0.25 - floor(t + 0.25)), -0.75]", r: "0.08 + 0.17*sin(pi*(t + 0.25 - floor(t + 0.25)))"}
+      - sphere: {c: "[1.25 + 0.35*(t + 0.5 - floor(t + 0.5)), 4.3 + 1.3*(t + 0.5 - floor(t + 0.5)), -0.75]", r: "0.08 + 0.17*sin(pi*(t + 0.5 - floor(t + 0.5)))"}
+      - sphere: {c: "[1.25 + 0.35*(t + 0.75 - floor(t + 0.75)), 4.3 + 1.3*(t + 0.75 - floor(t + 0.75)), -0.75]", r: "0.08 + 0.17*sin(pi*(t + 0.75 - floor(t + 0.75)))"}
+  # ---------- woodpile by the door ----------
+  woodpile:
+    material: log
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [1.5, 0.1, 0.25], b: [2.0, 0.1, 0.25], r: 0.1}
+      - cylinder: {a: [1.5, 0.1, 0.48], b: [2.0, 0.1, 0.48], r: 0.1}
+      - cylinder: {a: [1.5, 0.29, 0.36], b: [2.0, 0.29, 0.36], r: 0.1}
+  woodpile_ends:
+    material: logend
+    space: body
+    prims:
+      - cylinder: {a: [1.48, 0.1, 0.25], b: [1.5, 0.1, 0.25], r: 0.085}
+      - cylinder: {a: [1.48, 0.1, 0.48], b: [1.5, 0.1, 0.48], r: 0.085}
+      - cylinder: {a: [1.48, 0.29, 0.36], b: [1.5, 0.29, 0.36], r: 0.085}
+
+animations:
+  idle:
+    frames: 8
+    ms: 140
+    channels: {}

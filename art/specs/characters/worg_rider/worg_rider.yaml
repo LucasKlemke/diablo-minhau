@@ -1,0 +1,424 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: worg_rider
+mirror: true
+kind: character
+size: 64
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.80, -0.05]}
+shadow: {rx: 16, ry: 6, alpha: 120}
+
+# Worg rider: Act I elite (~30 px tall in total). A goblin (same look as goblin.yaml: olive skin, chibi head,
+# huge ears, yellow eyes) rides a big dark wolf. Bigger than a goblin, so frame 64 at the shared density.
+# Worg = the wolf skeleton about 1.3x (body, head, jaw, tail, four 2-bone IK legs, paw targets in body
+# space). The goblin sits on `seat` (top of the worg's back) and inherits every worg motion; its channels
+# are prefixed `g_` / `g`. Legs straddle the worg (IK in seat space), left hand on the reins, right hand
+# swings a crude cleaver with a smear on the attack.
+brief:
+  summary: small green goblin with huge ears and yellow eyes, riding a big dark grey-brown worg with a shaggy
+    mane, red glowing eyes and a bushy tail; the goblin swings a crude notched cleaver
+  must_keep: [goblin look of goblin.yaml (olive skin ramp, chibi head 1.8, huge ears, yellow eyes), big dark
+    worg with red eyes, shaggy mane, crude blade in the goblin's right hand, saddle blanket]
+  simplify: [no reins (left hand rests on the mane), no stirrups, no loincloth (hidden by the saddle),
+    cleaver as one notched box]
+  decisions: worg ramp darker and warmer than the wolf so the rider reads as a different (elite) threat and
+    the green goblin pops on top; red worg eyes vs yellow goblin eyes; the attack is the goblin's side
+    swing with the worg lunging and snapping under it; on death the worg rolls onto its side and the goblin
+    goes over with it
+
+ramps:
+  goblin_skin: ["#1c0f1a", "#304a1c", "#5b7d27", "#93ad38", "#c6d46a"]
+  worg_fur:    ["#1c0f1a", "#2a2230", "#433846", "#605262", "#857585"]
+  worg_belly:  ["#1c0f1a", "#4f4450", "#7a6c74", "#a3949a"]
+  worg_mane:   ["#1c0f1a", "#1f1822", "#30263a", "#463a4c"]
+  worg_eye:    ["#1c0f1a", "#ff3b2b", "#ffb0a0"]
+  worg_tooth:  ["#1c0f1a", "#c4a77a", "#e6d6ad", "#f8f1dc"]
+
+materials:
+  fur:    {ramp: worg_fur, bands: [1, 4]}
+  belly:  {ramp: worg_belly, bands: [1, 3]}
+  mane:   {ramp: worg_mane, bands: [1, 3]}
+  wmouth: {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  weye:   {ramp: worg_eye, emissive: true, band: 1, outline: false, glow: {color: "#ff3b2b", mix: 0.4, radius: 1}}
+  saddle: {ramp: rag, bands: [1, 3]}
+  strap:  {ramp: leather, bands: [1, 2]}
+  skin:   {ramp: goblin_skin, bands: [1, 3]}
+  limb:   {ramp: goblin_dark, bands: [1, 2]}
+  ear_in: {ramp: goblin_dark, bands: [1, 2], outline: false}
+  wood:   {ramp: wood, bands: [1, 3]}
+  steel:  {ramp: steel, bands: [1, 4]}
+  eye:    {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.4, radius: 1}}
+  mouth:  {ramp: mouth, emissive: true, band: 1, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  # worg
+  bob: 0
+  plant: 1          # 1: paws stay on the ground when bob changes; 0: paws follow the body (death)
+  rear: 0           # + raises the front of the body
+  roll: 0           # death: onto its side
+  twist: 0
+  squash: 1
+  head_pitch: 0     # worg head, + down
+  jaw: 0
+  ear_L: 0          # worg ears
+  tail: 0
+  tail_up: 0
+  ffoot_L: [0.17, -0.51, 0.30]
+  hfoot_L: [0.17, -0.51, -0.30]
+  # goblin rider
+  g_bob: 0
+  g_lean: 0.15
+  g_twist: 0
+  g_squash: 1
+  g_head: 0         # goblin head pitch
+  g_ear_L: 0
+  ghand_L: [0.17, -0.04, 0.22]    # left hand on the mane (torso space)
+  ghand_R: [0.25, 0.08, 0.16]
+  gfoot_L: [0.27, -0.16, 0.10]    # foot hanging by the worg's flank (seat space)
+  blade_rot: 0
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.62
+  smear_y: 0.30
+  smear_z: 0.15
+  smear_fade: 1
+
+bones:
+  # --- worg ---
+  body:     {parent: root, pos: "[0, 0.60 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase: {parent: body, pos: [0, 0.33, 0.47], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.2 + head_pitch, 0, 0]", scale: 2.2}
+  jaw:      {parent: head, pos: [0, -0.01, 0.07], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.07, 0.10, -0.01], rot: "[ear_L, 0, -0.45]"}
+  tail:     {parent: body, pos: [0, 0.09, -0.43], rot: "[-0.05 + tail_up, tail, 0]", scale: 1.3}
+  shoulder_L: {parent: body, pos: [0.16, -0.05, 0.27]}
+  hip_L:      {parent: body, pos: [0.16, -0.05, -0.27]}
+  # --- goblin ---
+  seat:      {parent: body, pos: [0, 0.27, -0.04], inherit_scale: false}
+  torso_rot: {parent: seat, pos: "[0, 0.10 + g_bob, 0]", rot: "[g_lean, g_twist, 0]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(g_squash), g_squash, 1/sqrt(g_squash)]"}
+  gheadbase: {parent: pelvis, pos: [0, 0.33, 0.07], inherit_scale: false, rot: "[-0.2*g_lean - 0.30, 0, 0]"}
+  ghead:     {parent: gheadbase, rot: "[g_head, 0, 0]", scale: 1.8}
+  gear_L:    {parent: ghead, pos: [0.105, 0.13, -0.01], rot: "[0, 0.25, g_ear_L]"}
+  gshoulder_L: {parent: pelvis, pos: [0.15, 0.26, 0.0]}
+  ghip_L:      {parent: pelvis, pos: [0.08, -0.01, 0.0]}
+  blade:     {parent: gwrist_R, rot: "[blade_rot, 0, 0]"}
+  fxspace:   {parent: seat, rot: "[0, g_twist*0.3, 0]"}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, 0.05 - bob*plant, 0]", lengths: [0.27, 0.26],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, 0.05 - bob*plant, 0]", lengths: [0.27, 0.27],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+  garm_L: {start: gshoulder_L, space: torso_rot, target: ghand_L, lengths: [0.18, 0.17],
+           pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: gelbow_L, end: gwrist_L}
+  gleg_L: {start: ghip_L, space: seat, target: gfoot_L, lengths: [0.19, 0.18],
+           pole: [0.3, 0, 1.0], pole_space: seat, joint: gknee_L, end: gankle_L}
+
+parts:
+  # ================= worg =================
+  torso:
+    material: fur
+    space: body
+    blend: 0.11
+    prims:
+      - ellipsoid: {c: [0, 0.03, 0.20], r: [0.27, 0.26, 0.27]}
+      - ellipsoid: {c: [0, 0.04, -0.05], r: [0.22, 0.20, 0.18]}
+      - ellipsoid: {c: [0, 0.04, -0.26], r: [0.25, 0.22, 0.21]}
+      - cone: {a: [0, 0.10, 0.29], b: [0, 0.34, 0.46], r: [0.20, 0.14]}       # neck
+  belly:
+    material: belly
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.20], r: [0.21, 0.17, 0.22]}
+      - ellipsoid: {c: [0, -0.07, -0.10], r: [0.16, 0.13, 0.17]}
+      - ellipsoid: {c: [0, 0.10, 0.43], r: [0.16, 0.16, 0.10], rot: [0.5, 0, 0]}   # throat ruff
+  mane:            # shaggy dark mane over neck and shoulders
+    material: mane
+    space: body
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0.44, 0.44], [0, 0.36, 0.30], [0, 0.29, 0.18]], r: [0.09, 0.13, 0.10]}
+      - cone: {a: [0.05, 0.40, 0.36], b: [0.17, 0.42, 0.26], r: [0.06, 0.012]}
+      - cone: {a: [-0.05, 0.40, 0.36], b: [-0.17, 0.42, 0.26], r: [0.06, 0.012]}
+      - cone: {a: [0, 0.48, 0.38], b: [0, 0.58, 0.28], r: [0.06, 0.012]}
+  saddle:          # rag blanket on the back
+    material: saddle
+    space: body
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0.22, -0.04], r: [0.25, 0.08, 0.19]}
+      - box: {c: [0.22, 0.06, -0.04], half: [0.02, 0.12, 0.14], rot: [0, 0, 0.35], round: 0.01}
+      - box: {c: [-0.22, 0.06, -0.04], half: [0.02, 0.12, 0.14], rot: [0, 0, -0.35], round: 0.01}
+    cut:
+      - box: {c: [0.27, -0.06, 0.06], half: [0.06, 0.04, 0.03], rot: [0.6, 0, 0]}
+  girth:
+    material: strap
+    space: body
+    prims:
+      - torus: {c: [0, 0.02, 0.06], R: 0.245, r: 0.025, rot: [1.5708, 0, 0]}
+  whead:
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.0], r: [0.12, 0.09, 0.10]}
+      - cone: {a: [0, 0.03, 0.06], b: [0, 0.01, 0.20], r: [0.062, 0.036]}
+      - ellipsoid: {c: [0.095, 0.0, 0.0], r: [0.05, 0.055, 0.05]}
+      - ellipsoid: {c: [-0.095, 0.0, 0.0], r: [0.05, 0.055, 0.05]}
+  wmuzzle:
+    material: belly
+    space: jaw
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.015, 0.12], r: [0.042, 0.026]}
+  fang_L:
+    material: steel
+    space: head
+    prims:
+      - cone: {a: [0.03, -0.005, 0.17], b: [0.032, -0.04, 0.17], r: [0.012, 0.005]}
+  wmouth:
+    when: "jaw > 0.12"
+    material: wmouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.005, 0.12], r: [0.035, 0.02, 0.07]}
+  wnose:
+    material: mane
+    space: head
+    prims:
+      - sphere: {c: [0, 0.025, 0.205], r: 0.027}
+  wear_L:
+    material: fur
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.0, 0.11, -0.03], r: [0.042, 0.008]}
+  weye_L:
+    material: weye
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.065, 0.085], r: 0.024}
+  wtail:
+    material: fur
+    space: tail
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.0, -0.13], [0, -0.07, -0.25], [0, -0.17, -0.34]], r: [0.06, 0.10, 0.105, 0.06]}
+  wtail_tip:
+    material: mane
+    space: tail
+    prims:
+      - sphere: {c: [0, -0.17, -0.35], r: 0.055}
+  fleg_L:
+    material: fur
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.16, -0.03, 0.25], r: [0.10, 0.16, 0.12]}
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.078, 0.055]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.052, 0.044]}
+  hleg_L:
+    material: fur
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.16, -0.03, -0.27], r: [0.11, 0.17, 0.14]}
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.09, 0.058]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.055, 0.044]}
+  paws_L:
+    material: mane
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.01, 0.03]}, r: [0.055, 0.04, 0.065]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.01, 0.03]}, r: [0.055, 0.04, 0.065]}
+
+  # ================= goblin =================
+  gtorso:
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.01], r: [0.14, 0.11, 0.12]}
+      - ellipsoid: {c: [0, 0.20, 0.0], r: [0.15, 0.11, 0.11]}
+  gbelt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.05, 0], r: 0.145, round: 0.015}
+  ghead:
+    material: skin
+    space: ghead
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.0], r: [0.12, 0.11, 0.115]}
+      - ellipsoid: {c: [0, 0.05, 0.04], r: [0.095, 0.065, 0.09]}
+      - cone: {a: [0, 0.09, 0.10], b: [0, 0.055, 0.19], r: [0.03, 0.012]}
+  gbrow:
+    material: limb
+    space: ghead
+    prims:
+      - ellipsoid: {c: [0, 0.155, 0.085], r: [0.10, 0.025, 0.04], rot: [0.2, 0, 0]}
+  gear_L:
+    material: skin
+    space: gear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.21, 0.08, -0.05], r: [0.055, 0.008]}
+  gear_in_L:
+    material: ear_in
+    space: gear_L
+    prims:
+      - cone: {a: [0.03, -0.005, 0.03], b: [0.16, 0.06, -0.01], r: [0.03, 0.006]}
+  geye_L:
+    material: eye
+    space: ghead
+    prims:
+      - sphere: {c: [0.05, 0.115, 0.095], r: 0.032}
+  gmouth:
+    material: mouth
+    space: ghead
+    prims:
+      - ellipsoid: {c: [0, 0.035, 0.115], r: [0.05, 0.012, 0.02]}
+  garm_L:
+    material: limb
+    blend: 0.03
+    prims:
+      - sphere: {c: "@gshoulder_L", r: 0.06}
+      - cone: {a: "@gshoulder_L", b: "@gelbow_L", r: [0.05, 0.04]}
+      - cone: {a: "@gelbow_L", b: "@gwrist_L", r: [0.04, 0.045]}
+  ghand_L:
+    material: limb
+    space: gwrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.03], r: 0.05}
+  gleg_L:
+    material: limb
+    blend: 0.03
+    prims:
+      - cone: {a: "@ghip_L", b: "@gknee_L", r: [0.065, 0.05]}
+      - cone: {a: "@gknee_L", b: "@gankle_L", r: [0.05, 0.04]}
+      - ellipsoid: {c: {at: gankle_L, off: [0, -0.02, 0.04]}, r: [0.05, 0.035, 0.09]}
+  hilt:            # right hand only
+    material: wood
+    space: blade
+    prims:
+      - cone: {a: [0, -0.04, 0.04], b: [-0.01, 0.07, -0.04], r: [0.026, 0.024]}
+  cleaver:         # crude notched blade
+    material: steel
+    space: blade
+    blend: 0.01
+    prims:
+      - box: {c: [-0.015, 0.09, -0.06], half: [0.03, 0.02, 0.06], rot: [-0.66, 0, 0], round: 0.01}   # guard
+      - box: {c: [-0.02, 0.28, -0.21], half: [0.026, 0.21, 0.085], rot: [-0.66, 0, 0], round: 0.014}
+    cut:
+      - box: {c: [-0.02, 0.38, -0.20], half: [0.04, 0.03, 0.035], rot: [0.2, 0, 0]}                    # notch
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hand_R: {bone: gwrist_R}
+  hit: {bone: blade, offset: [-0.02, 0.40, -0.31]}
+  bite: {bone: head, offset: [0, 0.0, 0.20]}
+  head: {bone: ghead, offset: [0, 0.25, 0]}
+
+timing: {attack: {hit: 200ms, total: 470ms}}
+
+animations:
+  idle:            # worg breathes and sways its tail, goblin twitches (ears, head)
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.012*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_pitch: "0.04*sin(p)"
+      tail: "0.25*sin(p - 0.8)"
+      jaw: "0.2*(f == 1)"
+      ear_L: "0.3*(f == 3)"
+      g_bob: "0.012*sin(p - 0.6)"
+      g_ear_L: "0.25*(f == 1) - 0.1*(f == 3)"
+      g_head: "-0.12*(f == 2)"
+      ghand_R: "[0.25, 0.08 + 0.02*sin(p), 0.16]"
+  walk:            # worg trot, goblin bounces in the saddle
+    frames: 6
+    ms: 95
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.02*cos(2*p)"
+      twist: "0.04*sin(p)"
+      head_pitch: "0.05 + 0.04*cos(2*p)"
+      tail: "0.30*sin(p - 0.8)"
+      tail_up: 0.1
+      ffoot_L: "[0.17, -0.51 + 0.11*pos(-sin(p)), 0.30 + 0.16*cos(p)]"
+      hfoot_R: "[0.17, -0.51 + 0.11*pos(-sin(p)), -0.30 + 0.16*cos(p)]"
+      ffoot_R: "[0.17, -0.51 + 0.11*pos(sin(p)), 0.30 - 0.16*cos(p)]"
+      hfoot_L: "[0.17, -0.51 + 0.11*pos(sin(p)), -0.30 - 0.16*cos(p)]"
+      g_bob: "0.02*cos(2*p - 0.8)"
+      g_lean: 0.22
+      g_ear_L: "-0.15 + 0.12*sin(2*p)"
+      ghand_R: "[0.25, 0.10 + 0.02*cos(2*p), 0.16]"
+  attack:          # goblin side swing (right to left) while the worg lunges and snaps (hit at 200 ms)
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.03], bob: -0.02, rear: 0.04, jaw: 0.2, head_pitch: -0.05,
+              g_twist: -0.25, g_lean: 0.05, blade_rot: 0.6, ghand_R: [0.30, 0.25, 0.0], ghand_L: [0.17, -0.02, 0.22], g_ear_L: 0.15}
+      - ms: 130
+        event: windup
+        set: {root: [0, 0, -0.06], bob: -0.04, rear: 0.08, squash: 0.95, jaw: 0.4, head_pitch: -0.12, ear_L: -0.4,
+              g_twist: -0.5, g_lean: -0.05, g_squash: 0.92, blade_rot: 1.1, ghand_R: [0.30, 0.42, -0.10], ghand_L: [0.17, -0.02, 0.24],
+              g_head: -0.1, g_ear_L: 0.25}
+      - ms: 60
+        event: hit
+        set: {root: [0, 0, 0.12], bob: 0.0, rear: -0.06, squash: 1.04, jaw: 0.05, head_pitch: 0.15, ear_L: -0.4,
+              g_twist: 0.45, g_lean: 0.35, g_squash: 1.06, blade_rot: 0.6, ghand_R: [-0.16, 0.20, 0.32], ghand_L: [0.20, -0.04, 0.12],
+              g_ear_L: -0.2, smear_a0: -1.4, smear_a1: 1.0, smear_w: 0.09}
+      - ms: 100
+        set: {root: [0, 0, 0.10], rear: -0.03, jaw: 0.1, head_pitch: 0.08,
+              g_twist: 0.6, g_lean: 0.35, blade_rot: 0.3, ghand_R: [-0.26, 0.08, 0.16], ghand_L: [0.20, -0.04, 0.12],
+              g_ear_L: -0.1, smear_a0: 0.3, smear_a1: 1.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 110
+        set: {root: [0, 0, 0.04], g_twist: 0.15, g_lean: 0.2, ghand_R: [0.15, 0.06, 0.20]}
+  hit:             # both flinch back
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.08], bob: -0.03, rear: 0.10, squash: 0.92, head_pitch: -0.3, ear_L: -0.6, jaw: 0.3, tail_up: -0.2,
+              g_lean: -0.20, g_bob: -0.02, g_squash: 0.92, g_head: -0.25, g_ear_L: 0.35, ghand_R: [0.28, 0.16, 0.06], ghand_L: [0.24, 0.10, 0.08]}
+      - ms: 80
+        set: {root: [0, 0, -0.07], bob: -0.02, rear: 0.04, squash: 0.96, head_pitch: -0.15, ear_L: -0.4, jaw: 0.15,
+              g_lean: -0.05, g_squash: 0.96, g_head: -0.12, g_ear_L: 0.15, ghand_R: [0.26, 0.12, 0.10]}
+      - ms: 90
+        set: {root: [0, 0, -0.03], ear_L: -0.15, g_lean: 0.10}
+  death:           # worg rears and collapses on its side, the goblin goes over with it
+    loop: false
+    keys:
+      - ms: 90
+        set: {root: [0, 0, -0.06], bob: 0.02, rear: 0.22, squash: 0.92, head_pitch: -0.45, ear_L: -0.6, jaw: 0.5, tail_up: -0.3,
+              ffoot_L: [0.17, -0.47, 0.27], ffoot_R: [0.17, -0.47, 0.27],
+              g_lean: -0.40, g_head: -0.35, g_ear_L: 0.4, ghand_R: [0.30, 0.25, 0.0], ghand_L: [0.28, 0.20, 0.0]}
+      - ms: 100
+        set: {root: [0, 0, -0.08], bob: -0.12, rear: 0.06, roll: 0.6, head_pitch: -0.2, ear_L: -0.5, jaw: 0.4,
+              g_lean: -0.55, g_head: -0.2, g_ear_L: 0.1, ghand_R: [0.32, 0.30, -0.05], ghand_L: [0.30, 0.28, -0.05]}
+      - ms: 110
+        set: {root: [0, 0, -0.08], bob: -0.26, plant: 0, roll: 1.15, head_pitch: 0.1, ear_L: -0.5, jaw: 0.3,
+              ffoot_L: [0.20, -0.45, 0.32], hfoot_L: [0.20, -0.45, -0.32],
+              g_lean: -0.30, g_head: 0.0, g_ear_L: -0.2, ghand_R: [0.32, 0.22, -0.08], ghand_L: [0.32, 0.22, -0.08], gfoot_L: [0.27, -0.10, 0.16]}
+      - ms: 100
+        set: {root: [0, 0, -0.08], bob: -0.33, plant: 0, roll: 1.45, squash: 0.95, head_pitch: 0.25, ear_L: -0.5, jaw: 0.25, tail_up: 0.3,
+              ffoot_L: [0.18, -0.47, 0.36], ffoot_R: [0.16, -0.47, 0.32], hfoot_L: [0.18, -0.47, -0.34], hfoot_R: [0.16, -0.47, -0.30],
+              g_lean: -0.10, g_head: 0.05, g_ear_L: -0.35, ghand_R: [0.32, 0.10, -0.08], ghand_L: [0.32, 0.10, -0.08], gfoot_L: [0.27, -0.10, 0.18]}
+      - ms: 600
+        set: {root: [0, 0, -0.08], bob: -0.34, plant: 0, roll: 1.5, squash: 0.95, head_pitch: 0.3, ear_L: -0.5, jaw: 0.15, tail_up: 0.3,
+              ffoot_L: [0.18, -0.47, 0.36], ffoot_R: [0.16, -0.47, 0.32], hfoot_L: [0.18, -0.47, -0.34], hfoot_R: [0.16, -0.47, -0.30],
+              g_lean: -0.10, g_head: 0.05, g_ear_L: -0.4, ghand_R: [0.34, 0.06, -0.08], ghand_L: [0.34, 0.06, -0.08], gfoot_L: [0.27, -0.10, 0.18]}

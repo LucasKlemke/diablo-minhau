@@ -1,0 +1,185 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_banner_burning
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s): hangs on the hall's north wall
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.6751, 0]}   # 24 px above the pivot -> pivot (32, 56), as castle_banner
+shadow: null             # hangs on the wall
+
+# Prologue (the burning castle): the crimson pennant on fire, then its charred remains.
+brief:
+  summary: castle_banner burning from the bottom up - the swallowtail is gone, the crimson cloth ends in a
+    jagged charred edge under the gold star and flames lick up from it with embers rising; `burnt` keeps only
+    the gold rod, its tassels and a short ragged scorched strip with a few glowing sparks
+  must_keep: [same rod, tassels, crimson, white edging and gold stripe and star as castle_banner, black burn edge, flames]
+  simplify: [burn line as a jagged cut with a charred band under it, flames as swaying tapered chains]
+  exceptions: |
+    Same frame, camera and pivot as castle_banner (size 64, camera.center [0, 1.6751, 0], pivot (32, 56)),
+    so it swaps in place. Flames are emissive (farm `fire` ramp), no outline. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: identical to castle_banner (pivot = ground point under it on the wall line; footprint 0).
+    Channel `burn` moves the burn line (1.85 + 1.05*burn) from 1.85 (burning, `idle`: 8-frame loop at 90 ms) to
+    2.9 (`burnt`: 1 frame, flames off). The lower half is modelled in body space (no `low`/`sway` bone: it
+    is burnt away). Every flame motion is periodic in p (seamless loop).
+
+ramps:
+  bn_red:   ["#1c0f1a", "#6e1d24", "#a82a28", "#c13a2b", "#e0664a"]
+  bn_gold:  ["#1c0f1a", "#804a19", "#e1a227", "#eddc83", "#f8f4dd"]
+  bn_white: ["#1c0f1a", "#d6ccc0", "#f4f0ea", "#ffffff"]
+  bc_char:  ["#1c0f1a", "#1f1416", "#3a2420", "#5a3626"]
+
+materials:
+  cloth: {ramp: bn_red, bands: [2, 3]}
+  pleat: {ramp: bn_red, bands: [1, 1], outline: false, line: false}
+  gold:  {ramp: bn_gold, bands: [2, 4]}
+  stripe: {ramp: bn_gold, bands: [2, 3], outline: false, line: false}
+  edge:  {ramp: bn_white, bands: [2, 3], outline: false, line: false}
+  outer: {ramp: fire, emissive: true, band: 0, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+  mid:   {ramp: fire, emissive: true, band: 1, outline: false}
+  inner: {ramp: fire, emissive: true, band: 2, outline: false}
+  core:  {ramp: fire, emissive: true, band: 3, outline: false}
+  ember: {ramp: fire, emissive: true, band: 2, outline: false}
+  glowing: {ramp: fire, emissive: true, band: 1, outline: false}
+  char:  {ramp: bc_char, bands: [1, 2]}
+
+channels:
+  root: [0, 0, 0]
+  burn: 0            # 0 burning, 1 burnt
+
+bones:
+  body: {parent: root}
+  edge: {parent: body, pos: "[0, (1.85 + 1.05*burn) - 0.06, 0.12]"}     # flames rise from the burn line
+
+parts:
+  cloth:
+    material: cloth
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 2.2, 0.06], half: [0.31, 1.13, 0.025]}
+    cut:
+      - box: {c: [0, "(1.85 + 1.05*burn) - 1.0 - 0.0", 0.06], half: [0.7, 1.0, 0.3]}
+      - box: {c: [-0.2, "(1.85 + 1.05*burn) - 0.0 + 0.03", 0.06], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, "(1.85 + 1.05*burn) - 0.0 + 0.06", 0.06], half: [0.11, 0.11, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.85 + 1.05*burn) - 0.0 + 0.01", 0.06], half: [0.07, 0.07, 0.3], rot: [0, 0, 0.785]}
+  charred:
+    material: char
+    space: body
+    prims:
+      - box: {c: [0, 2.2, 0.05], half: [0.31, 1.13, 0.02]}
+    cut:
+      - box: {c: [0, "(1.85 + 1.05*burn) - 1.0 - 0.18", 0.05], half: [0.7, 1.0, 0.3]}
+      - box: {c: [-0.2, "(1.85 + 1.05*burn) - 0.18 + 0.03", 0.05], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, "(1.85 + 1.05*burn) - 0.18 + 0.06", 0.05], half: [0.11, 0.11, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.85 + 1.05*burn) - 0.18 + 0.01", 0.05], half: [0.07, 0.07, 0.3], rot: [0, 0, 0.785]}
+  glow_edge:
+    material: glowing
+    space: body
+    prims:
+      - sphere: {c: [-0.15, "(1.85 + 1.05*burn) - 0.12", 0.08], r: 0.035}
+      - sphere: {c: [0.16, "(1.85 + 1.05*burn) - 0.10", 0.08], r: 0.03}
+  edging:
+    material: edge
+    space: body
+    prims:
+      - box: {c: [0.28, 2.2, 0.09], half: [0.025, 1.1, 0.01]}
+      - box: {c: [-0.28, 2.2, 0.09], half: [0.025, 1.1, 0.01]}
+    cut:
+      - box: {c: [0, "(1.85 + 1.05*burn) - 1.0 - 0.0", 0.09], half: [0.7, 1.0, 0.3]}
+      - box: {c: [-0.2, "(1.85 + 1.05*burn) - 0.0 + 0.03", 0.09], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, "(1.85 + 1.05*burn) - 0.0 + 0.06", 0.09], half: [0.11, 0.11, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.85 + 1.05*burn) - 0.0 + 0.01", 0.09], half: [0.07, 0.07, 0.3], rot: [0, 0, 0.785]}
+  stripe:
+    material: stripe
+    space: body
+    prims:
+      - box: {c: [0, 2.2, 0.09], half: [0.05, 0.8, 0.01]}
+    cut:
+      - box: {c: [0, "(1.85 + 1.05*burn) - 1.0 - 0.0", 0.09], half: [0.7, 1.0, 0.3]}
+      - box: {c: [-0.2, "(1.85 + 1.05*burn) - 0.0 + 0.03", 0.09], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, "(1.85 + 1.05*burn) - 0.0 + 0.06", 0.09], half: [0.11, 0.11, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.85 + 1.05*burn) - 0.0 + 0.01", 0.09], half: [0.07, 0.07, 0.3], rot: [0, 0, 0.785]}
+  star:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0, 3.0, 0.1], b: [0.0, 3.19, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [0.181, 3.059, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [0.112, 2.846, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [-0.112, 2.846, 0.1], r: [0.07, 0.02]}
+      - cone: {a: [0, 3.0, 0.1], b: [-0.181, 3.059, 0.1], r: [0.07, 0.02]}
+    cut:
+      - box: {c: [0, "(1.85 + 1.05*burn) - 1.0 - 0.0", 0.1], half: [0.7, 1.0, 0.3]}
+      - box: {c: [-0.2, "(1.85 + 1.05*burn) - 0.0 + 0.03", 0.1], half: [0.08, 0.08, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.0, "(1.85 + 1.05*burn) - 0.0 + 0.06", 0.1], half: [0.11, 0.11, 0.3], rot: [0, 0, 0.785]}
+      - box: {c: [0.2, "(1.85 + 1.05*burn) - 0.0 + 0.01", 0.1], half: [0.07, 0.07, 0.3], rot: [0, 0, 0.785]}
+  rod:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cylinder: {a: [-0.45, 3.36, 0.08], b: [0.45, 3.36, 0.08], r: 0.04}
+      - cone: {a: [0.45, 3.36, 0.08], b: [0.62, 3.36, 0.08], r: [0.07, 0.015]}
+      - cone: {a: [-0.45, 3.36, 0.08], b: [-0.62, 3.36, 0.08], r: [0.07, 0.015]}
+      - sphere: {c: [0.44, 3.36, 0.08], r: 0.06}
+      - sphere: {c: [-0.44, 3.36, 0.08], r: 0.06}
+  tassels:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [0.4, 3.32, 0.1], b: [0.42, 3.0, 0.1], r: [0.025, 0.05]}
+      - cone: {a: [-0.4, 3.32, 0.1], b: [-0.42, 3.0, 0.1], r: [0.025, 0.05]}
+  flame_outer:
+    when: "burn < 0.5"
+    material: outer
+    space: edge
+    prims:
+      - chain: {pts: [[-0.200, 0.066, 0.000], ["-0.200 + 0.042*sin(p + 0.63)", "0.000 + 0.5*0.700*(1 + 0.16*sin(1*p + 3.15))", 0.000], ["-0.200 + 0.084*sin(p + 1.53)", "0.000 + 0.700*(1 + 0.16*sin(1*p + 3.15))", 0.000]], r: [0.110, 0.077, 0.012]}
+      - chain: {pts: [[0.000, 0.078, 0.020], ["0.000 + 0.050*sin(p + 0.65)", "0.000 + 0.5*1.000*(1 + 0.16*sin(2*p + 6.24))", 0.020], ["0.000 + 0.100*sin(p + 1.55)", "0.000 + 1.000*(1 + 0.16*sin(2*p + 6.24))", 0.020]], r: [0.130, 0.091, 0.012]}
+      - chain: {pts: [[0.200, 0.060, 0.000], ["0.200 + 0.039*sin(p + 4.92)", "0.000 + 0.5*0.600*(1 + 0.16*sin(2*p + 2.50))", 0.000], ["0.200 + 0.077*sin(p + 5.82)", "0.000 + 0.600*(1 + 0.16*sin(2*p + 2.50))", 0.000]], r: [0.100, 0.070, 0.012]}
+  flame_mid:
+    when: "burn < 0.5"
+    material: mid
+    space: edge
+    prims:
+      - chain: {pts: [[-0.200, 0.282, 0.300], ["-0.200 + 0.033*sin(p + 0.63)", "0.234 + 0.5*0.546*(1 + 0.16*sin(1*p + 3.15))", 0.300], ["-0.200 + 0.065*sin(p + 1.53)", "0.234 + 0.546*(1 + 0.16*sin(1*p + 3.15))", 0.300]], r: [0.079, 0.055, 0.012]}
+      - chain: {pts: [[0.000, 0.290, 0.320], ["0.000 + 0.039*sin(p + 0.65)", "0.234 + 0.5*0.780*(1 + 0.16*sin(2*p + 6.24))", 0.320], ["0.000 + 0.078*sin(p + 1.55)", "0.234 + 0.780*(1 + 0.16*sin(2*p + 6.24))", 0.320]], r: [0.094, 0.066, 0.012]}
+      - chain: {pts: [[0.200, 0.277, 0.300], ["0.200 + 0.030*sin(p + 4.92)", "0.234 + 0.5*0.468*(1 + 0.16*sin(2*p + 2.50))", 0.300], ["0.200 + 0.060*sin(p + 5.82)", "0.234 + 0.468*(1 + 0.16*sin(2*p + 2.50))", 0.300]], r: [0.072, 0.050, 0.012]}
+  flame_inner:
+    when: "burn < 0.5"
+    material: inner
+    space: edge
+    prims:
+      - chain: {pts: [[-0.200, 0.498, 0.600], ["-0.200 + 0.023*sin(p + 0.63)", "0.468 + 0.5*0.385*(1 + 0.16*sin(1*p + 3.15))", 0.600], ["-0.200 + 0.046*sin(p + 1.53)", "0.468 + 0.385*(1 + 0.16*sin(1*p + 3.15))", 0.600]], r: [0.051, 0.035, 0.012]}
+      - chain: {pts: [[0.000, 0.504, 0.620], ["0.000 + 0.028*sin(p + 0.65)", "0.468 + 0.5*0.550*(1 + 0.16*sin(2*p + 6.24))", 0.620], ["0.000 + 0.055*sin(p + 1.55)", "0.468 + 0.550*(1 + 0.16*sin(2*p + 6.24))", 0.620]], r: [0.060, 0.042, 0.012]}
+      - chain: {pts: [[0.200, 0.496, 0.600], ["0.200 + 0.021*sin(p + 4.92)", "0.468 + 0.5*0.330*(1 + 0.16*sin(2*p + 2.50))", 0.600], ["0.200 + 0.043*sin(p + 5.82)", "0.468 + 0.330*(1 + 0.16*sin(2*p + 2.50))", 0.600]], r: [0.046, 0.032, 0.012]}
+  flame_core:
+    when: "burn < 0.5"
+    material: core
+    space: edge
+    prims:
+      - chain: {pts: [[0.000, 0.724, 0.920], ["0.000 + 0.016*sin(p + 0.65)", "0.702 + 0.5*0.320*(1 + 0.16*sin(2*p + 6.24))", 0.920], ["0.000 + 0.032*sin(p + 1.55)", "0.702 + 0.320*(1 + 0.16*sin(2*p + 6.24))", 0.920]], r: [0.036, 0.025, 0.012]}
+  embers:
+    when: "burn < 0.5"
+    material: ember
+    space: edge
+    prims:
+      - sphere: {c: ["0.089 + 0.12*sin(p + 0.0)", "0.500 + 1.100*(p/tau + 0.78 - floor(p/tau + 0.78))", 0.056], r: 0.045}
+      - sphere: {c: ["0.006 + 0.12*sin(p + 1.7)", "0.500 + 1.100*(p/tau + 0.39 - floor(p/tau + 0.39))", 0.199], r: 0.045}
+      - sphere: {c: ["-0.105 + 0.12*sin(p + 3.4)", "0.500 + 1.100*(p/tau + 0.15 - floor(p/tau + 0.15))", -0.022], r: 0.045}
+
+animations:
+  idle:
+    frames: 8
+    ms: 90
+    channels: {burn: 0}
+  burnt:
+    frames: 1
+    ms: 1000
+    channels: {burn: 1}

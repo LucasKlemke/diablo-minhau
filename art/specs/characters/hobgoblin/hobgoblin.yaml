@@ -1,0 +1,325 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: hobgoblin
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.92, 0]}
+shadow: {rx: 9, ry: 3.2, alpha: 120}
+
+# Hobgoblin: disciplined goblin officer of Act III. Hero height (~32 px), same skeleton proportions as
+# the skeleton/bandit (pelvis 0.50, head 1.8x). Project style: flat 2-3 tones, dark outline, chibi, snappy.
+brief:
+  summary: >
+    Upright, squared-shouldered hobgoblin soldier: orange-red skin, goblin pointy ears sticking out under
+    an iron kettle helmet with a tall red crest (the officer's mark), glowing yellow eyes, dark tunic under
+    a small iron breastplate and one pauldron, leather belt, dark boots. Round wooden shield with an iron
+    rim and boss on the left arm, short steel sword in the right hand.
+  must_keep: [red helmet crest, iron helmet, pointy ears, round shield, short sword, orange-red skin]
+  simplify: [no fingers, no teeth, the breastplate is one plate, the crest is a single rounded fin]
+  decisions:
+    - orange-red skin (spec-local ramp) is warmer and more orange than the crest so the crimson crest stays the accent
+    - tunic in the dark `cloth` ramp so skin, iron and crest separate by value
+    - stands upright (lean 0.04) to read as disciplined, unlike the hunched goblin; walk is a measured march
+    - ears are the goblin's shape but shorter, so it reads as kin
+    - attack is a diagonal slash from the right shoulder behind the raised shield
+  exceptions: none (frame 48, scale 0.055, pitch 38, project light)
+
+ramps:
+  hob_skin: ["#1c0f1a", "#6e2618", "#b9502a", "#e07a3e", "#f4ad6e"]
+  crest:    ["#1c0f1a", "#5e1022", "#a8202f", "#dc3a3f", "#f27a6e"]
+
+materials:
+  skin:    {ramp: hob_skin, bands: [1, 3]}
+  ear_in:  {ramp: hob_skin, bands: [1, 2], outline: false}
+  iron:    {ramp: steel, bands: [1, 3]}
+  helm:    {ramp: steel, bands: [1, 2]}
+  crest:   {ramp: crest, bands: [1, 3]}
+  tunic:   {ramp: cloth, bands: [1, 3]}
+  leather: {ramp: leather, bands: [1, 3]}
+  boot:    {ramp: hair, bands: [1, 2]}
+  wood:    {ramp: wood, bands: [1, 3]}
+  eye:     {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.35, radius: 1}}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.04
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  ear_L: 0          # ear perk (+ up, - droop)
+  crest: 0          # crest sway (-1..1)
+  hand_L: [0.15, 0.14, 0.24]
+  hand_R: [0.27, 0.06, 0.13]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  sword_rot: 0      # sword pitch in the hand (radians), 0 = tip up-forward
+  sword_roll: 0     # sword tilt outward (+) / inward (-)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.42
+  smear_y: 0.75
+  smear_z: 0.10
+  smear_fade: 1
+  smear_roll: 0.8   # tilt of the smear plane (diagonal slash)
+
+bones:
+  body:      {parent: root, scale: 1.15}
+  torso_rot: {parent: body, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.42, 0.03], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5 - 0.15, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  crestb:    {parent: head, pos: [0, 0.25, 0], rot: "[-crest*0.25, 0, 0]"}
+  ear_L:     {parent: head, pos: [0.11, 0.11, -0.01], rot: "[0, 0.2, ear_L]"}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.32, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.01, 0.0]}
+  legyaw:     {parent: body, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: body, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  blade:      {parent: torso_rot, at: wrist_R, rot: "[0.3 + sword_rot, 0, 0.40 + sword_roll]"}
+  shieldb:    {parent: torso_rot, at: wrist_L, rot: [0, -1.25, 0]}
+  fxspace:    {parent: body, pos: [-0.06, 0, 0], rot: "[0, twist*0.3, 0]"}
+  smearspace: {parent: fxspace, pos: "[0, smear_y, smear_z]", rot: "[0, 0, smear_roll]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: body, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.23, 0.21],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # dark tunic, squared shoulders
+    material: tunic
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.10, 0.0], r: [0.14, 0.12, 0.11]}
+      - ellipsoid: {c: [0, 0.27, 0.0], r: [0.18, 0.10, 0.11]}
+  skirt:           # tunic skirt
+    material: tunic
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.04, 0], b: [0, -0.12, 0], r: [0.14, 0.165]}
+  breastplate:     # boiled-leather cuirass
+    material: leather
+    space: pelvis
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0.22, 0.04], r: [0.15, 0.12, 0.10]}
+  pauldron_L:      # iron pauldron
+    material: iron
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0.19, 0.33, 0.0], r: [0.085, 0.06, 0.09], rot: [0, 0, -0.35]}
+  belt:
+    material: leather
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.03, 0], b: [0, 0.08, 0], r: 0.15}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.33, 0.0], b: [0, 0.43, 0.02], r: [0.05, 0.045]}
+  head:            # orange-red goblinoid head, strong jaw
+    material: skin
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.0], r: [0.12, 0.11, 0.115]}
+      - ellipsoid: {c: [0, 0.05, 0.04], r: [0.10, 0.06, 0.09]}
+      - cone: {a: [0, 0.10, 0.10], b: [0, 0.075, 0.16], r: [0.028, 0.014]}   # nose
+  helmet:          # iron kettle helmet with a brim
+    material: helm
+    space: head
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0.165, -0.01], r: [0.128, 0.095, 0.128]}
+      - cylinder: {a: [0, 0.150, -0.01], b: [0, 0.168, -0.01], r: 0.15, round: 0.008}
+    cut:
+      - box: {c: [0, 0.0, 0], half: [0.3, 0.15, 0.3]}
+  crest:           # tall red crest, front to back (officer)
+    material: crest
+    space: crestb
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.02], r: [0.03, 0.08, 0.14]}
+      - ellipsoid: {c: [0, 0.02, -0.14], r: [0.028, 0.06, 0.06]}
+  ear_L:           # pointy ear sticking out under the helmet
+    material: skin
+    space: ear_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0], b: [0.15, 0.05, -0.04], r: [0.045, 0.008]}
+  ear_in_L:
+    material: ear_in
+    space: ear_L
+    prims:
+      - cone: {a: [0.025, -0.005, 0.025], b: [0.11, 0.035, -0.01], r: [0.025, 0.006]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.048, 0.11, 0.10], r: 0.028}
+  arm_L:
+    material: skin
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.055}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.05, 0.042]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.042, 0.04]}
+  bracer_L:
+    material: leather
+    prims:
+      - cone: {a: {between: ["@elbow_L", "@wrist_L"], t: 0.4}, b: {between: ["@elbow_L", "@wrist_L"], t: 0.95}, r: [0.046, 0.044]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.03], r: 0.045}
+  leg_L:
+    material: tunic
+    blend: 0.02
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.06, 0.05]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.05, 0.045]}
+  boot_L:
+    material: boot
+    space: sole_L
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.01, 0.0], r: [0.055, 0.05]}
+      - ellipsoid: {c: [0, -0.025, 0.05], r: [0.05, 0.035, 0.09]}
+  shield:          # round wooden shield on the left arm, facing out
+    material: wood
+    space: shieldb
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0.04, 0.03, 0], b: [0.07, 0.03, 0], r: 0.195, round: 0.01}
+  shield_iron:
+    material: iron
+    space: shieldb
+    prims:
+      - sphere: {c: [0.08, 0.03, 0], r: 0.045}                                      # boss
+      - torus: {c: [0.065, 0.03, 0], R: 0.185, r: 0.02, rot: [0, 0, 1.5708]}        # rim
+  shield_band:     # red officer band across the shield
+    material: crest
+    space: shieldb
+    prims:
+      - box: {c: [0.075, 0.03, 0], half: [0.008, 0.04, 0.175]}
+  sword:           # short steel sword, right hand only
+    material: iron
+    space: blade
+    blend: 0.01
+    prims:
+      - box: {c: [0, 0.20, 0], half: [0.018, 0.15, 0.04], round: 0.006}
+      - cone: {a: [0, 0.35, 0], b: [0, 0.41, 0], r: [0.035, 0.008]}
+  hilt:
+    material: leather
+    space: blade
+    prims:
+      - box: {c: [0, 0.045, 0.0], half: [0.022, 0.015, 0.07], round: 0.006}
+      - cylinder: {a: [0, -0.06, 0], b: [0, 0.035, 0], r: 0.022}
+      - sphere: {c: [0, -0.07, 0], r: 0.028}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: smearspace
+    prims:
+      - arc: {c: [0, 0, 0], r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.08}
+
+sockets:
+  hit: {bone: blade, offset: [0, 0.25, 0.0]}
+  head: {bone: head, offset: [0, 0.40, 0]}
+
+
+timing: {attack: {hit: 280ms}}
+
+animations:
+  idle:            # alert guard stance, crest sways
+    frames: 4
+    ms: 170
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      hand_L: "[0.15, 0.14 + 0.02*sin(p - 0.6), 0.24]"
+      hand_R: "[0.27, 0.06 + 0.02*sin(p - 0.6), 0.13]"
+      sword_rot: "0.05*sin(p - 0.8)"
+      ear_L: "0.15*(f == 1)"
+      crest: "0.3*sin(p - 1.0)"
+  walk:            # measured march: upright, steady steps, shield held in front
+    frames: 6
+    ms: 105
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "-0.025*cos(2*p) + 0.005"
+      twist: "0.07*cos(p)"
+      foot_L: "[0.09, 0.07*pos(-sin(p)), 0.02 + 0.13*cos(p)]"
+      foot_R: "[0.09, 0.07*pos(sin(p)), 0.02 - 0.13*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.15, 0.14 + 0.015*cos(2*p), 0.24]"
+      hand_R: "[0.27, 0.06, 0.13 + 0.08*cos(p)]"
+      sword_rot: "-0.05 - 0.08*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      crest: "0.5*sin(2*p - 0.8)"
+  attack:          # diagonal slash from the right shoulder, shield held forward
+    loop: false
+    keys:
+      - ms: 90
+        set: {twist: -0.15, hand_R: [0.28, 0.32, 0.04], sword_rot: -0.6, hand_L: [0.13, 0.18, 0.26],
+              squash: 0.97, crest: -0.3}
+      - ms: 140
+        event: windup
+        set: {twist: -0.35, lean: -0.05, bob: -0.02, squash: 0.93, head_pitch: -0.08, hand_R: [0.24, 0.58, -0.06], sword_rot: -1.1, sword_roll: 0.2,
+              hand_L: [0.12, 0.22, 0.28], foot_L: [0.09, 0, 0.08], foot_R: [0.09, 0, -0.04], crest: -0.6, ear_L: 0.2}
+      - ms: 50
+        set: {root: [0, 0, 0.05], twist: 0.10, lean: 0.15, squash: 1.05, hand_R: [0.10, 0.42, 0.30], sword_rot: 0.2, sword_roll: -0.4,
+              hand_L: [0.18, 0.16, 0.18], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06], crest: 0.3,
+              smear_a0: -2.6, smear_a1: -1.0, smear_w: 0.07}
+      - ms: 90
+        event: hit
+        set: {root: [0, 0, 0.08], twist: 0.35, lean: 0.25, squash: 0.97, hand_R: [-0.06, 0.18, 0.30], sword_rot: 1.2, sword_roll: -0.9,
+              hand_L: [0.22, 0.12, 0.10], foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.08], crest: 0.7, ear_L: -0.15,
+              smear_a0: -2.6, smear_a1: 0.2, smear_w: 0.08}
+      - ms: 80
+        set: {root: [0, 0, 0.07], twist: 0.40, lean: 0.22, hand_R: [-0.08, 0.12, 0.24], sword_rot: 1.4, sword_roll: -0.9,
+              hand_L: [0.22, 0.12, 0.10], foot_L: [0.09, 0, 0.14], foot_R: [0.09, 0, -0.06], crest: 0.4,
+              smear_a0: -0.8, smear_a1: 0.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 90
+        set: {root: [0, 0, 0.02], twist: 0.10, lean: 0.08, hand_R: [0.22, 0.08, 0.16], sword_rot: 0.3, crest: 0.1}
+  hit:             # knocked back behind the shield
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.22, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, ear_L: 0.35, crest: 0.7,
+                       hand_L: [0.18, 0.22, 0.20], hand_R: [0.32, 0.14, 0.04], sword_rot: -0.4, foot_R: [0.09, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.08, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.08, ear_L: 0.15, crest: 0.3,
+                       hand_L: [0.16, 0.18, 0.22], hand_R: [0.30, 0.10, 0.08], sword_rot: -0.2, foot_R: [0.09, 0, -0.04]}}
+      - {ms: 100, set: {lean: 0.02, root: [0, 0, -0.02], crest: -0.1}}
+  death:           # staggers, drops to the knees, falls forward on the shield
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.25, squash: 0.95, head_pitch: -0.3, ear_L: 0.4, root: [0, 0, -0.05], crest: 0.6,
+                        hand_L: [0.24, 0.20, 0.10], hand_R: [0.32, 0.18, 0.0], sword_rot: -0.6}}
+      - {ms: 110, set: {bob: -0.16, lean: 0.20, squash: 0.94, head_pitch: 0.2, ear_L: -0.1, crest: -0.3,
+                        hand_L: [0.22, 0.02, 0.20], hand_R: [0.30, 0.0, 0.16], sword_rot: 0.6,
+                        foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0, -0.12]}}
+      - {ms: 110, set: {bob: -0.30, root: "[0, 0, -0.06*pulse(yaw, 70, 90)]", lean: 0.75, squash: 0.92, head_pitch: 0.3, ear_L: -0.3, crest: 0.4,
+                        hand_L: [0.24, -0.10, 0.30], hand_R: [0.30, -0.10, 0.28], sword_rot: 0.7, sword_roll: -0.5,
+                        foot_L: [0.10, 0.04, -0.06], foot_R: [0.10, 0.04, -0.14]}}
+      - {ms: 110, set: {bob: "-0.40", root: "[0, 0, 0.02 - 0.20*pulse(yaw, 0, 120) - 0.10*pulse(yaw, 70, 90)]", lean: 1.35, squash: 0.95, head_pitch: 0.2, ear_L: -0.4, crest: 0.8,
+                        hand_L: [0.26, -0.20, 0.24], hand_R: [0.30, -0.20, 0.24], sword_rot: 0.6, sword_roll: -0.7,
+                        foot_L: [0.10, 0.10, -0.18], foot_R: [0.10, 0.08, -0.24]}}
+      - {ms: 700, event: dead, set: {bob: -0.42, root: "[0, 0, 0.02 - 0.20*pulse(yaw, 0, 120) - 0.10*pulse(yaw, 70, 90)]", lean: 1.45, squash: 1.0, head_pitch: 0.15, ear_L: -0.45, crest: 0.3,
+                        hand_L: [0.28, -0.22, 0.22], hand_R: [0.32, -0.22, 0.22], sword_rot: 0.6, sword_roll: -0.7,
+                        foot_L: [0.10, 0.06, -0.18], foot_R: [0.10, 0.05, -0.24]}}

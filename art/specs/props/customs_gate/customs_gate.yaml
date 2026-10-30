@@ -1,0 +1,269 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: customs_gate
+kind: prop
+view: topdown
+size: 128                # closed ~4.6 units wide (84 px), open ~5.6 units; 2+ px margins
+directions: 1            # faces the camera (s); the barricade runs left-right across the road
+mirror: false
+palette: ["farm", "ruin"]
+camera: {pitch: 38, scale: 0.055, center: [0, 0.8376, 0]}   # 12 px above the pivot -> pivot (64, 76)
+shadow: {rx: 46, ry: 9, alpha: 110}
+
+# Estrada dos Bandidos: Polvo's blockade closing the road into the arena "Alfândega Real".
+brief:
+  summary: a heavy bandit barricade across the road - two farm carts turned broadside at the ends, loaded
+    with crates and sacks and bristling with sharpened stakes; between them a thick toll bar painted in
+    Polvo's green and yellow bands, resting in a forked post and pivoting on a heavy post with a stone
+    counterweight; in front a spiked log (cheval-de-frise) with crossed sharpened stakes; a tall pole on the
+    pivot post flies a torn green banner with a yellow stripe and lozenge
+  must_keep: [closed = no gap anywhere, carts at the ends, green/yellow toll bar, spiked log in front,
+    torn green-yellow banner (Polvo's colours, same ramps as podium_carts), open = bar raised high, spiked
+    log dragged aside, carts pushed apart leaving a clear middle lane]
+  simplify: [no lettering, sacks as blobs, stakes as cones]
+  exceptions: |
+    kind prop, size 128, directions 1, mirror false; camera.center [0, 0.8376, 0] (integer pivot).
+    Ramps from palettes/ruin.yaml + spec-local (index 0 = #1c0f1a); the green/yellow are podium_carts'
+    pc_green / pc_yellow. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 64,76) is the ground point at the centre of the
+    barricade line; place it like crypt, on the centre of the middle tile of a 5-tile run. CLOSED: blocks 5x1
+    tiles (x -2.3..2.3, z -0.45..0.45); the spiked log pokes ~0.5 into the row in front (block 5x2 if the hero
+    must not overlap it). OPEN: the bar stands up on the pivot post (x -0.92, tile -1), the rest post lies
+    flat, the carts are pushed out and the spiked log lies along the right cart: the middle tile and the
+    one right of it (tiles 0 and +1, x -0.44..1.32) are a clear 2-tile lane; tiles -2, -1 and +2 stay blocked.
+    Clips: idle (= closed, 4 frames, the banner flutters), open (non-looping 3 keys: closed,
+    opening, open; event `opened` on the last), opened (open, banner flutters), variants (2 frames:
+    0 closed, 1 open, static).
+
+ramps:
+  cg_green:  ["#1c0f1a", "#163a1e", "#225426", "#367030"]
+  cg_yellow: ["#1c0f1a", "#8a6a18", "#b8901e", "#d4b03a"]
+  cg_sack:   ["#1c0f1a", "#665a48", "#83765c", "#a09074"]
+  cg_crate:  ["#1c0f1a", "#4a3220", "#6e5030", "#927044", "#b08a56"]
+
+materials:
+  wood:    {ramp: rwood, bands: [1, 3]}
+  plank:   {ramp: rplank, bands: [1, 3]}
+  stake:   {ramp: rcrop, bands: [1, 3]}
+  tip:     {ramp: rbone, bands: [3, 4], line: false}
+  iron:    {ramp: riron, bands: [1, 3]}
+  stone:   {ramp: rstone, bands: [1, 3]}
+  rope:    {ramp: rrope, bands: [1, 2], line: false}
+  sack:    {ramp: cg_sack, bands: [1, 3]}
+  green:   {ramp: cg_green, bands: [1, 3], two_sided: true}
+  yellow:  {ramp: cg_yellow, bands: [1, 3], line: false, two_sided: true}
+  crate:   {ramp: cg_crate, bands: [1, 4]}
+  dirt:    {ramp: rmud, bands: [1, 2], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  o: 0               # 0 closed .. 1 open
+  wave: 0            # banner flutter
+
+bones:
+  body:    {parent: root}
+  cart_l:  {parent: body, pos: ["-1.62 - 0.45*o", 0, "-0.05 - 0.25*o"], rot: [0, "0.10 + 0.30*o", 0]}
+  cart_r:  {parent: body, pos: ["1.62 + 0.50*o", 0, "0.0 - 0.20*o"], rot: [0, "-0.10 - 0.35*o", 0]}
+  pivot:   {parent: body, pos: [-0.92, 0, 0.0]}                                # heavy pivot post
+  bar:     {parent: pivot, pos: [0, 0.92, 0], rot: [0, 0, "1.30*o"]}            # toll bar swings up
+  spikes:  {parent: body, pos: ["0.05 + 2.40*o", 0, "0.62 + 0.10*o"], rot: [0, "-1.50*o", 0]}  # swung alongside the right cart
+  rest:    {parent: body, pos: [0.95, 0, 0.0], rot: [0, 0, "-1.45*o"]}           # knocked flat to the right when open
+  flag:    {parent: pivot, pos: [0, 2.30, 0]}
+
+parts:
+  road:              # churned dirt under the barricade
+    material: dirt
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.0, 0.20], r: [2.40, 0.02, 0.62]}
+  # ---------------- carts at the ends ----------------
+  cart_beds:
+    material: plank
+    space: cart_l
+    line: true
+    prims: &bed
+      - box: {c: [0, 0.55, 0], half: [0.58, 0.22, 0.42], round: 0.02}
+      - box: {c: [0, 0.82, -0.40], half: [0.58, 0.06, 0.03]}                 # back rail
+  cart_wheels_l:
+    material: wood
+    space: cart_l
+    line: true
+    prims: &wheels
+      - torus: {c: [0.05, 0.36, 0.46], R: 0.34, r: 0.065, rot: [1.5708, 0, 0]}
+      - cylinder: {a: [-0.27, 0.36, 0.46], b: [0.37, 0.36, 0.46], r: 0.032}
+      - cylinder: {a: [0.05, 0.04, 0.46], b: [0.05, 0.68, 0.46], r: 0.032}
+      - cylinder: {a: [0.05, 0.36, 0.40], b: [0.05, 0.36, 0.52], r: 0.07}      # hub
+  cart_load_l:       # crates and sacks
+    material: crate
+    space: cart_l
+    line: true
+    prims:
+      - box: {c: [-0.25, 0.95, 0.02], half: [0.22, 0.18, 0.20], rot: [0, 0.2, 0], round: 0.02}
+      - box: {c: [0.28, 0.92, -0.08], half: [0.20, 0.16, 0.18], rot: [0, -0.3, 0.05], round: 0.02}
+  cart_sacks_l:
+    material: sack
+    space: cart_l
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0.30, 1.12, 0.05], r: [0.20, 0.14, 0.16]}
+      - ellipsoid: {c: [-0.30, 1.18, -0.10], r: [0.18, 0.13, 0.15]}
+  cart_stakes_l:     # sharpened stakes lashed to the cart, pointing out at the road
+    material: stake
+    space: cart_l
+    line: true
+    prims: &cstakes
+      - cone: {a: [-0.45, 0.75, 0.0], b: [-0.85, 1.65, 0.30], r: [0.06, 0.012]}
+      - cone: {a: [-0.05, 0.80, -0.20], b: [-0.10, 1.85, 0.05], r: [0.06, 0.012]}
+      - cone: {a: [0.42, 0.75, 0.0], b: [0.80, 1.60, 0.30], r: [0.06, 0.012]}
+  cart_beds_r:
+    material: plank
+    space: cart_r
+    line: true
+    prims: *bed
+  cart_wheels_r:
+    material: wood
+    space: cart_r
+    line: true
+    prims: *wheels
+  cart_load_r:
+    material: crate
+    space: cart_r
+    line: true
+    prims:
+      - box: {c: [0.22, 0.95, 0.0], half: [0.22, 0.18, 0.20], rot: [0, -0.2, 0], round: 0.02}
+      - box: {c: [-0.22, 0.90, -0.05], half: [0.20, 0.14, 0.18], rot: [0, 0.3, -0.04], round: 0.02}
+      - box: {c: [0.0, 1.25, -0.05], half: [0.18, 0.14, 0.16], rot: [0, 0.1, 0], round: 0.02}
+  cart_stakes_r:
+    material: stake
+    space: cart_r
+    line: true
+    prims: *cstakes
+  cart_banner_r:     # torn strip of banner nailed on the right cart's side
+    material: green
+    space: cart_r
+    line: true
+    prims:
+      - box: {c: [-0.10, 0.55, 0.435], half: [0.36, 0.13, 0.012], rot: [0, 0, -0.12]}
+    cut:
+      - box: {c: [0.22, 0.40, 0.44], half: [0.07, 0.07, 0.05], rot: [0, 0, 0.7]}
+  cart_banner_r_y:
+    material: yellow
+    space: cart_r
+    prims:
+      - box: {c: [-0.10, 0.60, 0.45], half: [0.34, 0.025, 0.01], rot: [0, 0, -0.12]}
+      - box: {c: [-0.18, 0.52, 0.45], half: [0.07, 0.07, 0.01], rot: [0, 0, 0.785]}
+  # ---------------- toll bar ----------------
+  pivot_post:
+    material: wood
+    space: pivot
+    line: true
+    prims:
+      - cylinder: {a: [0, 0, 0], b: [0, 1.05, 0], r: 0.11, round: 0.02}
+      - cylinder: {a: [0, 1.0, 0], b: [0, 2.40, 0], r: 0.04}                  # flag pole
+  counterweight:     # stone hung from the short end of the bar
+    material: stone
+    space: bar
+    line: true
+    prims:
+      - box: {c: [-0.42, -0.16, 0], half: [0.16, 0.14, 0.14], rot: [0, 0.3, 0.1], round: 0.04}
+  cw_rope:
+    material: rope
+    space: bar
+    prims:
+      - cylinder: {a: [-0.40, 0.0, 0], b: [-0.42, -0.06, 0], r: 0.025}
+  bar_log:           # the bar, banded green and yellow
+    material: green
+    space: bar
+    line: true
+    prims:
+      - cylinder: {a: [-0.45, 0, 0], b: [1.95, 0, 0], r: 0.10}
+  bar_bands:
+    material: yellow
+    space: bar
+    prims:
+      - cylinder: {a: [0.20, 0, 0], b: [0.45, 0, 0], r: 0.105}
+      - cylinder: {a: [0.80, 0, 0], b: [1.05, 0, 0], r: 0.105}
+      - cylinder: {a: [1.40, 0, 0], b: [1.65, 0, 0], r: 0.105}
+  bar_pin:
+    material: iron
+    space: bar
+    prims:
+      - cylinder: {a: [0, 0, -0.14], b: [0, 0, 0.14], r: 0.04}
+  rest_post:         # forked post the bar rests in (closed), knocked flat when open
+    material: wood
+    space: rest
+    line: true
+    prims:
+      - cylinder: {a: [0, 0, 0.0], b: [0, 0.84, 0.0], r: 0.075}
+      - cone: {a: [0, 0.82, 0.0], b: [-0.10, 1.05, 0.0], r: [0.04, 0.02]}
+      - cone: {a: [0, 0.82, 0.0], b: [0.10, 1.05, 0.0], r: [0.04, 0.02]}
+  # ---------------- spiked log in front ----------------
+  spike_log:
+    material: wood
+    space: spikes
+    line: true
+    prims:
+      - cylinder: {a: [-0.90, 0.34, 0], b: [0.90, 0.34, 0], r: 0.12}
+  spike_stakes:      # crossed stakes through the log, splayed so the X reads from the front
+    material: stake
+    space: spikes
+    line: true
+    prims:
+      - cone: {a: [-0.95, 0.0, -0.05], b: [-0.40, 1.0, 0.12], r: [0.06, 0.014]}
+      - cone: {a: [-0.40, 0.0, -0.05], b: [-0.95, 1.0, 0.12], r: [0.06, 0.014]}
+      - cone: {a: [-0.28, 0.0, -0.05], b: [0.28, 1.0, 0.12], r: [0.06, 0.014]}
+      - cone: {a: [0.28, 0.0, -0.05], b: [-0.28, 1.0, 0.12], r: [0.06, 0.014]}
+      - cone: {a: [0.40, 0.0, -0.05], b: [0.95, 1.0, 0.12], r: [0.06, 0.014]}
+      - cone: {a: [0.95, 0.0, -0.05], b: [0.40, 1.0, 0.12], r: [0.06, 0.014]}
+  spike_tips:
+    material: tip
+    space: spikes
+    prims:
+      - sphere: {c: [-0.95, 0.98, 0.12], r: 0.035}
+      - sphere: {c: [-0.40, 0.98, 0.12], r: 0.035}
+      - sphere: {c: [-0.28, 0.98, 0.12], r: 0.035}
+      - sphere: {c: [0.28, 0.98, 0.12], r: 0.035}
+      - sphere: {c: [0.40, 0.98, 0.12], r: 0.035}
+      - sphere: {c: [0.95, 0.98, 0.12], r: 0.035}
+  # ---------------- Polvo's banner ----------------
+  banner:            # torn green flag hanging from the pole, fluttering
+    material: green
+    space: flag
+    line: true
+    prims:
+      - box: {c: [0.36, -0.30, 0], half: [0.34, 0.26, 0.015], rot: ["0", "0.25*wave", "-0.06 - 0.05*wave"]}
+    cut:
+      - box: {c: [0.66, -0.58, 0], half: [0.12, 0.12, 0.1], rot: [0, 0, 0.7]}     # torn corner
+      - box: {c: [0.30, -0.60, 0], half: [0.06, 0.08, 0.1], rot: [0, 0, 0.5]}     # rip
+  banner_y:
+    material: yellow
+    space: flag
+    prims:
+      - box: {c: [0.36, -0.12, 0.012], half: [0.32, 0.03, 0.01], rot: ["0", "0.25*wave", "-0.06 - 0.05*wave"]}
+      - box: {c: [0.34, -0.33, 0.016], half: [0.09, 0.09, 0.01], rot: ["0", "0.25*wave", "0.725 - 0.05*wave"]}
+  finial:
+    material: iron
+    space: flag
+    prims:
+      - cone: {a: [0, 0.08, 0], b: [0, 0.22, 0], r: [0.04, 0.008]}
+
+animations:
+  idle:              # closed; the banner flutters (seamless)
+    frames: 4
+    ms: 160
+    channels: {o: 0, wave: "sin(p)"}
+  open:              # the blockade is pulled aside: closed, opening, open
+    loop: false
+    keys:
+      - {ms: 260, set: {o: 0}}
+      - {ms: 200, set: {o: 0.5, wave: 0.6}}
+      - {ms: 400, event: opened, set: {o: 1}}
+  opened:            # stays open; the banner flutters (seamless)
+    frames: 4
+    ms: 160
+    channels: {o: 1, wave: "sin(p)"}
+  variants:          # frame 0 closed, frame 1 open (static)
+    frames: 2
+    ms: 1000
+    channels: {o: "f", wave: 0}

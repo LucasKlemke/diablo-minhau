@@ -1,0 +1,169 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: mossy_rock
+kind: prop
+view: topdown
+size: 64
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.1167, 0]}   # 16 px above the pivot -> pivot (32, 48)
+shadow: null             # each variant draws its own ground shadow (the sizes differ a lot)
+
+# Act I wilds (Mata dos Lobos): jagged crags with moss.
+brief:
+  summary: jagged, pointed crag of cold slate-grey stone, a cluster of leaning shards with sharp tips and flat
+    broken facets, dark moss creeping over the upward faces and the base; three sizes
+  must_keep: [pointed shards (sharp tips), faceted flat faces with light tops, dark moss on the tops and
+    base, cold grey that contrasts with the warm dead grass]
+  simplify: [facets are rotated boxes; moss is flattened lumps on top faces]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false; camera.center [0, 1.1167, 0] (integer pivot);
+    shadow null (each variant has a flat dark ellipse part as its shadow). camera.scale/pitch/light untouched.
+    Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 32,48) is the ground point at the centre of the
+    rock's base. VARIANTS: animation `variants` has 3 frames (frame i = variant i); `idle` = variant 0.
+    0 small (~1 tile, 1 blocking tile), 1 medium (~2x1 tiles, blocks 2x1), 2 large (~3x2 tiles, blocks 3x2).
+    Moss is a dark desaturated green (it would follow a biome recolour like grass does).
+
+ramps:
+  mr_stone:  ["#1c0f1a", "#2c2a34", "#45424e", "#625e6a", "#87828c"]
+  mr_moss:   ["#1c0f1a", "#22301e", "#344a27", "#4b6232", "#66783e"]
+  mr_shadow: ["#1c0f1a", "#262418"]
+
+materials:
+  stone:  {ramp: mr_stone, bands: [1, 4]}
+  moss:   {ramp: mr_moss, bands: [1, 4], line: false}
+  shadow: {ramp: mr_shadow, emissive: true, band: 1, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  var: 0             # variant 0..2
+
+bones:
+  body: {parent: root}
+  v0: {parent: body, scale: 0.55}
+  v1: {parent: body, scale: 0.85}
+  v2: {parent: body, scale: 1.25}
+
+parts:
+  # One crag model, scaled per variant; the big ones get extra shards.
+  shadow0:
+    when: "var < 0.5"
+    material: shadow
+    space: v0
+    prims:
+      - ellipsoid: {c: [0.05, 0.0, 0.05], r: [0.75, 0.01, 0.50]}
+  shadow1:
+    when: "abs(var - 1) < 0.5"
+    material: shadow
+    space: v1
+    prims:
+      - ellipsoid: {c: [0.05, 0.0, 0.05], r: [0.95, 0.01, 0.55]}
+  shadow2:
+    when: "var > 1.5"
+    material: shadow
+    space: v2
+    prims:
+      - ellipsoid: {c: [0.05, 0.0, 0.05], r: [1.05, 0.01, 0.62]}
+
+  crag0:
+    when: "var < 0.5"
+    material: stone
+    space: v0
+    line: true
+    blend: 0.02
+    prims: &crag
+      - box: {c: [0, 0.40, 0], half: [0.32, 0.55, 0.30], rot: [0.12, 0.5, -0.12], round: 0.03}       # main shard
+      - box: {c: [0.04, 0.95, -0.02], half: [0.16, 0.28, 0.16], rot: [0.12, 0.8, -0.18], round: 0.02}
+      - cone: {a: [0.06, 1.10, -0.02], b: [0.16, 1.55, -0.04], r: [0.14, 0.02]}                    # sharp tip
+      - box: {c: [-0.42, 0.25, 0.10], half: [0.22, 0.34, 0.22], rot: [0.1, -0.4, 0.28], round: 0.03}  # left shard
+      - cone: {a: [-0.44, 0.45, 0.10], b: [-0.62, 0.88, 0.08], r: [0.13, 0.02]}
+      - box: {c: [0.44, 0.18, 0.14], half: [0.22, 0.22, 0.20], rot: [0, 0.3, -0.25], round: 0.03}    # right block
+      - cone: {a: [0.46, 0.30, 0.14], b: [0.60, 0.60, 0.16], r: [0.12, 0.02]}
+  moss0:
+    when: "var < 0.5"
+    material: moss
+    space: v0
+    blend: 0.03
+    prims: &moss
+      - ellipsoid: {c: [-0.08, 0.92, 0.06], r: [0.26, 0.09, 0.22]}
+      - ellipsoid: {c: [-0.42, 0.56, 0.18], r: [0.20, 0.08, 0.18]}
+      - ellipsoid: {c: [0.42, 0.38, 0.20], r: [0.20, 0.08, 0.16]}
+      - ellipsoid: {c: [0, 0.06, 0.32], r: [0.44, 0.10, 0.12]}
+      - ellipsoid: {c: [-0.48, 0.05, 0.28], r: [0.22, 0.07, 0.10]}
+
+  crag1:
+    when: "abs(var - 1) < 0.5"
+    material: stone
+    space: v1
+    line: true
+    blend: 0.02
+    prims: *crag
+  crag1_extra:
+    when: "abs(var - 1) < 0.5"
+    material: stone
+    space: v1
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0.82, 0.22, -0.06], half: [0.18, 0.30, 0.18], rot: [0, 0.6, -0.3], round: 0.03}
+      - cone: {a: [0.84, 0.40, -0.06], b: [1.00, 0.78, -0.08], r: [0.11, 0.02]}
+      - box: {c: [0.20, 0.08, 0.46], half: [0.14, 0.08, 0.12], rot: [0, 0.4, 0.1], round: 0.03}   # loose stone
+  moss1:
+    when: "abs(var - 1) < 0.5"
+    material: moss
+    space: v1
+    blend: 0.03
+    prims: *moss
+  moss1_extra:
+    when: "abs(var - 1) < 0.5"
+    material: moss
+    space: v1
+    prims:
+      - ellipsoid: {c: [0.84, 0.50, 0.04], r: [0.12, 0.05, 0.10]}
+
+  crag2:
+    when: "var > 1.5"
+    material: stone
+    space: v2
+    line: true
+    blend: 0.02
+    prims: *crag
+  crag2_extra:
+    when: "var > 1.5"
+    material: stone
+    space: v2
+    line: true
+    blend: 0.02
+    prims:
+      - box: {c: [0.76, 0.26, -0.18], half: [0.20, 0.36, 0.20], rot: [0, 0.6, -0.3], round: 0.03}
+      - cone: {a: [0.78, 0.48, -0.18], b: [0.96, 0.98, -0.22], r: [0.12, 0.02]}
+      - box: {c: [-0.40, 0.40, -0.34], half: [0.20, 0.45, 0.18], rot: [-0.1, 0.9, 0.12], round: 0.03}
+      - cone: {a: [-0.40, 0.70, -0.34], b: [-0.30, 1.24, -0.40], r: [0.13, 0.02]}
+      - box: {c: [0.30, 0.08, 0.50], half: [0.14, 0.08, 0.12], rot: [0, 0.4, 0.1], round: 0.03}
+      - box: {c: [-0.78, 0.07, 0.36], half: [0.10, 0.07, 0.09], rot: [0, -0.3, 0], round: 0.03}
+  moss2:
+    when: "var > 1.5"
+    material: moss
+    space: v2
+    blend: 0.03
+    prims: *moss
+  moss2_extra:
+    when: "var > 1.5"
+    material: moss
+    space: v2
+    prims:
+      - ellipsoid: {c: [0.78, 0.58, -0.06], r: [0.13, 0.05, 0.10]}
+      - ellipsoid: {c: [-0.40, 0.84, -0.24], r: [0.12, 0.05, 0.10]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {var: 0}
+  variants:
+    frames: 3
+    ms: 1000
+    channels: {var: "f"}

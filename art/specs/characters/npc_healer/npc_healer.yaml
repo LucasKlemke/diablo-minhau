@@ -1,0 +1,226 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_healer
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10, ry: 3.5, alpha: 120}
+
+# Act II swamp-camp NPC "Nadia, a erveira". Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi swamp herbalist and camp leader - older woman, slightly stooped, moss-green hooded shawl worn
+    over the head and down to the hips, mustard-ochre dress to the ground, long grey braid falling over
+    her left shoulder in front, leather belt with herb pouches (green sprigs poking out), tall gnarled
+    crook in the right hand with a small glowing lantern hanging from its hooked top.
+  must_keep: [hood up (green shawl), grey braid over the shoulder, crook with a hanging lantern (warm glow), ochre dress + herb pouches]
+  simplify: [no fingers, legs hidden under the dress, pouches are 2 rounded boxes, sprigs are small green blobs, lantern = dark cage + glowing core]
+  decisions: >
+    Head scale 1.8 (chibi), stoop lean 0.14 (less than the elder's hunch). Distinct from the elder (who
+    also carries a stick): hood up instead of a bald head, the crook is taller and hooks forward with a
+    lantern, green + ochre instead of brown. The lantern core is emissive (warm yellow) - the one light
+    accent of the camp. The crook lives in its own frame at wrist_R, world-vertical like the elder's.
+    Idle: slow breathing, lantern swings a little. Talk: the free left hand rises, palm open, as if
+    offering a remedy.
+
+ramps:
+  shawl_moss: ["#1c0f1a", "#2b3a1c", "#4a6230", "#6f8a40", "#97b05a"]
+  dress_ochre: ["#1c0f1a", "#6a4214", "#a8701e", "#d39a34", "#ecc464"]
+  braid_grey: ["#1c0f1a", "#5c5d6e", "#8f93a3", "#c3c7d2", "#eceef3"]
+  iron: ["#1c0f1a", "#2e2a36", "#4a4554", "#6d6878"]
+  lamp: ["#a85a10", "#f0a830", "#ffe27a", "#fff6c8"]
+
+materials:
+  skin:  {ramp: skin, bands: [2, 4], line_band: 2}
+  shawl: {ramp: shawl_moss, bands: [1, 3]}
+  dress: {ramp: dress_ochre, bands: [1, 3]}
+  braid: {ramp: braid_grey, bands: [1, 2]}
+  belt:  {ramp: leather, bands: [1, 3]}
+  herb:  {ramp: cloth_green, bands: [1, 3]}
+  wood:  {ramp: wood, bands: [1, 3]}
+  iron:  {ramp: iron, bands: [1, 3]}
+  lamp:  {ramp: lamp, emissive: true, band: 2, outline: false, glow: {color: "#ffc850", mix: 0.5, radius: 1}}
+  boot:  {ramp: leather, bands: [1, 2]}
+  ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.14        # the stoop
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.2  # looks ahead despite the stoop
+  head_yaw: 0
+  hand_L: [0.20, 0.14, 0.12]
+  foot_L: [0.09, 0, 0.04]
+  pitch_foot_L: 0
+  coat: 0           # dress hem sway (-1..1)
+  stick_pitch: 0    # crook tilt forward (+) / back (-), world-vertical at 0
+  swing: 0          # lantern swing (radians)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.52 + bob, -0.03]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.05], inherit_scale: false, rot: "[-lean*0.6, 0, 0]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.8}
+  shoulder_L: {parent: pelvis, pos: [0.17, 0.32, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.08, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: root, pos: "[0, 0.52 + bob, -0.02]", rot: "[-coat*0.25 + 0.05, twist*0.5, 0]"}
+  stickyaw:   {parent: root, rot: "[0, twist, 0]"}
+  stick:      {parent: stickyaw, at: wrist_R, rot: "[stick_pitch, 0, 0]"}
+  lantern:    {parent: stick, pos: [-0.19, 0.86, 0.14], rot: "[swing, 0, swing*0.5]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.23, 0.22],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # ochre bodice
+    material: dress
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.17, 0.13, 0.15]}
+      - ellipsoid: {c: [0, 0.24, -0.01], r: [0.18, 0.14, 0.15]}
+  dress:           # skirt to the ground
+    material: dress
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.05, 0], b: [0, -0.48, 0], r: [0.17, 0.24]}
+  shawl:           # moss shawl over the shoulders, hanging to the hips, pointed at the back
+    material: shawl
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.30, -0.01], r: [0.23, 0.11, 0.18]}
+      - cone: {a: [0, 0.30, -0.06], b: [0, -0.06, -0.12], r: [0.19, 0.08]}
+      - cone: {a: [0.10, 0.30, 0.10], b: [0.07, 0.10, 0.17], r: [0.08, 0.05]}     # front flap L
+      - cone: {a: [-0.10, 0.30, 0.10], b: [-0.07, 0.10, 0.17], r: [0.08, 0.05]}   # front flap R
+  belt:            # leather belt
+    material: belt
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.03, 0], b: [0, 0.075, 0], r: 0.175}
+  pouch_L:         # herb pouches on both hips
+    material: belt
+    space: pelvis
+    blend: 0.01
+    prims:
+      - box: {c: [0.16, -0.06, 0.09], half: [0.06, 0.07, 0.05], round: 0.02, rot: [0, 0.9, 0]}
+  sprig_L:         # green herbs poking out of the pouches
+    material: herb
+    space: pelvis
+    blend: 0.02
+    prims:
+      - sphere: {c: [0.165, 0.02, 0.09], r: 0.045}
+      - sphere: {c: [0.19, 0.06, 0.07], r: 0.032}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.145, 0.15, 0.14]}
+      - sphere: {c: [0, 0.10, 0.145], r: 0.026}       # nose
+  hair_front:      # grey hair parted under the hood
+    material: braid
+    space: head
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, 0.22, 0.04], r: [0.14, 0.06, 0.10]}
+  hood:            # moss hood over the head, open at the face, small point at the back
+    material: shawl
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.15, -0.02], r: [0.175, 0.18, 0.17]}
+      - cone: {a: [0, 0.20, -0.10], b: [0, 0.16, -0.24], r: [0.10, 0.03]}
+    cut:
+      - ellipsoid: {c: [0, 0.10, 0.17], r: [0.125, 0.14, 0.12]}
+  braid:           # long grey braid over the left shoulder, in front
+    material: braid
+    space: head
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0.09, 0.05, 0.08], [0.10, -0.04, 0.12], [0.09, -0.13, 0.13], [0.08, -0.21, 0.13]],
+                r: [0.03, 0.03, 0.027, 0.022]}
+      - sphere: {c: [0.08, -0.235, 0.13], r: 0.026}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.125, 0.13], r: 0.022}
+  arm_L:           # shawl-covered upper arm, ochre sleeve
+    material: dress
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.065}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.06, 0.055]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.055, 0.065]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.04], r: 0.058}
+  boot_L:          # shoes peeking under the hem
+    material: boot
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.065, 0.05, 0.09]}
+  stick:           # tall gnarled crook, hooking forward at the top (right hand only)
+    material: wood
+    space: stick
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0, -0.76, 0.0], [0.02, -0.40, 0.0], [-0.015, 0.0, 0.0], [0.015, 0.40, 0.0], [0.0, 0.76, 0.0]],
+                r: [0.032, 0.036, 0.036, 0.036, 0.038]}
+      - chain: {pts: [[0.0, 0.74, 0.0], [-0.04, 0.90, 0.03], [-0.13, 0.95, 0.09], [-0.19, 0.89, 0.14]],
+                r: [0.04, 0.042, 0.038, 0.032]}                                   # hook outward + forward
+      - sphere: {c: [0.025, -0.30, 0.0], r: 0.044}                                # knot
+  lantern_cage:    # small iron lantern hanging from the hook
+    material: iron
+    space: lantern
+    blend: 0.01
+    prims:
+      - cylinder: {a: [0, 0.02, 0.04], b: [0, -0.04, 0.04], r: 0.012}            # hanger
+      - cone: {a: [0, -0.04, 0.04], b: [0, -0.07, 0.04], r: [0.03, 0.065]}        # cap
+      - cylinder: {a: [0, -0.20, 0.04], b: [0, -0.23, 0.04], r: 0.065}           # base
+  lantern_glow:
+    material: lamp
+    space: lantern
+    prims:
+      - ellipsoid: {c: [0, -0.135, 0.04], r: [0.058, 0.07, 0.058]}
+
+animations:
+  idle:            # slow breath, lantern swings a little
+    frames: 4
+    ms: 200
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      lean: "0.14 + 0.025*sin(p)"
+      head_pitch: "-0.2 - 0.04*sin(p - 0.5)"
+      hand_L: "[0.20, 0.14 + 0.015*sin(p - 0.6), 0.12]"
+      hand_R: "[0.40, 0.25, 0.06]"
+      coat: "0.10*sin(p - 1.0)"
+      swing: "0.12*sin(p - 1.2)"
+  talk:            # left hand rises, palm open (offering a remedy), head nods
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.015*sin(p)"
+      head_pitch: "-0.2 - 0.08*sin(2*p)"
+      hand_L: "[0.24 + 0.04*sin(p), 0.34 + 0.07*sin(p), 0.24]"
+      hand_R: "[0.40, 0.25, 0.06]"
+      coat: "0.08*sin(p - 1.0)"
+      swing: "0.10*sin(p - 1.2)"

@@ -1,0 +1,235 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: sarah_young
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 9.5, ry: 3.4, alpha: 120}
+
+# Act I flashback: Princess Sarah, King Aldo's daughter, young.
+# Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi young princess - fair (white) skin, long dark-brown hair down to the waist with side locks
+    framing the face, pale lavender gown to the ground with white puff sleeves and a white
+    hem, thin gold belt, small tiara: a gold band with three little pink/white flowers in front.
+  must_keep: [fair skin, long dark-brown hair, lavender + white princess gown, gold + flower tiara]
+  simplify: [no fingers, legs hidden under the gown (only shoe tips peek out), flowers are 3 small spheres
+             + gold centres]
+  decisions: >
+    Body built on npc_seer (slender, head 1.75) so she reads as a girl, not as a hero. Fair skin is a
+    spec-local ramp (lighter, cooler than the shared `skin`), hair is a dark warm brown ramp: the dark
+    hair mass is what separates her pale gown from light floors and frames the face from s and n. The
+    tiara sits on top of the hair, slightly tilted back so the 38 deg camera does not drop it onto the
+    eyes; flowers are pink (white petals would vanish against the trim). No collar: a white ring under
+    the big chibi head read as a grey beard.
+    Cast = offering / feeding gesture: she bends a little forward and both hands go forward and down,
+    palms together, as if handing food to a child or an animal.
+
+ramps:
+  skin_fair:  ["#1c0f1a", "#a35a5a", "#eebfa4", "#fbdcc8", "#fff1e6"]
+  hair_brown: ["#1c0f1a", "#24130e", "#43261a", "#653c26"]
+  gown_lav:   ["#1c0f1a", "#6a5a9a", "#a796d6", "#cbbdf0", "#ece4ff"]
+  white_trim: ["#1c0f1a", "#a8a3c0", "#e4e0f0", "#ffffff"]
+  flower:     ["#1c0f1a", "#b0406a", "#f07aa6", "#ffc4dc"]
+
+materials:
+  skin:   {ramp: skin_fair, bands: [2, 4], line_band: 2}
+  gown:   {ramp: gown_lav, bands: [1, 3]}
+  trim:   {ramp: white_trim, bands: [1, 3]}
+  hair:   {ramp: hair_brown, bands: [1, 3]}
+  gold:   {ramp: gold, bands: [2, 3]}
+  flower: {ramp: flower, bands: [2, 3]}
+  shoes:  {ramp: cloth_purple, bands: [1, 2]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.0
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.06
+  head_yaw: 0
+  hand_L: [0.20, 0.10, 0.06]
+  foot_L: [0.08, 0, 0.03]
+  pitch_foot_L: 0
+  coat: 0           # gown hem sway (-1..1)
+  hairsw: 0         # hair sway (-1..1)
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.54 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.40, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.75}
+  hairbase:  {parent: head, rot: "[-hairsw*0.12, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.16, 0.30, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.07, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  coatbase:   {parent: root, pos: "[0, 0.54 + bob, 0]", rot: "[-coat*0.2, twist*0.5, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.5, -0.2, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.07, -0.02]", lengths: [0.25, 0.23],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # slender lavender bodice
+    material: gown
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0], r: [0.13, 0.11, 0.105]}
+      - ellipsoid: {c: [0, 0.22, 0.0], r: [0.145, 0.11, 0.11]}
+  skirt:           # bell skirt to the ground
+    material: gown
+    space: coatbase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.02, 0], b: [0, -0.46, 0], r: [0.14, 0.26]}
+  hem:             # white hem
+    material: trim
+    space: coatbase
+    prims:
+      - cylinder: {a: [0, -0.49, 0], b: [0, -0.43, 0], r: 0.27, round: 0.015}
+  belt:            # thin gold belt
+    material: gold
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.05, 0], b: [0, 0.085, 0], r: 0.137}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.30, 0], b: [0, 0.40, 0.02], r: [0.045, 0.04]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.145, 0.15, 0.14]}
+      - ellipsoid: {c: [0, 0.08, 0.03], r: [0.10, 0.08, 0.10]}
+  hair:            # long dark-brown hair: crown, parted fringe, long fall down the back
+    material: hair
+    space: hairbase
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.18, -0.02], r: [0.16, 0.125, 0.152]}
+      - ellipsoid: {c: [0, 0.10, -0.08], r: [0.155, 0.12, 0.10]}
+      - ellipsoid: {c: [0, -0.06, -0.13], r: [0.12, 0.15, 0.06]}
+      - ellipsoid: {c: [0, -0.22, -0.14], r: [0.095, 0.09, 0.045]}
+    cut:
+      - box: {c: [0, 0.08, 0.17], half: [0.14, 0.135, 0.1]}
+  locks_L:         # side locks framing the face, falling over the shoulders
+    material: hair
+    space: hairbase
+    blend: 0.02
+    prims:
+      - chain: {pts: [[0.13, 0.17, 0.06], [0.15, 0.06, 0.06], [0.14, -0.05, 0.04]], r: [0.035, 0.034, 0.024]}
+  tiara:           # gold band on the hair, tilted back
+    material: gold
+    space: head
+    prims:
+      - torus: {c: [0, 0.255, -0.01], R: 0.135, r: 0.018, rot: [-0.30, 0, 0]}
+      - cone: {a: [0, 0.29, 0.125], b: [0, 0.34, 0.13], r: [0.022, 0.008]}
+  flowers:         # three little pink flowers in front of the tiara
+    material: flower
+    space: head
+    prims:
+      - sphere: {c: [0.075, 0.315, 0.08], r: 0.034}
+      - sphere: {c: [-0.075, 0.315, 0.08], r: 0.034}
+      - sphere: {c: [0.0, 0.33, 0.10], r: 0.032}
+  eye_L:
+    material: ink
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.14, 0.13], r: 0.024}
+  arm_L:           # lavender sleeve with a white puff at the shoulder
+    material: gown
+    blend: 0.03
+    prims:
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.05, 0.045]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.045, 0.05]}
+  puff_L:
+    material: trim
+    blend: 0.02
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.072}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.046}
+  shoe_L:          # shoe tips under the hem
+    material: shoes
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.06], r: [0.055, 0.045, 0.085]}
+
+animations:
+  idle:            # gentle breath, hair sways
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      head_pitch: "-0.06 - 0.03*sin(p - 0.5)"
+      hand_L: "[0.10, 0.08 + 0.015*sin(p), 0.18]"
+      hand_R: "[0.10, 0.08 + 0.015*sin(p), 0.18]"
+      coat: "0.10*sin(p - 1.0)"
+      hairsw: "0.6*sin(p - 1.2)"
+  talk:            # left hand opens toward the listener, head tilts
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.015*sin(2*p)"
+      head_pitch: "-0.06 - 0.06*sin(2*p)"
+      hand_L: "[0.24 + 0.03*sin(p), 0.22 + 0.05*sin(p), 0.20]"
+      hand_R: "[0.10, 0.08, 0.18]"
+      coat: "0.08*sin(p - 1.0)"
+      hairsw: "0.5*sin(2*p - 1.2)"
+  walk:            # light quick steps, hair bounces
+    frames: 6
+    ms: 105
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.05
+      bob: "-0.035*cos(2*p) + 0.008"
+      twist: "0.07*cos(p)"
+      foot_L: "[0.08, 0.07*pos(-sin(p)), 0.04 + 0.14*cos(p)]"
+      foot_R: "[0.08, 0.07*pos(sin(p)), 0.04 - 0.14*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.20, 0.10 + 0.03*pos(cos(p)), 0.06 - 0.11*cos(p)]"
+      hand_R: "[0.20, 0.10 + 0.03*pos(-cos(p)), 0.06 + 0.11*cos(p)]"
+      head_yaw: "-0.05*cos(p)"
+      coat: "0.45*sin(2*p)"
+      hairsw: "0.8*cos(2*p)"
+  cast:            # offering / feeding: leans forward, both hands go forward and down, palms together
+    loop: false
+    keys:
+      - ms: 110
+        set: {bob: 0.01, lean: -0.04, head_pitch: -0.10, hand_L: [0.13, 0.08, 0.16], hand_R: [0.13, 0.08, 0.16],
+              hairsw: -0.3}
+      - ms: 120
+        event: windup
+        set: {bob: -0.02, squash: 0.97, lean: 0.08, head_pitch: 0.04, hand_L: [0.12, 0.04, 0.24],
+              hand_R: [0.12, 0.04, 0.24], coat: 0.2, hairsw: 0.4}
+      - ms: 380
+        event: release
+        set: {bob: -0.04, squash: 0.95, lean: 0.14, head_pitch: 0.08, hand_L: [0.11, -0.04, 0.27],
+              hand_R: [0.11, -0.04, 0.27], coat: 0.35, hairsw: 0.6}
+      - ms: 140
+        set: {bob: -0.02, squash: 0.98, lean: 0.12, head_pitch: 0.05, hand_L: [0.12, 0.00, 0.22],
+              hand_R: [0.12, 0.00, 0.22], coat: 0.15, hairsw: 0.2}
+      - ms: 130
+        set: {hand_L: [0.10, 0.08, 0.18], hand_R: [0.10, 0.08, 0.18], coat: 0.05}

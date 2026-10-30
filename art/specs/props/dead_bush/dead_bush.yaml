@@ -1,0 +1,85 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dead_bush
+kind: prop
+view: topdown
+size: 32                 # ~22 x 17 px on screen, 2+ px margins
+directions: 1            # static scenery, faces the camera (s)
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.3490, 0]}   # 5 px above the pivot -> pivot (16, 21)
+shadow: {rx: 8, ry: 2.5, alpha: 110}
+
+# Act I wilds ground clutter: dry thorn bush.
+brief:
+  summary: dry, dead thorn bush; a low tangle of bare wiry stems fanning out of one root knot, crooked and
+    crossing, bristling with thorn spikes, a few shrivelled rust-brown leaves still clinging on
+  must_keep: [spiky fan silhouette, crossing dry stems, thorn points, pale dry-wood tone that reads on dead
+    grass]
+  simplify: [6-7 stems with 1-2 thorns each; leaves as 3 single dots]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false; camera.center [0, 0.3490, 0] (integer pivot).
+    camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 16,21) is the ground point at the root knot.
+    Footprint 1 tile; decorative (the game may let the player walk through or block it, either reads).
+    Pale grey-tan dry wood (lighter than the dead grass) so the spiky silhouette reads; leaves are rust,
+    not green (the biome recolour ignores them).
+
+ramps:
+  db_wood: ["#1c0f1a", "#3a2e26", "#5a4a3c", "#7a6650", "#968064"]
+  db_leaf: ["#1c0f1a", "#5a2a1a", "#7e3e22"]
+
+materials:
+  wood: {ramp: db_wood, bands: [2, 4]}
+  wood_dark: {ramp: db_wood, bands: [1, 1]}
+  leaf: {ramp: db_leaf, bands: [1, 2], line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  tangle:             # small dark knot of twigs at the base
+    material: wood_dark
+    space: body
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.12, -0.04], r: [0.22, 0.12, 0.16]}
+  stems:              # upright, forking dry twigs fanning out unevenly (screen plane, so they read)
+    material: wood
+    space: body
+    line: true
+    prims:
+      - chain: {pts: [[-0.04, 0.04, 0.06], [-0.18, 0.36, 0.06], [-0.30, 0.62, 0.04], [-0.28, 0.86, 0.02]], r: [0.04, 0.032, 0.026, 0.018]}
+      - chain: {pts: [[-0.18, 0.36, 0.06], [-0.40, 0.48, 0.06], [-0.52, 0.66, 0.04]], r: [0.028, 0.022, 0.018]}
+      - chain: {pts: [[0.02, 0.04, 0.06], [0.06, 0.40, 0.06], [0.02, 0.70, 0.04], [0.10, 0.96, 0.02]], r: [0.04, 0.032, 0.026, 0.018]}
+      - chain: {pts: [[0.04, 0.50, 0.06], [0.20, 0.70, 0.04], [0.22, 0.86, 0.02]], r: [0.026, 0.022, 0.018]}
+      - chain: {pts: [[0.06, 0.04, 0.06], [0.28, 0.26, 0.06], [0.46, 0.44, 0.04], [0.54, 0.66, 0.02]], r: [0.04, 0.032, 0.026, 0.018]}
+      - chain: {pts: [[0.40, 0.38, 0.05], [0.60, 0.38, 0.05], [0.70, 0.50, 0.04]], r: [0.026, 0.022, 0.018]}
+      - chain: {pts: [[-0.06, 0.04, 0.06], [-0.32, 0.14, 0.08], [-0.56, 0.24, 0.06], [-0.66, 0.40, 0.04]], r: [0.036, 0.03, 0.024, 0.018]}
+      - chain: {pts: [[0.08, 0.04, 0.08], [0.36, 0.08, 0.14], [0.60, 0.16, 0.14]], r: [0.032, 0.026, 0.018]}
+  thorns:
+    material: wood
+    space: body
+    prims:
+      - cone: {a: [-0.24, 0.50, 0.05], b: [-0.12, 0.58, 0.05], r: [0.022, 0.01]}
+      - cone: {a: [0.04, 0.60, 0.05], b: [-0.08, 0.68, 0.05], r: [0.022, 0.01]}
+      - cone: {a: [0.36, 0.34, 0.05], b: [0.34, 0.48, 0.05], r: [0.022, 0.01]}
+      - cone: {a: [-0.44, 0.19, 0.07], b: [-0.42, 0.32, 0.07], r: [0.022, 0.01]}
+      - cone: {a: [0.50, 0.12, 0.14], b: [0.54, 0.26, 0.14], r: [0.02, 0.01]}
+  leaves:
+    material: leaf
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.52, 0.68, 0.04], r: [0.05, 0.035, 0.04]}
+      - ellipsoid: {c: [0.70, 0.52, 0.04], r: [0.05, 0.035, 0.04]}
+      - ellipsoid: {c: [0.22, 0.88, 0.02], r: [0.045, 0.03, 0.04]}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

@@ -1,0 +1,473 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: polvo
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 10.5, ry: 3.6, alpha: 120}
+
+# Act I villain "Polvo, o Demagogo do Lamacal". Boss-sized human: same skeleton as the bandit, every
+# length about 12% longer and the torso wider. Project style: topdown, 32 px human, dark outline #1c0f1a,
+# flat 2-3 tones, chibi head, snappy anims.
+brief:
+  summary: >
+    Chibi old demagogue warlord, upright and chest-out with a sly grin. Short swept-back white hair, full
+    white-grey beard with two small beaded braids, black eye patch over his RIGHT eye with a strap across
+    the head. Dark brigandine over a red under-sleeve, chainmail skirt, red-brown belt. A wide green sash
+    with a yellow stripe runs diagonally from his right shoulder to his left hip with a round gold
+    medallion. Long tattered navy cape behind. One big rusty spiked pauldron with fur trim on his LEFT
+    shoulder only. Curved gold-hilted dagger in the right hand.
+  reference: splash.jpeg (front, seen from s/sw; cropped at the knees, so IoU is only indicative)
+  proportions: "about 12% taller and wider than the bandit (pelvis 0.56 vs 0.50, longer torso, head scale 1.85 so the body reads big)"
+  must_keep: [green+yellow diagonal sash with gold medallion, white swept hair + white beard,
+              black eye patch on his right eye, long navy tattered cape, rusty spiked pauldron on his left shoulder,
+              curved gold-hilted dagger]
+  simplify: [gold chains become a short gold arc on the upper chest, the beard braids are two short points with
+             gold beads, brigandine rivets and second dagger pair on the sash dropped, fur trim is one blob]
+  decisions:
+    - "the splash is cropped at the knees: legs are dark trousers + leather boots like the bandit, the cape reaches the calves"
+    - "back (n): cape covers the body; the sash shows as a diagonal band over the shoulder, the pauldron spikes break the silhouette"
+    - "mirror: true (project style) swaps the asymmetries (patch, pauldron, sash, dagger) in sw/w/nw, as for the bandit's scimitar"
+    - "speech raises the LEFT (pauldron) fist so the dagger hand stays low on the hip"
+    - "broom_idle / broom_walk: channel broom=1 hides the dagger and shows a straw broom held in the right hand"
+
+ramps:
+  armor:    ["#1c0f1a", "#2a2530", "#433b46", "#5f5662"]   # dark leather/steel brigandine
+  mail:     ["#1c0f1a", "#3b3e4c", "#62687a", "#929aaa"]   # chainmail skirt
+  rust:     ["#1c0f1a", "#5a3a2e", "#9a5a32", "#c88a50"]   # rusty pauldron
+  cape:     ["#1c0f1a", "#1a2250", "#2b3f80", "#4260a8"]   # navy tattered cape
+  redbelt:  ["#1c0f1a", "#4e1a1c", "#7e2e26", "#a44a36"]   # red-brown belts and under-sleeves
+  white:    ["#1c0f1a", "#8a8c99", "#c9cbd3", "#f2f2f6"]   # white-grey hair and beard
+  sashg:    ["#1c0f1a", "#1f6a2a", "#36a03a", "#6cc850"]   # vivid green sash
+  sashy:    ["#1c0f1a", "#a87a10", "#e8c22a", "#f8e47a"]   # yellow stripe
+  patchk:   ["#1c0f1a", "#1c0f1a", "#2a2028", "#40343c"]   # eye patch
+  trousers: ["#1c0f1a", "#262a33", "#3a404c", "#545c68"]
+  straw:    ["#1c0f1a", "#8a6420", "#c99a3a", "#e8c870"]   # broom bristles
+
+materials:
+  skin:   {ramp: skin, bands: [2, 4], line_band: 2}
+  hair:   {ramp: white, bands: [1, 3]}
+  patch:  {ramp: patchk, bands: [1, 3], line: false}
+  armor:  {ramp: armor, bands: [1, 3]}
+  mail:   {ramp: mail, bands: [1, 3]}
+  rust:   {ramp: rust, bands: [1, 3]}
+  fur:    {ramp: fur, bands: [2, 4]}
+  cape:   {ramp: cape, bands: [1, 3], two_sided: true}
+  red:    {ramp: redbelt, bands: [1, 3]}
+  sash:   {ramp: sashg, bands: [1, 3]}
+  stripe: {ramp: sashy, bands: [2, 3], line: false}
+  gold:   {ramp: gold, bands: [2, 3]}
+  steel:  {ramp: steel, bands: [2, 4]}
+  spike:  {ramp: steel, bands: [2, 4]}
+  pants:  {ramp: trousers, bands: [1, 3]}
+  boots:  {ramp: leather, bands: [1, 2]}
+  wood:   {ramp: wood, bands: [1, 2]}
+  straw:  {ramp: straw, bands: [1, 3]}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: -0.02       # upright, chest out
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: -0.04
+  head_yaw: 0
+  hand_L: [0.27, 0.02, 0.06]
+  hand_R: [0.24, 0.06, 0.16]
+  foot_L: [0.10, 0, 0.02]
+  pitch_foot_L: 0
+  coat: 0           # cape sway (-1..1, + = flares back)
+  cape_len: 1       # cape length factor (bunches under him in death)
+  knife_rot: 0      # dagger pitch in the hand
+  reach_L: 0        # extra arm length (speech fist clears the chibi head)
+  broom: 0          # 1 = broom instead of dagger
+  broom_pitch: 0    # broom tilt (sweeping)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.62
+  smear_y: 0.80
+  smear_z: 0.14
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.56 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.47, 0.02], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.85}
+  shoulder_L: {parent: pelvis, pos: [0.22, 0.36, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.09, -0.02, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+  capebase:   {parent: torso_rot, pos: [0, 0.41, -0.09], rot: "[-clamp(lean, -0.3, 0.3) - coat*0.22 + 0.06, 0, 0]",
+              scale: "[1, cape_len, 1]"}
+  knife:      {parent: wrist_R, pos: [0, 0, 0.035], rot: "[1.4 + knife_rot, 0, -0.35]"}
+  broomyaw:   {parent: root, rot: "[0, twist, 0]"}
+  broomb:     {parent: broomyaw, at: wrist_R, rot: "[-0.45 - broom_pitch, 0, 0]"}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: "[0.20 + reach_L, 0.19 + reach_L]",
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.26, 0.23],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # dark brigandine, broad chest pushed out
+    material: armor
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.08, 0], r: [0.17, 0.12, 0.125]}
+      - ellipsoid: {c: [0, 0.27, 0.02], r: [0.22, 0.15, 0.15]}
+  collar:          # high dark collar
+    material: armor
+    space: pelvis
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.36, -0.01], b: [0, 0.46, 0.0], r: [0.10, 0.085]}
+  mail:            # chainmail skirt under the belt
+    material: mail
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0.03, 0], b: [0, -0.15, 0.01], r: [0.165, 0.185]}
+  belt:
+    material: red
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, 0.01, 0], b: [0, 0.065, 0], r: 0.178}
+  buckle:
+    material: steel
+    space: pelvis
+    line: false
+    prims:
+      - box: {c: [0, 0.038, 0.175], half: [0.035, 0.028, 0.012], round: 0.005}
+  sash:            # green sash: a shell band from his right shoulder (-x, high) to his left hip (+x, low)
+    material: sash
+    space: pelvis
+    blend: 0.0
+    prims:
+      - ellipsoid: {c: [0, 0.21, 0.025], r: [0.24, 0.28, 0.18]}
+    cut:
+      - box: {c: [0.298, 0.446, 0], half: [0.6, 0.3, 0.6], rot: [0, 0, -0.9]}
+      - box: {c: [-0.298, -0.026, 0], half: [0.6, 0.3, 0.6], rot: [0, 0, -0.9]}
+  stripe:          # yellow stripe along the lower edge of the sash
+    material: stripe
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0, 0.21, 0.025], r: [0.244, 0.284, 0.184]}
+    cut:
+      - box: {c: [0.211, 0.378, 0], half: [0.6, 0.3, 0.6], rot: [0, 0, -0.9]}
+      - box: {c: [-0.298, -0.026, 0], half: [0.6, 0.3, 0.6], rot: [0, 0, -0.9]}
+  medallion:       # round gold medallion on the sash
+    material: gold
+    space: pelvis
+    line: false
+    prims:
+      - cylinder: {a: [-0.06, 0.285, 0.15], b: [-0.06, 0.285, 0.205], r: 0.055, round: 0.01}
+  chains:          # gold chains across the upper chest
+    material: gold
+    space: pelvis
+    line: false
+    prims:
+      - chain: {pts: [[-0.13, 0.39, 0.10], [-0.05, 0.34, 0.155], [0.05, 0.34, 0.155], [0.13, 0.39, 0.10]],
+                r: [0.02, 0.022, 0.022, 0.02]}
+  cape:            # long navy cape over the back and sides, open in front, ragged hem
+    material: cape
+    space: capebase
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.0, 0.0], b: [0, -0.84, -0.04], r: [0.19, 0.30]}
+    cut:
+      - box: {c: [0, -0.4, 0.42], half: [0.6, 0.8, 0.30]}
+      - box: {c: [0, -0.4, 0.30], half: [0.17, 0.8, 0.30]}
+      - sphere: {c: [0.14, -0.86, -0.32], r: 0.07}
+      - sphere: {c: [-0.10, -0.87, -0.33], r: 0.06}
+      - sphere: {c: [-0.30, -0.85, -0.10], r: 0.06}
+      - sphere: {c: [0.31, -0.86, -0.06], r: 0.06}
+  pauldron:        # big rusty spiked pauldron, LEFT shoulder only (no _L: not mirrored)
+    material: rust
+    space: shoulder_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.10, 0.05, 0.0], r: [0.15, 0.10, 0.155], rot: [0, 0, -0.55]}
+  spikes:
+    material: spike
+    space: shoulder_L
+    blend: 0.0
+    line: false
+    prims:
+      - cone: {a: [0.06, 0.12, 0.05], b: [0.12, 0.27, 0.07], r: [0.038, 0.01]}
+      - cone: {a: [0.12, 0.10, -0.06], b: [0.22, 0.22, -0.10], r: [0.036, 0.01]}
+      - cone: {a: [0.17, 0.05, 0.06], b: [0.31, 0.10, 0.09], r: [0.034, 0.01]}
+  fur:             # fur trim under the pauldron
+    material: fur
+    space: shoulder_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0.15, -0.04, 0.0], r: [0.12, 0.06, 0.15], rot: [0, 0, -0.6]}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.38, 0.01], b: [0, 0.47, 0.03], r: [0.06, 0.055]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.14, 0.0], r: [0.148, 0.15, 0.14]}
+      - sphere: {c: [0, 0.11, 0.145], r: 0.03}       # nose
+      - sphere: {c: [0.148, 0.13, -0.005], r: 0.03}  # ears
+      - sphere: {c: [-0.148, 0.13, -0.005], r: 0.03}
+  hair:            # short swept-back white hair: crown and back, forehead bare
+    material: hair
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.18, -0.025], r: [0.158, 0.155, 0.15]}
+      - ellipsoid: {c: [0, 0.27, -0.06], r: [0.12, 0.06, 0.11]}     # swept volume on top
+    cut:
+      - box: {c: [0, 0.115, 0.235], half: [0.3, 0.25, 0.15], rot: [-0.6, 0, 0]}
+  beard:           # full short white beard on jaw and chin
+    material: hair
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.045, 0.085], r: [0.135, 0.07, 0.075]}
+      - ellipsoid: {c: [0, 0.01, 0.10], r: [0.075, 0.045, 0.05]}
+      - cone: {a: [0.035, -0.0, 0.115], b: [0.04, -0.06, 0.12], r: [0.02, 0.015]}   # braids
+      - cone: {a: [-0.035, -0.0, 0.115], b: [-0.04, -0.06, 0.12], r: [0.02, 0.015]}
+    cut:
+      - ellipsoid: {c: [0, 0.075, 0.17], r: [0.05, 0.016, 0.04]}   # grin
+  beads:
+    material: gold
+    space: head
+    line: false
+    prims:
+      - sphere: {c: [0.04, -0.07, 0.12], r: 0.02}
+      - sphere: {c: [-0.04, -0.07, 0.12], r: 0.02}
+  brows:
+    material: hair
+    space: head
+    prims:
+      - ellipsoid: {c: [0.06, 0.185, 0.13], r: [0.04, 0.016, 0.02], rot: [0, 0, 0.2]}
+  eye:             # his left eye (the right one is under the patch)
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.056, 0.145, 0.133], r: [0.024, 0.026, 0.02]}
+  eyepatch:        # black patch over his RIGHT eye + strap around the head
+    material: patch
+    space: head
+    blend: 0.01
+    prims:
+      - ellipsoid: {c: [-0.058, 0.145, 0.128], r: [0.052, 0.045, 0.03], rot: [0, -0.35, 0]}
+      - torus: {c: [0, 0.165, 0.0], R: 0.155, r: 0.014, rot: [0.0, 0, -0.42]}
+  arm_L:           # red under-sleeve
+    material: red
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.072}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.07, 0.06]}
+  bracer_L:        # dark leather bracer
+    material: armor
+    blend: 0.02
+    prims:
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.064, 0.058]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: "0.052 + 0.25*reach_L"}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.088, 0.072]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.072, 0.06]}
+  boot_L:
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.13, 0], b: [0, -0.02, 0.0], r: [0.074, 0.066]}
+      - ellipsoid: {c: [0, -0.035, 0.045], r: [0.066, 0.044, 0.10]}
+  dagger:          # curved ornate dagger, right hand only
+    material: steel
+    space: knife
+    blend: 0.015
+    when: "broom < 0.5"
+    prims:
+      - chain: {pts: [[0, 0.05, 0.0], [0, 0.16, 0.025], [0, 0.27, 0.01], [0, 0.34, -0.04]],
+                r: [0.034, 0.038, 0.03, 0.008]}
+  hilt:            # gold curved crossguard and pommel
+    material: gold
+    space: knife
+    when: "broom < 0.5"
+    blend: 0.01
+    prims:
+      - chain: {pts: [[0, 0.06, -0.07], [0, 0.04, 0.0], [0, 0.07, 0.07]], r: [0.02, 0.022, 0.02]}
+      - sphere: {c: [0, -0.06, 0], r: 0.03}
+  grip:
+    material: red
+    space: knife
+    when: "broom < 0.5"
+    prims:
+      - cylinder: {a: [0, -0.05, 0], b: [0, 0.035, 0], r: 0.022}
+  broomstick:      # sentence: sweeping the village square
+    material: wood
+    space: broomb
+    when: "broom > 0.5"
+    prims:
+      - cylinder: {a: [0, 0.24, 0], b: [0, -0.52, 0], r: 0.03, round: 0.01}
+  bristles:
+    material: straw
+    space: broomb
+    when: "broom > 0.5"
+    blend: 0.02
+    prims:
+      - cone: {a: [0, -0.48, 0], b: [0, -0.68, 0.0], r: [0.055, 0.11]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hit: {bone: knife, offset: [0, 0.20, 0.0], when: "broom < 0.5"}   # dagger blade centre
+  head: {bone: head, offset: [0, 0.40, 0]}                           # above the hair
+
+timing: {attack: {hit: 200ms, total: 440ms}}
+
+animations:
+  idle:            # smug breathing: chest swells, chin up
+    frames: 4
+    ms: 180
+    channels:
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      lean: "-0.02 - 0.04*sin(p)"
+      head_pitch: "-0.04 - 0.05*sin(p - 0.5)"
+      hand_L: "[0.27, 0.02 + 0.02*sin(p - 0.6), 0.06]"
+      hand_R: "[0.24, 0.06 + 0.02*sin(p - 0.6), 0.16]"
+      knife_rot: "0.06*sin(p - 0.8)"
+      coat: "0.15*sin(p - 1.0)"
+  walk:            # 6-frame boss swagger, shoulders rolling, cape trailing
+    frames: 6
+    ms: 110
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.06
+      bob: "-0.03*cos(2*p) + 0.01"
+      twist: "0.08*cos(p)"
+      foot_L: "[0.10, 0.08*pos(-sin(p)), 0.02 + 0.17*cos(p)]"
+      foot_R: "[0.10, 0.08*pos(sin(p)), 0.02 - 0.17*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.27, 0.02 + 0.03*pos(cos(p)), 0.06 - 0.12*cos(p)]"
+      hand_R: "[0.24, 0.07 + 0.03*pos(-cos(p)), 0.14 + 0.10*cos(p)]"
+      knife_rot: "-0.15 - 0.12*cos(p)"
+      head_yaw: "-0.05*cos(p)"
+      coat: "0.55 + 0.25*sin(2*p)"
+  attack:          # dagger slash: raise (held), strike with smear, impact, follow-through, recover
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {twist: -0.50, bob: -0.03, squash: 0.94, head_pitch: -0.05, hand_R: [0.40, 0.36, 0.0], knife_rot: 2.0,
+              hand_L: [0.22, 0.10, 0.22], foot_L: [0.10, 0, 0.10], foot_R: [0.10, 0, -0.05], coat: -0.3}
+      - ms: 80
+        set: {root: [0, 0, 0.08], twist: 0.15, lean: 0.22, squash: 1.05, hand_R: [0.14, 0.26, 0.38], knife_rot: -1.6,
+              hand_L: [0.27, 0.04, 0.02], foot_L: [0.10, 0, 0.16], foot_R: [0.10, 0, -0.08], coat: 0.5,
+              smear_a0: -1.6, smear_a1: -0.1, smear_w: 0.08}
+      - ms: 100
+        event: hit
+        set: {root: [0, 0, 0.11], twist: 0.50, lean: 0.28, hand_R: [-0.20, 0.18, 0.32], knife_rot: -1.3,
+              hand_L: [0.28, 0.02, -0.06], foot_L: [0.10, 0, 0.18], foot_R: [0.10, 0, -0.08], coat: 0.8,
+              smear_a0: -1.2, smear_a1: 1.0, smear_w: 0.09}
+      - ms: 70
+        set: {root: [0, 0, 0.10], twist: 0.58, lean: 0.24, squash: 0.97, hand_R: [-0.26, 0.07, 0.15], knife_rot: -0.7,
+              hand_L: [0.28, 0.02, -0.04], foot_L: [0.10, 0, 0.16], foot_R: [0.10, 0, -0.06], coat: 0.5,
+              smear_a0: 0.3, smear_a1: 1.3, smear_w: 0.05, smear_fade: 0.7}
+      - ms: 70
+        set: {root: [0, 0, 0.04], twist: 0.20, lean: 0.10, hand_R: [0.10, 0.06, 0.22], knife_rot: -0.3, coat: 0.2}
+  hit:
+    loop: false
+    keys:
+      - {ms: 70, set: {lean: -0.25, root: [0, 0, -0.07], squash: 0.93, head_pitch: -0.25, hand_L: [0.34, 0.13, 0.0],
+                       hand_R: [0.32, 0.15, 0.0], knife_rot: -0.6, coat: 0.6, foot_R: [0.10, 0, -0.06]}}
+      - {ms: 90, set: {lean: -0.12, root: [0, 0, -0.05], squash: 1.03, head_pitch: -0.1, hand_L: [0.30, 0.07, 0.06],
+                       hand_R: [0.28, 0.09, 0.08], knife_rot: -0.3, coat: 0.3, foot_R: [0.10, 0, -0.04]}}
+      - {ms: 110, set: {lean: -0.02, root: [0, 0, -0.02], hand_R: [0.24, 0.06, 0.14], coat: 0.1}}
+  death:           # stagger, knees buckle, falls on his back, lies still
+    loop: false
+    keys:
+      - {ms: 100, set: {lean: -0.25, squash: 0.95, head_pitch: -0.3, root: [0, 0, -0.05], hand_L: [0.34, 0.16, 0.0],
+                        hand_R: [0.32, 0.17, 0.0], knife_rot: -0.6, coat: 0.5}}
+      - {ms: 110, set: {bob: -0.14, lean: -0.45, squash: 0.92, head_pitch: -0.35, root: [0, 0, -0.08], hand_L: [0.36, 0.24, -0.04],
+                        hand_R: [0.34, 0.24, -0.04], knife_rot: -0.9, foot_L: [0.11, 0, 0.10], foot_R: [0.11, 0, 0.06], coat: 0.7}}
+      - {ms: 120, set: {bob: -0.31, lean: -0.95, head_pitch: -0.1, root: [0, 0, -0.06], cape_len: 0.75, hand_L: [0.38, 0.27, -0.05],
+                        hand_R: [0.36, 0.27, -0.05], knife_rot: -1.3, foot_L: [0.11, 0.04, 0.24], foot_R: [0.11, 0, 0.20], coat: 0.8}}
+      - {ms: 110, set: {bob: -0.42, lean: -1.30, squash: 0.92, head_pitch: 0.25, root: [0, 0, -0.06], cape_len: 0.55, hand_L: [0.42, 0.19, 0.0],
+                        hand_R: [0.40, 0.19, 0.0], knife_rot: -1.5, foot_L: [0.11, 0.02, 0.33], foot_R: [0.12, 0, 0.29], coat: 0.4}}
+      - {ms: 600, set: {bob: -0.42, lean: -1.35, head_pitch: 0.3, root: [0, 0, -0.06], cape_len: 0.55, hand_L: [0.44, 0.16, 0.02],
+                        hand_R: [0.42, 0.16, 0.02], knife_rot: -1.5, foot_L: [0.11, 0, 0.33], foot_R: [0.12, 0, 0.30], coat: 0.0}}
+  speech:          # demagogue on the podium: left fist pumps up, chin high, chest out, dagger hand on the hip
+    frames: 4
+    ms: [200, 110, 200, 130]
+    channels:
+      lean: "-0.08 - 0.04*sin(p)"
+      bob: "0.03*sin(p)"
+      squash: "1 + 0.03*sin(p)"
+      head_pitch: "-0.20 - 0.08*sin(p)"
+      head_yaw: "0.10*sin(2*p)"
+      hand_L: "[0.47 - 0.02*sin(p), 0.78 + 0.07*sin(p), 0.0 + 0.03*sin(p)]"
+      reach_L: 0.07
+      hand_R: "[0.22, 0.06, 0.12]"
+      knife_rot: -0.2
+      coat: "0.12*sin(p - 1.0)"
+  broom_idle:      # sentenced: leaning on the broom, sulking
+    frames: 4
+    ms: 200
+    channels:
+      broom: 1
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.015*sin(p)"
+      lean: 0.08
+      head_pitch: "0.10 + 0.03*sin(p - 0.5)"
+      hand_L: "[0.27, 0.0, 0.06]"
+      hand_R: "[0.20, 0.18, 0.20]"
+      broom_pitch: "0.0 + 0.03*sin(p)"
+      coat: "0.10*sin(p - 1.0)"
+  broom_walk:      # sweeping while walking: broom swings left-right low in front
+    frames: 6
+    ms: 120
+    events: {0: step_l, 3: step_r}
+    channels:
+      broom: 1
+      lean: 0.12
+      bob: "-0.025*cos(2*p) + 0.005"
+      twist: "0.14*sin(p)"
+      head_pitch: 0.06
+      foot_L: "[0.10, 0.06*pos(-sin(p)), 0.02 + 0.12*cos(p)]"
+      foot_R: "[0.10, 0.06*pos(sin(p)), 0.02 - 0.12*cos(p)]"
+      pitch_foot_L: "0.3*pos(-sin(p))"
+      pitch_foot_R: "0.3*pos(sin(p))"
+      hand_L: "[0.27, 0.02, 0.06 - 0.08*cos(p)]"
+      hand_R: "[0.20, 0.18, 0.22]"
+      broom_pitch: "0.15 + 0.08*cos(2*p)"
+      coat: "0.4 + 0.2*sin(2*p)"

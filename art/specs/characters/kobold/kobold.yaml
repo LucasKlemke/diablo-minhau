@@ -1,0 +1,311 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: kobold
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.80, 0]}
+shadow: {rx: 8, ry: 3, alpha: 120}
+
+# Kobold: small reptilian enemy (~1.15 units tall, ~22 px), built on the goblin's skeleton (IK arms and
+# legs written as _L and mirrored), plus a snout head, two horns, a tail and a short spear.
+brief:
+  summary: small chibi kobold, rust-orange scaly lizard-dog with a cream belly and throat, big head with a
+    blunt snout, two little backswept bone horns, glowing yellow eyes, a long tail, ragged brown
+    loincloth, a short wooden spear with an iron head held in the right hand
+  must_keep: [rust-orange scales, snout, two horns, tail, short spear, yellow emissive eyes]
+  simplify: [no individual scales, no claws or fingers, feet as simple blobs]
+  decisions: |
+    Spear bone sits at the right hand (`at: wrist_R`) but takes its angle from the torso (`spear_pitch`)
+    so it can be held upright in idle, slanted forward in walk and levelled for the thrust. Belly in a
+    cream ramp for value contrast with the orange. Tail sways with a global `tail` channel (central part,
+    not mirrored). Attack is a forward spear thrust with a lunge; hit on the full extension.
+
+ramps:
+  kobold:      ["#1c0f1a", "#6e2a18", "#b4501f", "#de7a32", "#f2a65a"]
+  kobold_dark: ["#1c0f1a", "#5a2216", "#93401c", "#bd5f28", "#d98446"]
+  belly:       ["#1c0f1a", "#9a5a34", "#e0a86a", "#f4d29a"]
+
+materials:
+  skin:  {ramp: kobold, bands: [1, 3]}
+  limb:  {ramp: kobold_dark, bands: [1, 3]}
+  belly: {ramp: belly, bands: [2, 3], outline: false}
+  horn:  {ramp: bone, bands: [2, 4]}
+  rag:   {ramp: rag, bands: [1, 3]}
+  wood:  {ramp: leather, bands: [1, 2]}
+  steel: {ramp: steel, bands: [2, 4]}
+  eye:   {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.4, radius: 1}}
+  mouth: {ramp: mouth, emissive: true, band: 1, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: 0.15
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  jaw: 0            # mouth open (0..1)
+  tail: 0           # tail sway (-1..1)
+  tail_up: 0        # tail lift
+  hand_L: [0.19, 0.04, 0.08]
+  foot_L: [0.09, 0, 0.02]
+  pitch_foot_L: 0
+  coat: 0
+  spear_pitch: -1.15  # spear angle around x (0 level forward, -pi/2 straight up)
+  spear_slide: 0      # spear along its own axis (+ forward)
+  spear_on: 1         # 1 in hand, 0 dropped on the ground (death)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 0.55
+  smear_y: 0.55
+  smear_z: 0.2
+  smear_fade: 1
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.38 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.30, 0.05], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.7 - 0.15, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.9}
+  jaw:       {parent: head, pos: [0, 0.06, 0.04], rot: "[jaw*0.5, 0, 0]"}
+  shoulder_L: {parent: pelvis, pos: [0.14, 0.23, 0.0]}
+  hip_L:      {parent: pelvis, pos: [0.07, -0.01, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.2, 0]"}
+  coatbase:   {parent: pelvis, rot: "[-coat*0.3, 0, 0]"}
+  tailbase:   {parent: pelvis, pos: [0, 0.02, -0.10], rot: "[-0.35 - tail_up, tail*0.5, 0]"}
+  spear:      {parent: torso_rot, at: wrist_R, rot: "[spear_pitch, -0.05, 0]"}
+  fxspace:    {parent: root, rot: "[0, twist*0.3, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.16, 0.16],
+          pole: [0.3, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.05, -0.01]", lengths: [0.19, 0.18],
+          pole: [0.2, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:
+    material: skin
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.0], r: [0.13, 0.11, 0.12]}
+      - ellipsoid: {c: [0, 0.19, 0.0], r: [0.13, 0.11, 0.11]}
+  belly:
+    material: belly
+    space: pelvis
+    prims:
+      - ellipsoid: {c: [0, 0.12, 0.045], r: [0.08, 0.12, 0.07]}
+  loincloth:
+    material: rag
+    space: coatbase
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, -0.01, 0], b: [0, 0.06, 0], r: 0.13, round: 0.02}
+      - box: {c: [0.0, -0.07, 0.10], half: [0.07, 0.08, 0.02], rot: [0.15, 0, 0.08], round: 0.01}
+      - box: {c: [0.0, -0.07, -0.10], half: [0.08, 0.08, 0.02], rot: [-0.15, 0, -0.06], round: 0.01}
+    cut:
+      - box: {c: [0.03, -0.15, 0.10], half: [0.022, 0.03, 0.05], rot: [0, 0, 0.6]}
+      - box: {c: [-0.04, -0.15, -0.10], half: [0.022, 0.03, 0.05], rot: [0, 0, -0.6]}
+  tail:
+    material: skin
+    space: tailbase
+    blend: 0.03
+    prims:
+      - chain: {pts: ["[0, 0, 0]", "[0, -0.03, -0.14]", "[0.04*tail, -0.04, -0.28]", "[0.10*tail, -0.02, -0.40]"],
+                r: [0.07, 0.055, 0.04, 0.022]}
+  head:
+    material: skin
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.12, -0.01], r: [0.11, 0.10, 0.11]}
+      - ellipsoid: {c: [0, 0.10, 0.11], r: [0.075, 0.06, 0.10]}         # snout
+  jaw:
+    material: belly
+    space: jaw
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0, -0.01, 0.06], r: [0.065, 0.03, 0.09]}
+  mouth:
+    material: mouth
+    space: head
+    when: "jaw > 0.1"
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.13], r: [0.045, "0.01 + 0.02*jaw", 0.04]}
+  brow:
+    material: limb
+    space: head
+    prims:
+      - ellipsoid: {c: [0, 0.18, 0.06], r: [0.10, 0.025, 0.04], rot: [0.25, 0, 0]}
+  horn_L:
+    material: horn
+    space: head
+    blend: 0.01
+    prims:
+      - chain: {pts: [[0.06, 0.18, -0.04], [0.09, 0.22, -0.11], [0.10, 0.22, -0.18]], r: [0.028, 0.018, 0.007]}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.055, 0.14, 0.08], r: 0.028}
+  arm_L:
+    material: limb
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.05}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.045, 0.035]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.035, 0.04]}
+  hand_L:
+    material: limb
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.02], r: 0.045}
+  leg_L:
+    material: limb
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.06, 0.045]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.045, 0.035]}
+  foot_L:
+    material: limb
+    space: sole_L
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.05], r: [0.05, 0.03, 0.09]}
+  spear_shaft:      # right hand only (no _L => not mirrored)
+    material: wood
+    space: spear
+    when: "spear_on > 0.5"
+    prims:
+      - cone: {a: "[0, 0, -0.30 + spear_slide]", b: "[0, 0, 0.62 + spear_slide]", r: [0.028, 0.028]}
+  spear_head:
+    material: steel
+    space: spear
+    when: "spear_on > 0.5"
+    blend: 0.01
+    prims:
+      - cone: {a: "[0, 0, 0.60 + spear_slide]", b: "[0, 0, 0.80 + spear_slide]", r: [0.055, 0.008]}
+  spear_wrap:
+    material: rag
+    space: spear
+    when: "spear_on > 0.5"
+    prims:
+      - cylinder: {a: "[0, 0, 0.54 + spear_slide]", b: "[0, 0, 0.60 + spear_slide]", r: 0.036}
+  dropped_shaft:    # the spear lying on the ground beside the body (death)
+    material: wood
+    when: "spear_on < 0.5"
+    prims:
+      - cone: {a: [0.40, 0.03, 0.30], b: [-0.42, 0.03, 0.18], r: [0.028, 0.028]}
+  dropped_head:
+    material: steel
+    when: "spear_on < 0.5"
+    prims:
+      - cone: {a: [-0.40, 0.03, 0.18], b: [-0.58, 0.03, 0.15], r: [0.055, 0.008]}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: fxspace
+    prims:
+      - arc: {c: "[0, smear_y, smear_z]", r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.10}
+
+sockets:
+  hand_R: {bone: wrist_R}
+  hit: {bone: spear, offset: "[0, 0, 0.74 + spear_slide]"}
+  head: {bone: head, offset: [0, 0.25, 0]}
+
+timing: {attack: {hit: 200ms}}
+
+animations:
+  idle:            # spear upright, tail swishes, head bobs
+    frames: 4
+    ms: 160
+    channels:
+      bob: "0.018*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      head_yaw: "0.25*(f == 2) - 0.1*(f == 3)"
+      tail: "0.7*sin(p - 0.8)"
+      hand_L: "[0.19, 0.04 + 0.02*sin(p), 0.08]"
+      hand_R: "[0.29, 0.14 + 0.015*sin(p), 0.12]"
+      spear_pitch: -1.72
+      coat: "0.2*sin(p - 1.0)"
+  walk:            # quick trot, spear slanted forward
+    frames: 6
+    ms: 90
+    events: {0: step_l, 3: step_r}
+    channels:
+      lean: 0.30
+      bob: "-0.025*cos(2*p) + 0.01"
+      twist: "0.10*cos(p)"
+      foot_L: "[0.09, 0.07*pos(-sin(p)), 0.02 + 0.12*cos(p)]"
+      foot_R: "[0.09, 0.07*pos(sin(p)), 0.02 - 0.12*cos(p)]"
+      pitch_foot_L: "0.4*pos(-sin(p))"
+      pitch_foot_R: "0.4*pos(sin(p))"
+      hand_L: "[0.19, 0.05 + 0.03*pos(cos(p)), 0.08 - 0.11*cos(p)]"
+      hand_R: "[0.27, 0.14, 0.14 + 0.03*cos(p)]"
+      spear_pitch: "-1.05 - 0.70*pulse(yaw, 0, 80) + 0.05*cos(2*p)"
+      tail: "0.8*sin(p - 1.0)"
+      head_yaw: "-0.06*cos(p)"
+      coat: "0.6*sin(2*p)"
+  attack:          # pull back, lunge and thrust the spear (hit at full extension), recover
+    loop: false
+    keys:
+      - ms: 130
+        event: windup
+        set: {root: [0, 0, -0.04], twist: -0.35, lean: 0.10, bob: -0.02, squash: 0.93, hand_R: [0.22, 0.16, -0.12],
+              hand_L: [0.16, 0.10, 0.18], spear_pitch: "-0.20 - 0.5*pulse(yaw, 0, 70)", spear_slide: -0.06, foot_L: [0.09, 0, 0.08], foot_R: [0.09, 0, -0.06],
+              tail: -0.6, tail_up: 0.2, jaw: 0.4, coat: -0.3}
+      - ms: 70
+        set: {root: [0, 0, 0.06], twist: 0.10, lean: 0.35, squash: 1.04, hand_R: [0.10, 0.18, 0.24],
+              hand_L: [0.20, 0.06, 0.0], spear_pitch: "-0.10 - 0.55*pulse(yaw, 0, 70)", spear_slide: 0.04, foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.08],
+              tail: 0.3, jaw: 0.8, coat: 0.5,
+              smear_y: 0.50, smear_z: 0.55, smear_r: 0.12, smear_a0: -1.4, smear_a1: 1.4, smear_w: 0.06}
+      - ms: 100
+        event: hit
+        set: {root: [0, 0, 0.06], twist: 0.25, lean: 0.45, squash: 1.0, hand_R: [0.04, 0.18, 0.30],
+              hand_L: [0.22, 0.04, -0.06], spear_pitch: "-0.08 - 0.6*pulse(yaw, 0, 70)", spear_slide: 0.04, foot_L: [0.09, 0, 0.20], foot_R: [0.09, 0, -0.10],
+              tail: 0.6, tail_up: 0.15, jaw: 1.0, coat: 0.7}
+      - ms: 100
+        set: {root: [0, 0, 0.06], twist: 0.15, lean: 0.38, hand_R: [0.10, 0.16, 0.22],
+              hand_L: [0.20, 0.04, -0.02], spear_pitch: "-0.25 - 0.5*pulse(yaw, 0, 70)", spear_slide: 0.04, foot_L: [0.09, 0, 0.16], foot_R: [0.09, 0, -0.06],
+              tail: 0.3, jaw: 0.4, coat: 0.3}
+      - ms: 110
+        set: {root: [0, 0, 0.03], lean: 0.22, hand_R: [0.27, 0.14, 0.13], spear_pitch: -1.5, tail: -0.1, coat: 0.1}
+  hit:
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.06], lean: -0.10, bob: -0.02, squash: 0.92, head_pitch: -0.30, jaw: 0.6,
+              hand_L: [0.24, 0.12, 0.0], hand_R: [0.24, 0.16, 0.04], spear_pitch: -1.45, tail: 0.8, tail_up: 0.3, coat: -0.5}
+      - ms: 90
+        set: {root: [0, 0, -0.08], lean: 0.0, bob: -0.01, squash: 0.96, head_pitch: -0.15, jaw: 0.3,
+              hand_L: [0.22, 0.08, 0.04], hand_R: [0.22, 0.14, 0.08], spear_pitch: -1.35, tail: -0.5, coat: -0.3}
+      - ms: 100
+        set: {root: [0, 0, -0.04], lean: 0.10, hand_R: [0.20, 0.12, 0.12], spear_pitch: -1.55, tail: 0.2, coat: -0.1}
+  death:           # knocked back, drops the spear, falls on its back
+    loop: false
+    keys:
+      - ms: 90
+        set: {root: [0, 0, -0.05], lean: -0.15, bob: -0.02, squash: 0.92, head_pitch: -0.35, jaw: 0.8,
+              hand_L: [0.26, 0.18, 0.0], hand_R: [0.26, 0.22, 0.04], spear_pitch: -1.6, tail: 0.6, tail_up: 0.3, coat: -0.5}
+      - ms: 100
+        set: {root: [0, 0, -0.10], lean: -0.55, bob: -0.07, head_pitch: -0.25, jaw: 0.6,
+              hand_L: [0.28, 0.24, -0.05], hand_R: [0.30, 0.26, -0.02], spear_pitch: -2.0, foot_L: [0.09, 0.03, 0.12], foot_R: [0.09, 0, 0.06], tail: -0.3, coat: -0.3}
+      - ms: 110
+        set: {root: [0, 0, 0.0], lean: -1.10, bob: -0.18, head_pitch: -0.10, jaw: 0.4,
+              hand_L: [0.28, 0.20, -0.10], hand_R: [0.30, 0.22, -0.08], spear_on: 0, foot_L: [0.09, 0.08, 0.18], foot_R: [0.09, 0.04, 0.12], tail: 0.2, coat: 0.3}
+      - ms: 90
+        set: {root: [0, 0, 0.12], lean: -1.40, bob: -0.24, squash: 0.94, head_pitch: 0.05, jaw: 0.3,
+              hand_L: [0.28, 0.10, -0.08], hand_R: [0.30, 0.10, -0.06], spear_on: 0, foot_L: [0.09, 0.06, 0.22], foot_R: [0.10, 0.02, 0.18], tail: 0.0, coat: 0.1}
+      - ms: 500
+        set: {root: [0, 0, 0.12], lean: -1.45, bob: -0.25, head_pitch: 0.05, jaw: 0.3,
+              hand_L: [0.30, 0.05, -0.08], hand_R: [0.32, 0.05, -0.06], spear_on: 0, foot_L: [0.09, 0.03, 0.22], foot_R: [0.10, 0.0, 0.18]}

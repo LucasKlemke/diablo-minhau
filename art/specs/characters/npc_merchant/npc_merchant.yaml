@@ -1,0 +1,254 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: npc_merchant
+mirror: true
+kind: character
+size: 48
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.95, 0]}
+shadow: {rx: 11, ry: 3.9, alpha: 120}
+
+# Act II swamp-camp NPC "Osvaldo, o mercador". Project style: topdown, 32 px, dark outline, flat, chibi, snappy.
+brief:
+  summary: >
+    Chibi travelling merchant who runs the camp shop - plump, round-bellied man, purple vest with gold
+    trim and gold buttons over a cream shirt with puffy sleeves, dark-brown trousers, short boots, red-
+    brown hair with a big moustache and rosy cheeks, huge backpack rising above his head (red bedroll on
+    top, copper pot and a scroll tied on the sides), leather straps over the shoulders, fat gold-tied
+    coin purse hanging at the belt.
+  must_keep: [round belly, purple vest + gold trim, huge backpack above the head, big moustache, coin purse at the belt]
+  simplify: [no fingers, goods are 3-4 big shapes (bedroll, pot, scroll, pack flap), trim is two strips + 3 buttons]
+  decisions: >
+    Head scale 1.75 (chibi), torso from the smith but rounder (belly ellipsoid pushed forward), short legs.
+    Purple + gold as asked: the sorcerer hero is purple too, so the silhouette carries the difference
+    (plump body + backpack wider and taller than the head, no robe/staff) and the cream shirt + gold trim
+    break the purple up. The backpack is attached to the pelvis so it follows breathing. Hands are free
+    (no prop): idle has them resting on the hips; talk opens both arms in a welcoming sales pitch.
+
+ramps:
+  vest_purple: ["#1c0f1a", "#3e1f5a", "#6a2f8c", "#9550b4", "#be86d4"]
+  shirt_cream: ["#1c0f1a", "#9a8366", "#d6c3a0", "#f0e3c4", "#fbf4e2"]
+  trouser_brown: ["#1c0f1a", "#2c1c18", "#4a2f26", "#6a4636"]
+  hair_red: ["#1c0f1a", "#5a2414", "#8e3e1e", "#b8602e", "#d88850"]
+  pack: ["#1c0f1a", "#4a2c18", "#7a4f2a", "#a2723c", "#c49658"]
+  copper: ["#1c0f1a", "#6a2a14", "#b05a2a", "#e08a4a", "#f4c08a"]
+  blush: ["#1c0f1a", "#c8564a", "#e07a64"]
+
+materials:
+  skin:   {ramp: skin, bands: [2, 4], line_band: 2}
+  shirt:  {ramp: shirt_cream, bands: [1, 3]}
+  vest:   {ramp: vest_purple, bands: [1, 3]}
+  trim:   {ramp: gold, bands: [2, 3]}
+  pants:  {ramp: trouser_brown, bands: [1, 3]}
+  boots:  {ramp: leather, bands: [1, 2]}
+  hair:   {ramp: hair_red, bands: [1, 3]}
+  pack:   {ramp: pack, bands: [1, 3]}
+  strap:  {ramp: leather, bands: [1, 2]}
+  bedroll: {ramp: cloth_red, bands: [1, 3]}
+  pot:    {ramp: copper, bands: [1, 3]}
+  scroll: {ramp: bone, bands: [2, 4]}
+  blush:  {ramp: blush, emissive: true, band: 2, outline: false}
+  ink:    {ramp: cloth, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0
+  lean: -0.04       # leans back a little under the pack, belly forward
+  twist: 0
+  roll: 0
+  squash: 1
+  head_pitch: 0
+  head_yaw: 0
+  hand_L: [0.18, 0.06, 0.20]
+  foot_L: [0.12, 0, 0.02]
+  pitch_foot_L: 0
+
+bones:
+  torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
+  pelvis:    {parent: torso_rot, scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  headbase:  {parent: pelvis, pos: [0, 0.44, 0.03], inherit_rot: false, inherit_scale: false,
+              rot: "[lean*0.5, twist, roll]"}
+  head:      {parent: headbase, rot: "[head_pitch, head_yaw, 0]", scale: 1.75}
+  shoulder_L: {parent: pelvis, pos: [0.24, 0.31, -0.02]}
+  hip_L:      {parent: pelvis, pos: [0.11, -0.04, 0.0]}
+  legyaw:     {parent: root, rot: "[0, twist*0.5, 0]"}
+  footyaw:    {parent: root, rot: "[0, twist*0.4, 0]"}
+  sole_L:     {parent: footyaw, at: ankle_L, rot: "[pitch_foot_L, 0.08, 0]"}
+
+ik:
+  arm_L: {start: shoulder_L, space: torso_rot, target: hand_L, lengths: [0.17, 0.16],
+          pole: [0.5, 0.0, -1.0], pole_space: torso_rot, up: [0, 0, 1], joint: elbow_L, end: wrist_L}
+  leg_L: {start: hip_L, space: root, target: "foot_L + [0, 0.08, -0.02]", lengths: [0.22, 0.20],
+          pole: [0.1, 0, 1.0], pole_space: legyaw, joint: knee_L, end: ankle_L}
+
+parts:
+  torso:           # cream shirt front, seen through the vest opening
+    material: shirt
+    space: pelvis
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.03], r: [0.12, 0.16, 0.20]}
+      - ellipsoid: {c: [0, 0.25, 0.0], r: [0.12, 0.13, 0.155]}
+  vest:            # purple vest = the round body, open in a narrow V over the shirt
+    material: vest
+    space: pelvis
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.02], r: [0.265, 0.18, 0.21]}       # belly
+      - ellipsoid: {c: [0, 0.26, -0.005], r: [0.24, 0.14, 0.16]}
+    cut:
+      - box: {c: [0, 0.30, 0.25], half: [0.07, 0.14, 0.12], rot: [0, 0, 0]}
+      - box: {c: [0, 0.10, 0.25], half: [0.035, 0.10, 0.10], rot: [0, 0, 0]}
+  trim_L:          # gold trim along the opening + buttons
+    material: trim
+    space: pelvis
+    prims:
+      - cone: {a: [0.075, 0.38, 0.12], b: [0.04, 0.04, 0.215], r: [0.022, 0.022]}
+      - sphere: {c: [0.055, 0.14, 0.215], r: 0.024}
+  pants:
+    material: pants
+    space: pelvis
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.06, 0.0], r: [0.20, 0.09, 0.16]}
+  belt:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [0, -0.07, 0], b: [0, -0.03, 0], r: 0.205}
+  purse:           # fat gold coin purse at the left hip, leather drawstring
+    material: trim
+    space: pelvis
+    blend: 0.02
+    prims:
+      - sphere: {c: [0.16, -0.15, 0.15], r: 0.07}
+  purse_tie:
+    material: strap
+    space: pelvis
+    prims:
+      - sphere: {c: [0.15, -0.07, 0.16], r: 0.032}
+  neck:
+    material: skin
+    space: pelvis
+    prims:
+      - cone: {a: [0, 0.36, 0], b: [0, 0.46, 0.03], r: [0.08, 0.07]}
+  head:
+    material: skin
+    space: head
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.13, 0.0], r: [0.155, 0.15, 0.145]}
+      - ellipsoid: {c: [0, 0.07, 0.03], r: [0.13, 0.08, 0.11]}           # round jowls
+      - sphere: {c: [0, 0.11, 0.15], r: 0.03}                              # round nose
+  hair:            # red-brown hair, receding at the top
+    material: hair
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.18, -0.03], r: [0.162, 0.12, 0.155]}
+      - ellipsoid: {c: [0, 0.12, -0.08], r: [0.158, 0.10, 0.09]}
+      - ellipsoid: {c: [0.12, 0.12, 0.02], r: [0.05, 0.07, 0.07]}
+      - ellipsoid: {c: [-0.12, 0.12, 0.02], r: [0.05, 0.07, 0.07]}
+    cut:
+      - box: {c: [0, 0.07, 0.15], half: [0.3, 0.12, 0.1]}
+  moustache:       # big curled moustache
+    material: hair
+    space: head
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.045, 0.075, 0.15], r: [0.055, 0.025, 0.03], rot: [0, 0, -0.35]}
+      - ellipsoid: {c: [-0.045, 0.075, 0.15], r: [0.055, 0.025, 0.03], rot: [0, 0, 0.35]}
+  blush_L:
+    material: blush
+    space: head
+    prims:
+      - ellipsoid: {c: [0.10, 0.09, 0.115], r: [0.025, 0.017, 0.02]}
+  eye_L:
+    material: ink
+    space: head
+    line: false
+    prims:
+      - ellipsoid: {c: [0.055, 0.135, 0.135], r: [0.022, 0.024, 0.02]}
+  sleeve_L:        # puffy cream sleeve
+    material: shirt
+    blend: 0.03
+    prims:
+      - sphere: {c: "@shoulder_L", r: 0.075}
+      - cone: {a: "@shoulder_L", b: "@elbow_L", r: [0.065, 0.06]}
+      - cone: {a: "@elbow_L", b: "@wrist_L", r: [0.06, 0.05]}
+  hand_L:
+    material: skin
+    space: wrist_L
+    prims:
+      - sphere: {c: [0, 0, 0.035], r: 0.06}
+  leg_L:
+    material: pants
+    blend: 0.03
+    prims:
+      - cone: {a: "@hip_L", b: "@knee_L", r: [0.10, 0.085]}
+      - cone: {a: "@knee_L", b: "@ankle_L", r: [0.085, 0.07]}
+  boot_L:
+    material: boots
+    space: sole_L
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.10, 0], b: [0, -0.02, 0.0], r: [0.08, 0.075]}
+      - ellipsoid: {c: [0, -0.03, 0.05], r: [0.075, 0.05, 0.11]}
+  straps_L:        # shoulder straps of the pack
+    material: strap
+    space: pelvis
+    blend: 0.01
+    prims:
+      - chain: {pts: [[0.13, 0.30, -0.15], [0.14, 0.40, -0.02], [0.13, 0.34, 0.13], [0.15, 0.16, 0.19]],
+                r: [0.028, 0.028, 0.028, 0.026]}
+  backpack:        # huge pack, rises above the head
+    material: pack
+    space: pelvis
+    blend: 0.03
+    prims:
+      - box: {c: [0, 0.46, -0.31], half: [0.25, 0.42, 0.15], round: 0.07}
+      - box: {c: [0, 0.84, -0.24], half: [0.24, 0.05, 0.11], round: 0.04, rot: [0.3, 0, 0]}   # flap
+      - box: {c: [0, 0.26, -0.46], half: [0.16, 0.12, 0.05], round: 0.03}                     # front pocket
+  bedroll:         # red bedroll strapped across the top
+    material: bedroll
+    space: pelvis
+    prims:
+      - cylinder: {a: [-0.31, 0.98, -0.31], b: [0.31, 0.98, -0.31], r: 0.09, round: 0.03}
+  bedroll_ties:
+    material: strap
+    space: pelvis
+    prims:
+      - cylinder: {a: [-0.18, 0.98, -0.31], b: [-0.14, 0.98, -0.31], r: 0.098}
+      - cylinder: {a: [0.14, 0.98, -0.31], b: [0.18, 0.98, -0.31], r: 0.098}
+  pot:             # copper pot hanging on the pack's left side
+    material: pot
+    space: pelvis
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0.29, 0.34, -0.30], b: [0.29, 0.50, -0.30], r: 0.085, round: 0.02}
+      - cylinder: {a: [0.29, 0.50, -0.30], b: [0.29, 0.53, -0.30], r: 0.095, round: 0.01}
+  scroll:          # rolled map/scroll sticking up on the right side
+    material: scroll
+    space: pelvis
+    prims:
+      - cylinder: {a: [-0.21, 0.60, -0.22], b: [-0.26, 1.18, -0.28], r: 0.045, round: 0.015}
+
+animations:
+  idle:            # contented breathing, hands on the hips
+    frames: 4
+    ms: 190
+    channels:
+      bob: "0.025*sin(p)"
+      squash: "1 + 0.025*sin(p)"
+      head_pitch: "-0.04*sin(p - 0.5)"
+      hand_L: "[0.33, 0.02 + 0.02*sin(p - 0.6), 0.02]"
+      hand_R: "[0.33, 0.02 + 0.02*sin(p - 0.6), 0.02]"
+  talk:            # sales pitch: both arms open wide and close, head bobs
+    frames: 4
+    ms: 150
+    channels:
+      bob: "0.025*sin(2*p)"
+      head_pitch: "-0.08*sin(2*p)"
+      hand_L: "[0.30 + 0.06*sin(p), 0.22 + 0.06*sin(p), 0.20]"
+      hand_R: "[0.30 + 0.06*sin(p + pi), 0.22 + 0.06*sin(p + pi), 0.20]"

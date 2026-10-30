@@ -1,0 +1,412 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dog_trovao_demon
+mirror: true
+kind: character
+size: 64
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 0.70, -0.02]}
+shadow: {rx: 20, ry: 7, alpha: 130}
+
+# Trovão, o Uivador: the boss form of Trovão (dog_trovao.yaml) corrupted by the demonic plague.
+# Same quadruped skeleton (from wolf.yaml), authored in "wolf units" and grown by the `rig` bone (scale
+# 1.6): huge, about 1.33x the normal Trovão. Parts live in spaces under `rig` so radii grow too; IK
+# `lengths` are world units (wolf x 1.6); the head bone does not inherit the rig scale (its 3.5 is final).
+# Paw targets are in body space; `rotx(rear*plant*Xplant)` counter-rotates them so the paws stay on the
+# ground when the body rears or hunches. `fplant` 0 lets the front paws rise with the chest (howl, swipe).
+# `chest` swells the ribcage (howl), `miasma` scales the crackling green throat wisps.
+brief:
+  summary: Trovão corrupted and huge; hunched, heavy shaggy beast with matted dark grey-violet fur in
+    ragged clumps, bony spikes on shoulders and spine, glowing plague pustules, glowing green eyes,
+    a gaping foaming maw and crackling green miasma around the throat (the howler)
+  must_keep: [same dog as dog_trovao (big round shaggy head, floppy ears, beard, bushy tail, pale bib),
+    matted dark grey-violet clumpy fur, bone spikes on shoulders and spine, green-yellow emissive pustules,
+    glowing green eyes, open maw with fangs and foam, green miasma at the throat]
+  simplify: [fur clumps are a few big jagged cones; pustules are 5-6 glowing dots per side; teeth are
+    four fangs; foam is two pale blobs at the mouth corners; miasma is a jittering ring of wisps]
+  decisions: frame 64 (boss exception allowed) with the same camera scale; rig 1.6 (1.6x the wolf,
+    1.33x the normal Trovão, bigger than Mancha's demon so he reads as the strongest of the three);
+    shoulders hunched up into a hump and the head carried low and forward; the beard and bib stay but
+    in a dirty grey so the purified dog is recognisable; ears kept floppy but torn shorter; jaw rests
+    open; eyes, pustules and miasma are the only emissives (green family, the plague colour).
+  exceptions: size 64; rig scale 1.6; spec-local ramps; same camera scale/pitch/light as the wolf.
+
+ramps:
+  td_fur:    ["#1c0f1a", "#272030", "#3d3349", "#5a4d66", "#7c6e88"]
+  td_matted: ["#1c0f1a", "#1d1624", "#2c2336", "#43384f"]
+  td_pale:   ["#1c0f1a", "#46424f", "#6b6676", "#918c9c", "#b2aebb"]
+  td_bone:   ["#1c0f1a", "#5e4a3a", "#9a8562", "#c8b88a", "#e2d6b0"]
+  td_plague: ["#2f4a10", "#8fc21e", "#d4ef4a", "#f8ffb8"]
+  td_eye:    ["#1c0f1a", "#7dff3a", "#e8ffb0"]
+  td_miasma: ["#1f5a1a", "#4fd83a", "#a8ff6a", "#eaffd0"]
+  td_foam:   ["#1c0f1a", "#8e9c86", "#cfdcc0", "#f2fae6"]
+  td_dark:   ["#1c0f1a", "#1a1420", "#2a2230", "#3e3446"]
+
+materials:
+  fur:    {ramp: td_fur, bands: [1, 4]}
+  matted: {ramp: td_matted, bands: [1, 3]}
+  pale:   {ramp: td_pale, bands: [1, 3]}
+  bone:   {ramp: td_bone, bands: [1, 3]}
+  dark:   {ramp: td_dark, bands: [1, 2]}
+  foam:   {ramp: td_foam, bands: [2, 3], outline: false}
+  mouth:  {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  plague: {ramp: td_plague, emissive: true, band: 2, outline: false, glow: {color: "#b8f03a", mix: 0.35, radius: 1}}
+  eye:    {ramp: td_eye, emissive: true, band: 1, outline: false, glow: {color: "#7dff3a", mix: 0.3, radius: 1}}
+  miasma: {ramp: td_miasma, emissive: true, band: 1, outline: false, line: false, glow: {color: "#4fd83a", mix: 0.4, radius: 1}}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when the body bobs / rears; 0: paws follow the body (death)
+  fplant: 1         # 0: front paws rise with the chest when rearing (howl, swipe)
+  rear: 0           # + raises the front of the body
+  roll: 0           # roll around the body length (death: onto its side)
+  twist: 0          # body yaw
+  squash: 1
+  chest: 1          # ribcage swell (howl)
+  head_pitch: 0     # + looks down
+  head_yaw: 0
+  head_tilt: 0
+  jaw: 0.42         # + opens the maw (rests open)
+  ear_L: 0          # + flaps the ear out
+  tail: 0           # tail sway (yaw)
+  tail_up: 0        # + raises the tail
+  miasma: 1         # size of the throat wisps (0 hides them)
+  ffoot_L: [0.14, -0.41, 0.24]    # front paw target (body space)
+  hfoot_L: [0.14, -0.41, -0.22]   # hind paw target (body space)
+
+bones:
+  rig:      {parent: root, scale: 1.6}
+  body:     {parent: rig, pos: "[0, 0.47 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  ribs:     {parent: body, pos: [0, 0.02, 0.12], scale: "[chest, chest, chest]"}
+  headbase: {parent: body, pos: [0, 0.22, 0.47], inherit_scale: false}
+  head:     {parent: headbase, rot: "[0.08 + head_pitch, head_yaw, head_tilt]", scale: 3.5}
+  jaw:      {parent: head, pos: [0, -0.015, 0.06], rot: "[jaw, 0, 0]"}
+  ear_L:    {parent: head, pos: [0.085, 0.08, -0.02], rot: "[0.3, 0, 0.45 + ear_L]"}
+  tail:     {parent: body, pos: [0, 0.06, -0.33], rot: "[-0.7 + tail_up, tail, 0]"}
+  shoulder_L: {parent: body, pos: [0.14, -0.02, 0.22]}
+  hip_L:      {parent: body, pos: [0.13, -0.04, -0.21]}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "rotx(rear*plant*fplant) @ (ffoot_L + [0, 0.04 - bob*plant, 0])",
+           lengths: [0.352, 0.336], pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "rotx(rear*plant) @ (hfoot_L + [0, 0.04 - bob*plant, 0])",
+           lengths: [0.336, 0.336], pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # hunched: big shoulder hump, sunken waist, lower hips
+    material: fur
+    space: body
+    blend: 0.09
+    prims:
+      - ellipsoid: {c: [0, 0.07, 0.13], r: [0.23, 0.22, 0.21]}
+      - ellipsoid: {c: [0, 0.03, -0.05], r: [0.18, 0.16, 0.16]}
+      - ellipsoid: {c: [0, 0.0, -0.21], r: [0.19, 0.17, 0.16]}
+      - ellipsoid: {c: [0, 0.22, 0.10], r: [0.17, 0.10, 0.15]}              # shoulder hump
+      - cone: {a: [0, 0.10, 0.22], b: [0, 0.18, 0.38], r: [0.17, 0.13]}     # thick neck
+  ribs:            # swelling ribcage / pale dirty bib (chest channel)
+    material: pale
+    space: ribs
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.20], r: [0.16, 0.19, 0.10], rot: [0.45, 0, 0]}
+      - cone: {a: [0, -0.10, 0.18], b: [0, -0.27, 0.15], r: [0.08, 0.02]}
+  clumps_L:        # matted fur hanging in ragged clumps from flanks, mane and haunch
+    material: matted
+    space: body
+    blend: 0.04
+    prims:
+      - cone: {a: [0.17, -0.06, 0.18], b: [0.21, -0.27, 0.20], r: [0.07, 0.02]}
+      - cone: {a: [0.17, -0.06, 0.04], b: [0.20, -0.24, 0.0], r: [0.065, 0.02]}
+      - cone: {a: [0.15, -0.08, -0.12], b: [0.19, -0.25, -0.16], r: [0.065, 0.02]}
+      - cone: {a: [0.13, -0.06, -0.28], b: [0.15, -0.21, -0.36], r: [0.06, 0.018]}
+      - cone: {a: [0.16, 0.12, 0.28], b: [0.27, 0.0, 0.34], r: [0.07, 0.02]}       # mane tufts
+      - cone: {a: [0.12, 0.20, 0.24], b: [0.24, 0.20, 0.36], r: [0.06, 0.018]}
+      - cone: {a: [0.17, 0.10, -0.22], b: [0.27, 0.02, -0.30], r: [0.06, 0.018]}   # haunch tuft
+      - cone: {a: [0.10, 0.14, -0.02], b: [0.21, 0.14, -0.12], r: [0.055, 0.016]}  # flank tuft
+  spikes:          # jagged bone spikes along the spine
+    material: bone
+    space: body
+    blend: 0.015
+    prims:
+      - cone: {a: [0, 0.28, 0.12], b: [0, 0.50, 0.02], r: [0.06, 0.012]}
+      - cone: {a: [0, 0.27, 0.0], b: [0, 0.44, -0.10], r: [0.048, 0.012]}
+      - cone: {a: [0, 0.15, -0.24], b: [0, 0.27, -0.34], r: [0.036, 0.01]}
+  spikes_L:        # shoulder spikes bursting out sideways and up
+    material: bone
+    space: body
+    blend: 0.015
+    prims:
+      - cone: {a: [0.15, 0.20, 0.16], b: [0.34, 0.40, 0.10], r: [0.06, 0.012]}
+      - cone: {a: [0.17, 0.12, 0.24], b: [0.34, 0.22, 0.30], r: [0.04, 0.01]}
+  pustules_L:      # glowing plague boils
+    material: plague
+    space: body
+    prims:
+      - sphere: {c: [0.20, 0.06, 0.10], r: 0.045}
+      - sphere: {c: [0.17, 0.10, -0.08], r: 0.04}
+      - sphere: {c: [0.18, -0.02, -0.20], r: 0.045}
+      - sphere: {c: [0.10, 0.17, -0.18], r: 0.035}
+      - sphere: {c: [0.21, 0.14, 0.24], r: 0.035}
+      - sphere: {c: [0.07, 0.24, 0.04], r: 0.035}
+  head:            # big shaggy skull with brow ridges and torn cheek tufts
+    material: fur
+    space: head
+    blend: 0.04
+    prims:
+      - ellipsoid: {c: [0, 0.05, -0.01], r: [0.12, 0.10, 0.11]}
+      - ellipsoid: {c: [0.085, -0.01, -0.01], r: [0.05, 0.065, 0.055]}
+      - ellipsoid: {c: [-0.085, -0.01, -0.01], r: [0.05, 0.065, 0.055]}
+      - cone: {a: [0.09, -0.02, 0.0], b: [0.13, -0.10, -0.02], r: [0.035, 0.01]}
+      - cone: {a: [-0.09, -0.02, 0.0], b: [-0.13, -0.10, -0.02], r: [0.035, 0.01]}
+      - ellipsoid: {c: [0.05, 0.115, 0.06], r: [0.05, 0.026, 0.04], rot: [-0.1, 0, -0.35]}   # angry brows
+      - ellipsoid: {c: [-0.05, 0.115, 0.06], r: [0.05, 0.026, 0.04], rot: [-0.1, 0, 0.35]}
+      - cone: {a: [0, 0.13, -0.03], b: [0, 0.17, -0.12], r: [0.045, 0.012]}       # scruffy crest
+  head_spikes:     # small bone horns breaking through the skull
+    material: bone
+    space: head
+    blend: 0.01
+    prims:
+      - cone: {a: [0.06, 0.12, -0.04], b: [0.10, 0.20, -0.12], r: [0.025, 0.007]}
+      - cone: {a: [-0.06, 0.12, -0.04], b: [-0.10, 0.20, -0.12], r: [0.025, 0.007]}
+  snout:           # dirty-grey muzzle (the normal dog's pale snout)
+    material: pale
+    space: head
+    blend: 0.03
+    prims:
+      - cone: {a: [0, 0.03, 0.06], b: [0, 0.02, 0.165], r: [0.062, 0.05]}
+  beard:           # matted beard on the lower jaw
+    material: pale
+    space: jaw
+    blend: 0.03
+    prims:
+      - cone: {a: [0, -0.02, 0.0], b: [0, -0.02, 0.10], r: [0.045, 0.035]}
+      - ellipsoid: {c: [0, -0.05, 0.06], r: [0.045, 0.04, 0.04]}
+      - cone: {a: [0, -0.06, 0.05], b: [0, -0.12, 0.04], r: [0.032, 0.01]}
+  mouth:           # gaping maw
+    when: "jaw > 0.12"
+    material: mouth
+    space: head
+    prims:
+      - ellipsoid: {c: [0, -0.02, 0.11], r: [0.05, 0.04, 0.075]}
+  fangs:           # upper fangs
+    material: bone
+    space: head
+    prims:
+      - cone: {a: [0.03, 0.0, 0.15], b: [0.032, -0.05, 0.15], r: [0.014, 0.004]}
+      - cone: {a: [-0.03, 0.0, 0.15], b: [-0.032, -0.05, 0.15], r: [0.014, 0.004]}
+  fangs_low:       # lower fangs
+    material: bone
+    space: jaw
+    prims:
+      - cone: {a: [0.025, -0.015, 0.09], b: [0.027, 0.03, 0.095], r: [0.012, 0.004]}
+      - cone: {a: [-0.025, -0.015, 0.09], b: [-0.027, 0.03, 0.095], r: [0.012, 0.004]}
+  foam:            # froth at the mouth corners, dripping
+    when: "jaw > 0.12"
+    material: foam
+    space: jaw
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.045, -0.005, 0.02], r: [0.025, 0.022, 0.025]}
+      - ellipsoid: {c: [-0.045, -0.005, 0.02], r: [0.025, 0.022, 0.025]}
+      - cone: {a: [0.045, -0.02, 0.025], b: [0.05, -0.07, 0.03], r: [0.014, 0.008]}
+  nose:
+    material: dark
+    space: head
+    prims:
+      - sphere: {c: [0, 0.04, 0.175], r: 0.032}
+  eye_L:
+    material: eye
+    space: head
+    prims:
+      - sphere: {c: [0.05, 0.072, 0.095], r: 0.024}
+  ear_L:           # torn floppy ear
+    material: matted
+    space: ear_L
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [0.015, -0.05, 0.0], r: [0.03, 0.07, 0.055]}
+      - cone: {a: [0.015, -0.08, 0.01], b: [0.025, -0.13, 0.03], r: [0.03, 0.01]}
+  miasma:          # crackling green wisps ringing the throat (the howler's voice)
+    when: "miasma > 0.05"
+    material: miasma
+    space: body
+    prims:
+      - chain: {pts: ["[0.22*miasma, 0.10 + 0.03*noise(f, 1), 0.32]", "[0.16*miasma, 0.22 + 0.03*noise(f, 2), 0.36 + 0.03*noise(f, 3)]",
+                      "[0.02*noise(f, 4), 0.27*miasma + 0.08, 0.38]"], r: [0.03, 0.026, 0.02]}
+      - chain: {pts: ["[-0.22*miasma, 0.12 + 0.03*noise(f, 5), 0.30]", "[-0.17*miasma, 0.0 + 0.03*noise(f, 6), 0.40 + 0.03*noise(f, 7)]",
+                      "[-0.05, -0.05*miasma - 0.02, 0.44]"], r: [0.03, 0.026, 0.02]}
+      - chain: {pts: ["[0.20*miasma, -0.02, 0.36 + 0.03*noise(f, 8)]", "[0.08*miasma + 0.02*noise(f, 9), -0.10*miasma, 0.44]"],
+                r: [0.028, 0.02]}
+      - sphere: {c: "[0.26*miasma, 0.18 + 0.05*noise(f, 10), 0.26]", r: 0.03}
+      - sphere: {c: "[-0.25*miasma, 0.22 + 0.05*noise(f, 11), 0.34]", r: 0.03}
+  tail:            # matted, clumpy tail, hanging low
+    material: fur
+    space: tail
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, 0], [0, 0.0, -0.12], [0, 0.02, -0.24], [0, 0.06, -0.34]], r: [0.07, 0.10, 0.11, 0.07]}
+  tail_clumps:
+    material: matted
+    space: tail
+    blend: 0.03
+    prims:
+      - cone: {a: [0, -0.03, -0.12], b: [0, -0.14, -0.16], r: [0.05, 0.015]}
+      - cone: {a: [0, -0.02, -0.27], b: [0, -0.12, -0.36], r: [0.05, 0.015]}
+      - cone: {a: [0, 0.05, -0.32], b: [0, 0.08, -0.44], r: [0.05, 0.015]}
+  fleg_L:          # massive forelegs
+    material: fur
+    space: rig
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: shoulder_L, off: [0, 0.04, -0.02]}, r: [0.11, 0.16, 0.12]}
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.08, 0.06]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.058, 0.05]}
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.01, 0.04]}, r: [0.065, 0.04, 0.08]}
+  hleg_L:
+    material: fur
+    space: rig
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: hip_L, off: [0, 0.02, 0.0]}, r: [0.10, 0.14, 0.12]}
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.075, 0.05]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.048, 0.042]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.01, 0.03]}, r: [0.055, 0.035, 0.065]}
+  claws_L:         # dark hooked claws on the front paws
+    material: bone
+    space: rig
+    prims:
+      - cone: {a: {at: fpaw_L, off: [0.02, 0.0, 0.09]}, b: {at: fpaw_L, off: [0.025, -0.03, 0.13]}, r: [0.016, 0.006]}
+      - cone: {a: {at: fpaw_L, off: [-0.02, 0.0, 0.09]}, b: {at: fpaw_L, off: [-0.025, -0.03, 0.13]}, r: [0.016, 0.006]}
+
+sockets:
+  hit: {bone: head, offset: [0, -0.02, 0.20]}
+  head: {bone: head, offset: [0, 0.20, 0]}
+  howl: {bone: head, offset: [0, 0.0, 0.18]}
+  throat: {bone: body, offset: [0, 0.10, 0.40]}
+
+timing: {attack: {hit: 280ms, total: 700ms}, howl: {howl: 320ms}}
+
+animations:
+  idle:            # heavy, hunched breathing; maw open, foam, miasma crackling
+    frames: 6
+    ms: 150
+    channels:
+      bob: "0.02*sin(p)"
+      squash: "1 + 0.035*sin(p)"
+      chest: "1 + 0.04*sin(p)"
+      head_pitch: "0.05*sin(p - 0.6)"
+      jaw: "0.42 + 0.08*sin(p - 0.6)"
+      tail: "0.12*sin(p - 1.0)"
+      ear_L: "0.06*sin(p - 1.2)"
+      miasma: "1 + 0.12*sin(2*p)"
+  walk:            # lumbering, heavy trot: diagonal pairs, shoulders roll, head swings low
+    frames: 6
+    ms: 130
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "0.03*cos(2*p)"
+      squash: "1 + 0.03*cos(2*p)"
+      twist: "0.06*sin(p)"
+      roll: "0.06*sin(p)"
+      head_pitch: "0.06 + 0.06*cos(2*p - 0.6)"
+      head_yaw: "-0.08*sin(p)"
+      jaw: "0.42 + 0.06*cos(2*p)"
+      tail: "0.2*sin(p - 0.8)"
+      ear_L: "0.1*sin(2*p - 1.2)"
+      miasma: "1 + 0.1*sin(2*p)"
+      ffoot_L: "[0.14, -0.41 + 0.10*pos(-sin(p)), 0.24 + 0.14*cos(p)]"
+      hfoot_R: "[0.14, -0.41 + 0.09*pos(-sin(p)), -0.22 + 0.13*cos(p)]"
+      ffoot_R: "[0.14, -0.41 + 0.10*pos(sin(p)), 0.24 - 0.14*cos(p)]"
+      hfoot_L: "[0.14, -0.41 + 0.09*pos(sin(p)), -0.22 - 0.13*cos(p)]"
+  attack:          # rears back with the right paw raised, then slams a swipe and bites (hit at 280 ms)
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {root: [0, 0, -0.06], rear: 0.14, fplant: 0, twist: -0.10, squash: 0.95, head_pitch: -0.15, jaw: 0.6, ear_L: -0.2,
+              tail_up: 0.2, ffoot_R: [0.12, -0.30, 0.30], ffoot_L: [0.14, -0.38, 0.22]}
+      - ms: 160
+        set: {root: [0, 0, -0.10], rear: 0.24, fplant: 0, twist: -0.18, squash: 0.92, chest: 1.06, head_pitch: -0.3, jaw: 0.85,
+              ear_L: -0.3, tail_up: 0.3, miasma: 1.3, ffoot_R: [0.18, -0.16, 0.30], ffoot_L: [0.14, -0.36, 0.22]}
+      - ms: 60
+        event: hit
+        set: {root: [0, 0, 0.16], rear: -0.08, twist: 0.16, squash: 1.07, head_pitch: 0.28, jaw: 0.12, ear_L: 0.5,
+              tail_up: 0.1, miasma: 1.2, ffoot_R: [0.08, -0.41, 0.46], ffoot_L: [0.14, -0.41, 0.30], hfoot_L: [0.14, -0.41, -0.30], hfoot_R: [0.14, -0.41, -0.30]}
+      - ms: 110
+        set: {root: [0, 0, 0.13], rear: -0.04, twist: 0.20, squash: 1.02, head_pitch: 0.22, jaw: 0.25, ear_L: 0.3,
+              ffoot_R: [0.08, -0.41, 0.43], ffoot_L: [0.14, -0.41, 0.28], hfoot_L: [0.14, -0.41, -0.28], hfoot_R: [0.14, -0.41, -0.28]}
+      - ms: 130
+        set: {root: [0, 0, 0.06], twist: 0.06, head_pitch: 0.1, jaw: 0.4, ffoot_R: [0.12, -0.41, 0.34]}
+      - ms: 120
+        set: {root: [0, 0, 0.02], head_pitch: 0.04, jaw: 0.42}
+  howl:            # crouches, rears up with the chest swelling and howls to the sky, miasma flaring (cast at 440 ms)
+    loop: false
+    keys:
+      - ms: 140
+        event: windup
+        set: {bob: -0.05, squash: 0.92, chest: 0.95, head_pitch: 0.3, jaw: 0.2, ear_L: -0.2, miasma: 0.8}
+      - ms: 180
+        set: {bob: 0.0, rear: 0.25, fplant: 0, squash: 1.0, chest: 1.12, head_pitch: -0.35, jaw: 0.3, ear_L: -0.1, tail_up: 0.2,
+              miasma: 1.1, ffoot_L: [0.14, -0.33, 0.30], ffoot_R: [0.14, -0.33, 0.30]}
+      - ms: 120
+        event: howl
+        set: {bob: 0.04, rear: 0.42, fplant: 0, squash: 1.05, chest: 1.18, head_pitch: -0.8, jaw: 0.85, ear_L: 0.4, tail_up: 0.4,
+              miasma: 1.7, ffoot_L: [0.14, -0.28, 0.33], ffoot_R: [0.14, -0.30, 0.31]}
+      - ms: 300
+        set: {bob: 0.05, rear: 0.44, fplant: 0, squash: 1.06, chest: 1.2, head_pitch: -0.85, jaw: 0.9, ear_L: 0.55, tail_up: 0.45,
+              miasma: 2.0, ffoot_L: [0.14, -0.28, 0.33], ffoot_R: [0.14, -0.30, 0.31]}
+      - ms: 260
+        set: {bob: 0.05, rear: 0.44, fplant: 0, squash: 1.05, chest: 1.16, head_pitch: -0.9, head_yaw: 0.1, jaw: 0.8, ear_L: 0.35,
+              tail_up: 0.4, miasma: 1.8, ffoot_L: [0.14, -0.28, 0.33], ffoot_R: [0.14, -0.30, 0.31]}
+      - ms: 140
+        set: {bob: 0.0, rear: 0.15, fplant: 0, chest: 1.05, head_pitch: -0.2, jaw: 0.5, ear_L: 0.1, tail_up: 0.1, miasma: 1.3,
+              ffoot_L: [0.14, -0.37, 0.30], ffoot_R: [0.14, -0.37, 0.30]}
+      - ms: 120
+        event: land
+        set: {bob: -0.05, rear: -0.04, squash: 0.93, head_pitch: 0.2, jaw: 0.4, ear_L: 0.3, miasma: 1.1}
+      - ms: 150
+        set: {head_pitch: 0.05, jaw: 0.42}
+  hit:             # flinches back, head thrown up, maw wide
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0, 0, -0.10], bob: -0.03, rear: 0.10, squash: 0.9, head_pitch: -0.35, head_tilt: 0.15, jaw: 0.8, ear_L: 0.5,
+              tail_up: -0.2, miasma: 0.6}
+      - ms: 80
+        set: {root: [0, 0, -0.08], bob: -0.02, rear: 0.05, squash: 0.95, head_pitch: -0.15, jaw: 0.6, ear_L: 0.2, tail_up: -0.1, miasma: 0.8}
+      - ms: 100
+        set: {root: [0, 0, -0.03], head_pitch: 0.05, jaw: 0.45}
+  death:           # rears in agony, crashes onto its side, writhes, ends lying still (the miasma dies out)
+    loop: false
+    keys:
+      - ms: 110
+        set: {root: [0, 0, -0.06], bob: 0.02, rear: 0.3, fplant: 0, squash: 0.94, chest: 1.1, head_pitch: -0.6, jaw: 0.9, ear_L: 0.5,
+              tail_up: -0.2, miasma: 1.5, ffoot_L: [0.14, -0.34, 0.26], ffoot_R: [0.14, -0.34, 0.26]}
+      - ms: 110
+        set: {root: [0, 0, -0.08], bob: -0.10, rear: 0.06, roll: 0.55, head_pitch: -0.25, jaw: 0.7, ear_L: 0.3, tail_up: -0.3, miasma: 0.9}
+      - ms: 120
+        set: {root: [0, 0, -0.08], bob: -0.27, plant: 0, roll: 1.2, head_pitch: 0.1, jaw: 0.5, ear_L: 0.5, tail_up: -0.2, miasma: 0.6,
+              ffoot_L: [0.16, -0.35, 0.24], hfoot_L: [0.16, -0.35, -0.25]}
+      - ms: 110
+        event: fall
+        set: {root: [0, 0, -0.08], bob: -0.37, plant: 0, roll: 1.5, squash: 0.94, head_pitch: 0.3, jaw: 0.55, ear_L: 0.6, tail_up: 0.3,
+              miasma: 0.45, ffoot_L: [0.14, -0.38, 0.32], ffoot_R: [0.14, -0.38, 0.34], hfoot_L: [0.14, -0.38, -0.29], hfoot_R: [0.14, -0.38, -0.26]}
+      - ms: 90
+        set: {root: [0, 0, -0.08], bob: -0.36, plant: 0, roll: 1.45, squash: 0.96, head_pitch: 0.0, jaw: 0.75, ear_L: 0.4, tail_up: 0.4, tail: 0.3,
+              miasma: 0.4, ffoot_L: [0.14, -0.30, 0.42], ffoot_R: [0.14, -0.40, 0.26], hfoot_L: [0.14, -0.32, -0.38], hfoot_R: [0.14, -0.38, -0.20]}
+      - ms: 90
+        set: {root: [0, 0, -0.08], bob: -0.37, plant: 0, roll: 1.55, squash: 0.94, head_pitch: 0.35, jaw: 0.4, ear_L: 0.6, tail_up: 0.2, tail: -0.3,
+              miasma: 0.3, ffoot_L: [0.14, -0.40, 0.26], ffoot_R: [0.14, -0.30, 0.42], hfoot_L: [0.14, -0.38, -0.20], hfoot_R: [0.14, -0.32, -0.38]}
+      - ms: 90
+        set: {root: [0, 0, -0.08], bob: -0.36, plant: 0, roll: 1.47, squash: 0.96, head_pitch: 0.05, jaw: 0.7, ear_L: 0.4, tail_up: 0.4, tail: 0.25,
+              miasma: 0.25, ffoot_L: [0.14, -0.32, 0.40], ffoot_R: [0.14, -0.40, 0.28], hfoot_L: [0.14, -0.33, -0.36], hfoot_R: [0.14, -0.38, -0.22]}
+      - ms: 130
+        set: {root: [0, 0, -0.08], bob: -0.37, plant: 0, roll: 1.52, squash: 0.95, head_pitch: 0.3, jaw: 0.3, ear_L: 0.5, tail_up: 0.3,
+              miasma: 0.12, ffoot_L: [0.14, -0.38, 0.32], ffoot_R: [0.14, -0.38, 0.34], hfoot_L: [0.14, -0.38, -0.29], hfoot_R: [0.14, -0.38, -0.26]}
+      - ms: 700
+        event: dead
+        set: {root: [0, 0, -0.08], bob: -0.38, plant: 0, roll: 1.52, squash: 0.95, head_pitch: 0.35, jaw: 0.18, ear_L: 0.5, tail_up: 0.3,
+              miasma: 0, ffoot_L: [0.14, -0.38, 0.32], ffoot_R: [0.14, -0.38, 0.34], hfoot_L: [0.14, -0.38, -0.29], hfoot_R: [0.14, -0.38, -0.26]}

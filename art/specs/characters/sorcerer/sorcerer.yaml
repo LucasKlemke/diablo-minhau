@@ -50,6 +50,8 @@ channels:
   flick: 0          # flame flicker offset
   boltsz: 0         # thrown bolt blob in front of the hand (attack release)
   bolt_z: 0.25
+  bolt_x: -0.10     # bolt side (-0.10 right hand, +0.10 left hand, 0 centre)
+  bolt_y: 0.70      # bolt height (higher for the plague lob)
 
 bones:
   torso_rot: {parent: root, pos: "[0, 0.50 + bob, 0]", rot: "[lean, twist, roll]"}
@@ -197,14 +199,14 @@ parts:
     space: root
     blend: 0.04
     prims:
-      - sphere: {c: "[-0.10, 0.70, bolt_z]", r: "0.11*boltsz"}
-      - cone: {a: "[-0.10, 0.70, bolt_z]", b: "[-0.10, 0.70, bolt_z - 0.22*boltsz]", r: ["0.07*boltsz", 0.01]}
+      - sphere: {c: "[bolt_x, bolt_y, bolt_z]", r: "0.11*boltsz"}
+      - cone: {a: "[bolt_x, bolt_y, bolt_z]", b: "[bolt_x, bolt_y, bolt_z - 0.22*boltsz]", r: ["0.07*boltsz", 0.01]}
   bolt_core:
     when: "boltsz > 0.05"
     material: flame_core
     space: root
     prims:
-      - sphere: {c: "[-0.10, 0.70, bolt_z + 0.01]", r: "0.06*boltsz"}
+      - sphere: {c: "[bolt_x, bolt_y, bolt_z + 0.01]", r: "0.06*boltsz"}
 
 sockets:
   muzzle: {bone: flameA_b, offset: [0, 0.07, 0.06]}
@@ -278,6 +280,129 @@ animations:
               coat: 0.5, head_pitch: -0.14, flame: 1.8, flame2: 1.8, flick: -1}
       - ms: 160
         set: {bob: 0.0, lean: 0.02, hand_R: [0.22, 0.14, 0.16], hand_L: [0.22, 0.10, 0.12], coat: 0.1, flame: 1.0, flame2: 0.4}
+  attack2:         # off-hand flick: the left hand throws the bolt with a torso twist; release 240 ms, total 510 ms
+    loop: false
+    keys:
+      - ms: 110
+        event: windup
+        set: {twist: 0.35, lean: -0.04, bob: -0.02, squash: 0.96, hand_L: [0.30, 0.20, -0.14], hand_R: [0.20, 0.10, 0.18],
+              coat: -0.3, head_pitch: -0.06, flame: 0.8, flame2: 1.1, flick: 1}
+      - ms: 130
+        set: {twist: 0.45, lean: -0.06, bob: -0.03, squash: 0.94, hand_L: [0.30, 0.26, -0.18], hand_R: [0.20, 0.12, 0.20],
+              coat: -0.4, head_pitch: -0.08, flame: 0.8, flame2: 1.5, flick: -1}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.05], twist: -0.32, lean: 0.20, squash: 1.04, hand_L: [0.02, 0.22, 0.34], hand_R: [0.24, 0.02, -0.04],
+              coat: 0.6, flame: 0.9, flame2: 0.4, boltsz: 1.2, bolt_z: 0.52, bolt_x: 0.10}
+      - ms: 90
+        set: {root: [0, 0, 0.05], twist: -0.40, lean: 0.18, hand_L: [0.0, 0.18, 0.32], hand_R: [0.24, 0.02, -0.04],
+              coat: 0.4, flame: 0.9, flame2: 0.3}
+      - ms: 110
+        set: {root: [0, 0, 0.02], twist: -0.10, lean: 0.08, hand_L: [0.18, 0.06, 0.14], coat: 0.1, flame: 0.9}
+  attack3:         # palm blast: hands meet at the chest, charge, push forward; release 330 ms, total 610 ms
+    loop: false
+    keys:
+      - ms: 110
+        event: windup
+        set: {bob: -0.02, squash: 0.95, lean: -0.06, hand_R: [0.06, 0.18, 0.16], hand_L: [0.06, 0.18, 0.16],
+              coat: -0.2, flame: 0.8, flame2: 0.7, flick: 1}
+      - ms: 100
+        set: {bob: -0.03, squash: 0.92, lean: -0.12, hand_R: [0.08, 0.20, 0.06], hand_L: [0.08, 0.20, 0.06],
+              coat: -0.3, head_pitch: -0.06, flame: 1.3, flame2: 1.3, flick: -1}
+      - ms: 120
+        set: {bob: -0.035, squash: 0.91, lean: -0.14, hand_R: [0.06, 0.21, 0.04], hand_L: [0.06, 0.21, 0.04],
+              coat: -0.35, head_pitch: -0.08, flame: 1.6, flame2: 1.6, flick: 1}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.06], lean: 0.22, squash: 1.06, hand_R: [0.05, 0.22, 0.40], hand_L: [0.05, 0.22, 0.40],
+              coat: 0.6, head_pitch: 0.04, flame: 0.6, flame2: 0.6, boltsz: 1.4, bolt_z: 0.66, bolt_x: 0.0}
+      - ms: 100
+        set: {root: [0, 0, 0.05], lean: 0.18, squash: 1.0, hand_R: [0.07, 0.20, 0.38], hand_L: [0.07, 0.20, 0.38],
+              coat: 0.4, flame: 0.4, flame2: 0.3}
+      - ms: 110
+        set: {root: [0, 0, 0.02], lean: 0.08, hand_R: [0.20, 0.10, 0.20], hand_L: [0.20, 0.04, 0.12], coat: 0.1, flame: 0.8}
+  drain:           # Soul Drain: reach, clawed hand closes and pulls back to the chest, lean back; release 370 ms, total 710 ms
+    loop: false
+    keys:
+      - ms: 110
+        event: windup
+        set: {root: [0, 0, 0.03], twist: 0.15, lean: 0.14, hand_R: [0.10, 0.22, 0.40], hand_L: [0.24, 0.04, -0.02],
+              coat: 0.3, head_pitch: 0.04, flame: 0.7, flick: 1}
+      - ms: 130
+        set: {root: [0, 0, 0.04], twist: 0.18, lean: 0.18, squash: 1.02, hand_R: [0.06, 0.24, 0.44], hand_L: [0.24, 0.04, -0.04],
+              coat: 0.4, head_pitch: 0.06, flame: 0.9, flick: -1}
+      - ms: 130
+        set: {root: [0, 0, 0.01], twist: 0.08, lean: 0.0, hand_R: [0.12, 0.22, 0.30], hand_L: [0.24, 0.02, 0.0],
+              coat: 0.0, flame: 1.3, flick: 1}
+      - ms: 90
+        event: release
+        set: {root: [0, 0, -0.04], twist: -0.12, lean: -0.16, squash: 1.04, hand_R: [0.14, 0.20, 0.10], hand_L: [0.24, 0.0, 0.04],
+              coat: -0.45, head_pitch: -0.10, flame: 2.0, flick: -1}
+      - ms: 120
+        set: {root: [0, 0, -0.04], twist: -0.10, lean: -0.13, squash: 1.02, hand_R: [0.15, 0.19, 0.11], hand_L: [0.24, 0.0, 0.04],
+              coat: -0.3, head_pitch: -0.08, flame: 1.6, flick: 1}
+      - ms: 130
+        set: {root: [0, 0, -0.01], lean: 0.0, hand_R: [0.22, 0.14, 0.18], coat: 0.0, flame: 1.1}
+  plague:          # underhand lob of the fel flame (toxic cloud); release 330 ms, total 620 ms
+    loop: false
+    keys:
+      - ms: 110
+        event: windup
+        set: {twist: -0.25, lean: 0.14, bob: -0.04, squash: 0.93, hand_R: [0.26, -0.08, -0.12], hand_L: [0.22, 0.06, 0.14],
+              coat: -0.3, head_pitch: 0.06, flame: 1.3, flick: 1}
+      - ms: 120
+        set: {twist: -0.30, lean: 0.18, bob: -0.05, squash: 0.92, hand_R: [0.24, -0.12, -0.16], hand_L: [0.22, 0.08, 0.16],
+              coat: -0.4, head_pitch: 0.08, flame: 1.5, flick: -1}
+      - ms: 100
+        set: {twist: 0.02, lean: 0.10, bob: -0.02, squash: 0.98, hand_R: [0.14, -0.06, 0.24], hand_L: [0.24, 0.04, 0.04],
+              coat: 0.1, flame: 1.6, flick: 1}
+      - ms: 70
+        event: release
+        set: {twist: 0.20, lean: -0.08, bob: 0.02, squash: 1.06, hand_R: [0.10, 0.30, 0.32], hand_L: [0.24, 0.0, -0.02],
+              coat: 0.5, head_pitch: -0.08, flame: 0.4, boltsz: 1.2, bolt_x: -0.06, bolt_y: 0.95, bolt_z: 0.48}
+      - ms: 100
+        set: {twist: 0.24, lean: -0.06, bob: 0.01, squash: 1.02, hand_R: [0.08, 0.36, 0.28], hand_L: [0.24, 0.0, -0.02],
+              coat: 0.35, head_pitch: -0.10, flame: 0.3, boltsz: 0.8, bolt_x: -0.04, bolt_y: 1.10, bolt_z: 0.66}
+      - ms: 120
+        set: {twist: 0.06, lean: 0.02, hand_R: [0.20, 0.14, 0.20], coat: 0.1, flame: 0.8}
+  corpse:          # Corpse Explosion: hand raised, fist slammed down (detonate); release 260 ms, total 570 ms
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {lean: -0.06, bob: 0.02, squash: 1.04, hand_R: [0.18, 0.50, 0.14], hand_L: [0.24, 0.06, 0.04],
+              coat: -0.2, head_pitch: -0.10, flame: 1.4, flick: 1}
+      - ms: 140
+        set: {lean: -0.08, bob: 0.03, squash: 1.06, hand_R: [0.16, 0.56, 0.12], hand_L: [0.24, 0.08, 0.02],
+              coat: -0.3, head_pitch: -0.12, flame: 1.8, flick: -1}
+      - ms: 60
+        event: release
+        set: {root: [0, 0, 0.03], lean: 0.22, bob: -0.04, squash: 0.90, hand_R: [0.16, -0.02, 0.26], hand_L: [0.26, 0.10, -0.04],
+              coat: 0.5, head_pitch: 0.12, flame: 1.0}
+      - ms: 120
+        set: {root: [0, 0, 0.03], lean: 0.20, bob: -0.035, squash: 0.93, hand_R: [0.16, -0.01, 0.25], hand_L: [0.26, 0.08, -0.02],
+              coat: 0.35, head_pitch: 0.10, flame: 0.6}
+      - ms: 130
+        set: {root: [0, 0, 0.01], lean: 0.06, hand_R: [0.22, 0.10, 0.20], coat: 0.1, flame: 0.8}
+  bloodpact:       # Blood Pact: hunched with arms crossed, then thrown open, head back; release 280 ms, total 690 ms
+    loop: false
+    keys:
+      - ms: 120
+        event: windup
+        set: {lean: 0.12, bob: -0.05, squash: 0.90, head_pitch: 0.24, hand_R: [-0.06, 0.22, 0.16], hand_L: [-0.06, 0.20, 0.18],
+              coat: -0.2, flame: 0.6, flick: 1}
+      - ms: 160
+        set: {lean: 0.15, bob: -0.07, squash: 0.87, head_pitch: 0.28, hand_R: [-0.08, 0.20, 0.14], hand_L: [-0.08, 0.18, 0.16],
+              coat: -0.3, flame: 0.8, flick: -1}
+      - ms: 90
+        event: release
+        set: {lean: -0.18, bob: 0.04, squash: 1.08, head_pitch: -0.25, hand_R: [0.40, 0.30, 0.02], hand_L: [0.40, 0.30, 0.02],
+              coat: 0.6, flame: 1.9, flame2: 1.6, flick: 1}
+      - ms: 180
+        set: {lean: -0.16, bob: 0.03, squash: 1.04, head_pitch: -0.22, hand_R: [0.42, 0.34, 0.0], hand_L: [0.42, 0.34, 0.0],
+              coat: 0.4, flame: 1.6, flame2: 1.3, flick: -1}
+      - ms: 140
+        set: {lean: 0.0, head_pitch: -0.04, hand_R: [0.24, 0.12, 0.16], hand_L: [0.24, 0.04, 0.10], coat: 0.1, flame: 1.0, flame2: 0.3}
   hit:
     loop: false
     keys:
@@ -293,4 +418,11 @@ animations:
       - {ms: 130, set: {root: [0, 0, 0.08], lean: -1.35, bob: -0.36, squash: 0.98, head_pitch: 0.1, hand_R: [0.34, 0.0, 0.25], hand_L: [0.34, 0.0, 0.25], coat: 0.4, flame: 0, foot_L: [0.09, 0.03, 0.10], foot_R: [0.09, 0.03, 0.10]}}
       - {ms: 500, event: dead, set: {root: [0, 0, 0.10], lean: -1.45, bob: -0.40, squash: 1.0, head_pitch: 0.1, hand_R: [0.36, 0.0, 0.22], hand_L: [0.36, 0.0, 0.22], coat: 0.2, flame: 0, foot_L: [0.09, 0.03, 0.10], foot_R: [0.09, 0.03, 0.10]}}
 
-timing: {attack: {release: 230ms, total: 490ms}}
+timing:
+  attack: {release: 230ms, total: 490ms}
+  attack2: {release: 240ms, total: 510ms}
+  attack3: {release: 330ms, total: 610ms}
+  drain: {release: 370ms, total: 710ms}
+  plague: {release: 330ms, total: 620ms}
+  corpse: {release: 260ms, total: 570ms}
+  bloodpact: {release: 280ms, total: 690ms}

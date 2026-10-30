@@ -1,0 +1,173 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: hut_table
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: ["farm", "hut"]
+# centre y 0.4886 = 7 px above the pivot -> pivot (24, 31), integer
+camera: {pitch: 38, scale: 0.055, center: [0, 0.4886, 0]}
+shadow: {rx: 15, ry: 5, alpha: 80}
+
+# Aldo's hut: the rough table with the old man's poor supper.
+brief:
+  summary: small rustic table of three worn, scrubbed planks on four square dark legs with a low stretcher;
+    on it a glazed clay bowl of porridge with a spoon, a round loaf with a cut slice lying beside it, and a fat tallow candle
+    with wax drips in a clay dish, its little flame flickering
+  must_keep: [three visible top planks, dark legs, bowl, bread with a pale slice, candle with a warm flame]
+  simplify: [crumbs as 2 dots, spoon as one short stick]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, camera.center [0, 0.4886, 0] (integer pivot).
+    The flame is emissive without outline. camera.scale/pitch/light untouched. Ramps from
+    palettes/hut.yaml (index 0 = #1c0f1a).
+  decisions: |
+    PIVOT CONTRACT: world origin (= exported pivot, frame px 24,31) is the floor point under the table's
+    centre. Top 1.5 x 0.8 at height 0.75 (~28 px wide) -> footprint 2 tiles wide x 1 tile deep, blocking.
+    idle loops 4 frames x 120 ms: the flame sways and its height breathes. The flame tip is at about
+    (+8, -23) px from the pivot (for a game light).
+
+materials:
+  top:     {ramp: hcut, bands: [2, 3]}
+  gap:     {ramp: hwood, bands: [2, 2], outline: false, line: false}
+  leg:     {ramp: hbeam, bands: [2, 4]}
+  bowl:    {ramp: hglaze, bands: [2, 4]}
+  porridge: {ramp: hlinen, bands: [3, 4], line: false}
+  spoon:   {ramp: hwood, bands: [3, 4]}
+  bread:   {ramp: hbread, bands: [2, 3]}
+  crumb:   {ramp: hbread, bands: [1, 1], outline: false, line: false}
+  crumb_in: {ramp: hwax, bands: [3, 4], line: false}
+  clay:    {ramp: hclay, bands: [2, 4]}
+  wax:     {ramp: hwax, bands: [2, 4]}
+  wick:    {ramp: hbeam, bands: [1, 1], outline: false, line: false}
+  flame:   {ramp: hflame, emissive: true, band: 5, outline: false, line: false, glow: {color: "#ffa12e", mix: 0.4, radius: 1}}
+  flame_core: {ramp: hflame, emissive: true, band: 7, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  fh: 1              # flame height
+  fs: 0              # flame sway (units, x)
+
+bones:
+  body: {parent: root}
+  candle: {parent: body, pos: [0.45, 0.78, -0.12]}
+
+parts:
+  legs:
+    material: leg
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.62, 0.37, 0.28], half: [0.06, 0.37, 0.06], rot: [0, 0, -0.03]}
+      - box: {c: [-0.62, 0.37, 0.28], half: [0.06, 0.37, 0.06], rot: [0, 0, 0.03]}
+      - box: {c: [0.62, 0.37, -0.28], half: [0.06, 0.37, 0.06]}
+      - box: {c: [-0.62, 0.37, -0.28], half: [0.06, 0.37, 0.06]}
+  stretcher:
+    material: leg
+    space: body
+    line: true
+    prims:
+      - box: {c: [0, 0.18, 0.28], half: [0.6, 0.035, 0.03]}
+  top:                # three planks
+    material: top
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.0, 0.78, -0.27], half: [0.76, 0.04, 0.13], rot: [0, 0.01, 0], round: 0.015}
+      - box: {c: [0.02, 0.78, 0.0], half: [0.75, 0.04, 0.13], round: 0.015}
+      - box: {c: [-0.01, 0.78, 0.27], half: [0.76, 0.04, 0.13], rot: [0, -0.01, 0], round: 0.015}
+  plank_gaps:
+    material: gap
+    space: body
+    prims:
+      - box: {c: [0, 0.822, -0.135], half: [0.74, 0.004, 0.022]}
+      - box: {c: [0, 0.822, 0.135], half: [0.74, 0.004, 0.022]}
+      - box: {c: [0.5, 0.822, 0.3], half: [0.015, 0.003, 0.08]}
+      - box: {c: [-0.35, 0.822, -0.25], half: [0.1, 0.003, 0.012]}
+
+  # ---------- supper ----------
+  bowl:
+    material: bowl
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [-0.42, 0.88, 0.08], r: [0.2, 0.1, 0.2]}
+    cut:
+      - box: {c: [-0.42, 1.08, 0.08], half: [0.3, 0.14, 0.3]}
+  porridge:
+    material: porridge
+    space: body
+    prims:
+      - cylinder: {a: [-0.42, 0.9, 0.08], b: [-0.42, 0.945, 0.08], r: 0.15}
+  spoon:
+    material: spoon
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-0.38, 0.95, 0.06], b: [-0.12, 1.02, -0.06], r: [0.03, 0.022]}
+  bread:              # round loaf, a slice cut off on the camera side
+    material: bread
+    space: body
+    line: true
+    prims:
+      - ellipsoid: {c: [0.05, 0.9, -0.04], r: [0.2, 0.12, 0.16]}
+  bread_score:        # score marks on the crust
+    material: crumb
+    space: body
+    prims:
+      - box: {c: [0.0, 1.015, -0.08], half: [0.012, 0.004, 0.08], rot: [0, 0.5, 0]}
+      - box: {c: [0.12, 1.0, -0.08], half: [0.012, 0.004, 0.07], rot: [0, 0.5, 0]}
+  slice:
+    material: crumb_in
+    space: body
+    line: true
+    prims:
+      - box: {c: [0.16, 0.835, 0.24], half: [0.1, 0.015, 0.06], rot: [0, -0.3, 0], round: 0.01}
+  crumbs:
+    material: crumb
+    space: body
+    prims:
+      - sphere: {c: [-0.1, 0.83, 0.28], r: 0.022}
+      - sphere: {c: [0.3, 0.83, 0.26], r: 0.02}
+
+  # ---------- candle ----------
+  dish:
+    material: clay
+    space: candle
+    line: true
+    prims:
+      - cylinder: {a: [0, 0.0, 0], b: [0, 0.04, 0], r: 0.13, round: 0.01}
+  wax:
+    material: wax
+    space: candle
+    line: true
+    blend: 0.02
+    prims:
+      - cylinder: {a: [0, 0.03, 0], b: [0, 0.24, 0], r: 0.06}
+      - sphere: {c: [0.06, 0.16, 0.03], r: 0.025}      # drips
+      - sphere: {c: [-0.05, 0.1, 0.05], r: 0.025}
+      - ellipsoid: {c: [0.04, 0.045, 0.06], r: [0.06, 0.02, 0.04]}
+  wick:
+    material: wick
+    space: candle
+    prims:
+      - cylinder: {a: [0, 0.24, 0], b: [0, 0.29, 0], r: 0.012}
+  flame:
+    material: flame
+    space: candle
+    prims:
+      - cone: {a: [0, 0.31, 0.02], b: "[fs, 0.31 + 0.14*fh, 0.02]", r: [0.045, 0.012]}
+  flame_core:
+    material: flame_core
+    space: candle
+    prims:
+      - sphere: {c: [0, 0.31, 0.05], r: 0.022}
+
+animations:
+  idle:
+    frames: 4
+    ms: 120
+    channels:
+      fh: "1 + 0.22*sin(p) + 0.08*sin(2*p + 1)"
+      fs: "0.02*sin(p + 1.4)"

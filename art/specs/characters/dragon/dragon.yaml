@@ -1,0 +1,435 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: dragon
+mirror: true
+kind: character
+size: 128
+directions: 8
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.35, -0.2]}
+shadow: {rx: 40, ry: 14, alpha: 120}
+
+# FINAL BOSS of Act III: a young red dragon. Same density as every asset (scale 0.055); only the frame is
+# bigger (128). Quadruped skeleton like the manticore: `body` carries chest and hips, four 2-bone IK legs
+# (_L mirrored) with paw targets in body space (`plant` 1 cancels `bob`). The neck is an FK chain of three
+# bones (neck0..neck2, local +y along the neck); the head counter-rotates so `head_pitch` 0 looks level.
+# Tail: FK chain tail0..tail5 ending in a spade. Wings: FK wing_L -> hand_L with a membrane (half spread).
+# The throat glows (emissive, brighter with `glow`); `fire` > 0 shows the breath cone in front of the jaws.
+brief:
+  summary: >
+    Young red dragon, final boss of Act III, ~70 px tall. Heavy four-legged body with vivid red scales and a
+    cream plated belly and throat, long S-neck carrying a big chibi head with two swept-back ivory horns,
+    yellow eyes, wings half spread, long tail ending in a spade. Its throat glows orange like a furnace,
+    brighter when it is about to breathe fire.
+  must_keep: [red scales with cream belly, two swept-back horns, wings half spread, glowing emissive throat, long tail with spade, fire breath]
+  simplify: [no scales pattern (flat cel bands), 3 finger spars per wing, dorsal spikes as a row of cones, toes as two claws per paw]
+  decisions: >
+    Head scaled up (chibi) and kept level on a raised neck so the face reads above the chest in s. Wing
+    membrane a darker crimson than the body so the wings separate from it; spars dark red. Dorsal spikes
+    and horns ivory. Throat glow uses the farm `fire` ramp (emissive), a hotter core appears with `glow`;
+    fire breath uses fire + fx ramps. Back (n): wings and the dorsal spike row carry the silhouette.
+    Heavy timing: attack (bite) 900 ms, cast (fire breath) 900 ms.
+  exceptions: frame size 128 (boss), spec-local ramps; same camera scale/pitch/light.
+
+ramps:
+  dragon:    ["#1c0f1a", "#6a1424", "#b02830", "#dc4e38", "#f2865a"]
+  dragon_dk: ["#1c0f1a", "#3c0e26", "#641a38", "#8a2c48", "#ac4a5c"]
+  cream:     ["#1c0f1a", "#9a744a", "#dcbc84", "#f2deaa", "#fbf2d8"]
+  horn:      ["#1c0f1a", "#4e3a3a", "#8c7666", "#c8b498", "#eee2c8"]
+
+materials:
+  scales:  {ramp: dragon, bands: [1, 3]}
+  belly:   {ramp: cream, bands: [2, 3]}
+  wing:    {ramp: dragon_dk, bands: [1, 3], two_sided: true}
+  spar:    {ramp: dragon_dk, bands: [1, 2]}
+  horn:    {ramp: horn, bands: [2, 3]}
+  mouth:   {ramp: mouth, bands: [1, 2], outline: false, line: false}
+  eye:     {ramp: eye, emissive: true, band: 1, outline: false, glow: {color: "#ffe14d", mix: 0.45, radius: 1}}
+  throat:  {ramp: fire, emissive: true, band: 1, outline: false, glow: {color: "#fe6607", mix: 0.4, radius: 1}}
+  hot:     {ramp: fire, emissive: true, band: 2, outline: false, glow: {color: "#fbbe71", mix: 0.5, radius: 1}}
+  fire:    {ramp: fire, emissive: true, band: 1, outline: false, glow: {color: "#fe6607", mix: 0.5, radius: 2}}
+  fire_hot: {ramp: fire, emissive: true, band: 3, outline: false}
+  fx_tail: {ramp: fx_tail, emissive: true}
+  fx_mid:  {ramp: fx_mid, emissive: true}
+  fx_core: {ramp: fx_core, emissive: true}
+
+channels:
+  root: [0, 0, 0]
+  bob: 0            # body height offset
+  plant: 1          # 1: paws stay on the ground when bob changes; 0: paws follow the body (death)
+  rear: 0           # + raises the front of the body
+  roll: 0           # roll around the body length (death)
+  twist: 0          # body yaw
+  squash: 1
+  neck_p: 0         # + tips the whole neck forward/down, - pulls it back
+  neck_c: 0         # + curls the upper neck forward
+  neck_yaw: 0
+  head_pitch: 0     # + looks down
+  jaw: 0            # 0..1 mouth open
+  glow: 0           # 0..1 throat heat (hot core shows above 0.4); -1 = dark (dead)
+  fire: 0           # 0..1 fire breath length
+  flap_L: 0.50      # wing raise (+ up)
+  sweep_L: 0.45     # + sweeps the wing backward
+  bend_L: 0.20      # wrist bend
+  fold_L: 0         # 0..1 folds the wing in
+  tail_lift: 0      # + raises the tail
+  tail_curl: 1
+  tail_sway: 0
+  ffoot_L: [0.42, -0.98, 0.55]    # front paw target (body space)
+  hfoot_L: [0.40, -0.98, -0.62]   # hind paw target (body space)
+  smear_w: 0
+  smear_a0: 0
+  smear_a1: 0
+  smear_r: 1.0
+  smear_y: 1.0
+  smear_z: 1.0
+  smear_fade: 1
+  smear_roll: 0
+
+bones:
+  rig:      {parent: root, scale: 1.15}    # boss scale over the authored skeleton
+  body:     {parent: rig, pos: "[0, 1.10 + bob, 0]", rot: "[-rear, twist, roll]",
+             scale: "[1/sqrt(squash), squash, 1/sqrt(squash)]"}
+  neck0:    {parent: body, pos: [0, 0.30, 0.82], rot: "[0.32 + neck_p, neck_yaw, 0]", inherit_scale: false}
+  neck1:    {parent: neck0, pos: [0, 0.38, 0], rot: "[-0.15 + 0.5*neck_c, 0.5*neck_yaw, 0]"}
+  neck2:    {parent: neck1, pos: [0, 0.36, 0], rot: "[-0.20 + 0.5*neck_c, 0.3*neck_yaw, 0]"}
+  head:     {parent: neck2, pos: [0, 0.30, 0.02], rot: "[-(-0.03 + neck_p + neck_c) + 0.12 + head_pitch, 0, 0]", scale: 1.5}
+  jaw:      {parent: head, pos: [0, -0.07, 0.06], rot: "[0.65*jaw, 0, 0]"}
+  shoulder_L: {parent: body, pos: [0.38, -0.12, 0.50]}
+  hip_L:      {parent: body, pos: [0.36, -0.08, -0.62]}
+  wing_L:   {parent: body, pos: [0.32, 0.42, 0.30],
+             rot: "[0, sweep_L + 0.6*fold_L, flap_L - 0.7*fold_L]"}
+  hand_L:   {parent: wing_L, pos: [0.85, 0, 0], rot: "[0, 0.25 + 1.6*fold_L, bend_L - 0.4*fold_L]"}
+  wroot_L:  {parent: body, pos: [0.34, 0.30, -0.45]}
+  tail0:    {parent: body, pos: [0, 0.10, -0.95], rot: "[-1.95 + tail_lift, tail_sway, 0]"}
+  tail1:    {parent: tail0, pos: [0, 0.32, 0], rot: "[0.10*tail_curl, 0.4*tail_sway, 0]"}
+  tail2:    {parent: tail1, pos: [0, 0.30, 0], rot: "[0.10*tail_curl, 0.4*tail_sway, 0]"}
+  tail3:    {parent: tail2, pos: [0, 0.28, 0], rot: "[0.08*tail_curl, 0.5*tail_sway, 0]"}
+  tail4:    {parent: tail3, pos: [0, 0.26, 0], rot: "[0.05*tail_curl, 0.5*tail_sway, 0]"}
+  tail5:    {parent: tail4, pos: [0, 0.24, 0], rot: "[0, 0.5*tail_sway, 0]"}
+  fxspace:  {parent: rig, rot: "[0, twist, 0]"}
+  smearspace: {parent: fxspace, pos: "[0, smear_y, smear_z]", rot: "[0, 0, smear_roll]"}
+
+ik:
+  fleg_L: {start: shoulder_L, space: body, target: "ffoot_L + [0, -bob*plant, 0]", lengths: [0.52, 0.50],
+           pole: [0, 0, -1], pole_space: body, joint: felbow_L, end: fpaw_L}
+  hleg_L: {start: hip_L, space: body, target: "hfoot_L + [0, -bob*plant, 0]", lengths: [0.56, 0.52],
+           pole: [0, 0, 1], pole_space: body, joint: hknee_L, end: hpaw_L}
+
+parts:
+  torso:           # deep chest, heavy haunches
+    material: scales
+    space: body
+    blend: 0.18
+    prims:
+      - ellipsoid: {c: [0, 0.05, 0.40], r: [0.54, 0.52, 0.58]}
+      - ellipsoid: {c: [0, 0.04, -0.10], r: [0.46, 0.44, 0.48]}
+      - ellipsoid: {c: [0, 0.06, -0.62], r: [0.48, 0.46, 0.46]}
+  belly:           # cream plated underside
+    material: belly
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, -0.22, 0.42], r: [0.42, 0.30, 0.48]}
+      - ellipsoid: {c: [0, -0.24, -0.20], r: [0.36, 0.24, 0.52]}
+      - ellipsoid: {c: [0, -0.02, 0.78], r: [0.34, 0.38, 0.22]}       # chest plate
+  neck:
+    material: scales
+    blend: 0.10
+    prims:
+      - cone: {a: "@neck0", b: "@neck1", r: [0.32, 0.26]}
+      - cone: {a: "@neck1", b: "@neck2", r: [0.26, 0.22]}
+      - cone: {a: "@neck2", b: "@head", r: [0.22, 0.20]}
+  neck_belly:      # cream plates down the front of the neck
+    material: belly
+    blend: 0.05
+    prims:
+      - cone: {a: {at: neck0, off: [0, 0.0, 0.14]}, b: {at: neck1, off: [0, 0.0, 0.12]}, r: [0.22, 0.18]}
+      - cone: {a: {at: neck1, off: [0, 0.0, 0.12]}, b: {at: neck2, off: [0, 0.0, 0.10]}, r: [0.18, 0.15]}
+  throat:          # furnace glow inside the throat (always lit)
+    material: throat
+    when: "glow > -0.5"    # death sets glow -1: the furnace goes out
+    prims:
+      - ellipsoid: {c: {at: neck0, off: [0, 0.26, 0.27]}, r: [0.17, 0.24, 0.10], align: ["@neck0", "@neck1"]}
+      - ellipsoid: {c: {at: neck1, off: [0, 0.20, 0.23]}, r: [0.14, 0.20, 0.09], align: ["@neck1", "@neck2"]}
+  throat_hot:      # hotter core when it is about to breathe
+    material: hot
+    when: "glow > 0.4"
+    prims:
+      - ellipsoid: {c: {at: neck0, off: [0, 0.26, 0.33]}, r: "[0.06 + 0.06*glow, 0.10 + 0.08*glow, 0.06]", align: ["@neck0", "@neck1"]}
+      - ellipsoid: {c: {at: neck1, off: [0, 0.20, 0.28]}, r: "[0.05 + 0.05*glow, 0.08 + 0.06*glow, 0.05]", align: ["@neck1", "@neck2"]}
+  head:            # big chibi skull with a broad snout and brow ridges
+    material: scales
+    space: head
+    line: true
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0.06, 0.0], r: [0.28, 0.24, 0.28]}
+      - cone: {a: [0, 0.02, 0.12], b: [0, 0.0, 0.48], r: [0.21, 0.15]}           # snout
+      - ellipsoid: {c: [0.14, 0.20, 0.14], r: [0.10, 0.06, 0.12], rot: [0, 0, -0.3]}   # brow
+      - ellipsoid: {c: [-0.14, 0.20, 0.14], r: [0.10, 0.06, 0.12], rot: [0, 0, 0.3]}
+      - ellipsoid: {c: [0, 0.10, 0.48], r: [0.12, 0.06, 0.06]}                     # nose ridge
+  jaw:
+    material: scales
+    space: jaw
+    line: true
+    blend: 0.04
+    prims:
+      - cone: {a: [0, -0.04, -0.02], b: [0, -0.08, 0.40], r: [0.17, 0.11]}
+  chin:            # cream under the jaw
+    material: belly
+    space: jaw
+    prims:
+      - cone: {a: [0, -0.10, 0.02], b: [0, -0.13, 0.32], r: [0.11, 0.07]}
+  mouth:
+    material: mouth
+    space: head
+    when: "jaw > 0.1"
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.30], r: [0.13, "0.03 + 0.08*jaw", 0.18]}
+  mouth_glow:      # glowing maw while breathing
+    material: hot
+    space: head
+    when: "jaw > 0.3 and glow > 0.4"
+    prims:
+      - ellipsoid: {c: [0, -0.08, 0.26], r: [0.08, "0.02 + 0.05*jaw", 0.12]}
+  teeth_L:
+    material: horn
+    space: head
+    prims:
+      - cone: {a: [0.12, -0.04, 0.40], b: [0.12, -0.12, 0.42], r: [0.035, 0.012]}
+  nostril_L:
+    material: mouth
+    space: head
+    prims:
+      - sphere: {c: [0.07, 0.08, 0.60], r: 0.03}
+  eye_L:
+    material: eye
+    space: head
+    when: "glow > -0.5"
+    prims:
+      - ellipsoid: {c: [0.16, 0.14, 0.20], r: [0.065, 0.06, 0.07]}
+  horn_L:          # swept-back horns, curling up at the tips
+    material: horn
+    space: head
+    prims:
+      - chain: {pts: [[0.13, 0.20, -0.04], [0.24, 0.32, -0.28], [0.30, 0.36, -0.52], [0.30, 0.48, -0.70]], r: [0.085, 0.065, 0.045, 0.02]}
+      - cone: {a: [0.24, 0.02, -0.08], b: [0.40, 0.00, -0.26], r: [0.05, 0.015]}    # cheek spike
+  spines:          # ivory dorsal spikes along the head, neck, back and tail
+    material: horn
+    prims:
+      - cone: {a: {at: head, off: [0, 0.24, -0.16]}, b: {at: head, off: [0, 0.40, -0.34]}, r: [0.05, 0.012]}
+      - cone: {a: {at: neck2, off: [0, 0.10, -0.18]}, b: {at: neck2, off: [0, 0.08, -0.38]}, r: [0.06, 0.015]}
+      - cone: {a: {at: neck1, off: [0, 0.10, -0.22]}, b: {at: neck1, off: [0, 0.06, -0.44]}, r: [0.065, 0.015]}
+      - cone: {a: {at: neck0, off: [0, 0.10, -0.26]}, b: {at: neck0, off: [0, 0.04, -0.50]}, r: [0.07, 0.015]}
+      - cone: {a: {at: body, off: [0, 0.52, 0.10]}, b: {at: body, off: [0, 0.78, -0.02]}, r: [0.08, 0.015]}
+      - cone: {a: {at: body, off: [0, 0.46, -0.30]}, b: {at: body, off: [0, 0.72, -0.42]}, r: [0.08, 0.015]}
+      - cone: {a: {at: body, off: [0, 0.48, -0.68]}, b: {at: body, off: [0, 0.72, -0.82]}, r: [0.075, 0.015]}
+      - cone: {a: {at: tail1, off: [0, 0.0, 0.18]}, b: {at: tail1, off: [0, 0.10, 0.36]}, r: [0.06, 0.012]}
+      - cone: {a: {at: tail3, off: [0, 0.0, 0.14]}, b: {at: tail3, off: [0, 0.08, 0.30]}, r: [0.05, 0.012]}
+  tail:
+    material: scales
+    blend: 0.06
+    prims:
+      - cone: {a: "@tail0", b: "@tail1", r: [0.30, 0.24]}
+      - cone: {a: "@tail1", b: "@tail2", r: [0.24, 0.19]}
+      - cone: {a: "@tail2", b: "@tail3", r: [0.19, 0.14]}
+      - cone: {a: "@tail3", b: "@tail4", r: [0.14, 0.10]}
+      - cone: {a: "@tail4", b: "@tail5", r: [0.10, 0.07]}
+  spade:           # arrow-head tip of the tail
+    material: wing
+    space: tail5
+    prims:
+      - tri: {a: [0, 0.34, 0], b: [0.20, 0.0, 0], c: [-0.20, 0.0, 0], th: 0.04}
+  wing_L:
+    material: wing
+    space: hand_L
+    blend: 0.01
+    prims:
+      - membrane: {hub: [0, 0, 0], th: 0.03,
+                   ring: [[1.05, 0.40, 0.05], [1.00, -0.08, -0.55], [0.55, -0.32, -1.00], "@wroot_L", "@wing_L"],
+                   scallop: [0, 1, 2], scallop_depth: 0.26}
+  spars_L:
+    material: spar
+    space: hand_L
+    blend: 0.02
+    prims:
+      - cone: {a: "@wing_L", b: [0, 0, 0], r: [0.09, 0.07]}
+      - cone: {a: [0, 0, 0], b: [1.05, 0.40, 0.05], r: [0.05, 0.03]}
+      - cone: {a: [0, 0, 0], b: [1.00, -0.08, -0.55], r: [0.045, 0.028]}
+      - cone: {a: [0, 0, 0], b: [0.55, -0.32, -1.00], r: [0.045, 0.028]}
+  wing_claw_L:
+    material: horn
+    space: hand_L
+    prims:
+      - cone: {a: [0, 0.04, 0.04], b: [-0.02, 0.24, 0.12], r: [0.05, 0.015]}
+  fleg_L:
+    material: scales
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: {at: body, off: [0.36, -0.02, 0.48]}, r: [0.22, 0.32, 0.26]}
+      - cone: {a: "@shoulder_L", b: "@felbow_L", r: [0.25, 0.20]}
+      - cone: {a: "@felbow_L", b: "@fpaw_L", r: [0.19, 0.16]}
+  hleg_L:
+    material: scales
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: {at: body, off: [0.34, 0.02, -0.62]}, r: [0.22, 0.36, 0.32]}
+      - cone: {a: "@hip_L", b: "@hknee_L", r: [0.26, 0.19]}
+      - cone: {a: "@hknee_L", b: "@hpaw_L", r: [0.17, 0.15]}
+  paws_L:
+    material: scales
+    blend: 0.03
+    prims:
+      - ellipsoid: {c: {at: fpaw_L, off: [0, -0.03, 0.06]}, r: [0.16, 0.10, 0.20]}
+      - ellipsoid: {c: {at: hpaw_L, off: [0, -0.03, 0.06]}, r: [0.15, 0.10, 0.19]}
+  claws_L:
+    material: horn
+    prims:
+      - cone: {a: {at: fpaw_L, off: [0.08, -0.05, 0.20]}, b: {at: fpaw_L, off: [0.09, -0.10, 0.32]}, r: [0.04, 0.015]}
+      - cone: {a: {at: fpaw_L, off: [-0.06, -0.05, 0.21]}, b: {at: fpaw_L, off: [-0.07, -0.10, 0.33]}, r: [0.04, 0.015]}
+      - cone: {a: {at: hpaw_L, off: [0.07, -0.05, 0.19]}, b: {at: hpaw_L, off: [0.08, -0.10, 0.30]}, r: [0.04, 0.015]}
+  breath:          # fire cone from the jaws (cast)
+    material: fire
+    space: head
+    when: "fire > 0"
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: "[0, -0.06, 0.58 + 0.20*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]", r: "[0.10 + 0.05*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.09 + 0.05*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.20*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)) + 0.05]"}
+      - ellipsoid: {c: "[0, -0.07, 0.58 + 0.55*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]", r: "[0.13 + 0.10*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.11 + 0.08*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.24*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)) + 0.04]"}
+      - ellipsoid: {c: "[0, -0.08, 0.58 + 0.92*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]", r: "[0.12 + 0.15*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.10 + 0.12*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.22*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)) + 0.04]"}
+  breath_core:
+    material: fire_hot
+    space: head
+    when: "fire > 0.3"
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: "[0, -0.02, 0.58 + 0.22*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]", r: "[0.07 + 0.03*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.07 + 0.04*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.20*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]"}
+      - ellipsoid: {c: "[0, -0.02, 0.58 + 0.58*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]", r: "[0.09 + 0.06*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.09 + 0.06*fire*(1 - 0.35*pulse(abs(yaw), 90, 50)), 0.20*fire*(1 - 0.35*pulse(abs(yaw), 90, 50))]"}
+  smear:
+    when: "smear_w > 0"
+    materials: [fx_tail, fx_mid, fx_core]
+    space: smearspace
+    prims:
+      - arc: {c: [0, 0, 0], r: smear_r, a0: smear_a0, a1: smear_a1, width: smear_w, fade: smear_fade, dip: 0.15}
+
+sockets:
+  hit: {bone: head, offset: [0, -0.06, 0.55]}
+  mouth: {bone: head, offset: [0, -0.06, 0.62]}     # fire breath origin (cast `release`)
+  head: {bone: head, offset: [0, 0.60, 0]}
+
+animations:
+  idle:            # slow breathing, the throat glow swells, tail and wings sway
+    frames: 4
+    ms: 240
+    channels:
+      bob: "0.035*sin(p)"
+      squash: "1 + 0.02*sin(p)"
+      neck_p: "-0.04*sin(p - 0.4)"
+      head_pitch: "0.04*sin(p - 0.8)"
+      glow: "0.25 + 0.25*sin(p)"
+      jaw: "0.08 + 0.08*sin(p)"
+      flap_L: "0.50 + 0.05*sin(p - 0.8)"
+      tail_sway: "0.18*sin(p - 1.0)"
+  walk:            # heavy stalk: diagonal pairs, neck bobs, tail swings
+    frames: 6
+    ms: 150
+    events: {0: step_l, 3: step_r}
+    channels:
+      bob: "-0.06*cos(2*p) + 0.01"
+      twist: "0.05*sin(p)"
+      roll: "0.03*sin(p)"
+      neck_p: "0.06 + 0.05*cos(2*p - 0.5)"
+      neck_yaw: "-0.06*sin(p)"
+      head_pitch: "-0.04*cos(2*p - 0.5)"
+      glow: 0.2
+      flap_L: "0.46 + 0.06*cos(2*p - 0.8)"
+      tail_sway: "0.25*sin(p - 1.0)"
+      ffoot_L: "[0.42, -0.98 + 0.22*pos(-sin(p)), 0.55 + 0.30*cos(p)]"
+      hfoot_R: "[0.40, -0.98 + 0.22*pos(-sin(p)), -0.62 + 0.30*cos(p)]"
+      ffoot_R: "[0.42, -0.98 + 0.22*pos(sin(p)), 0.55 - 0.30*cos(p)]"
+      hfoot_L: "[0.40, -0.98 + 0.22*pos(sin(p)), -0.62 - 0.30*cos(p)]"
+  attack:          # rears the head back with jaws wide, holds, then lunges down and snaps (hit 500 ms, total 900 ms)
+    loop: false
+    keys:
+      - ms: 150
+        set: {rear: 0.08, root: [0, 0, -0.05], neck_p: -0.30, head_pitch: -0.15, jaw: 0.4, glow: 0.3, flap_L: 0.60,
+              hfoot_L: [0.40, -0.94, -0.62], hfoot_R: [0.40, -0.94, -0.62], tail_sway: 0.1}
+      - ms: 260
+        event: windup
+        set: {rear: 0.15, bob: 0.04, root: [0, 0, -0.12], neck_p: -0.55, neck_c: -0.15, head_pitch: -0.25, jaw: 1.0, glow: 0.4,
+              flap_L: 0.75, sweep_L: 0.30, twist: 0.06, tail_sway: 0.2, tail_lift: 0.1,
+              ffoot_L: [0.42, -0.96, 0.62], ffoot_R: [0.42, -0.96, 0.62],
+              hfoot_L: [0.40, -0.90, -0.58], hfoot_R: [0.40, -0.90, -0.58]}
+      - ms: 90
+        set: {rear: -0.06, bob: -0.02, root: [0, 0, 0.18], neck_p: 0.75, neck_c: 0.30, head_pitch: 0.25, jaw: 1.0, glow: 0.3,
+              flap_L: 0.45, twist: -0.04, squash: 1.04, tail_sway: -0.05,
+              ffoot_L: [0.42, -0.98, 0.60], ffoot_R: [0.42, -0.98, 0.60], hfoot_L: [0.40, -0.98, -0.70], hfoot_R: [0.40, -0.98, -0.70],
+              smear_roll: 1.4, smear_y: 1.25, smear_z: 1.55, smear_r: 0.65, smear_a0: 1.8, smear_a1: 0.2, smear_w: 0.20}
+      - ms: 180
+        event: hit
+        set: {rear: -0.10, bob: -0.10, squash: 0.94, root: [0, 0, 0.22], neck_p: 0.90, neck_c: 0.35, head_pitch: 0.35, jaw: 0.0, glow: 0.3,
+              flap_L: 0.40, twist: -0.06, tail_sway: -0.2,
+              ffoot_L: [0.42, -0.98, 0.62], ffoot_R: [0.42, -0.98, 0.62], hfoot_L: [0.40, -0.98, -0.74], hfoot_R: [0.40, -0.98, -0.74],
+              smear_roll: 1.4, smear_y: 1.25, smear_z: 1.55, smear_r: 0.65, smear_a0: 1.0, smear_a1: -0.6, smear_w: 0.20, smear_fade: 0.65}
+      - ms: 220
+        set: {bob: -0.03, root: [0, 0, 0.10], neck_p: 0.35, neck_c: 0.10, head_pitch: 0.10, jaw: 0.2, glow: 0.25, tail_sway: -0.1,
+              hfoot_L: [0.40, -0.98, -0.68], hfoot_R: [0.40, -0.98, -0.68]}
+  cast:            # rears and inhales (throat white hot), then breathes a cone of fire forward (release 400 ms, total 900 ms)
+    loop: false
+    keys:
+      - ms: 140
+        set: {rear: 0.12, bob: 0.03, neck_p: -0.30, head_pitch: -0.30, jaw: 0.2, glow: 0.6, flap_L: 0.70,
+              hfoot_L: [0.40, -0.92, -0.60], hfoot_R: [0.40, -0.92, -0.60]}
+      - ms: 260
+        event: windup
+        set: {rear: 0.30, bob: 0.08, squash: 1.04, root: [0, 0, -0.10], neck_p: -0.60, neck_c: -0.20, head_pitch: -0.40, jaw: 0.5, glow: 1.0,
+              flap_L: 0.95, sweep_L: 0.25, tail_lift: 0.15,
+              hfoot_L: [0.40, -0.84, -0.52], hfoot_R: [0.40, -0.84, -0.52]}
+      - ms: 100
+        event: release
+        set: {rear: 0.04, bob: -0.02, root: [0, 0, 0.0], neck_p: 0.40, neck_c: 0.15, head_pitch: 0.45, jaw: 1.0, glow: 1.0, fire: 0.55,
+              flap_L: 0.60, hfoot_L: [0.40, -0.98, -0.66], hfoot_R: [0.40, -0.98, -0.66]}
+      - ms: 140
+        set: {rear: 0.0, bob: -0.05, squash: 0.97, root: [0, 0, 0.0], neck_p: 0.45, neck_c: 0.18, head_pitch: 0.50, jaw: 1.0, glow: 0.9, fire: 1.0,
+              flap_L: 0.55, hfoot_L: [0.40, -0.98, -0.66], hfoot_R: [0.40, -0.98, -0.66]}
+      - ms: 130
+        set: {rear: 0.0, bob: -0.04, squash: 0.98, root: [0, 0, 0.0], neck_p: 0.45, neck_c: 0.18, neck_yaw: 0.10, head_pitch: 0.48, jaw: 0.95, glow: 0.8, fire: 0.9,
+              flap_L: 0.55, hfoot_L: [0.40, -0.98, -0.66], hfoot_R: [0.40, -0.98, -0.66]}
+      - ms: 130
+        set: {bob: -0.02, root: [0, 0, 0.05], neck_p: 0.20, neck_c: 0.05, head_pitch: 0.15, jaw: 0.4, glow: 0.4, fire: 0.25, flap_L: 0.50}
+  hit:             # recoils, head thrown up, wings jolt
+    loop: false
+    keys:
+      - ms: 80
+        set: {root: [0, 0, -0.10], rear: 0.10, bob: -0.03, squash: 0.94, neck_p: -0.35, head_pitch: -0.30, jaw: 0.8, glow: 0.1, flap_L: 0.80,
+              tail_sway: 0.25, hfoot_L: [0.40, -0.93, -0.62], hfoot_R: [0.40, -0.93, -0.62]}
+      - ms: 90
+        set: {root: [0, 0, -0.07], rear: 0.04, squash: 0.97, neck_p: -0.15, head_pitch: -0.12, jaw: 0.4, glow: 0.15, flap_L: 0.62, tail_sway: 0.1}
+      - ms: 100
+        set: {root: [0, 0, -0.02], jaw: 0.15, glow: 0.2, tail_sway: -0.05}
+  death:           # roars to the sky, legs buckle, rolls onto its side; the throat fire goes out
+    loop: false
+    keys:
+      - ms: 130
+        set: {root: [0, 0, -0.08], rear: 0.22, bob: 0.03, squash: 0.95, neck_p: -0.55, head_pitch: -0.50, jaw: 1.0, glow: 1.0, flap_L: 0.95,
+              hfoot_L: [0.40, -0.88, -0.56], hfoot_R: [0.40, -0.88, -0.56]}
+      - ms: 150
+        set: {root: [0, 0, -0.10], bob: -0.22, roll: 0.35, neck_p: 0.10, head_pitch: 0.1, jaw: 0.6, glow: 0.3, flap_L: 0.7, fold_L: 0.3,
+              tail_sway: 0.2}
+      - ms: 150
+        set: {root: [0, 0, -0.10], bob: -0.45, plant: 0, roll: 0.95, neck_p: 0.50, head_pitch: 0.3, jaw: 0.4, glow: 0.0,
+              flap_L: 0.9, sweep_L: 0.9, fold_L: 0.7, tail_sway: 0.3,
+              ffoot_L: [0.46, -0.84, 0.66], hfoot_L: [0.46, -0.84, -0.70]}
+      - ms: 140
+        event: thud
+        set: {root: [0, 0, -0.10], bob: -0.58, plant: 0, roll: 1.42, squash: 0.94, neck_p: 0.75, neck_c: 0.1, head_pitch: 0.35, jaw: 0.3, glow: -1,
+              flap_L: 1.0, sweep_L: 1.3, fold_L: 1.0, flap_R: 1.7, sweep_R: 1.5, fold_R: 1.0, tail_sway: 0.35,
+              ffoot_L: [0.42, -0.86, 0.78], ffoot_R: [0.42, -0.90, 0.68], hfoot_L: [0.40, -0.86, -0.80], hfoot_R: [0.40, -0.90, -0.70]}
+      - ms: 900
+        event: dead
+        set: {root: [0, 0, -0.10], bob: -0.56, plant: 0, roll: 1.45, squash: 0.98, neck_p: 0.80, neck_c: 0.1, head_pitch: 0.4, jaw: 0.25, glow: -1,
+              flap_L: 1.0, sweep_L: 1.3, fold_L: 1.0, flap_R: 1.7, sweep_R: 1.5, fold_R: 1.0, tail_sway: 0.35,
+              ffoot_L: [0.42, -0.86, 0.78], ffoot_R: [0.42, -0.90, 0.68], hfoot_L: [0.40, -0.86, -0.80], hfoot_R: [0.40, -0.90, -0.70]}
+
+timing: {attack: {hit: 500ms, total: 900ms}, cast: {release: 400ms, total: 900ms}}

@@ -1,0 +1,158 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: town_portal
+kind: prop
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {"pitch": 38, "scale": 0.055, "center": [0, 1.12, 0]}
+shadow: null
+
+brief:
+  summary: free-standing vertical oval of swirling blue-white magic light (~1.8 tall, hero height), soft cyan
+    glowing rim, floating sparks, faint rune circle on the ground. No stone frame.
+  must_keep: [oval silhouette, white core, cyan rim, ground rune ring, sparks]
+  simplify: [rune ring = thin torus + 6 tick marks]
+  exceptions: |
+    size 64, directions 1, camera.center raised to 1.12 (same as the stone portal); scale/pitch/light untouched.
+    Own ramps (cyan), index 0 = #1c0f1a. No ground shadow (it is light, not an object).
+  decisions: |
+    One bone scaled by `grow` (0..1) lifts and scales the oval so open/close are a spark growing from the
+    ground. Swirl arms are chains from spin channel (3 arms, 1/3 turn per idle loop = seamless). Sparks rise
+    with phase p/tau (seamless).
+
+ramps:
+  arcane: ["#1c0f1a", "#0b2a6b", "#1f6fd8", "#3fc4f0", "#9af0ff", "#e6fdff", "#ffffff"]
+
+materials:
+  void:      {ramp: arcane, emissive: true, band: 1, outline: false}
+  rim:       {ramp: arcane, emissive: true, band: 3, outline: false, glow: {color: "#3fc4f0", mix: 0.4, radius: 1}}
+  mid:       {ramp: arcane, emissive: true, band: 2, outline: false}
+  swirl:     {ramp: arcane, emissive: true, band: 4, outline: false}
+  swirl_hot: {ramp: arcane, emissive: true, band: 5, outline: false}
+  core:      {ramp: arcane, emissive: true, band: 6, outline: false, glow: {color: "#9af0ff", mix: 0.5, radius: 1}}
+  spark:     {ramp: arcane, emissive: true, band: 5, outline: false}
+  runes:     {ramp: arcane, emissive: true, band: 2, outline: false, glow: {color: "#1f6fd8", mix: 0.3, radius: 1}}
+  runes_hot: {ramp: arcane, emissive: true, band: 4, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  grow: 1        # 0 = nothing, 1 = full oval
+  spin_a: 0
+  spin_b: 0
+  core: 1
+  ring: 1        # ground ring size
+  ring_spin: 0
+  sp: 0          # spark rise phase 0..1
+  sparks: 0      # sparks on/off
+  flash: 0       # open/close spark sphere size
+
+bones:
+  oval: {parent: root, pos: "[0, 0.92*grow, 0]", scale: "[max(grow, 0.001), max(grow, 0.001), 1]"}
+
+parts:
+  ring_ground:
+    when: "ring > 0.05"
+    material: runes
+    prims:
+      - torus: {c: [0, 0.02, 0], R: "0.95*ring", r: 0.03}
+      - torus: {c: [0, 0.02, 0], R: "0.62*ring", r: 0.022}
+  ticks:
+    when: "ring > 0.05"
+    material: runes_hot
+    prims:
+      - box: {c: "[0.78*ring*cos(ring_spin), 0.025, 0.78*ring*sin(ring_spin)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin, 0]"}
+      - box: {c: "[0.78*ring*cos(ring_spin+1.047), 0.025, 0.78*ring*sin(ring_spin+1.047)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin-1.047, 0]"}
+      - box: {c: "[0.78*ring*cos(ring_spin+2.094), 0.025, 0.78*ring*sin(ring_spin+2.094)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin-2.094, 0]"}
+      - box: {c: "[0.78*ring*cos(ring_spin+3.1416), 0.025, 0.78*ring*sin(ring_spin+3.1416)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin-3.1416, 0]"}
+      - box: {c: "[0.78*ring*cos(ring_spin+4.189), 0.025, 0.78*ring*sin(ring_spin+4.189)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin-4.189, 0]"}
+      - box: {c: "[0.78*ring*cos(ring_spin+5.236), 0.025, 0.78*ring*sin(ring_spin+5.236)]", half: [0.07, 0.02, 0.025], rot: "[0, -ring_spin-5.236, 0]"}
+
+  oval_rim:
+    when: "grow > 0.12"
+    material: rim
+    space: oval
+    prims:
+      - ellipsoid: {c: [0, 0, -0.03], r: [0.58, 0.92, 0.03]}
+  oval_mid:
+    when: "grow > 0.12"
+    material: mid
+    space: oval
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: [0.49, 0.83, 0.03]}
+  oval_void:
+    when: "grow > 0.12"
+    material: void
+    space: oval
+    prims:
+      - ellipsoid: {c: [0, 0, 0.02], r: [0.42, 0.76, 0.03]}
+  swirl_outer:
+    when: "grow > 0.2"
+    material: swirl
+    space: oval
+    prims:
+      - chain: {pts: ["[0.39*cos(spin_a), 0.70*sin(spin_a), 0.05]", "[0.32*cos(spin_a+0.7), 0.57*sin(spin_a+0.7), 0.055]", "[0.23*cos(spin_a+1.4), 0.41*sin(spin_a+1.4), 0.06]", "[0.12*cos(spin_a+2.1), 0.22*sin(spin_a+2.1), 0.065]"], r: [0.04, 0.055, 0.055, 0.035]}
+      - chain: {pts: ["[0.39*cos(spin_a+2.094), 0.70*sin(spin_a+2.094), 0.05]", "[0.32*cos(spin_a+2.794), 0.57*sin(spin_a+2.794), 0.055]", "[0.23*cos(spin_a+3.494), 0.41*sin(spin_a+3.494), 0.06]", "[0.12*cos(spin_a+4.194), 0.22*sin(spin_a+4.194), 0.065]"], r: [0.04, 0.055, 0.055, 0.035]}
+      - chain: {pts: ["[0.39*cos(spin_a+4.189), 0.70*sin(spin_a+4.189), 0.05]", "[0.32*cos(spin_a+4.889), 0.57*sin(spin_a+4.889), 0.055]", "[0.23*cos(spin_a+5.589), 0.41*sin(spin_a+5.589), 0.06]", "[0.12*cos(spin_a+6.289), 0.22*sin(spin_a+6.289), 0.065]"], r: [0.04, 0.055, 0.055, 0.035]}
+  swirl_inner:
+    when: "grow > 0.2"
+    material: swirl_hot
+    space: oval
+    prims:
+      - chain: {pts: ["[0.25*cos(spin_b), 0.47*sin(spin_b), 0.08]", "[0.17*cos(spin_b+0.8), 0.32*sin(spin_b+0.8), 0.085]", "[0.08*cos(spin_b+1.6), 0.16*sin(spin_b+1.6), 0.09]"], r: [0.025, 0.04, 0.03]}
+      - chain: {pts: ["[0.25*cos(spin_b+3.1416), 0.47*sin(spin_b+3.1416), 0.08]", "[0.17*cos(spin_b+3.94), 0.32*sin(spin_b+3.94), 0.085]", "[0.08*cos(spin_b+4.74), 0.16*sin(spin_b+4.74), 0.09]"], r: [0.025, 0.04, 0.03]}
+  core:
+    when: "grow > 0.12"
+    material: core
+    space: oval
+    prims:
+      - ellipsoid: {c: [0, 0, 0.12], r: "[min(0.4, 0.09*core), min(0.74, 0.17*core), 0.03]"}
+
+  # spark at the ground (open start / close end)
+  flash:
+    when: "flash > 0.02"
+    material: core
+    prims:
+      - sphere: {c: "[0, 0.18 + 0.25*flash, 0.1]", r: "0.07 + 0.12*flash"}
+
+  sparks:
+    when: "sparks > 0.5"
+    material: spark
+    prims:
+      - sphere: {c: "[0.60*cos(0.5+tau*0), 0.15 + 1.9*(sp - floor(sp)), 0.35]", r: 0.045}
+      - sphere: {c: "[-0.70, 0.15 + 1.9*(sp + 0.33 - floor(sp + 0.33)), 0.25]", r: 0.04}
+      - sphere: {c: "[0.30, 0.15 + 1.9*(sp + 0.66 - floor(sp + 0.66)), 0.45]", r: 0.04}
+      - sphere: {c: "[-0.25, 0.15 + 1.9*(sp + 0.15 - floor(sp + 0.15)), -0.3]", r: 0.035}
+      - sphere: {c: "[0.82, 0.15 + 1.9*(sp + 0.5 - floor(sp + 0.5)), -0.1]", r: 0.035}
+
+animations:
+  idle:
+    frames: 8
+    ms: 100
+    channels:
+      grow: "1 + 0.02*sin(p)"
+      spin_a: "p/3"
+      spin_b: "-p/2"
+      core: "1 + 0.3*sin(2*p)"
+      ring_spin: "p/6"
+      ring: "1 + 0.03*sin(p)"
+      sp: "p/tau"
+      sparks: 1
+  open:
+    loop: false
+    keys:
+      - {ms: 100, set: {grow: 0, ring: 0.3, flash: 0.2}}
+      - {ms: 100, set: {grow: 0, ring: 0.6, flash: 0.6, ring_spin: 0.3}}
+      - {ms: 100, set: {grow: 0.35, ring: 0.85, spin_a: 0.6, spin_b: -0.5, core: 2, ring_spin: 0.6}}
+      - {ms: 100, set: {grow: 0.65, ring: 1.1, spin_a: 1.2, spin_b: -1.0, core: 3, ring_spin: 0.9, sparks: 1, sp: 0.2}}
+      - {ms: 100, set: {grow: 1.12, ring: 1.12, spin_a: 1.8, spin_b: -1.5, core: 3.5, ring_spin: 1.1, sparks: 1, sp: 0.4}}
+      - {ms: 100, set: {grow: 1.0, ring: 1.0, spin_a: 2.1, spin_b: -1.8, core: 1.5, ring_spin: 1.2, sparks: 1, sp: 0.6}}
+  close:
+    loop: false
+    keys:
+      - {ms: 80, set: {grow: 1.0, spin_a: 0.5, spin_b: -0.5, core: 2, sparks: 1, sp: 0.7}}
+      - {ms: 80, set: {grow: 0.6, spin_a: 1.5, spin_b: -1.5, core: 3, ring: 0.9, sparks: 1, sp: 0.8}}
+      - {ms: 80, set: {grow: 0.28, spin_a: 2.5, spin_b: -2.5, core: 3, ring: 0.6, flash: 0.3}}
+      - {ms: 80, set: {grow: 0, ring: 0.35, flash: 0.7}}
+      - {ms: 80, set: {grow: 0, ring: 0.15, flash: 0.3}}

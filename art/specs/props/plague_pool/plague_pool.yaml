@@ -1,0 +1,209 @@
+spritekiln: 1
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+name: plague_pool
+kind: prop
+view: topdown
+size: 48
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot = frame centre (24, 24) = the ground point
+shadow: null             # a decal on the ground
+
+# Mata dos Lobos, arena "Cruzamento das Pedras Altas": the plague that corrupted the village dogs pools here.
+brief:
+  summary: flat irregular puddle of glowing toxic-green plague ooze on the ground, a dark scabbed olive crust
+    around it, a brighter sickly core, a sheen streak, and bubbles that swell and pop slowly; three shapes
+  must_keep: [flat ground decal, emissive green ooze (the accent), dark crust rim, bubbles swell and pop
+    with a small ring]
+  simplify: [flat 1-tone layers like cave_puddle, bubbles as small domes, pop as a thin flat torus]
+  exceptions: |
+    kind prop, size 48, directions 1, mirror false, shadow null, camera.center [0, 0, 0]. No dark outline
+    (a decal outlined in near-black looks like a hole; same as cave_puddle). Ooze layers are emissive (the
+    magic/plague accent of the style notes). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (24, 24) = frame centre = the ground point under the pool's centre. FLOOR DECAL:
+    draw it on the floor layer; walkable (v0 ~1.7 x 1.0 units = 2x1 tiles, v1 ~1.0 x 0.7 = 1x1, v2 a long
+    seep ~1.9 x 0.7 = 2x1); the game may add a green point light and a poison zone on it (the emissive map has
+    the ooze). CLIPS: `variants` (3 static frames, frame i = variant i, one bubble frozen mid-swell);
+    `idle` = variant 0 slow bubbling (8 frames x 160 ms, seamless); `idle1`, `idle2` = the same on v1, v2.
+
+ramps:
+  pp_crust: ["#1c0f1a", "#1e2416"]
+  pp_edge:  ["#1c0f1a", "#2a4a1a"]
+  pp_ooze:  ["#1c0f1a", "#3e7420"]
+  pp_core:  ["#1c0f1a", "#6aa82a"]
+  pp_hot:   ["#1c0f1a", "#a8d840"]
+  pp_sheen: ["#1c0f1a", "#e4f79a"]
+
+materials:
+  crust: {ramp: pp_crust, emissive: true, band: 1, outline: false, line: false}
+  edge:  {ramp: pp_edge, emissive: true, band: 1, outline: false, line: false}
+  ooze:  {ramp: pp_ooze, emissive: true, band: 1, outline: false, line: false}
+  core:  {ramp: pp_core, emissive: true, band: 1, outline: false, line: false, glow: {color: "#6aa82a", mix: 0.25, radius: 1}}
+  hot:   {ramp: pp_hot, emissive: true, band: 1, outline: false, line: false}
+  sheen: {ramp: pp_sheen, emissive: true, band: 1, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  v: 0               # variant 0..2
+  bt: 3              # bubble clock (frames, 0..8)
+
+bones:
+  body: {parent: root}
+  # the variant's pool shape: one irregular pool, turned and squashed per variant
+  pool: {parent: body, rot: [0, "0.15*(v < 0.5) + 0.9*(abs(v - 1) < 0.5) - 0.22*(v > 1.5)", 0],
+         scale: "[1.0*(v < 0.5) + 0.62*(abs(v - 1) < 0.5) + 1.05*(v > 1.5), 1, 1.25*(v < 0.5) + 0.85*(abs(v - 1) < 0.5) + 0.75*(v > 1.5)]"}
+
+# Bubble k: age m = (bt + k) mod 8 (frames); it swells while m < 6, then pops (a ring) for frames 6 and 7.
+parts:
+  crust:             # dark scabbed rim
+    material: crust
+    space: pool
+    prims:
+      - ellipsoid: {c: [0, 0.002, 0], r: [0.66, 0.003, 0.52]}
+      - ellipsoid: {c: [0.48, 0.002, 0.26], r: [0.36, 0.003, 0.30]}
+      - ellipsoid: {c: [-0.46, 0.002, -0.22], r: [0.34, 0.003, 0.30]}
+      - ellipsoid: {c: [-0.56, 0.002, 0.22], r: [0.24, 0.003, 0.22]}
+      - ellipsoid: {c: [0.36, 0.002, -0.34], r: [0.24, 0.003, 0.20]}
+      - ellipsoid: {c: [0.92, 0.002, 0.44], r: [0.08, 0.003, 0.07]}
+      - ellipsoid: {c: [-0.90, 0.002, -0.02], r: [0.07, 0.003, 0.06]}
+      - ellipsoid: {c: [0.06, 0.002, -0.70], r: [0.06, 0.003, 0.05]}
+  edge:
+    material: edge
+    space: pool
+    prims:
+      - ellipsoid: {c: [0, 0.005, 0], r: [0.60, 0.003, 0.46]}
+      - ellipsoid: {c: [0.46, 0.005, 0.26], r: [0.30, 0.003, 0.24]}
+      - ellipsoid: {c: [-0.44, 0.005, -0.22], r: [0.28, 0.003, 0.24]}
+      - ellipsoid: {c: [-0.54, 0.005, 0.22], r: [0.18, 0.003, 0.16]}
+      - ellipsoid: {c: [0.34, 0.005, -0.32], r: [0.18, 0.003, 0.14]}
+  ooze:
+    material: ooze
+    space: pool
+    prims:
+      - ellipsoid: {c: [0, 0.008, 0], r: [0.52, 0.003, 0.38]}
+      - ellipsoid: {c: [0.44, 0.008, 0.25], r: [0.22, 0.003, 0.17]}
+      - ellipsoid: {c: [-0.42, 0.008, -0.21], r: [0.21, 0.003, 0.17]}
+      - ellipsoid: {c: [-0.52, 0.008, 0.21], r: [0.11, 0.003, 0.09]}
+  core:
+    material: core
+    space: pool
+    prims:
+      - ellipsoid: {c: [-0.06, 0.011, -0.04], r: [0.36, 0.003, 0.26]}
+      - ellipsoid: {c: [0.36, 0.011, 0.20], r: [0.12, 0.003, 0.09]}
+  hot:
+    material: hot
+    space: pool
+    prims:
+      - ellipsoid: {c: [-0.12, 0.014, -0.08], r: [0.16, 0.003, 0.11]}
+  sheen:
+    material: sheen
+    space: pool
+    prims:
+      - ellipsoid: {c: [-0.32, 0.017, -0.24], r: [0.13, 0.003, 0.03], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [0.40, 0.017, 0.30], r: [0.06, 0.003, 0.025]}
+
+  # ---------------- per-variant extras (body space) ----------------
+  splash1:           # v1: splattered drops around the small pool
+    when: "abs(v - 1) < 0.5"
+    material: crust
+    space: body
+    prims:
+      - ellipsoid: {c: [0.66, 0.002, -0.10], r: [0.07, 0.003, 0.05]}
+      - ellipsoid: {c: [-0.58, 0.002, 0.30], r: [0.09, 0.003, 0.06]}
+      - ellipsoid: {c: [0.30, 0.002, 0.46], r: [0.05, 0.003, 0.04]}
+  splash1_ooze:
+    when: "abs(v - 1) < 0.5"
+    material: ooze
+    space: body
+    prims:
+      - ellipsoid: {c: [0.66, 0.006, -0.10], r: [0.04, 0.003, 0.03]}
+      - ellipsoid: {c: [-0.58, 0.006, 0.30], r: [0.055, 0.003, 0.035]}
+  tail2:             # v2: a seeping trail running off to the left-front
+    when: "v > 1.5"
+    material: crust
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.84, 0.002, 0.38], r: [0.26, 0.003, 0.11], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [-1.08, 0.002, 0.54], r: [0.08, 0.003, 0.06]}
+  tail2_ooze:
+    when: "v > 1.5"
+    material: edge
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.82, 0.005, 0.37], r: [0.20, 0.003, 0.06], rot: [0, 0.5, 0]}
+
+  # ---------------- bubbles (in the pool's space, inside the ooze of every variant) ----------------
+  bub_a_in:
+    when: "((bt + 0) - 8*floor((bt + 0)/8)) < 5.5"
+    material: hot
+    space: pool
+    prims:
+      - sphere: {c: [-0.22, "0.03 + 0.4*0.016*((bt + 0) - 8*floor((bt + 0)/8))", "-0.06 + 0.3*0.016*((bt + 0) - 8*floor((bt + 0)/8))"], r: "0.05 + 0.016*((bt + 0) - 8*floor((bt + 0)/8))"}
+  bub_a_hi:
+    when: "((bt + 0) - 8*floor((bt + 0)/8)) > 1.5 and ((bt + 0) - 8*floor((bt + 0)/8)) < 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - sphere: {c: ["-0.22 - 0.5*0.016*((bt + 0) - 8*floor((bt + 0)/8))", "0.04 + 0.9*0.016*((bt + 0) - 8*floor((bt + 0)/8))", "-0.06 + 0.5*0.016*((bt + 0) - 8*floor((bt + 0)/8))"], r: 0.028}
+  pop_a:
+    when: "((bt + 0) - 8*floor((bt + 0)/8)) > 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - torus: {c: [-0.22, 0.02, -0.06], R: "0.04 + 0.016*5 + 0.05*(((bt + 0) - 8*floor((bt + 0)/8)) - 6)", r: 0.024}
+  bub_b_in:
+    when: "((bt + 3) - 8*floor((bt + 3)/8)) < 5.5"
+    material: hot
+    space: pool
+    prims:
+      - sphere: {c: [0.3, "0.03 + 0.4*0.013*((bt + 3) - 8*floor((bt + 3)/8))", "0.14 + 0.3*0.013*((bt + 3) - 8*floor((bt + 3)/8))"], r: "0.045 + 0.013*((bt + 3) - 8*floor((bt + 3)/8))"}
+  bub_b_hi:
+    when: "((bt + 3) - 8*floor((bt + 3)/8)) > 1.5 and ((bt + 3) - 8*floor((bt + 3)/8)) < 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - sphere: {c: ["0.3 - 0.5*0.013*((bt + 3) - 8*floor((bt + 3)/8))", "0.04 + 0.9*0.013*((bt + 3) - 8*floor((bt + 3)/8))", "0.14 + 0.5*0.013*((bt + 3) - 8*floor((bt + 3)/8))"], r: 0.028}
+  pop_b:
+    when: "((bt + 3) - 8*floor((bt + 3)/8)) > 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - torus: {c: [0.3, 0.02, 0.14], R: "0.035 + 0.013*5 + 0.05*(((bt + 3) - 8*floor((bt + 3)/8)) - 6)", r: 0.024}
+  bub_c_in:
+    when: "((bt + 5) - 8*floor((bt + 5)/8)) < 5.5"
+    material: hot
+    space: pool
+    prims:
+      - sphere: {c: [0.04, "0.03 + 0.4*0.01*((bt + 5) - 8*floor((bt + 5)/8))", "0.2 + 0.3*0.01*((bt + 5) - 8*floor((bt + 5)/8))"], r: "0.04 + 0.01*((bt + 5) - 8*floor((bt + 5)/8))"}
+  bub_c_hi:
+    when: "((bt + 5) - 8*floor((bt + 5)/8)) > 1.5 and ((bt + 5) - 8*floor((bt + 5)/8)) < 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - sphere: {c: ["0.04 - 0.5*0.01*((bt + 5) - 8*floor((bt + 5)/8))", "0.04 + 0.9*0.01*((bt + 5) - 8*floor((bt + 5)/8))", "0.2 + 0.5*0.01*((bt + 5) - 8*floor((bt + 5)/8))"], r: 0.028}
+  pop_c:
+    when: "((bt + 5) - 8*floor((bt + 5)/8)) > 5.5"
+    material: sheen
+    space: pool
+    prims:
+      - torus: {c: [0.04, 0.02, 0.2], R: "0.03 + 0.01*5 + 0.05*(((bt + 5) - 8*floor((bt + 5)/8)) - 6)", r: 0.024}
+
+animations:
+  idle:              # variant 0, slow bubbling (seamless loop)
+    frames: 8
+    ms: 160
+    channels: {v: 0, bt: "f"}
+  idle1:
+    frames: 8
+    ms: 160
+    channels: {v: 1, bt: "f"}
+  idle2:
+    frames: 8
+    ms: 160
+    channels: {v: 2, bt: "f"}
+  variants:          # frame i = variant i (static, bubbles frozen mid-swell)
+    frames: 3
+    ms: 1000
+    channels: {v: "f", bt: 4}

@@ -1,0 +1,106 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fire_small
+kind: prop
+view: topdown
+size: 32
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.6980, 0]}   # 10 px above the pivot -> pivot (16, 26)
+shadow: null             # fire casts light, not shadow; the game adds an additive glow
+
+# Prologue (the burning castle): a small fire (burning debris, a torn tapestry, a body).
+brief:
+  summary: a knee-high fire (~15 px) of four tongues on a few charred bits and coals, licks and embers rising
+  must_keep: [flickering tongues in four fire tones (dark red rim, orange, amber, white-hot core), rising licks and embers, a seamless loop]
+  simplify: [tongues as tapered chains that sway and stretch, licks as shrinking blobs, no transparency]
+  exceptions: |
+    kind prop, size 32, directions 1, mirror false, shadow null, camera.center [0, 0.6980, 0] (integer
+    pivot). Flames are emissive (farm `fire` ramp, one band per layer), no outline: the dark-red outer
+    layer is their rim. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (16, 26) = the ground point at the centre of the fire; footprint 1 tile (walkable but it hurts: game rule).
+    `idle` loops 8 frames at 90 ms; every motion is periodic in p, so frame 7 flows into frame 0. The emissive
+    map carries the flames; add a warm additive glow sprite in the engine (as the candelabra do).
+
+ramps:
+  fl_smoke: ["#1c0f1a", "#3d3442", "#5a5060", "#7a7080"]
+  fl_char:  ["#1c0f1a", "#1f1416", "#3a2420", "#5a3626"]
+  fl_glow:  ["#902308", "#fe6607", "#fbbe71"]
+
+materials:
+  outer: {ramp: fire, emissive: true, band: 0, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+  mid:   {ramp: fire, emissive: true, band: 1, outline: false}
+  inner: {ramp: fire, emissive: true, band: 2, outline: false}
+  core:  {ramp: fire, emissive: true, band: 3, outline: false}
+  ember: {ramp: fire, emissive: true, band: 2, outline: false}
+  coal:  {ramp: fl_glow, emissive: true, band: 1, outline: false}
+  char:  {ramp: fl_char, bands: [1, 3]}
+  smoke: {ramp: fl_smoke, bands: [1, 3], line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+
+parts:
+  bits:            # a few charred bits it feeds on
+    material: char
+    space: body
+    prims:
+      - box: {c: [0.0, 0.05, 0.08], half: [0.32, 0.05, 0.06], rot: [0, 0.4, 0], round: 0.02}
+      - box: {c: [0.05, 0.06, 0.05], half: [0.05, 0.05, 0.25], rot: [0, -0.3, 0], round: 0.02}
+  coals:
+    material: coal
+    space: body
+    prims:
+      - ellipsoid: {c: [0.0, 0.02, 0.10], r: [0.36, 0.02, 0.22]}
+  flame_outer:
+    material: outer
+    space: body
+    prims:
+      - chain: {pts: [[-0.150, 0.078, 0.000], ["-0.150 + 0.039*sin(p + 0.14)", "0.000 + 0.5*0.600*(1 + 0.16*sin(2*p + 4.33))", 0.000], ["-0.150 + 0.077*sin(p + 1.04)", "0.000 + 0.600*(1 + 0.16*sin(2*p + 4.33))", 0.000]], r: [0.130, 0.091, 0.012]}
+      - chain: {pts: [[0.100, 0.096, 0.050], ["0.100 + 0.046*sin(p + 2.11)", "0.000 + 0.5*0.850*(1 + 0.16*sin(2*p + 1.36))", 0.050], ["0.100 + 0.092*sin(p + 3.01)", "0.000 + 0.850*(1 + 0.16*sin(2*p + 1.36))", 0.050]], r: [0.160, 0.112, 0.012]}
+      - chain: {pts: [[0.300, 0.066, 0.100], ["0.300 + 0.035*sin(p + 4.17)", "0.000 + 0.5*0.500*(1 + 0.16*sin(1*p + 3.22))", 0.100], ["0.300 + 0.071*sin(p + 5.07)", "0.000 + 0.500*(1 + 0.16*sin(1*p + 3.22))", 0.100]], r: [0.110, 0.077, 0.012]}
+      - chain: {pts: [[-0.020, 0.072, 0.150], ["-0.020 + 0.035*sin(p + 4.05)", "0.000 + 0.5*0.500*(1 + 0.16*sin(2*p + 0.09))", 0.150], ["-0.020 + 0.071*sin(p + 4.95)", "0.000 + 0.500*(1 + 0.16*sin(2*p + 0.09))", 0.150]], r: [0.120, 0.084, 0.012]}
+      - sphere: {c: ["0.323 + 0.06*sin(p*2 + 0)", "0.617 + 0.700*(p/tau + 0.01 - floor(p/tau + 0.01))", 0.250], r: "0.070*(1 - (p/tau + 0.01 - floor(p/tau + 0.01)))"}
+      - sphere: {c: ["-0.180 + 0.06*sin(p*2 + 2)", "0.617 + 0.700*(p/tau + 0.68 - floor(p/tau + 0.68))", 0.250], r: "0.070*(1 - (p/tau + 0.68 - floor(p/tau + 0.68)))"}
+  flame_mid:
+    material: mid
+    space: body
+    prims:
+      - chain: {pts: [[-0.150, 0.290, 0.300], ["-0.150 + 0.030*sin(p + 0.14)", "0.234 + 0.5*0.468*(1 + 0.16*sin(2*p + 4.33))", 0.300], ["-0.150 + 0.060*sin(p + 1.04)", "0.234 + 0.468*(1 + 0.16*sin(2*p + 4.33))", 0.300]], r: [0.094, 0.066, 0.012]}
+      - chain: {pts: [[0.100, 0.303, 0.350], ["0.100 + 0.036*sin(p + 2.11)", "0.234 + 0.5*0.663*(1 + 0.16*sin(2*p + 1.36))", 0.350], ["0.100 + 0.072*sin(p + 3.01)", "0.234 + 0.663*(1 + 0.16*sin(2*p + 1.36))", 0.350]], r: [0.115, 0.081, 0.012]}
+      - chain: {pts: [[0.300, 0.282, 0.400], ["0.300 + 0.028*sin(p + 4.17)", "0.234 + 0.5*0.390*(1 + 0.16*sin(1*p + 3.22))", 0.400], ["0.300 + 0.055*sin(p + 5.07)", "0.234 + 0.390*(1 + 0.16*sin(1*p + 3.22))", 0.400]], r: [0.079, 0.055, 0.012]}
+      - chain: {pts: [[-0.020, 0.286, 0.450], ["-0.020 + 0.028*sin(p + 4.05)", "0.234 + 0.5*0.390*(1 + 0.16*sin(2*p + 0.09))", 0.450], ["-0.020 + 0.055*sin(p + 4.95)", "0.234 + 0.390*(1 + 0.16*sin(2*p + 0.09))", 0.450]], r: [0.086, 0.060, 0.012]}
+      - sphere: {c: ["-0.285 + 0.06*sin(p*2 + 1)", "0.617 + 0.700*(p/tau + 0.43 - floor(p/tau + 0.43))", 0.250], r: "0.070*(1 - (p/tau + 0.43 - floor(p/tau + 0.43)))"}
+  flame_inner:
+    material: inner
+    space: body
+    prims:
+      - chain: {pts: [[-0.150, 0.504, 0.600], ["-0.150 + 0.021*sin(p + 0.14)", "0.468 + 0.5*0.330*(1 + 0.16*sin(2*p + 4.33))", 0.600], ["-0.150 + 0.043*sin(p + 1.04)", "0.468 + 0.330*(1 + 0.16*sin(2*p + 4.33))", 0.600]], r: [0.060, 0.042, 0.012]}
+      - chain: {pts: [[0.100, 0.512, 0.650], ["0.100 + 0.025*sin(p + 2.11)", "0.468 + 0.5*0.468*(1 + 0.16*sin(2*p + 1.36))", 0.650], ["0.100 + 0.051*sin(p + 3.01)", "0.468 + 0.468*(1 + 0.16*sin(2*p + 1.36))", 0.650]], r: [0.074, 0.052, 0.012]}
+      - chain: {pts: [[0.300, 0.498, 0.700], ["0.300 + 0.019*sin(p + 4.17)", "0.468 + 0.5*0.275*(1 + 0.16*sin(1*p + 3.22))", 0.700], ["0.300 + 0.039*sin(p + 5.07)", "0.468 + 0.275*(1 + 0.16*sin(1*p + 3.22))", 0.700]], r: [0.051, 0.035, 0.012]}
+      - chain: {pts: [[-0.020, 0.501, 0.750], ["-0.020 + 0.019*sin(p + 4.05)", "0.468 + 0.5*0.275*(1 + 0.16*sin(2*p + 0.09))", 0.750], ["-0.020 + 0.039*sin(p + 4.95)", "0.468 + 0.275*(1 + 0.16*sin(2*p + 0.09))", 0.750]], r: [0.055, 0.039, 0.012]}
+  flame_core:
+    material: core
+    space: body
+    prims:
+      - chain: {pts: [[-0.150, 0.724, 0.900], ["-0.150 + 0.012*sin(p + 0.14)", "0.702 + 0.5*0.192*(1 + 0.16*sin(2*p + 4.33))", 0.900], ["-0.150 + 0.025*sin(p + 1.04)", "0.702 + 0.192*(1 + 0.16*sin(2*p + 4.33))", 0.900]], r: [0.036, 0.025, 0.012]}
+      - chain: {pts: [[0.100, 0.729, 0.950], ["0.100 + 0.015*sin(p + 2.11)", "0.702 + 0.5*0.272*(1 + 0.16*sin(2*p + 1.36))", 0.950], ["0.100 + 0.030*sin(p + 3.01)", "0.702 + 0.272*(1 + 0.16*sin(2*p + 1.36))", 0.950]], r: [0.045, 0.031, 0.012]}
+      - chain: {pts: [[-0.020, 0.722, 1.050], ["-0.020 + 0.011*sin(p + 4.05)", "0.702 + 0.5*0.160*(1 + 0.16*sin(2*p + 0.09))", 1.050], ["-0.020 + 0.023*sin(p + 4.95)", "0.702 + 0.160*(1 + 0.16*sin(2*p + 0.09))", 1.050]], r: [0.034, 0.024, 0.012]}
+  embers:
+    material: ember
+    space: body
+    prims:
+      - sphere: {c: ["0.205 + 0.12*sin(p + 0.0)", "0.500 + 0.900*(p/tau + 0.82 - floor(p/tau + 0.82))", 0.196], r: 0.045}
+      - sphere: {c: ["-0.167 + 0.12*sin(p + 1.7)", "0.500 + 0.900*(p/tau + 0.00 - floor(p/tau + 0.00))", 0.249], r: 0.045}
+      - sphere: {c: ["-0.021 + 0.12*sin(p + 3.4)", "0.500 + 0.900*(p/tau + 0.76 - floor(p/tau + 0.76))", 0.162], r: 0.045}
+
+animations:
+  idle:
+    frames: 8
+    ms: 90
+    channels: {}

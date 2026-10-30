@@ -1,0 +1,192 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: castle_throne_broken
+kind: prop
+view: topdown
+size: 64
+directions: 1            # faces the camera (s)
+mirror: false
+palette: "farm"
+# centre y 1.3959 = 20 px above the pivot -> pivot (32, 52), as castle_throne
+camera: {pitch: 38, scale: 0.055, center: [0, 1.3959, 0]}
+shadow: {rx: 20, ry: 6, alpha: 80}
+
+# Prologue (the castle destroyed): the king's throne knocked over.
+brief:
+  summary: castle_throne thrown over backwards and to the side on its cracked dais - the gold frame cracked and
+    dented, one back finial and the top star snapped off and lying on the floor, the royal-blue cushions torn
+    and soaked in blood, three bloody claw rakes and a smear across the red velvet, a corner of the marble
+    step broken off into chunks, dark crack lines in the marble
+  must_keep: [same gold, royal blue, red velvet and white marble as castle_throne, tipped over, blood, cracks]
+  simplify: [cracks as dark 1 px bars, blood as flat decals, debris as a few chunks]
+  exceptions: |
+    kind prop, size 64, directions 1, mirror false, camera.center [0, 1.3959, 0] (integer pivot, the same
+    as castle_throne). camera.scale/pitch/light untouched. Spec-local ramps keep index 0 = #1c0f1a.
+  decisions: |
+    PIVOT CONTRACT: identical to castle_throne: pivot (32, 52) = the ground point at the centre of the dais
+    footprint (3x2 tiles, blocking); it swaps in place. The throne lies on its back, yawed to its left, the
+    back resting on the dais and the floor behind. Static: 1-frame idle.
+
+ramps:
+  th_marble: ["#1c0f1a", "#a69caf", "#d3ccd9", "#ece8ef", "#ffffff"]
+  th_gold:   ["#1c0f1a", "#804a19", "#c7861f", "#e1a227", "#eddc83", "#f8f4dd"]
+  th_red:    ["#1c0f1a", "#6e1d24", "#a82a28", "#c13a2b", "#e0664a"]
+  th_blue:   ["#1c0f1a", "#1e2978", "#2c60d5", "#5f93ea", "#a8cff3"]
+  tb_crack:  ["#1c0f1a", "#5a4e66"]
+  tb_gcrack: ["#1c0f1a", "#5a2a0c"]
+  bl_edge:   ["#1c0f1a", "#4e0710"]
+  bl_pool:   ["#1c0f1a", "#86101a"]
+
+materials:
+  marble: {ramp: th_marble, bands: [2, 3]}
+  gold:   {ramp: th_gold, bands: [2, 5]}
+  blue:   {ramp: th_blue, bands: [1, 3]}
+  red:    {ramp: th_red, bands: [3, 3]}
+  emblem: {ramp: th_gold, bands: [3, 4], outline: false, line: false}
+  crack:  {ramp: tb_crack, bands: [1, 1], outline: false, line: false}
+  gcrack: {ramp: tb_gcrack, bands: [1, 1], outline: false, line: false}
+  blood:  {ramp: bl_pool, bands: [1, 1], outline: false, line: false}
+  blood_dk: {ramp: bl_edge, bands: [1, 1], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+
+bones:
+  body: {parent: root}
+  throne: {parent: body, pos: [-0.05, 0.50, -0.15], rot: [-1.3, 0.55, 0.1]}   # thrown on its back, yawed
+
+parts:
+  dais:
+    material: marble
+    space: body
+    prims:
+      - box: {c: [0, 0.11, 0], half: [1.1, 0.11, 0.9], round: 0.02}
+    cut:
+      - box: {c: [1.05, 0.15, 0.85], half: [0.3, 0.2, 0.25], rot: [0.2, 0.6, 0.3]}     # broken corner
+  dais_cloth:
+    material: red
+    space: body
+    prims:
+      - box: {c: [0, 0.225, 0], half: [1.0, 0.012, 0.8]}
+    cut:
+      - box: {c: [1.05, 0.15, 0.85], half: [0.32, 0.2, 0.27], rot: [0.2, 0.6, 0.3]}
+      - box: {c: [-0.75, 0.24, 0.55], half: [0.18, 0.05, 0.12], rot: [0, 0.5, 0]}    # torn hole
+  dais_trim:
+    material: gold
+    space: body
+    line: true
+    prims:
+      - box: {c: [-0.15, 0.17, 0.905], half: [0.95, 0.035, 0.02]}
+      - box: {c: [-1.105, 0.17, 0], half: [0.02, 0.035, 0.905]}
+      - box: {c: [1.105, 0.17, -0.25], half: [0.02, 0.035, 0.65]}
+  cracks:          # dark cracks running through the marble step
+    material: crack
+    space: body
+    prims:
+      - box: {c: [-0.55, 0.11, 0.905], half: [0.012, 0.09, 0.012], rot: [0, 0, 0.3]}
+      - box: {c: [-0.42, 0.11, 0.905], half: [0.07, 0.01, 0.012], rot: [0, 0, -0.5]}
+      - box: {c: [0.30, 0.10, 0.905], half: [0.012, 0.08, 0.012], rot: [0, 0, -0.4]}
+      - box: {c: [1.105, 0.10, -0.55], half: [0.012, 0.08, 0.012], rot: [0.4, 0, 0]}
+  claw_rakes:      # three bloody claw rakes torn through the velvet
+    material: blood_dk
+    space: body
+    prims:
+      - box: {c: [0.25, 0.238, 0.45], half: [0.035, 0.004, 0.40], rot: [0, -0.5, 0]}
+      - box: {c: [0.42, 0.238, 0.40], half: [0.035, 0.004, 0.42], rot: [0, -0.5, 0]}
+      - box: {c: [0.59, 0.238, 0.35], half: [0.035, 0.004, 0.38], rot: [0, -0.5, 0]}
+  blood_smear:
+    material: blood
+    space: body
+    prims:
+      - ellipsoid: {c: [-0.30, 0.240, 0.40], r: [0.32, 0.004, 0.18], rot: [0, 0.3, 0]}
+      - ellipsoid: {c: [0.65, 0.240, -0.55], r: [0.18, 0.004, 0.14]}
+      - ellipsoid: {c: [-0.05, 0.12, 0.93], r: [0.10, 0.08, 0.02]}
+      - ellipsoid: {c: [-1.30, 0.004, 0.20], r: [0.10, 0.004, 0.08]}
+  seat:
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.22, 0.05], half: [0.52, 0.22, 0.42], round: 0.04}
+  back:            # tall arched back, a bite taken out of the arch
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.95, -0.42], half: [0.55, 0.75, 0.1], round: 0.03}
+      - cylinder: {a: [0, 1.7, -0.52], b: [0, 1.7, -0.32], r: 0.55}
+    cut:
+      - sphere: {c: [0.42, 2.12, -0.42], r: 0.26}
+      - box: {c: [-0.56, 0.75, -0.42], half: [0.05, 0.18, 0.2], rot: [0, 0, 0.5]}
+  finial:          # the one finial still on
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - sphere: {c: [-0.58, 1.72, -0.42], r: 0.11}
+  gold_cracks:
+    material: gcrack
+    space: throne
+    prims:
+      - box: {c: [-0.2, 1.4, -0.305], half: [0.012, 0.25, 0.01], rot: [0, 0, 0.4]}
+      - box: {c: [0.25, 0.30, 0.475], half: [0.012, 0.15, 0.01], rot: [0, 0, -0.3]}
+  crest:
+    material: emblem
+    space: throne
+    prims:
+      - cylinder: {a: [0, 1.3, -0.27], b: [0, 1.3, -0.24], r: 0.17}
+      - tri: {a: [0.05, 1.42, -0.255], b: [0.17, 1.38, -0.255], c: [0.16, 1.58, -0.255], th: 0.012}
+      - tri: {a: [-0.05, 1.42, -0.255], b: [-0.17, 1.38, -0.255], c: [-0.16, 1.58, -0.255], th: 0.012}
+  arms:            # the right armrest knocked off (lies on the floor)
+    material: gold
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0.6, 0.55, 0.0], half: [0.09, 0.08, 0.42], round: 0.04}
+      - box: {c: [0.6, 0.27, 0.36], half: [0.08, 0.27, 0.07], round: 0.03}
+      - sphere: {c: [0.6, 0.62, 0.42], r: 0.12}
+      - box: {c: [-0.6, 0.27, 0.36], half: [0.08, 0.27, 0.07], round: 0.03}
+  cushion_seat:
+    material: blue
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 0.5, 0.08], half: [0.44, 0.08, 0.36], round: 0.07}
+    cut:
+      - box: {c: [0.2, 0.58, 0.15], half: [0.06, 0.05, 0.28], rot: [0, 0.4, 0]}       # slashed
+  cushion_back:
+    material: blue
+    space: throne
+    line: true
+    prims:
+      - box: {c: [0, 1.15, -0.3], half: [0.38, 0.55, 0.04], round: 0.05}
+      - cylinder: {a: [0, 1.66, -0.34], b: [0, 1.66, -0.26], r: 0.38}
+  cushion_blood:   # blood soaking the cushions
+    material: blood
+    space: throne
+    prims:
+      - ellipsoid: {c: [-0.1, 0.585, 0.05], r: [0.22, 0.01, 0.20]}
+      - ellipsoid: {c: [0.1, 1.0, -0.255], r: [0.20, 0.25, 0.01]}
+  debris:          # snapped star, finial and armrest on the floor; marble chunks off the step
+    material: gold
+    space: body
+    line: true
+    prims:
+      - cone: {a: [-1.45, 0.08, 0.45], b: [-1.62, 0.06, 0.35], r: [0.09, 0.03]}
+      - cone: {a: [-1.45, 0.08, 0.45], b: [-1.40, 0.06, 0.22], r: [0.09, 0.03]}
+      - cone: {a: [-1.45, 0.08, 0.45], b: [-1.30, 0.06, 0.55], r: [0.09, 0.03]}
+      - sphere: {c: [1.38, 0.11, -0.62], r: 0.11}
+      - box: {c: [1.40, 0.08, -0.12], half: [0.09, 0.08, 0.34], rot: [0, 0.4, 0.2], round: 0.04}
+  chunks:
+    material: marble
+    space: body
+    prims:
+      - box: {c: [1.28, 0.08, 0.62], half: [0.14, 0.08, 0.11], rot: [0.3, 0.6, 0.2], round: 0.02}
+      - box: {c: [1.42, 0.05, 0.38], half: [0.09, 0.05, 0.08], rot: [0.1, 0.2, 0.4], round: 0.02}
+      - box: {c: [-1.25, 0.04, 0.70], half: [0.07, 0.04, 0.05], rot: [0.2, 0.9, 0.1], round: 0.02}
+
+animations:
+  idle:
+    frames: 1
+    ms: 1000
+    channels: {}

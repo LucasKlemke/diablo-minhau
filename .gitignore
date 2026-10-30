@@ -8,3 +8,7 @@ dist/
 .tmp/
 .vercel
 .env*
+
+# trailer render outputs
+trailer/frames/
+trailer/*.mp4
