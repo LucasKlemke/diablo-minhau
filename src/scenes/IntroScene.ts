@@ -4,7 +4,9 @@ import { Director } from "../game/cutscene";
 import type { HeroData } from "../game/hero";
 import { hasSprite, kilnMeta, type KilnSprite } from "../kiln";
 import { CinematicUi } from "../ui/cinematic";
-import { openMainMenu } from "../ui/menu";
+import { openMainMenu, showWaiting } from "../ui/menu";
+import { net } from "../net/net";
+import { awaitWelcome, stopWelcome, welcomeData } from "../net/session";
 import { L } from "../i18n";
 
 // Act I prologue, played once for a new character, built in the engine from SpriteKiln sprites:
@@ -48,6 +50,8 @@ export class IntroScene extends Phaser.Scene {
   private hero?: HeroData;
   /** Watched again from the Cinematics menu: it returns there at the end. */
   private replay = false;
+  /** Watched together in a session: the host's end (or skip) ends it for the guest too. */
+  private coop = false;
   private ui!: CinematicUi;
   private dir!: Director;
   private ended = false;
@@ -75,9 +79,10 @@ export class IntroScene extends Phaser.Scene {
     super("intro");
   }
 
-  init(data: { hero?: HeroData; replay?: boolean }) {
+  init(data: { hero?: HeroData; replay?: boolean; coop?: boolean }) {
     this.hero = data.hero;
     this.replay = !!data.replay;
+    this.coop = !!data.coop && net.active;
     this.ended = false;
     this.cast = {};
     this.candleGlows = [];
@@ -117,6 +122,15 @@ export class IntroScene extends Phaser.Scene {
       this.ui.close(false);
       this.stopLoops(0.4);
     });
+    if (this.coop && net.role === "guest") {
+      net.clearHandlers();
+      net.on("intro_skip", () => this.finish());
+      net.on("bye", () => {
+        net.leave(); // the host left: go on alone
+        this.coop = false;
+        this.finish();
+      });
+    }
     void this.play();
   }
 
@@ -583,6 +597,19 @@ export class IntroScene extends Phaser.Scene {
     }
     d.quest.prologueSeen = true;
     d.save();
+    if (this.coop && net.role === "host") net.send({ t: "intro_skip" });
+    if (this.coop && net.role === "guest") {
+      // Into the host's game once it is running (the host may still be watching).
+      showWaiting(L("Aguardando o anfitrião...", "Waiting for the host..."), () => { stopWelcome(); net.leave(); this.scene.start("game", { hero: d, cinematic: true }); });
+      awaitWelcome(d, {
+        onWelcome: (w) => {
+          document.querySelector("#ui .mm")?.remove();
+          this.scene.start("game", { ...welcomeData(d, w), cinematic: true });
+        },
+        onBye: () => { net.leave(); this.scene.start("game", { hero: d, cinematic: true }); },
+      });
+      return;
+    }
     this.scene.start("game", { hero: d, cinematic: true });
   }
 

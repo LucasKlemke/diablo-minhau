@@ -8,7 +8,7 @@ import { cine, setAmbience, setMusic, sfx, type Track } from "../game/audio";
 import { DIFFICULTIES } from "../data/difficulty";
 import { settings } from "../game/settings";
 import { openMainMenu, showPauseMenu } from "../ui/menu";
-import { net, type EnemyRow, type Msg, type PlayerState } from "../net/net";
+import { net, type EnemyRow, type Msg, type PlayerState, type TravelReq } from "../net/net";
 import { CLASSES } from "../data/classes";
 import { generateDungeon } from "../world/dungeon";
 import { buildAuthoredMap } from "../world/authored";
@@ -263,6 +263,17 @@ export class GameScene extends Phaser.Scene {
   private enemySeq = 0;
   private netAt = 0;
   private snapAt = 0;
+  /** Last hero state sent (sent again only when it changes, or as a keep-alive). */
+  private sentState = "";
+  private sentStateAt = 0;
+  /** Per enemy: the last row sent to the guest and when (unchanged rows are only refreshed now and then). */
+  private sentRows = new Map<number, { key: string; at: number }>();
+  private awakenUntil = 0;
+  /** Ends the cutscene playing now (the guest's copy, when the host skips it). */
+  private cineSkip?: () => void;
+  /** Trip waiting for both players: proposed here (`mine`, with what to do on yes) or by the partner. */
+  private vote?: { id: number; mine: boolean; req: TravelReq; go?: () => void; el: HTMLDivElement };
+  private voteSeq = 0;
   private sessionEl?: HTMLDivElement;
   private tipLoot: Loot | null = null;
   private enemies: Enemy[] = [];
@@ -347,6 +358,11 @@ export class GameScene extends Phaser.Scene {
     this.remote = null;
     this.byId = new Map();
     this.enemySeq = 0;
+    this.vote = undefined;
+    this.cineSkip = undefined;
+    this.sentRows = new Map();
+    this.sentState = "";
+    this.awakenUntil = 0;
     this.dungeonRef = data.dungeon !== undefined ? { index: data.dungeon } : null;
     this.exitAt = data.exitAt ?? null;
     this.darkEl = undefined;
@@ -589,6 +605,7 @@ export class GameScene extends Phaser.Scene {
 
   /** After the prologue (IntroScene): the hero steps out of Aldo's hut into the village and takes over. */
   private awaken() {
+    this.awakenUntil = this.time.now + 6000; // a partner arriving now steps out of the hut too
     const cam = this.cameras.main;
     const aldo = this.npcs.find((n) => n.id === "aldo");
     this.busy = true;
@@ -1019,6 +1036,10 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       if (this.hoveredNpc) {
+        if (this.isGuest) {
+          this.say(L("Na sessão, só o anfitrião fala com os personagens.", "In a session, only the host talks to the characters."), "#ffe14d");
+          return;
+        }
         this.order = { type: "talk", npc: this.hoveredNpc };
         this.path = [];
         return;
@@ -1372,6 +1393,7 @@ export class GameScene extends Phaser.Scene {
           this.path = [];
           this.talk(n);
         } else if (!this.path.length) this.planPath(n.spr.x, n.spr.y + 14);
+        if (this.isGuest) this.order = null; // only the host talks (a session may start mid-walk)
       }
 
       const next = this.path[0];
@@ -1904,7 +1926,7 @@ export class GameScene extends Phaser.Scene {
     if (this.hovered === e) this.setHovered(null);
     if (spare) {
       // No gore: the cutscene beats them (and counts the quest once it is over).
-      if (this.isHost) net.send({ t: "die", id: e.id, kind: "normal", angle: blow.angle, big: false, overkill: false });
+      if (this.isHost) net.send({ t: "cine", id: spare === "lula" ? "lula" : "purify", enemy: e.id });
       const gap = this.data_.level - e.level;
       this.giveXp(Math.max(1, Math.round((e.def.xp[0] + e.def.xp[1] * e.level) * 8 * (gap > 2 ? Math.max(0.05, 1 - (gap - 2) * 0.15) : 1)
         * DIFFICULTIES[d.difficulty].xp)));
@@ -2538,6 +2560,11 @@ export class GameScene extends Phaser.Scene {
     return net.role === "guest";
   }
 
+  /** The hero the story cutscenes are about: the host's (the partner's sprite on the guest's screen). */
+  private get lead(): KilnSprite {
+    return this.isGuest && this.remote ? this.remote.spr : this.hero;
+  }
+
   /** Map seed for an area or one of its dungeons (shared with the partner on travel). */
   private seedFor(zone: AreaId, dungeon: number | null) {
     const d = this.data_;
@@ -2573,6 +2600,140 @@ export class GameScene extends Phaser.Scene {
     return t.remote && this.remote ? { x: this.remote.spr.x, y: this.remote.spr.y } : t.remote ? t : { x: this.hero.x, y: this.hero.y };
   }
 
+  /** Both players are here: trips need the partner's yes. */
+  private get partnered() {
+    return net.active && net.peerConnected && !!this.remote;
+  }
+
+  /** A trip to another map: alone it goes at once; in a session it asks the partner first (1/2 → 2/2).
+   * The host's game makes every trip (the guest follows its "travel"), so a guest's trip is `req`, run by the host. */
+  private requestTravel(label: string, req: TravelReq, go: () => void) {
+    if (!this.partnered) return go();
+    if (this.vote) return;
+    const id = ++this.voteSeq * 2 + (this.isHost ? 0 : 1);
+    this.vote = { id, mine: true, req, go, el: this.voteBox(label, true) };
+    net.send({ t: "vote", id, label, req });
+    sfx.click();
+  }
+
+  private onVote(m: Extract<Msg, { t: "vote" }>) {
+    if (this.vote) {
+      // Both asked at once: keep ours.
+      net.send({ t: "vote_ans", id: m.id, yes: false });
+      return;
+    }
+    this.vote = { id: m.id, mine: false, req: m.req, el: this.voteBox(m.label, false) };
+    sfx.quest();
+  }
+
+  private onVoteAnswer(m: Extract<Msg, { t: "vote_ans" }>) {
+    const v = this.vote;
+    if (!v || v.id !== m.id || !v.mine) return;
+    if (!m.yes) {
+      this.closeVote();
+      this.hud.message(L("Seu colega recusou a viagem.", "Your companion declined the trip."), "#ff8a3a");
+      return;
+    }
+    this.voteCount(v.el, 2);
+    if (this.isHost) {
+      this.closeVote();
+      v.go?.();
+    }
+    // A guest's trip: the host runs it on its yes and sends "travel".
+  }
+
+  private answerVote(yes: boolean) {
+    const v = this.vote;
+    if (!v || v.mine) return;
+    net.send({ t: "vote_ans", id: v.id, yes });
+    if (!yes) return this.closeVote();
+    this.voteCount(v.el, 2);
+    if (this.isHost) {
+      this.closeVote();
+      this.runTravel(v.req);
+    }
+  }
+
+  /** Host: makes the trip the guest proposed (if it is still possible from here). */
+  private runTravel(req: TravelReq) {
+    const d = this.data_;
+    if (this.leaving || this.dead) return;
+    switch (req.kind) {
+      case "exit": {
+        const to = req.to as AreaId;
+        if (!AREAS[to] || !canEnter(to, d.tier)) {
+          this.say(L(`O caminho para ${AREAS[to]?.name ?? "lá"} ainda está selado para o anfitrião.`, `The way to ${AREAS[to]?.name ?? "there"} is still sealed for the host.`), "#ff8a3a");
+          return;
+        }
+        this.leaving = true;
+        d.area = to;
+        this.restartAt({ from: req.from as Side });
+        return;
+      }
+      case "dungeon":
+        if (this.dungeonRef || !this.area.dungeons[req.index]) return;
+        sfx.portal();
+        this.restartAt({ dungeon: req.index });
+        return;
+      case "leave":
+        if (this.dungeonRef) this.restartAt({ exitAt: this.dungeonRef.index });
+        return;
+      case "waypoint": {
+        const a = req.area as AreaId;
+        if (!d.waypoints.includes(a)) {
+          this.say(L(`O anfitrião ainda não ativou o checkpoint de ${AREAS[a]?.name ?? a}.`, `The host has not activated the ${AREAS[a]?.name ?? a} checkpoint yet.`), "#ff8a3a");
+          return;
+        }
+        this.travel(a);
+        return;
+      }
+      case "portal":
+        return; // only the host opens portals
+    }
+  }
+
+  private voteBox(label: string, mine: boolean) {
+    const el = document.createElement("div");
+    el.className = "vote interactive";
+    const who = this.remote?.st.name ?? L("Colega", "Companion");
+    el.innerHTML = `<div class="vt-title">${mine ? L("Viajar para", "Travel to") : L(`${who} quer ir para`, `${who} wants to go to`)} <b>${label}</b></div>
+      <div class="vt-count"></div><div class="vt-row"></div>`;
+    const row = el.querySelector(".vt-row")!;
+    const btn = (text: string, cls: string, fn: () => void) => {
+      const b = document.createElement("button");
+      b.className = `btn ${cls}`;
+      b.textContent = text;
+      b.onclick = fn;
+      row.appendChild(b);
+    };
+    if (mine) {
+      btn(L("Cancelar", "Cancel"), "", () => {
+        if (this.vote) net.send({ t: "vote_cancel", id: this.vote.id });
+        this.closeVote();
+      });
+    } else {
+      btn(L("Aceitar", "Accept"), "primary", () => this.answerVote(true));
+      btn(L("Recusar", "Decline"), "", () => this.answerVote(false));
+    }
+    this.voteCount(el, 1, mine ? L(`aguardando ${who}...`, `waiting for ${who}...`) : "");
+    document.getElementById("ui")!.appendChild(el);
+    return el;
+  }
+
+  private voteCount(el: HTMLElement, n: number, note = "") {
+    const c = el.querySelector(".vt-count")!;
+    c.innerHTML = `<span class="vt-n">${n}/2</span> ${L("jogadores prontos", "players ready")}${note ? ` · ${note}` : ""}`;
+    if (n === 2) {
+      c.innerHTML += ` · ${L("viajando...", "travelling...")}`;
+      el.querySelector(".vt-row")?.remove();
+    }
+  }
+
+  private closeVote() {
+    this.vote?.el.remove();
+    this.vote = undefined;
+  }
+
   private setupNet() {
     net.clearHandlers();
     net.onStatus(() => this.renderSession());
@@ -2580,7 +2741,15 @@ export class GameScene extends Phaser.Scene {
     this.renderSession();
     net.on("state", (m) => this.onRemoteState(m.player));
     net.on("cast", (m) => this.remoteCast(m));
+    net.on("vote", (m) => this.onVote(m));
+    net.on("vote_ans", (m) => this.onVoteAnswer(m));
+    net.on("vote_cancel", (m) => {
+      if (this.vote?.id !== m.id) return;
+      this.closeVote();
+      this.hud.message(L("Seu colega cancelou a viagem.", "Your companion called off the trip."), "#ff8a3a");
+    });
     net.on("bye", () => {
+      this.closeVote();
       this.dropRemote();
       if (this.isGuest) {
         this.hud.banner(L("Sessão encerrada", "Session ended"), L("O anfitrião saiu. Você continua sozinho.", "The host has left. You continue alone."));
@@ -2593,9 +2762,13 @@ export class GameScene extends Phaser.Scene {
     });
     if (this.isHost) {
       net.on("hello", (m) => {
+        // The guest repeats its hello until the welcome arrives: greet it once.
+        const fresh = !this.remote;
         this.onRemoteState(m.player);
         net.send({ t: "welcome", zone: this.area.id, dungeon: this.dungeonRef?.index ?? null, seed: this.mapSeed,
-          x: this.hero.x, y: this.hero.y, difficulty: this.data_.difficulty, tier: this.tier });
+          x: this.hero.x, y: this.hero.y, difficulty: this.data_.difficulty, tier: this.tier, awaken: this.time.now < this.awakenUntil });
+        if (!fresh) return;
+        this.sentRows.clear();
         this.hud.banner(L(`${m.player.name} entrou!`, `${m.player.name} has joined!`), L(`Nível ${m.player.level}`, `Level ${m.player.level}`));
         sfx.quest();
         this.renderSession();
@@ -2618,6 +2791,19 @@ export class GameScene extends Phaser.Scene {
       });
       net.on("hurt", (m) => this.hurtHeroRaw(m.raw, m.level, m));
       net.on("fx", (m) => this.onFx(m));
+      // The host's story cutscenes play here too (skipping them is the host's call).
+      net.on("cine", (m) => {
+        if (m.id === "polvo") return void (this.map.arena && this.polvoIntro());
+        if (m.id === "dogs") return void (this.map.lair && this.dogsIntro());
+        const e = m.enemy !== undefined ? this.byId.get(m.enemy) : undefined;
+        if (!e || e.state === "dead") return;
+        e.state = "dead";
+        e.hp = 0;
+        e.body.enable = false;
+        if (this.hovered === e) this.setHovered(null);
+        void (m.id === "lula" ? this.lulaDefeat(e) : this.purifyDog(e));
+      });
+      net.on("cine_end", () => this.cineSkip?.());
       net.on("travel", (m) => {
         const d = this.data_;
         d.save();
@@ -2687,20 +2873,34 @@ export class GameScene extends Phaser.Scene {
     if (!net.active) return;
     if (net.peerConnected && time > this.netAt) {
       this.netAt = time + 66;
-      net.send({ t: "state", player: this.localState() });
+      // Standing still sends nothing but a keep-alive twice a second.
+      const st = this.localState();
+      const key = `${st.x},${st.y},${st.anim},${st.dir},${st.hp},${st.maxHp},${st.level},${st.dead}`;
+      if (key !== this.sentState || time - this.sentStateAt > 500) {
+        this.sentState = key;
+        this.sentStateAt = time;
+        net.send({ t: "state", player: st });
+      }
     }
     if (this.isHost && this.remote && time > this.snapAt) {
       this.snapAt = time + 100;
       const r = this.remote.spr;
       const rows: EnemyRow[] = [];
       for (const e of this.enemies) {
-        if (e.state === "dead" || Phaser.Math.Distance.Between(e.spr.x, e.spr.y, r.x, r.y) > 520) continue;
-        const row: EnemyRow = [e.id, e.type, Math.round(e.spr.x), Math.round(e.spr.y), e.spr.current, e.spr.dir, Math.round(e.hp),
-          e.maxHp, e.rank, e.level];
+        if (e.state === "dead" || Math.abs(e.spr.x - r.x) > 520 || Math.abs(e.spr.y - r.y) > 520
+          || Phaser.Math.Distance.Between(e.spr.x, e.spr.y, r.x, r.y) > 520) continue;
+        const x = Math.round(e.spr.x), y = Math.round(e.spr.y), hp = Math.round(e.hp);
+        // Only what changed since the last snapshot; unchanged monsters are refreshed every ~0.8 s so the
+        // guest keeps them (it retires copies it has not heard about for 2 s).
+        const key = `${x},${y},${e.spr.current},${e.spr.dir},${hp},${e.maxHp},${e.level}`;
+        const last = this.sentRows.get(e.id);
+        if (last && last.key === key && time - last.at < 800) continue;
+        this.sentRows.set(e.id, { key, at: time });
+        const row: EnemyRow = [e.id, e.type, x, y, e.spr.current, e.spr.dir, hp, e.maxHp, e.rank, e.level];
         if (e.unique) row.push(e.unique);
         rows.push(row);
       }
-      net.send({ t: "snap", e: rows });
+      if (rows.length) net.send({ t: "snap", e: rows });
     }
     // Partner sprite: glide toward its last reported position.
     if (this.remote) {
@@ -2916,11 +3116,10 @@ export class GameScene extends Phaser.Scene {
   // ---------------------------------------------------------------- travel
 
   private usePortal() {
-    if (this.isGuest) return this.say(L("Na sessão, só o anfitrião usa o portal.", "In a session, only the host can use the portal."), "#ffe14d");
     sfx.portal();
     if (this.dungeonRef) {
       this.hud.dialog("Portal", null, [L("Um redemoinho de luz roxa leva de volta à superfície.", "A swirl of violet light leads back to the surface.")],
-        [{ label: L(`Voltar para ${this.area.name}`, `Return to ${this.area.name}`), action: () => this.restartAt({ exitAt: this.dungeonRef!.index }) }]);
+        [{ label: L(`Voltar para ${this.area.name}`, `Return to ${this.area.name}`), action: () => this.requestTravel(this.area.name, { kind: "leave" }, () => this.restartAt({ exitAt: this.dungeonRef!.index })) }]);
       return;
     }
     this.activateWaypoint();
@@ -2977,7 +3176,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   /** The return portal: step into it (or click it) to travel; it fades after a minute. */
-  private updateTownPortal(time: number) {
+  private updateTownPortal(time: number, force = false) {
     const tp = this.townPortal;
     if (!tp || this.leaving) return;
     const close = () => {
@@ -2990,7 +3189,13 @@ export class GameScene extends Phaser.Scene {
     const dist = Phaser.Math.Distance.Between(this.hero.x, this.hero.y, tp.spr.x, tp.spr.y);
     // Opened in the hero's path: it only takes them once they have stepped away from it.
     if (dist > 20) tp.armed = true;
-    if (this.dead || !tp.armed || dist > 12) return;
+    if (!force && (this.dead || !tp.armed || dist > 12 || this.vote)) return;
+    if (!force && this.partnered) {
+      // In a session: ask the partner (stepping out and back in asks again); a yes takes both through.
+      tp.armed = false;
+      this.requestTravel(L("o portal", "the portal"), { kind: "portal" }, () => this.townPortal === tp && this.updateTownPortal(this.time.now, true));
+      return;
+    }
     const d = this.data_;
     this.leaving = true;
     close();
@@ -3048,7 +3253,7 @@ export class GameScene extends Phaser.Scene {
       current: this.area.id, visited: d.visited, waypoints: d.waypoints, tier: d.tier,
       objective: target, nearest: target ? this.nearestWaypoint(target) : null,
       quest: d.currentQuest?.title ?? null,
-      onTravel: travel && !this.isGuest ? (a) => this.travel(a) : undefined,
+      onTravel: travel ? (a) => this.requestTravel(AREAS[a].name, { kind: "waypoint", area: a }, () => this.travel(a)) : undefined,
     });
   }
 
@@ -3062,7 +3267,7 @@ export class GameScene extends Phaser.Scene {
 
   /** Walking off the map along an exit road: load the neighbouring area. */
   private updateExits(time: number) {
-    if (this.leaving || this.dead || this.cinematic || this.dungeonRef || this.isGuest) return;
+    if (this.leaving || this.dead || this.cinematic || this.dungeonRef || this.vote) return;
     const tx = this.hero.x / TILE, ty = this.hero.y / TILE;
     for (const ex of this.map.exits) {
       const close = ex.side === "n" ? ty < 2.5 : ex.side === "s" ? ty > MAP_H - 2.5 : ex.side === "w" ? tx < 2.5 : tx > MAP_W - 2.5;
@@ -3078,21 +3283,29 @@ export class GameScene extends Phaser.Scene {
         this.path = [];
         return;
       }
-      this.leaving = true;
-      this.data_.area = ex.to;
-      this.restartAt({ from: OPPOSITE[ex.side] });
+      const go = () => {
+        this.leaving = true;
+        this.data_.area = ex.to;
+        this.restartAt({ from: OPPOSITE[ex.side] });
+      };
+      if (!this.partnered) return go();
+      // In a session: step back from the edge and ask the partner.
+      const back = { n: [0, 1], s: [0, -1], e: [-1, 0], w: [1, 0] }[ex.side];
+      this.heroBody.reset(this.hero.x + back[0] * 12, this.hero.y + back[1] * 12);
+      this.order = null;
+      this.path = [];
+      this.requestTravel(AREAS[ex.to].name, { kind: "exit", to: ex.to, from: OPPOSITE[ex.side] }, go);
       return;
     }
   }
 
   private askEnterDungeon(index: number) {
-    if (this.isGuest) return this.say(L("Na sessão, só o anfitrião entra nas masmorras.", "In a session, only the host can enter dungeons."), "#ffe14d");
     const dd = this.area.dungeons[index];
     const cleared = this.data_.cleared.includes(`${this.area.id}:${index}`);
     const lvl = this.area.level + 3 + this.tierBonus;
     this.hud.dialog(dd.name, null,
       [L(`Uma casa abandonada. Do porão sobe um ar gelado e um cheiro de morte... (inimigos ~nível ${lvl}${cleared ? ", chefe já derrotado" : ""})`, `An abandoned house. From the cellar rises an icy draft and the stench of death... (enemies ~level ${lvl}${cleared ? ", boss already slain" : ""})`)],
-      [{ label: L("Descer na masmorra", "Descend into the dungeon"), action: () => { sfx.portal(); this.restartAt({ dungeon: index }); } }]);
+      [{ label: L("Descer na masmorra", "Descend into the dungeon"), action: () => this.requestTravel(dd.name, { kind: "dungeon", index }, () => { sfx.portal(); this.restartAt({ dungeon: index }); }) }]);
   }
 
   /** Reloads the scene (new area, dungeon or exit) keeping the hero in memory. */
@@ -3821,7 +4034,7 @@ export class GameScene extends Phaser.Scene {
       this.say(L("A barricada da Alfândega Real está trancada. Os capangas do Lula não deixam ninguém passar... ainda.", "The Royal Customs House barricade is shut. Lula's thugs let no one through... yet."), "#ffe14d");
       return;
     }
-    if (this.arenaClosed) void this.polvoIntro();
+    if (this.arenaClosed && !this.isGuest) void this.polvoIntro();
   }
 
   /** Lula's entrance: the hero smashes the barricade, the camera finds the demagogue on his podium of carts
@@ -3829,6 +4042,7 @@ export class GameScene extends Phaser.Scene {
   private async polvoIntro() {
     const a = this.map.arena!;
     const ui0 = document.getElementById("ui")!;
+    if (this.isHost) net.send({ t: "cine", id: "polvo" });
     this.cinematic = true;
     this.busy = true;
     this.order = null;
@@ -3839,8 +4053,9 @@ export class GameScene extends Phaser.Scene {
     const cam = this.cameras.main;
     const setSpeed = (f: number) => { this.time.timeScale = f; this.tweens.timeScale = f; };
     let finished = false;
-    const ui = new CinematicUi(() => finish(), { onSpeed: setSpeed });
+    const ui = new CinematicUi(() => this.skipCutscene(finish), { onSpeed: setSpeed });
     const dir = new Director(this, ui);
+    this.cineSkip = () => finish();
     ui0.classList.add("cinematic");
     const name = L("Lula", "Lula");
     const polvo = this.enemies.find((e) => e.unique === "polvo" && e.state !== "dead");
@@ -3866,8 +4081,11 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(420, () => cam.startFollow(this.hero, true, 0.2, 0.2));
       this.busy = false;
       this.cinematic = false;
-      this.data_.quest.flags.push("polvo_met");
-      this.data_.save();
+      this.cineSkip = undefined;
+      if (!this.isGuest) {
+        this.data_.quest.flags.push("polvo_met");
+        this.data_.save();
+      }
       this.hud.banner(UNIQUES.polvo.name, L("O falso presidente da Alfândega Real", "The false president of the Royal Customs House"));
     };
     // Lula up on his podium, his men turned to the barricade.
@@ -3879,10 +4097,11 @@ export class GameScene extends Phaser.Scene {
     }
     for (const e of men) e.spr.face(gx - e.spr.x, gy - e.spr.y);
     cam.stopFollow();
-    this.hero.face(gx - this.hero.x, gy - this.hero.y);
+    const lead = this.lead;
+    lead.face(gx - lead.x, gy - lead.y);
     await dir.wait(400);
     if (dir.ended) return;
-    await dir.anim(this.hero, "attack", 0.8);
+    await dir.anim(lead, "attack", 0.8);
     if (dir.ended) return;
     this.breakArenaGate();
     cam.shake(180, 0.004);
@@ -3933,6 +4152,12 @@ export class GameScene extends Phaser.Scene {
     return run;
   }
 
+  /** Skip button: the host's skip ends the guest's copy too; the guest only skips their own. */
+  private skipCutscene(finish: () => void) {
+    if (this.isHost) net.send({ t: "cine_end" });
+    finish();
+  }
+
   private async playCutscene(body: (dir: Director) => Promise<void>, done: () => void) {
     const ui0 = document.getElementById("ui")!;
     this.cinematic = true;
@@ -3957,9 +4182,11 @@ export class GameScene extends Phaser.Scene {
       this.time.delayedCall(420, () => cam.startFollow(this.hero, true, 0.2, 0.2));
       this.busy = false;
       this.cinematic = false;
+      this.cineSkip = undefined;
     };
-    const ui = new CinematicUi(() => finish(), { onSpeed: setSpeed });
+    const ui = new CinematicUi(() => this.skipCutscene(finish), { onSpeed: setSpeed });
     const dir = new Director(this, ui);
+    this.cineSkip = finish;
     ui0.classList.add("cinematic");
     cam.stopFollow();
     try {
@@ -3982,15 +4209,16 @@ export class GameScene extends Phaser.Scene {
       if (m.state === "dead") return;
       m.state = "dead";
       m.body.enable = false;
-      const ang = Math.atan2(m.spr.y - this.hero.y, m.spr.x - this.hero.x);
+      const ang = Math.atan2(m.spr.y - this.lead.y, m.spr.x - this.lead.x);
       m.spr.face(Math.cos(ang), Math.sin(ang));
       m.spr.play2(m.spr.has("walk") ? "walk" : "idle", { timeScale: 1.6 });
       this.tweens.add({ targets: m.spr, x: m.spr.x + Math.cos(ang) * 140, y: m.spr.y + Math.sin(ang) * 140, alpha: 0, duration: 1400, onComplete: () => this.removeCorpse(m) });
     };
     const leave = () => { if (spr.active) this.removeCorpse(e); };
     await this.cutscene(async (dir) => {
-      spr.face(this.hero.x - x, this.hero.y - y);
-      this.hero.face(x - this.hero.x, y - this.hero.y);
+      const lead = this.lead;
+      spr.face(lead.x - x, lead.y - y);
+      lead.face(x - lead.x, y - lead.y);
       spr.play2(spr.has("hit") ? "hit" : "idle");
       this.slowmo(600, 0.3);
       await dir.pan(x, y - 10, 700);
@@ -4020,6 +4248,7 @@ export class GameScene extends Phaser.Scene {
       for (const m of men) flee(m);
       leave();
       this.hud.banner(L("Lula foi deposto!", "Lula has been deposed!"), L("Volte ao Rei Aldo", "Return to King Aldo"));
+      if (this.isGuest) return; // the quest is the host's
       this.questKill(e);
       this.data_.save();
     });
@@ -4110,7 +4339,7 @@ export class GameScene extends Phaser.Scene {
     if (!l || this.cinematic || this.dead || this.dungeonRef || d.hasFlag("dogs_met")) return;
     if (d.currentQuest?.id !== l.quest || d.quest.status !== "active") return;
     if (Math.hypot(this.hero.x / TILE - l.x, this.hero.y / TILE - l.y) > l.r + 1.5) return;
-    void this.dogsIntro();
+    if (!this.isGuest) void this.dogsIntro();
   }
 
   /** The mutts' entrance: the stench of the dumped scraps, then each corrupted dog rears and howls in turn. */
@@ -4125,8 +4354,10 @@ export class GameScene extends Phaser.Scene {
       trovao: [L("Trovão. O uivo dele espantava lobos; agora chama a peste.", "Trovão. His howl used to scare off wolves; now it calls the plague."), "dogs_trovao"],
       mancha: [L("Mancha nunca soltava um osso. Agora não solta mais nada.", "Mancha never let go of a bone. Now he lets go of nothing."), "dogs_mancha"],
     };
+    if (this.isHost) net.send({ t: "cine", id: "dogs" });
     await this.cutscene(async (dir) => {
-      this.hero.face(cx - this.hero.x, cy - this.hero.y);
+      const lead = this.lead;
+      lead.face(cx - lead.x, cy - lead.y);
       await dir.pan(cx, cy, 1400);
       if (dir.ended) return;
       await dir.say("dogs_stench", L("O fedor de carne podre... os restos que os capangas do Lula despejaram no Cruzamento.", "The stench of rotten meat... the scraps Lula's thugs dumped at the Crossing."), 2800);
@@ -4134,7 +4365,7 @@ export class GameScene extends Phaser.Scene {
       for (const dog of dogs) {
         await dir.pan(dog.spr.x, dog.spr.y - 8, 700);
         if (dir.ended) return;
-        dog.spr.face(this.hero.x - dog.spr.x, this.hero.y - dog.spr.y);
+        dog.spr.face(lead.x - dog.spr.x, lead.y - dog.spr.y);
         sfx.monster("howl", 0.8);
         this.ringFx(dog.spr.x, dog.spr.y, 34, 0x8aff5a, 700);
         this.cameras.main.shake(220, 0.003);
@@ -4147,7 +4378,7 @@ export class GameScene extends Phaser.Scene {
       await dir.say("dogs_medal", L("Derrube-os sem matá-los. O medalhão do Rei cuida do resto.", "Bring them down without killing them. The King's medallion will do the rest."), 2600);
     }, () => {
       const d = this.data_;
-      if (!d.hasFlag("dogs_met")) d.quest.flags.push("dogs_met");
+      if (!d.hasFlag("dogs_met") && !this.isGuest) d.quest.flags.push("dogs_met");
       for (const dog of dogs) if (dog.state !== "dead") { dog.aggro = true; dog.spr.play2("idle"); }
       setMusic("boss");
       this.hud.banner(L("Os Três Vira-Latas", "The Three Mutts"), L("Caramelo, Trovão e Mancha, corrompidos pela peste", "Caramelo, Trovão and Mancha, corrupted by the plague"));
@@ -4202,13 +4433,17 @@ export class GameScene extends Phaser.Scene {
       if (dir.ended) return;
       await dir.anim(spr, "shake");
       if (dir.ended) return;
-      spr.face(this.hero.x - x, this.hero.y - y);
+      spr.face(this.lead.x - x, this.lead.y - y);
       cine.play("bark", 0.7);
       const bark = dir.anim(spr, "bark");
       await Promise.all([bark, dir.say(info.line[1], info.line[0], 2600)]);
     }, () => {
       free();
       runHome();
+      if (this.isGuest) {
+        this.hud.banner(L(`${e.name.split(",")[0]} foi purificado!`, `${e.name.split(",")[0]} has been purified!`), "");
+        return;
+      }
       this.questKill(e);
       const left = (["caramelo", "trovao", "mancha"] as const).filter((id) => !this.data_.quest.killed.includes(id)).length;
       this.hud.banner(L(`${e.name.split(",")[0]} foi purificado!`, `${e.name.split(",")[0]} has been purified!`),

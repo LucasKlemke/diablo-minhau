@@ -15,9 +15,28 @@ export interface PlayerState {
 /** Enemy row in host snapshots: id, type, x, y, anim, dir, hp, maxHp, rank, level, unique? */
 export type EnemyRow = [number, string, number, number, string, string, number, number, string, number, string?];
 
+/** A trip one player proposes and the other has to accept (see GameScene.requestTravel). */
+export type TravelReq =
+  | { kind: "exit"; to: string; from: string }
+  | { kind: "dungeon"; index: number }
+  | { kind: "leave" }
+  | { kind: "waypoint"; area: string }
+  | { kind: "portal" };
+
 export type Msg =
   | { t: "hello"; player: PlayerState }
-  | { t: "welcome"; zone: string; dungeon: number | null; seed: number; x: number; y: number; difficulty: string; tier: number }
+  | { t: "welcome"; zone: string; dungeon: number | null; seed: number; x: number; y: number; difficulty: string; tier: number; awaken?: boolean }
+  /** Lobby: the host answers a guest's hello before the game has started. */
+  | { t: "lobby"; player: PlayerState }
+  /** Lobby: the host starts the game; `intro` = both watch the prologue first. */
+  | { t: "start"; intro: boolean }
+  | { t: "intro_skip" }
+  /** A story cutscene the host is playing (the guest plays it too); `enemy` = the enemy it is about. */
+  | { t: "cine"; id: "polvo" | "lula" | "dogs" | "purify"; enemy?: number }
+  | { t: "cine_end" }
+  | { t: "vote"; id: number; label: string; req: TravelReq }
+  | { t: "vote_ans"; id: number; yes: boolean }
+  | { t: "vote_cancel"; id: number }
   | { t: "state"; player: PlayerState }
   | { t: "snap"; e: EnemyRow[] }
   | { t: "hit"; id: number; dmg: number; crit: boolean; kind: string; angle: number; slow?: number; stun?: number; elem?: Partial<Record<"fire" | "cold" | "lightning" | "poison", number>> }
@@ -126,7 +145,8 @@ class Net {
       };
       const timer = window.setTimeout(() => fail(new Error("timeout")), 15000);
       peer.on("open", () => {
-        const conn = peer.connect(PREFIX + code.trim().toUpperCase(), { reliable: true });
+        // JSON instead of PeerJS's default BinaryPack: much cheaper to encode and decode for small game messages.
+        const conn = peer.connect(PREFIX + code.trim().toUpperCase(), { reliable: true, serialization: "json" });
         this.attach(conn);
         conn.on("open", () => {
           window.clearTimeout(timer);

@@ -437,6 +437,29 @@ img.icon { image-rendering: pixelated; }
 .mp-code { font-family: "Silkscreen", monospace; font-size: 26px; letter-spacing: 8px; text-align: center; text-transform: uppercase;
   background: #140c10; color: var(--rare); border: 2px solid var(--edge); padding: 6px; width: 100%; }
 .mp-wait { text-align: center; padding: 10px; color: var(--muted); }
+.mp-slot.new .tm-plus { width: 40px; height: 40px; display: grid; place-items: center; font-size: 24px; color: var(--rare); }
+/* Session lobby */
+.lobby { display: flex; flex-direction: column; gap: 10px; text-align: center; }
+.lb-code { font-family: "Silkscreen", monospace; font-size: 14px; color: var(--muted); }
+.lb-code b { font-size: 26px; color: var(--rare); letter-spacing: 6px; margin-left: 6px; }
+.lb-players { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.lb-p { background: var(--panel-2); border: 2px dashed #4a3530; padding: 10px 6px; color: var(--muted); min-height: 54px; }
+.lb-p.on { border-style: solid; border-color: #7bea6a; color: var(--text); }
+.lb-p small { display: block; font-size: 11px; color: var(--muted); }
+.lb-dots::after { content: ""; animation: lb-dots 1.2s steps(4) infinite; }
+@keyframes lb-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
+/* Trip vote: both players accept before changing maps */
+.vote {
+  position: absolute; top: 64px; left: 50%; transform: translateX(-50%); min-width: 280px; max-width: calc(100vw - 32px); z-index: 20;
+  background: rgba(20, 10, 16, 0.94); border: 2px solid var(--edge); box-shadow: 0 0 0 2px var(--ink), 0 6px 18px rgba(0, 0, 0, 0.5);
+  padding: 10px 14px; text-align: center; display: flex; flex-direction: column; gap: 6px; animation: vote-in 0.25s ease-out;
+}
+.vote .vt-title b { color: var(--rare); }
+.vote .vt-count { color: var(--muted); font-size: 13px; }
+.vote .vt-n { color: #7bea6a; font-family: "Silkscreen", monospace; font-size: 16px; }
+.vote .vt-row { display: flex; gap: 8px; justify-content: center; }
+.vote .btn.primary { border-color: #7bea6a; }
+@keyframes vote-in { from { opacity: 0; transform: translate(-50%, -8px); } to { opacity: 1; transform: translate(-50%, 0); } }
 .session {
   position: absolute; left: 12px; top: 150px; background: rgba(20, 10, 16, 0.88); border: 2px solid var(--edge); padding: 8px 10px;
   font-size: 13px; display: flex; flex-direction: column; gap: 5px; max-width: 250px;

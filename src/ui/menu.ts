@@ -258,18 +258,27 @@ function showSlots(portraits: Portraits, mode: "new" | "load", onStart: OnStart)
   m.appendChild(box);
 }
 
-/** New game: pick class and difficulty around the campfire. */
-function showClassSelect(portraits: Portraits, slot: number, onStart: OnStart, dev = false) {
+/** New game: pick class and difficulty around the campfire. `mode` starts it hosting or joining a session. */
+function showClassSelect(portraits: Portraits, slot: number, onStart: OnStart, dev = false, mode: StartMode = SOLO,
+  onBack = () => showSlots(portraits, "new", onStart)) {
   if (!menuTextures) return;
   showCampfire({
     textures: menuTextures, slot,
     onStart: (cls, difficulty) => {
       const h = HeroData.create(slot, cls, difficulty);
       if (dev) { h.dev = true; h.save(); }
-      onStart(h, SOLO);
+      onStart(h, mode);
     },
-    onBack: () => showSlots(portraits, "new", onStart),
+    onBack,
   });
+}
+
+/** Online with a brand-new hero: create it in the first free slot, then host or join with it. */
+export function createHeroFor(portraits: Portraits, onStart: OnStart, mode: StartMode, onBack: () => void) {
+  const free = HeroData.slots().findIndex((x) => !x);
+  if (free < 0) return false;
+  showClassSelect(portraits, free, onStart, false, mode, onBack);
+  return true;
 }
 
 function confirmBox(text: string, onYes: () => void) {
@@ -291,15 +300,21 @@ export function showMultiplayer(portraits: Portraits, onStart: OnStart, code = "
   box.innerHTML = `<h2>${L("Multijogador", "Multiplayer")}</h2>
     <div class="sub">${L("Cooperativo para 2 jogadores. Cada um usa o próprio personagem salvo; o anfitrião conduz as viagens.", "Co-op for 2 players. Each brings their own saved character; the host leads the travels.")}</div>
     ${error ? `<div class="mp-error">${esc(error)}</div>` : ""}`;
-  if (!slots.some(Boolean)) {
-    box.appendChild(el("div", "sub", L("Crie um personagem em Novo Jogo antes de jogar online.", "Create a character in New Game before playing online.")));
-    box.appendChild(button(L("Voltar", "Back"), () => showMainMenu(portraits, onStart)));
-    m.appendChild(box);
-    return;
-  }
   const pick = el("div", "mp-pick");
   pick.innerHTML = `<div class='mp-label'>${L("Personagem", "Character")}</div>`;
+  // -1: a new hero, created before the session opens (a new game played together from the start).
   let chosen = slots.findIndex(Boolean);
+  const canCreate = slots.some((x) => !x);
+  if (canCreate) {
+    const b = el("button", `mp-slot new${chosen < 0 ? " on" : ""}`);
+    b.innerHTML = `<div class="tm-plus">+</div><span>${L("Novo herói", "New Hero")}<small>${L("começar uma nova partida", "start a new game")}</small></span>`;
+    b.onclick = () => {
+      chosen = -1;
+      pick.querySelectorAll(".mp-slot").forEach((x) => x.classList.remove("on"));
+      b.classList.add("on");
+    };
+    pick.appendChild(b);
+  }
   slots.forEach((info, i) => {
     if (!info) return;
     const b = el("button", `mp-slot${i === chosen ? " on" : ""}`);
@@ -314,26 +329,67 @@ export function showMultiplayer(portraits: Portraits, onStart: OnStart, code = "
   });
   box.appendChild(pick);
 
-  const load = () => HeroData.load(chosen);
+  const back = () => showMultiplayer(portraits, onStart, (join.querySelector(".mp-code") as HTMLInputElement).value.trim().toUpperCase());
+  /** Starts with the chosen hero, or creates one first. */
+  const go = (mode: StartMode) => {
+    if (chosen < 0) {
+      if (!createHeroFor(portraits, onStart, mode, back))
+        showMultiplayer(portraits, onStart, "", L("Todos os espaços estão ocupados.", "All slots are taken."));
+      return;
+    }
+    const h = HeroData.load(chosen);
+    if (h) onStart(h, mode);
+  };
   const host = el("div", "mp-sec");
   host.innerHTML = `<div class='mp-label'>${L("Hospedar", "Host")}</div><div class='sub'>${L("Crie uma sessão e mande o link para o seu colega.", "Create a session and send the link to your friend.")}</div>`;
-  host.appendChild(button(L("Hospedar sessão", "Host Session"), () => {
-    const h = load();
-    if (h) onStart(h, { kind: "host" });
-  }, "mbtn primary"));
+  host.appendChild(button(L("Hospedar sessão", "Host Session"), () => go({ kind: "host" }), "mbtn primary"));
   const join = el("div", "mp-sec");
   join.innerHTML = `<div class='mp-label'>${L("Entrar", "Join")}</div><div class='sub'>${L("Digite o código que o anfitrião enviou.", "Enter the code the host sent you.")}</div>
     <input class="mp-code" maxlength="5" placeholder="${L("CÓDIGO", "CODE")}" value="${esc(code)}">`;
   join.appendChild(button(L("Entrar na sessão", "Join Session"), () => {
     const c = (join.querySelector(".mp-code") as HTMLInputElement).value.trim().toUpperCase();
-    const h = load();
-    if (c.length === 5 && h) onStart(h, { kind: "join", code: c });
+    if (c.length === 5) go({ kind: "join", code: c });
   }, "mbtn primary"));
   const row = el("div", "mp-row");
   row.append(host, join);
   box.appendChild(row);
   box.appendChild(button(L("Voltar", "Back"), () => showMainMenu(portraits, onStart)));
   m.appendChild(box);
+}
+
+/** Session lobby. The host sees the code, the invite link, who joined and starts the game; the guest waits
+ * for the host. Returns a function that updates the partner line. */
+export function showLobby(o: { host: boolean; code: string; link?: string; me: string; onStart?: () => void; onCancel: () => void }) {
+  const m = screen();
+  const box = el("div", "mm-panel small lobby");
+  box.innerHTML = `<h2>${L("Multijogador", "Multiplayer")}</h2>
+    <div class="lb-code">${L("Sessão", "Session")} <b>${esc(o.code)}</b></div>
+    <div class="lb-players"><div class="lb-p on">${esc(o.me)}<small>${o.host ? L("anfitrião", "host") : L("você", "you")}</small></div><div class="lb-p partner"></div></div>
+    <div class="sub lb-hint"></div>`;
+  if (o.link) {
+    const copy = button(L("Copiar link de convite", "Copy invite link"), () => {
+      void navigator.clipboard?.writeText(o.link!);
+      copy.innerHTML = L("Link copiado!", "Link copied!");
+    });
+    box.appendChild(copy);
+  }
+  const start = o.onStart ? button(L("Começar", "Start"), o.onStart, "mbtn primary") : null;
+  if (start) box.appendChild(start);
+  box.appendChild(button(L("Cancelar", "Cancel"), o.onCancel));
+  m.appendChild(box);
+  const partner = box.querySelector(".lb-p.partner") as HTMLElement;
+  const hint = box.querySelector(".lb-hint") as HTMLElement;
+  const set = (who: string | null) => {
+    partner.classList.toggle("on", !!who);
+    partner.innerHTML = who ? `${esc(who)}<small>${o.host ? L("colega", "companion") : L("anfitrião", "host")}</small>`
+      : `<span class="lb-dots">${L("aguardando colega", "waiting for companion")}</span>`;
+    hint.textContent = o.host
+      ? who ? L("Tudo pronto. Comece quando quiser.", "All set. Start whenever you like.")
+        : L("Mande o link ao colega. Você também pode começar agora: ele entra depois.", "Send the link to your companion. You can also start now: they can join later.")
+      : L("Aguardando o anfitrião começar a partida...", "Waiting for the host to start the game...");
+  };
+  set(null);
+  return set;
 }
 
 /** Connecting / waiting screen with a cancel button. */

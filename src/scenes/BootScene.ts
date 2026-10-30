@@ -1,9 +1,10 @@
 import Phaser from "phaser";
 import { CLASS_ORDER, type ClassId } from "../data/classes";
 import { hasSprite, portrait, preloadKiln, setupKiln } from "../kiln";
-import { registerCinematics, registerMainMenu, setMenuTextures, showMainMenu, showMultiplayer, showWaiting, type StartMode } from "../ui/menu";
+import { createHeroFor, registerCinematics, registerMainMenu, setMenuTextures, showLobby, showMainMenu, showMultiplayer, showWaiting, type StartMode } from "../ui/menu";
+import { awaitWelcome, playerInfo, stopWelcome, welcomeData } from "../net/session";
 import { net } from "../net/net";
-import type { HeroData } from "../game/hero";
+import { HeroData } from "../game/hero";
 import { drawIcon, ICON_IDS } from "../ui/icons";
 import { makeSkins, makeWorldTextures } from "../game/recolor";
 import { L } from "../i18n";
@@ -78,24 +79,16 @@ export class BootScene extends Phaser.Scene {
         } else go({ hero });
       } else if (mode.kind === "host") {
         showWaiting(L("Abrindo a sessão...", "Opening the session..."), () => { net.leave(); open(); });
-        net.host().then(() => go({ hero }))
+        net.host().then(() => this.hostLobby(hero, open))
           .catch(() => showMultiplayer(portraits, start, "", L("Não foi possível abrir a sessão. Verifique sua internet.", "Could not open the session. Check your internet connection.")));
       } else {
         showWaiting(L(`Conectando à sessão ${mode.code}...`, `Connecting to session ${mode.code}...`), () => { net.leave(); open(); });
-        const fail = () => {
+        const fail = (why = L("Não foi possível entrar: código errado, ou o anfitrião não está mais online.", "Could not join: wrong code, or the host is no longer online.")) => {
+          stopWelcome();
           net.leave();
-          showMultiplayer(portraits, start, mode.code, L("Não foi possível entrar: código errado, ou o anfitrião não está mais online.", "Could not join: wrong code, or the host is no longer online."));
+          showMultiplayer(portraits, start, mode.code, why);
         };
-        net.join(mode.code).then(() => {
-          const timer = window.setTimeout(fail, 10000);
-          net.on("welcome", (w) => {
-            window.clearTimeout(timer);
-            go({ hero, netSeed: w.seed, netZone: w.zone, dungeon: w.dungeon ?? undefined, spawnAt: { x: w.x, y: w.y } });
-          });
-          const d = hero;
-          net.send({ t: "hello", player: { name: d.def.name, cls: d.cls, level: d.level, hp: d.hp, maxHp: d.stats.maxHp,
-            x: 0, y: 0, anim: "idle", dir: "s", dead: false } });
-        }).catch(fail);
+        net.join(mode.code).then(() => this.guestLobby(hero, open, () => fail(L("O anfitrião saiu da sessão.", "The host left the session.")))).catch(() => fail());
       }
     };
     setMenuTextures(this.textures);
@@ -106,8 +99,53 @@ export class BootScene extends Phaser.Scene {
     const code = new URLSearchParams(location.search).get("join");
     if (code) {
       history.replaceState(null, "", location.pathname);
-      showMultiplayer(portraits, start, code.toUpperCase());
+      // No hero yet: create one first, then straight into the session.
+      const join: StartMode = { kind: "join", code: code.toUpperCase() };
+      if (!HeroData.slots().some(Boolean)) createHeroFor(portraits, start, join, () => showMultiplayer(portraits, start, join.code));
+      else showMultiplayer(portraits, start, code.toUpperCase());
     } else open();
+  }
+
+  /** Host lobby: shows who joined and starts the game for both (with the prologue if the host's hero is new). */
+  private hostLobby(hero: HeroData, menu: () => void) {
+    net.clearHandlers();
+    const intro = !hero.quest.prologueSeen;
+    const setPartner = showLobby({
+      host: true, code: net.code, link: net.inviteLink(), me: `${hero.def.name} ${L("nv", "lv")} ${hero.level}`,
+      onStart: () => {
+        net.send({ t: "start", intro });
+        document.querySelector("#ui .mm")?.remove();
+        this.scene.start(intro ? "intro" : "game", { hero, ...(intro ? { coop: true } : {}) });
+      },
+      onCancel: () => { net.leave(); menu(); },
+    });
+    net.on("hello", (m) => {
+      setPartner(`${m.player.name} ${L("nv", "lv")} ${m.player.level}`);
+      net.send({ t: "lobby", player: playerInfo(hero) });
+    });
+    net.on("bye", () => setPartner(null));
+  }
+
+  /** Guest: waits in the lobby until the host starts (prologue together) or is already playing (welcome). */
+  private guestLobby(hero: HeroData, menu: () => void, onBye: () => void) {
+    const setPartner = showLobby({
+      host: false, code: net.code, me: `${hero.def.name} ${L("nv", "lv")} ${hero.level}`,
+      onCancel: () => { stopWelcome(); net.leave(); menu(); },
+    });
+    awaitWelcome(hero, {
+      onLobby: (p) => setPartner(`${p.name} ${L("nv", "lv")} ${p.level}`),
+      onStart: (intro) => {
+        if (!intro) return; // the host's game answers the next hello
+        stopWelcome();
+        document.querySelector("#ui .mm")?.remove();
+        this.scene.start("intro", { hero, coop: true });
+      },
+      onWelcome: (w) => {
+        document.querySelector("#ui .mm")?.remove();
+        this.scene.start("game", welcomeData(hero, w));
+      },
+      onBye,
+    });
   }
 
   private makeFx() {
