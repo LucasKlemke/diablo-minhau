@@ -211,6 +211,7 @@ img.icon { image-rendering: pixelated; }
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;
   background: rgba(40, 0, 0, 0.55);
 }
+.death .death-note { color: #7bea6a; font-size: 15px; }
 .death h2 { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 52px; color: #ff5a4a; margin: 0; text-shadow: 0 4px 0 var(--ink); }
 
 .vignette {

@@ -883,16 +883,26 @@ export class Hud {
     setTimeout(() => b.remove(), 3200);
   }
 
-  showDeath(onRespawn: () => void) {
+  private deathEl?: HTMLDivElement;
+
+  /** `note`: an extra line (in a session, that the partner can revive you). */
+  showDeath(onRespawn: () => void, note = "") {
     const d = el("div", "death interactive");
-    d.innerHTML = `<h2>${L("Você morreu", "You have died")}</h2><div>${L("Você perde 10% do seu ouro.", "You lose 10% of your gold.")}</div>`;
+    d.innerHTML = `<h2>${L("Você morreu", "You have died")}</h2><div>${L("Você perde 10% do seu ouro.", "You lose 10% of your gold.")}</div>`
+      + (note ? `<div class="death-note">${esc(note)}</div>` : "");
     const b = el("button", "btn", L("Renascer no checkpoint", "Respawn at Checkpoint"));
     b.onclick = () => {
-      d.remove();
+      this.hideDeath();
       onRespawn();
     };
     d.appendChild(b);
     root().appendChild(d);
+    this.deathEl = d;
+  }
+
+  hideDeath() {
+    this.deathEl?.remove();
+    this.deathEl = undefined;
   }
 
   /** A floating text at screen coordinates. */

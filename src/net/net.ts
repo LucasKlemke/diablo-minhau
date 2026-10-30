@@ -15,6 +15,12 @@ export interface PlayerState {
 /** Enemy row in host snapshots: id, type, x, y, anim, dir, hp, maxHp, rank, level, unique? */
 export type EnemyRow = [number, string, number, number, string, string, number, number, string, number, string?];
 
+/** Story progress shared in a session (HeroData's QuestState without the per-player prologue flag). */
+export interface SharedQuest {
+  index: number; status: "available" | "active" | "ready"; step: number; progress: number;
+  killed: string[]; flags: string[]; taken?: string[];
+}
+
 /** A trip one player proposes and the other has to accept (see GameScene.requestTravel). */
 export type TravelReq =
   | { kind: "exit"; to: string; from: string }
@@ -37,6 +43,16 @@ export type Msg =
   | { t: "vote"; id: number; label: string; req: TravelReq }
   | { t: "vote_ans"; id: number; yes: boolean }
   | { t: "vote_cancel"; id: number }
+  /** The host's story progress (the guest adopts it: both share one quest). */
+  | { t: "quest"; q: SharedQuest }
+  /** Guest → host: a quest action done on the guest's side (talking to the giver, a quest object, a chest). */
+  | { t: "quest_act"; act: "accept" | "complete" | "progress"; obj?: string; key?: string }
+  /** Host → guest: quest `index` was turned in; the guest gets its own reward. */
+  | { t: "quest_reward"; index: number }
+  /** Guest → host, once its game is up: send the shared state again (what came before was not heard). */
+  | { t: "sync" }
+  /** The partner revived this player. */
+  | { t: "revive" }
   | { t: "state"; player: PlayerState }
   | { t: "snap"; e: EnemyRow[] }
   | { t: "hit"; id: number; dmg: number; crit: boolean; kind: string; angle: number; slow?: number; stun?: number; elem?: Partial<Record<"fire" | "cold" | "lightning" | "poison", number>> }

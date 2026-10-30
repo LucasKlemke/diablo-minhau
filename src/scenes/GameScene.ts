@@ -8,13 +8,13 @@ import { cine, setAmbience, setMusic, sfx, type Track } from "../game/audio";
 import { DIFFICULTIES } from "../data/difficulty";
 import { settings } from "../game/settings";
 import { openMainMenu, showPauseMenu } from "../ui/menu";
-import { net, type EnemyRow, type Msg, type PlayerState, type TravelReq } from "../net/net";
+import { net, type EnemyRow, type Msg, type PlayerState, type SharedQuest, type TravelReq } from "../net/net";
 import { CLASSES } from "../data/classes";
 import { generateDungeon } from "../world/dungeon";
 import { buildAuthoredMap } from "../world/authored";
 import { LAYOUTS } from "../world/layouts/act1";
 import { armorReduction } from "../data/stats";
-import { HeroData, MAX_POTIONS } from "../game/hero";
+import { HeroData, MAX_POTIONS, type QuestState } from "../game/hero";
 import { playDeath } from "../game/deaths";
 import { Minimap, type MapMarker } from "../game/minimap";
 import { PropHover } from "../game/propHover";
@@ -274,6 +274,14 @@ export class GameScene extends Phaser.Scene {
   /** Trip waiting for both players: proposed here (`mine`, with what to do on yes) or by the partner. */
   private vote?: { id: number; mine: boolean; req: TravelReq; go?: () => void; el: HTMLDivElement };
   private voteSeq = 0;
+  /** Host: the quest state last sent to the guest. */
+  private questSent = "";
+  /** Guest: its own story progress from before the session (kept if it is further along when the session ends). */
+  private ownQuest?: QuestState;
+  /** Standing by the fallen partner: how far the revive has got (ms). */
+  private reviveMs = 0;
+  private reviveGfx?: Phaser.GameObjects.Graphics;
+  private partnerLbl?: Phaser.GameObjects.Text;
   private sessionEl?: HTMLDivElement;
   private tipLoot: Loot | null = null;
   private enemies: Enemy[] = [];
@@ -360,6 +368,10 @@ export class GameScene extends Phaser.Scene {
     this.enemySeq = 0;
     this.vote = undefined;
     this.cineSkip = undefined;
+    this.questSent = "";
+    this.reviveMs = 0;
+    this.reviveGfx = undefined;
+    this.partnerLbl = undefined;
     this.sentRows = new Map();
     this.sentState = "";
     this.awakenUntil = 0;
@@ -1036,10 +1048,6 @@ export class GameScene extends Phaser.Scene {
         return;
       }
       if (this.hoveredNpc) {
-        if (this.isGuest) {
-          this.say(L("Na sessão, só o anfitrião fala com os personagens.", "In a session, only the host talks to the characters."), "#ffe14d");
-          return;
-        }
         this.order = { type: "talk", npc: this.hoveredNpc };
         this.path = [];
         return;
@@ -1175,6 +1183,7 @@ export class GameScene extends Phaser.Scene {
     if (!this.dead) this.updateHeroStatus(time);
     this.updateEnemies(time, delta);
     this.updateElementStatus(time);
+    this.updateRevive(delta);
     this.updateTraps(time);
     this.updateExits(time);
     this.updateTownPortal(time);
@@ -1393,7 +1402,6 @@ export class GameScene extends Phaser.Scene {
           this.path = [];
           this.talk(n);
         } else if (!this.path.length) this.planPath(n.spr.x, n.spr.y + 14);
-        if (this.isGuest) this.order = null; // only the host talks (a session may start mid-walk)
       }
 
       const next = this.path[0];
@@ -2600,6 +2608,129 @@ export class GameScene extends Phaser.Scene {
     return t.remote && this.remote ? { x: this.remote.spr.x, y: this.remote.spr.y } : t.remote ? t : { x: this.hero.x, y: this.hero.y };
   }
 
+  // ---------------------------------------------------------------- shared quest
+
+  /** Host: a quest action the guest did on its side (the result goes back in the next "quest"). */
+  private onQuestAct(m: Extract<Msg, { t: "quest_act" }>) {
+    const d = this.data_;
+    if (!d.currentQuest) return;
+    if (m.act === "accept" && d.quest.status === "available") this.acceptQuest();
+    else if (m.act === "complete" && d.quest.status === "ready") this.completeQuest();
+    else if (m.act === "progress" && d.quest.status === "active" && d.currentStep?.objective.type === m.obj) {
+      if (m.key) {
+        const taken = (d.quest.taken ??= []);
+        if (taken.includes(m.key)) return; // both took the same object
+        taken.push(m.key);
+        this.removeTakenQuestObjs();
+      }
+      this.questProgress();
+    }
+  }
+
+  /** Guest: adopts the host's story progress, with the messages and world changes it brings. */
+  private onQuestSync(q: SharedQuest) {
+    const d = this.data_;
+    const old = d.quest;
+    this.ownQuest ??= structuredClone(old);
+    const next: QuestState = { ...(q as QuestState), prologueSeen: old.prologueSeen };
+    d.quest = next;
+    const quest = d.currentQuest;
+    const sameQuest = next.index === old.index;
+    if (quest && sameQuest && next.status !== old.status) {
+      if (next.status === "active") this.hud.message(L(`Nova missão: ${quest.title}`, `New quest: ${quest.title}`), "#ffe14d");
+      if (next.status === "ready") {
+        const who = quest.turnIn ?? quest.giver;
+        this.hud.banner(L("Missão cumprida!", "Quest complete!"), L(`Volte e fale com ${NPCS[who].name}.`, `Return and speak with ${NPCS[who].name}.`));
+      }
+    } else if (quest && sameQuest && next.status === "active") {
+      const st = d.currentStep!;
+      if (next.step !== old.step) {
+        this.hud.banner(L("Objetivo cumprido", "Objective complete"), st.area === this.area.id ? st.goal : `${st.goal} · ${AREAS[st.area].name}`);
+        sfx.quest();
+      } else if (next.progress > old.progress && st.objective.type !== "unique")
+        this.hud.message(`${st.goal}: ${Math.min(next.progress, st.objective.count)}/${st.objective.count}`, "#ffe14d");
+    }
+    if (next.flags.length !== old.flags.length) {
+      d.recalc();
+      this.buildVillageState();
+    }
+    if (!sameQuest) {
+      if (quest) {
+        const g = NPCS[quest.giver];
+        this.hud.message(L(`Próximo: fale com ${g.name} (${AREAS[ZONES[g.act].village].name}).`, `Next: speak with ${g.name} (${AREAS[ZONES[g.act].village].name}).`), "#ffe14d");
+      }
+      this.restockShop(true);
+      if (this.map.gates.length && !this.gatesLocked && (this.gateObjs.length || this.villageGates.length)) this.openGates();
+    }
+    if (!sameQuest || next.status !== old.status || next.step !== old.step) {
+      this.spawnQuestObjects();
+      this.storyActors();
+    } else this.removeTakenQuestObjs();
+    d.save();
+  }
+
+  /** Guest leaving a session: back to its own story if that was further along than the shared one. */
+  private restoreOwnQuest() {
+    const own = this.ownQuest;
+    this.ownQuest = undefined;
+    if (!own) return;
+    const rank = (q: QuestState) => [q.index, ["available", "active", "ready"].indexOf(q.status), q.step, q.progress];
+    const a = rank(own), b = rank(this.data_.quest);
+    const ahead = a.findIndex((v, i) => v !== b[i]);
+    if (ahead >= 0 && a[ahead] > b[ahead]) this.data_.quest = { ...own, prologueSeen: this.data_.quest.prologueSeen };
+    this.data_.save();
+  }
+
+  // ---------------------------------------------------------------- reviving the partner
+
+  /** Standing by the fallen partner for 2 s brings them back. */
+  private updateRevive(delta: number) {
+    const r = this.remote;
+    const g = (this.reviveGfx ??= this.add.graphics().setDepth(1e6 + 1));
+    g.clear();
+    if (!r || !r.st.dead || this.dead || !this.partnered) {
+      this.reviveMs = 0;
+      return;
+    }
+    const near = Phaser.Math.Distance.Between(this.hero.x, this.hero.y, r.spr.x, r.spr.y) < 26;
+    this.reviveMs = near ? this.reviveMs + delta : Math.max(0, this.reviveMs - delta * 2);
+    const k = Math.min(1, this.reviveMs / 2000);
+    const x = r.spr.x, y = r.spr.y - 6;
+    // A ring around the body that fills up; dashed and dim until the hero comes close.
+    g.lineStyle(2, 0x1c0f1a, 0.8).strokeEllipse(x, y + 4, 34, 18);
+    g.lineStyle(1, 0x7bea6a, near ? 0.9 : 0.4).strokeEllipse(x, y + 4, 32, 16);
+    if (k > 0) {
+      g.lineStyle(3, 0x7bea6a, 1).beginPath();
+      g.arc(x, y - 30, 7, -Math.PI / 2, -Math.PI / 2 + k * Math.PI * 2);
+      g.strokePath();
+      if (Math.random() < 0.3) this.emitters.gold.explode(1, x + (Math.random() - 0.5) * 16, y);
+    }
+    if (near && k === 0) this.floatAt(x, y - 36, L("Revivendo...", "Reviving..."), "heal");
+    if (k < 1) return;
+    this.reviveMs = 0;
+    net.send({ t: "revive" });
+    r.st.dead = false; // until its next state arrives
+    this.ringFx(x, y, 30, 0x7bea6a, 500);
+    this.emitters.gold.explode(24, x, y - 10);
+    sfx.quest();
+    this.hud.message(L(`Você reviveu ${r.st.name}!`, `You revived ${r.st.name}!`), "#7bea6a");
+  }
+
+  /** The partner brought this player back: half life, where they fell. */
+  private revived() {
+    if (!this.dead) return;
+    const d = this.data_;
+    this.hud.hideDeath();
+    d.hp = Math.round(d.stats.maxHp * 0.5);
+    this.dead = false;
+    this.invulnUntil = this.time.now + 2000;
+    this.hero.play2("idle", { restart: true });
+    this.ringFx(this.hero.x, this.hero.y - 4, 30, 0x7bea6a, 500);
+    this.emitters.gold.explode(24, this.hero.x, this.hero.y - 14);
+    sfx.quest();
+    this.hud.banner(L("Você foi revivido!", "You have been revived!"), this.remote ? this.remote.st.name : "");
+  }
+
   /** Both players are here: trips need the partner's yes. */
   private get partnered() {
     return net.active && net.peerConnected && !!this.remote;
@@ -2743,6 +2874,7 @@ export class GameScene extends Phaser.Scene {
     net.on("cast", (m) => this.remoteCast(m));
     net.on("vote", (m) => this.onVote(m));
     net.on("vote_ans", (m) => this.onVoteAnswer(m));
+    net.on("revive", () => this.revived());
     net.on("vote_cancel", (m) => {
       if (this.vote?.id !== m.id) return;
       this.closeVote();
@@ -2752,6 +2884,7 @@ export class GameScene extends Phaser.Scene {
       this.closeVote();
       this.dropRemote();
       if (this.isGuest) {
+        this.restoreOwnQuest();
         this.hud.banner(L("Sessão encerrada", "Session ended"), L("O anfitrião saiu. Você continua sozinho.", "The host has left. You continue alone."));
         net.leave();
         this.time.delayedCall(1500, () => this.restartAt({}));
@@ -2767,6 +2900,7 @@ export class GameScene extends Phaser.Scene {
         this.onRemoteState(m.player);
         net.send({ t: "welcome", zone: this.area.id, dungeon: this.dungeonRef?.index ?? null, seed: this.mapSeed,
           x: this.hero.x, y: this.hero.y, difficulty: this.data_.difficulty, tier: this.tier, awaken: this.time.now < this.awakenUntil });
+        this.questSent = ""; // the guest gets the story state right away
         if (!fresh) return;
         this.sentRows.clear();
         this.hud.banner(L(`${m.player.name} entrou!`, `${m.player.name} has joined!`), L(`Nível ${m.player.level}`, `Level ${m.player.level}`));
@@ -2781,6 +2915,8 @@ export class GameScene extends Phaser.Scene {
         if (m.stun) e.stunUntil = this.time.now + m.stun;
         if (m.dmg > 0) this.damageEnemy(e, m.dmg, m.crit, false, { kind: m.kind as DeathKind, angle: m.angle }, m.elem ?? {});
       });
+      net.on("quest_act", (m) => this.onQuestAct(m));
+      net.on("sync", () => (this.questSent = ""));
     } else {
       net.on("snap", (m) => this.onSnap(m.e));
       net.on("die", (m) => {
@@ -2804,6 +2940,16 @@ export class GameScene extends Phaser.Scene {
         void (m.id === "lula" ? this.lulaDefeat(e) : this.purifyDog(e));
       });
       net.on("cine_end", () => this.cineSkip?.());
+      net.on("quest", (m) => this.onQuestSync(m.q));
+      net.send({ t: "sync" });
+      net.on("quest_reward", (m) => {
+        const q = QUESTS[m.index];
+        if (!q) return;
+        this.grantReward(q);
+        this.giveXp(q.reward.xp);
+        this.afterItemsChanged();
+        if (q.note) this.time.delayedCall(400, () => this.hud.dialog(q.note!.title, null, q.note!.lines));
+      });
       net.on("travel", (m) => {
         const d = this.data_;
         d.save();
@@ -2855,6 +3001,7 @@ export class GameScene extends Phaser.Scene {
     leave.className = "btn";
     leave.textContent = L("Sair da sessão", "Leave session");
     leave.onclick = () => {
+      if (this.isGuest) this.restoreOwnQuest();
       net.leave();
       this.dropRemote();
       this.renderSession();
@@ -2880,6 +3027,14 @@ export class GameScene extends Phaser.Scene {
         this.sentState = key;
         this.sentStateAt = time;
         net.send({ t: "state", player: st });
+      }
+    }
+    if (this.isHost && this.remote) {
+      const { prologueSeen: _p, ...q } = this.data_.quest;
+      const key = JSON.stringify(q);
+      if (key !== this.questSent) {
+        this.questSent = key;
+        net.send({ t: "quest", q: q as SharedQuest });
       }
     }
     if (this.isHost && this.remote && time > this.snapAt) {
@@ -2929,7 +3084,10 @@ export class GameScene extends Phaser.Scene {
     r.st = p;
     if (prev.level !== p.level) r.tag.querySelector(".pn")!.textContent = L(`${p.name} nv ${p.level}`, `${p.name} lv ${p.level}`);
     if (p.dead) {
-      if (r.spr.current !== "death") r.spr.play2("death", { restart: true });
+      if (r.spr.current !== "death") {
+        r.spr.play2("death", { restart: true });
+        if (!prev.dead && !this.dead) this.hud.banner(L(`${p.name} caiu!`, `${p.name} has fallen!`), L("Fique ao lado dele para reviver.", "Stand beside them to revive them."));
+      }
       return;
     }
     // Loops come from the state; attacks and casts from "cast" messages.
@@ -2939,6 +3097,33 @@ export class GameScene extends Phaser.Scene {
       r.spr.dir = p.dir as Dir;
       r.spr.play2(p.anim, { restart: turned || r.spr.current === "death" });
     }
+  }
+
+  private heads = new Map<string, HTMLCanvasElement>();
+
+  /** The head of a character's sprite (its idle frame facing the camera, cropped to the top of the body), for the minimap. */
+  private headIcon(name: SpriteName) {
+    let c = this.heads.get(name);
+    if (c) return c;
+    const full = portrait(this, name, 1);
+    const ctx = full.getContext("2d")!;
+    const { data, width, height } = ctx.getImageData(0, 0, full.width, full.height);
+    let x0 = width, x1 = -1, y0 = height, y1 = -1;
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++)
+        if (data[(y * width + x) * 4 + 3] > 0) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+    c = document.createElement("canvas");
+    c.width = c.height = 16;
+    if (x1 >= 0) {
+      // Chibi heads take the top ~half of the body: a square from the top of the sprite.
+      const side = Math.min(x1 - x0 + 1, Math.ceil((y1 - y0 + 1) * 0.55));
+      const sx = Math.round((x0 + x1 + 1) / 2 - side / 2);
+      const g = c.getContext("2d")!;
+      g.imageSmoothingEnabled = false;
+      g.drawImage(full, sx, y0, side, side, 0, 0, 16, 16);
+    }
+    this.heads.set(name, c);
+    return c;
   }
 
   private dropRemote() {
@@ -3468,6 +3653,7 @@ export class GameScene extends Phaser.Scene {
     this.hero.play2("death", { restart: true });
     this.hud.closeAll();
     this.hud.closeDialog();
+    const note = this.partnered ? L(`${this.remote!.st.name} pode te reviver: basta ficar ao seu lado.`, `${this.remote!.st.name} can revive you by standing beside you.`) : "";
     this.hud.showDeath(() => {
       d.gold = Math.floor(d.gold * (1 - DIFFICULTIES[d.difficulty].goldLoss));
       d.hp = d.stats.maxHp;
@@ -3485,7 +3671,7 @@ export class GameScene extends Phaser.Scene {
       this.dead = false;
       this.hero.play2("idle", { restart: true });
       d.save();
-    });
+    }, note);
   }
 
   // ---------------------------------------------------------------- shop
@@ -3541,8 +3727,16 @@ export class GameScene extends Phaser.Scene {
     else if (o.type === "uniques" && e.unique && o.ids.includes(e.unique)) this.questProgress();
   }
 
-  private questProgress() {
+  /** One more toward the current step. A guest reports it to the host (`key`: the quest object picked up). */
+  private questProgress(key?: string) {
     const d = this.data_;
+    if (this.isGuest) {
+      // Kills (and cleared dungeons) are counted by the host, whose game owns the monsters; the guest only
+      // reports what happens on its side: quest objects and chests.
+      const type = d.currentStep?.objective.type;
+      if (type === "collect" || type === "chests") net.send({ t: "quest_act", act: "progress", obj: type, key });
+      return;
+    }
     const q = d.currentQuest!;
     const st = d.currentStep!;
     d.quest.progress++;
@@ -3643,6 +3837,7 @@ export class GameScene extends Phaser.Scene {
     }
     for (const [sx, sy] of spots) {
       if (this.questObjs.length >= left) break;
+      if (taken.includes(`${this.area.id}:${sx},${sy}`)) continue;
       const f = fixed ? [sx, sy] : this.grid.nearestFree(sx, sy, 3);
       if (!f || (!fixed && this.questObjs.some((q) => Math.hypot(q.tx - f[0], q.ty - f[1]) < 6))) continue;
       const x = f[0] * TILE + 8, y = f[1] * TILE + 12;
@@ -3665,6 +3860,22 @@ export class GameScene extends Phaser.Scene {
       if (marker instanceof KilnSprite) marker.play2("quest");
       this.tweens.add({ targets: marker, y: my - 3, duration: 600, yoyo: true, repeat: -1, ease: "Sine.easeInOut" });
       this.questObjs.push({ item: o.item, spr, tx: f[0], ty: f[1], glow, key: `${this.area.id}:${sx},${sy}`, marker });
+    }
+  }
+
+  /** Quest objects the partner has picked up vanish here too. */
+  private removeTakenQuestObjs() {
+    const taken = this.data_.quest.taken ?? [];
+    for (const qo of this.questObjs.filter((o) => taken.includes(o.key))) {
+      if (this.gather?.obj === qo) this.cancelGather(false);
+      this.questObjs = this.questObjs.filter((o) => o !== qo);
+      qo.marker?.destroy();
+      qo.glow.destroy();
+      const it = QUEST_ITEMS[qo.item];
+      if (!("keep" in it && it.keep)) {
+        this.emitters.gold.explode(10, qo.spr.x, qo.spr.y - 8);
+        qo.spr.destroy();
+      } else if (qo.spr instanceof KilnSprite) qo.spr.setData("hover", undefined);
     }
   }
 
@@ -3758,7 +3969,7 @@ export class GameScene extends Phaser.Scene {
     });
     sfx.coin();
     this.hud.message(L(`Recolhido: ${it.name}`, `Picked up: ${it.name}`), "#ffe14d");
-    this.questProgress();
+    this.questProgress(qo.key);
   }
 
   /** Enemies a step brings into its area (scouts prowling outside the village's south fence). */
@@ -4495,6 +4706,8 @@ export class GameScene extends Phaser.Scene {
   }
 
   private acceptQuest() {
+    // In a session the quest is the host's: the guest asks it (the new state comes back in "quest").
+    if (this.isGuest) return net.send({ t: "quest_act", act: "accept" });
     const d = this.data_;
     const q = d.currentQuest!;
     d.quest.status = "active";
@@ -4510,8 +4723,27 @@ export class GameScene extends Phaser.Scene {
   }
 
   private completeQuest() {
+    if (this.isGuest) return net.send({ t: "quest_act", act: "complete" });
     const d = this.data_;
     const q = d.currentQuest!;
+    const r = q.reward;
+    if (this.partnered) net.send({ t: "quest_reward", index: d.quest.index });
+    this.grantReward(q);
+    d.quest = { ...d.quest, index: d.quest.index + 1, status: "available", step: 0, progress: 0 };
+    for (const f of r.flags ?? []) if (!d.hasFlag(f)) d.quest.flags.push(f);
+    this.restockShop(true);
+    if (r.flags?.length) {
+      d.recalc();
+      this.buildVillageState();
+    }
+    this.giveXp(r.xp);
+    this.afterItemsChanged();
+    this.afterQuestTurnIn(q);
+  }
+
+  /** A quest's reward for this player: gold, potions, items and their messages (the XP is given by the caller). */
+  private grantReward(q: NonNullable<HeroData["currentQuest"]>) {
+    const d = this.data_;
     const r = q.reward;
     d.gold += r.gold;
     d.potions.hp = Math.min(MAX_POTIONS, d.potions.hp + r.potions);
@@ -4524,15 +4756,11 @@ export class GameScene extends Phaser.Scene {
     this.hud.message(L(`+${r.xp} XP · +${r.gold} ouro · +${r.potions} poções`, `+${r.xp} XP · +${r.gold} gold · +${r.potions} potion${r.potions === 1 ? "" : "s"}`), "#ffe14d");
     sfx.quest();
     this.emitters.gold.explode(40, this.hero.x, this.hero.y - 14);
-    d.quest = { ...d.quest, index: d.quest.index + 1, status: "available", step: 0, progress: 0 };
-    for (const f of r.flags ?? []) if (!d.hasFlag(f)) d.quest.flags.push(f);
-    this.restockShop(true);
-    if (r.flags?.length) {
-      d.recalc();
-      this.buildVillageState();
-    }
-    this.giveXp(r.xp);
-    this.afterItemsChanged();
+  }
+
+  /** After a quest is turned in (by either player): gates, its closing note, new acts and the next quest. */
+  private afterQuestTurnIn(q: NonNullable<HeroData["currentQuest"]>) {
+    const d = this.data_;
     if (this.map.gates.length && !this.gatesLocked && (this.gateObjs.length || this.villageGates.length)) this.openGates();
     if (q.note) this.time.delayedCall(400, () => this.hud.dialog(q.note!.title, null, q.note!.lines));
     for (const z of ZONE_ORDER) if (ZONES[z].unlockAt === d.tier) this.hud.banner(L(`${ZONES[z].name}: caminho aberto!`, `${ZONES[z].name}: the way is open!`), L("Siga a estrada marcada no mapa (N).", "Follow the road marked on the map (N)."));
@@ -4579,7 +4807,8 @@ export class GameScene extends Phaser.Scene {
         out.push({ x: this.portalSpr.x, y: this.portalSpr.y, color: "#c06bff", size: 5, ring: true });
     }
     if (this.portalSpr && !this.dungeonRef) out.push({ x: this.portalSpr.x, y: this.portalSpr.y, color: "#c06bff", size: 4 });
-    if (this.remote) out.push({ x: this.remote.spr.x, y: this.remote.spr.y, color: "#9fe8ff", size: 5 });
+    if (this.remote) out.push({ x: this.remote.spr.x, y: this.remote.spr.y, color: this.remote.st.dead ? "#ff5a4a" : "#5fe0ff", size: 5,
+      img: this.headIcon(this.remote.spr.spriteName) });
     for (const n of this.npcs) {
       const mark = this.npcMark(n);
       out.push({ x: n.spr.x, y: n.spr.y, color: mark === "?" ? "#7bea6a" : "#ffe14d", size: 4, glyph: mark || undefined });
@@ -4950,6 +5179,7 @@ export class GameScene extends Phaser.Scene {
   private updateObjectiveArrows(time: number) {
     const g = (this.objArrow ??= this.add.graphics().setDepth(1e6 + 2));
     g.clear();
+    this.partnerLbl?.setVisible(false);
     if (this.cinematic || this.dead || this.hud.anyOpen()) return;
     const cam = this.cameras.main, v = cam.worldView, z = cam.zoom, u = 1 / z;
     // Inset from the screen edges, in world px (more at the bottom, where the action bar sits).
@@ -4969,6 +5199,34 @@ export class GameScene extends Phaser.Scene {
       g.fillStyle(0xffd23d, 1).fillPoints(tri, true);
       g.lineStyle(3 * u, 0x2a1a08, 1).strokePoints(tri, true);
     }
+    // The partner, when off screen: a smaller cyan arrow (red while they are down) with their name.
+    const r = this.remote;
+    if (!r || (r.spr.x > x0 && r.spr.x < x1 && r.spr.y > y0 && r.spr.y < y1)) return;
+    const a = Math.atan2(r.spr.y - cy, r.spr.x - cx), c = Math.cos(a), s = Math.sin(a);
+    const k = Math.min((x1 - x0) / 2 / Math.max(Math.abs(c), 1e-4), (y1 - y0) / 2 / Math.max(Math.abs(s), 1e-4));
+    const ax = cx + c * k;
+    // Never under the minimap or the quest tracker (top right corner): below whichever ends lower.
+    let ay = cy + s * k;
+    const ui = document.querySelector("#ui .minimap")?.getBoundingClientRect(), tr = document.querySelector("#ui .tracker")?.getBoundingClientRect();
+    const left = Math.min(ui?.left ?? Infinity, tr?.left ?? Infinity), bottom = Math.max(ui?.bottom ?? 0, tr?.bottom ?? 0);
+    const sx = (ax - v.x) * z, sy = (ay - v.y) * z;
+    if (sx + 30 > left && sy - 30 < bottom) ay = v.y + (bottom + 34) / z;
+    const pt = (f: number, l: number) => ({ x: ax + c * f * u - s * l * u, y: ay + s * f * u + c * l * u });
+    const tri = [pt(20, 0), pt(-10, 15), pt(-4, 0), pt(-10, -15)];
+    const col = r.st.dead ? 0xff5a4a : 0x5fe0ff;
+    g.fillStyle(0x000000, 0.5).fillCircle(ax, ay, 24 * u);
+    g.lineStyle(2 * u, col, r.st.dead ? 0.6 + 0.3 * pulse : 0.6).strokeCircle(ax, ay, 24 * u);
+    g.fillStyle(col, 1).fillPoints(tri, true);
+    g.lineStyle(3 * u, 0x0a1a20, 1).strokePoints(tri, true);
+    const lbl = (this.partnerLbl ??= this.add.text(0, 0, "", { fontFamily: "Pixelify Sans, monospace", fontSize: "14px", color: "#9fe8ff",
+      stroke: "#1c0f1a", strokeThickness: 4, resolution: 2 }).setOrigin(0.5, 0).setDepth(1e6 + 3));
+    const dist = Math.round(Phaser.Math.Distance.Between(this.hero.x, this.hero.y, r.spr.x, r.spr.y) / TILE);
+    // Name and distance under the circle (above it at the bottom edge), kept inside the screen.
+    const below = ay < cy + (y1 - y0) / 4;
+    lbl.setText(`${r.st.name}${r.st.dead ? " ✝" : ""} · ${dist}m`).setColor(r.st.dead ? "#ff8a7a" : "#9fe8ff").setScale(u)
+      .setOrigin(0.5, below ? 0 : 1);
+    const half = (lbl.width * u) / 2 + 4 * u;
+    lbl.setPosition(Phaser.Math.Clamp(ax, v.x + half, v.right - half), ay + (below ? 28 : -28) * u).setVisible(true);
   }
 
   private drawBars(dt: number) {

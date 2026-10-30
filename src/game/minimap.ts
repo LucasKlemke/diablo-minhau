@@ -12,6 +12,8 @@ export interface MapMarker {
   size?: number;
   ring?: boolean; // pulsing quest marker
   glyph?: string;
+  /** A small picture instead of the dot (the partner's head), in a dark disc ringed with `color`. */
+  img?: CanvasImageSource;
 }
 
 /** Explored-area minimap drawn into the HUD canvas: terrain, fog of war, hero and markers. */
@@ -121,6 +123,21 @@ export class Minimap {
         c.fillText(m.glyph, x + 1, y - 3);
         c.fillStyle = m.color;
         c.fillText(m.glyph, x, y - 4);
+      }
+      if (m.img) {
+        const r = 11;
+        c.fillStyle = "#1c0f1a";
+        c.beginPath();
+        c.arc(x, y, r + 1.5, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = m.color;
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.arc(x, y, r, 0, Math.PI * 2);
+        c.stroke();
+        c.imageSmoothingEnabled = false;
+        c.drawImage(m.img, Math.round(x - r + 1), Math.round(y - r + 1), (r - 1) * 2, (r - 1) * 2);
+        continue;
       }
       const s = m.size ?? 3;
       c.fillStyle = m.color;
