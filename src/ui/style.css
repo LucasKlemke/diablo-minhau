@@ -136,6 +136,7 @@ img.icon { image-rendering: pixelated; }
 .float.crit { font-size: 20px; color: var(--rare); }
 .float.hurt { color: #ff6a5a; }
 .float.heal { color: #7bea6a; }
+.float.quest { color: #ffe14d; font-size: 15px; }
 @keyframes rise { from { margin-top: 0; opacity: 1; } to { margin-top: -26px; opacity: 0; } }
 
 /* Panels */
@@ -525,6 +526,8 @@ img.icon { image-rendering: pixelated; }
   text-shadow: 0 2px 0 #000; opacity: 0; transition: opacity 0.6s;
 }
 .intro-text.on { opacity: 1; }
+.intro-speaker { font-family: "Silkscreen", monospace; font-style: normal; font-size: 0.75em; color: #ffd36b; letter-spacing: 2px; min-height: 0; }
+.intro-text.spoken .intro-line { font-style: normal; }
 .intro-title { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   opacity: 0; transition: opacity 1.2s; }
 .intro-title.on { opacity: 1; }
@@ -580,7 +583,8 @@ img.icon { image-rendering: pixelated; }
   filter: drop-shadow(0 3px 0 #1c0f1a) drop-shadow(0 0 14px rgba(255, 110, 40, 0.55));
   animation: tm-burn 2.4s ease-in-out infinite;
 }
-.tm-logo h1 span { display: block; font-size: 0.72em; }
+.tm-logo h1 small { display: block; font-size: 0.36em; letter-spacing: 4px; margin-bottom: 4px; }
+.tm-logo h1 span { display: block; font-size: 1.05em; }
 @keyframes tm-burn { 50% { filter: drop-shadow(0 3px 0 #1c0f1a) drop-shadow(0 0 22px rgba(255, 140, 40, 0.8)); } }
 .tm-sub { color: #a8997f; font-family: "Silkscreen", monospace; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; }
 .tm-buttons { width: 100%; margin-top: auto; }
@@ -629,3 +633,169 @@ img.icon { image-rendering: pixelated; }
   .tm-roster { left: 16px; right: 16px; justify-content: center; flex-wrap: wrap; }
   .tm-side { position: relative; left: 0; margin: 0 auto; height: auto; }
 }
+
+/* ---------- HUD, Diablo IV layout ----------
+   Bottom: big orbs at both ends of an iron tray with the XP bar over the skills; level badge on the life orb.
+   Top centre: the target's framed life bar. Top right: zone/gold/clock, minimap and the quest tracker.
+   Bottom right: messages and the window buttons; bottom left: active buffs. */
+.hud { gap: 0; bottom: 6px; align-items: flex-end; }
+.orb {
+  width: 112px; height: 112px; border: 5px solid #3a3238; position: relative; z-index: 2;
+  box-shadow: 0 0 0 2px #0a0608, 0 0 0 5px #6b5a48, 0 0 0 7px #0a0608, inset 0 0 22px #000, 0 6px 18px rgba(0, 0, 0, 0.7);
+}
+.orb::after {
+  /* Glass highlight. */
+  content: ""; position: absolute; left: 18%; top: 10%; width: 40%; height: 26%; border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0)); pointer-events: none;
+}
+.orb .val { font-size: 14px; opacity: 0; transition: opacity 0.15s; }
+.orb:hover .val { opacity: 1; }
+.bar-center {
+  gap: 4px; margin: 0 -10px 6px; padding: 6px 22px 8px; position: relative; z-index: 1;
+  background: linear-gradient(180deg, #2a2226 0%, #17110f 60%, #0e0a0b 100%);
+  border: 2px solid #4a3a30; border-bottom: none; border-radius: 6px 6px 0 0;
+  box-shadow: 0 0 0 2px #0a0608, inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 -4px 16px rgba(0, 0, 0, 0.6);
+}
+.skills { gap: 5px; }
+.hud .slot {
+  width: 48px; height: 48px; background: #120c0e; border: 2px solid #5a4a3c;
+  box-shadow: 0 0 0 1px #0a0608, inset 0 0 10px rgba(0, 0, 0, 0.9);
+}
+.hud .slot.dash { margin-left: 8px; }
+.hud .slot .key {
+  left: 50%; top: auto; bottom: -9px; transform: translateX(-50%); font-size: 9px; color: #d8c8a8; z-index: 1;
+  background: #0e0a0b; border: 1px solid #5a4a3c; padding: 0 3px; line-height: 12px; white-space: nowrap;
+}
+.xpbar { height: 5px; min-width: 300px; border: 1px solid #0a0608; background: #0b0809; box-shadow: 0 0 0 1px #4a3a30; }
+.xpbar .fill { background: linear-gradient(#ffe9a0, #c8963e 60%, #8a5a1e); box-shadow: 0 0 6px rgba(255, 210, 120, 0.6); }
+.lvl-badge {
+  position: absolute; left: 82px; bottom: 92px; z-index: 3; width: 30px; height: 30px; transform: rotate(45deg);
+  background: linear-gradient(135deg, #3a2a20, #120c0e); border: 2px solid #c8963e; box-shadow: 0 0 0 2px #0a0608, 0 0 10px rgba(200, 150, 62, 0.5);
+  display: flex; align-items: center; justify-content: center;
+}
+.lvl-badge b { transform: rotate(-45deg); font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; color: #ffe9b0; }
+
+/* Target (top centre). */
+.target { top: 10px; width: 360px; }
+.target .name { font-family: "Silkscreen", monospace; font-size: 13px; color: #ece3cf; letter-spacing: 1px; }
+.target .bar {
+  position: relative; height: 12px; margin: 4px 10px 0; background: #0b0708; border: 2px solid #3a3238;
+  box-shadow: 0 0 0 1px #0a0608, 0 0 0 3px #5a4a3c;
+}
+.target .bar > div { background: linear-gradient(#e0483a, #a01a1a 55%, #5a0a0e); }
+.target .bar .end {
+  position: absolute; top: 50%; width: 10px; height: 10px; transform: translateY(-50%) rotate(45deg);
+  background: #2a2226; border: 2px solid #c8963e;
+}
+.target .bar .end.l { left: -10px; }
+.target .bar .end.r { right: -10px; }
+.target.champion .name { color: #a98bff; }
+.target.champion .bar { box-shadow: 0 0 0 1px #0a0608, 0 0 0 3px #6b4ad0, 0 0 12px rgba(150, 110, 255, 0.6); }
+.target.champion .bar .end { border-color: #a98bff; }
+
+/* Top right: zone line, minimap, tracker. */
+.topinfo {
+  left: auto; right: 12px; top: 8px; display: flex; gap: 10px; align-items: center; font-size: 12px; line-height: 1;
+  font-family: "Silkscreen", monospace; letter-spacing: 1px; text-transform: uppercase; color: #d8c8a8;
+}
+.topinfo .gold { color: #ffd76a; }
+.topinfo .clock { color: #a8997f; }
+.minimap { top: 28px; width: 190px; height: 190px; border: 2px solid #5a4a3c; box-shadow: 0 0 0 2px #0a0608, 0 0 0 4px #2a2226, 0 4px 14px rgba(0, 0, 0, 0.6); }
+.tracker { left: auto; right: 12px; top: 232px; max-width: 260px; text-align: right; font-size: 13px; }
+.tracker .qt { font-family: "Silkscreen", monospace; font-weight: 400; font-size: 13px; color: #ffe9b0; }
+.tracker .qt i { font-style: normal; color: #ffd23d; text-shadow: 0 0 6px #ffd23d; }
+.tracker > div:nth-child(2) { color: #d8c8a8; }
+.tracker .qtargets { list-style: none; margin: 4px 0 0; padding: 0; font-size: 12px; color: #a8997f; }
+.tracker .qtargets li::before { content: "➤ "; color: #ffd23d; }
+.tracker .qtargets b { color: #ffe14d; font-weight: 400; }
+
+/* Bottom right: messages over the window buttons. */
+.buttons { top: auto; bottom: 10px; right: 12px; gap: 4px; }
+.buttons .btn { font-size: 11px; padding: 3px 8px; background: rgba(20, 14, 18, 0.88); border-color: #4a3a30; }
+.log { left: auto; right: 14px; bottom: 44px; align-items: flex-end; text-align: right; font-size: 13px; max-width: 360px; }
+
+/* Bottom left: active buffs as icons with time left. */
+.buffs { top: auto; left: 14px; bottom: 14px; display: flex; gap: 6px; color: #ece3cf; }
+.buff { position: relative; width: 36px; height: 36px; border: 2px solid #c8963e; background: #120c0e; box-shadow: 0 0 0 1px #0a0608, 0 0 8px rgba(255, 200, 90, 0.4); }
+.buff .sicon { width: 100%; height: 100%; image-rendering: pixelated; }
+.buff span { position: absolute; right: 1px; bottom: 0; font-size: 10px; text-shadow: 1px 1px 0 #000; }
+.buff em { position: absolute; left: 50%; bottom: calc(100% + 2px); transform: translateX(-50%); font-style: normal; font-size: 10px; white-space: nowrap; color: #ffb38a; text-shadow: 1px 1px 0 #000; }
+.session { top: 40px; }
+
+.tm-lang { display: flex; gap: 4px; margin-top: 10px; }
+.tm-lang button { font: inherit; font-family: "Silkscreen", monospace; font-size: 11px; padding: 2px 8px; cursor: pointer;
+  color: #a8997f; background: #1a1216; border: 1px solid #4a3a30; }
+.tm-lang button.on { color: #ffe14d; border-color: #c8963e; }
+
+/* World map (N, or a checkpoint): the areas of every act joined by their roads. */
+.worldmap { position: absolute; inset: 0; background: rgba(6, 3, 8, 0.7); display: flex; align-items: center; justify-content: center; z-index: 20; pointer-events: auto; }
+.wm-panel { position: relative; background: rgba(20, 12, 18, 0.97); border: 3px solid var(--edge); box-shadow: 0 0 0 3px var(--ink), 0 10px 30px rgba(0, 0, 0, 0.7);
+  padding: 14px 16px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px); display: flex; flex-direction: column; gap: 8px; }
+.wm-panel h3 { margin: 0; font-family: "Silkscreen", monospace; font-weight: 400; font-size: 18px; color: var(--edge-light); }
+.wm-scroll { overflow: hidden; }
+.wm-board { position: relative; transform-origin: 0 0; background: radial-gradient(ellipse at center, #2a2018 0%, #17100f 80%); border: 2px solid var(--ink); }
+.wm-board svg { position: absolute; inset: 0; }
+.wm-board line { stroke: #a57a4f; stroke-width: 5; stroke-dasharray: 2 6; stroke-linecap: round; }
+.wm-board line.locked { stroke: #5a4a4a; }
+.wm-act { position: absolute; left: 8px; width: 70px; font-family: "Silkscreen", monospace; font-size: 13px; color: var(--edge-light); text-align: center; }
+.wm-area { position: absolute; box-sizing: border-box; padding: 6px 8px; border: 2px solid var(--ink); display: flex; flex-direction: column; justify-content: center;
+  font-size: 14px; color: #f2ead8; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.08); }
+.wm-area b { font-weight: 400; font-family: "Silkscreen", monospace; font-size: 12px; line-height: 1.2; }
+.wm-area small { font-size: 12px; opacity: 0.8; }
+.wm-area.act-forest { background: #2f5a28; }
+.wm-area.act-swamp { background: #2d3b2a; }
+.wm-area.act-peaks { background: #4a5468; }
+.wm-area.unknown { background: #241c20; color: #7a6e70; border-style: dashed; }
+.wm-area.sealed { filter: saturate(0.4) brightness(0.8); }
+.wm-area.here { box-shadow: 0 0 0 3px #ffffff, inset 0 0 0 2px rgba(255, 255, 255, 0.2); }
+.wm-area.goal { box-shadow: 0 0 0 3px var(--rare); animation: wm-pulse 1s ease-in-out infinite; }
+.wm-area.here.goal { box-shadow: 0 0 0 3px #ffffff, 0 0 0 6px var(--rare); }
+.wm-area.travel { cursor: pointer; }
+.wm-area.travel:hover { filter: brightness(1.25); }
+@keyframes wm-pulse { 50% { box-shadow: 0 0 0 5px var(--rare), 0 0 18px var(--rare); } }
+.wm-wp { position: absolute; right: 8px; top: 8px; width: 9px; height: 9px; transform: rotate(45deg); background: #5a5060; border: 2px solid var(--ink); }
+.wm-wp.on { background: #c06bff; box-shadow: 0 0 8px #c06bff; }
+.wm-here, .wm-goal, .wm-near { position: absolute; left: 0; right: 0; bottom: -18px; font-size: 12px; text-align: center; white-space: nowrap; text-shadow: 0 1px 0 var(--ink); }
+.wm-here { top: -18px; bottom: auto; color: #ffffff; }
+.wm-goal { color: var(--rare); }
+.wm-near { color: #d8a6ff; }
+.wm-help { font-size: 14px; opacity: 0.85; }
+.wm-close { align-self: flex-end; }
+.exit-tag .nname { color: #ffe9a8; }
+
+/* Loading screen (index.html + BootScene). */
+#loading { position: fixed; inset: 0; z-index: 100; background: #120b10; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  color: #f2ead8; transition: opacity 0.5s; }
+#loading.done { opacity: 0; pointer-events: none; }
+.ld-title { font-family: "Silkscreen", monospace; font-size: clamp(22px, 4vw, 40px); color: var(--edge-light); text-shadow: 0 3px 0 var(--ink); }
+.ld-title b { font-weight: 400; color: #ff8a3a; }
+.ld-bar { width: min(420px, 70vw); height: 14px; background: #1a1116; border: 3px solid var(--edge); box-shadow: 0 0 0 3px var(--ink); }
+.ld-fill { width: 0; height: 100%; background: linear-gradient(#ffb04a, #e0602a); transition: width 0.15s; }
+.ld-text { font-family: "Pixelify Sans", system-ui, sans-serif; font-size: 16px; opacity: 0.85; }
+
+/* Gathering a quest object: label + progress bar above the hero. */
+.gather { position: absolute; left: 0; top: 0; pointer-events: none; text-align: center; z-index: 6; }
+.gather-label { font-size: 12px; color: #ffe9b0; text-shadow: 0 1px 0 #000, 0 0 4px #000; white-space: nowrap; margin-bottom: 3px; }
+.gather-bar { width: 64px; height: 7px; margin: 0 auto; background: #1c0f1a; border: 1px solid #6b5a48; box-shadow: 0 0 0 1px #000; }
+.gather-bar i { display: block; height: 100%; width: 0; background: linear-gradient(#ffe68a, #e1a227); }
+
+/* Act I: a blighted land. Desaturated, heavy dark vignette and low fog drifting over the ground. */
+.vignette.blight {
+  background: radial-gradient(ellipse at center, transparent 30%, rgba(14, 8, 6, 0.55) 70%, rgba(6, 3, 2, 0.9) 100%);
+  backdrop-filter: saturate(0.72) contrast(1.06) brightness(0.92);
+}
+.vignette.blight-soft { background: radial-gradient(ellipse at center, transparent 50%, rgba(10, 6, 4, 0.5) 100%); }
+.blight-fog {
+  position: absolute; inset: -20%; pointer-events: none; opacity: 0.38; mix-blend-mode: screen;
+  background:
+    radial-gradient(ellipse 40% 18% at 20% 70%, rgba(150, 140, 125, 0.5), transparent 70%),
+    radial-gradient(ellipse 35% 15% at 70% 40%, rgba(150, 140, 125, 0.4), transparent 70%),
+    radial-gradient(ellipse 45% 20% at 50% 95%, rgba(140, 130, 118, 0.5), transparent 70%);
+  animation: blightFog 38s linear infinite alternate;
+}
+.blight-fog.thick { opacity: 0.6; }
+.blight-fog.soft { opacity: 0.15; }
+@keyframes blightFog { from { transform: translate(-6%, 0); } to { transform: translate(6%, -3%); } }
+
+/* Dev save marker on the title screen's hero cards. */
+.tm-dev { font-style: normal; font-size: 10px; color: #0a0608; background: #7bea6a; padding: 0 3px; border-radius: 2px; }

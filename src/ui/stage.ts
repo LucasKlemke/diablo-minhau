@@ -1,6 +1,7 @@
 import type Phaser from "phaser";
 import type { ClassId } from "../data/classes";
 import { drawKiln, kilnMeta } from "../kiln";
+import { L } from "../i18n";
 
 // Night backdrop for the main and pause menus (Diablo II/III style): ruins against the moon, a dark tree
 // line, a small campfire and the player's heroes, drawn from their SpriteKiln sprites. The main hero stands
@@ -170,7 +171,7 @@ export function heroStage(canvas: HTMLCanvasElement, opts: StageOpts): Stage {
       ctx.font = `${Math.round(S * 2.4)}px Silkscreen, monospace`;
       ctx.textAlign = "center";
       ctx.fillStyle = "rgba(236,227,207,0.5)";
-      ctx.fillText("Nenhum herói ainda", h.x, h.y - 12 * S);
+      ctx.fillText(L("Nenhum herói ainda", "No heroes yet"), h.x, h.y - 12 * S);
     }
 
     // Embers and a warm light near the fire.

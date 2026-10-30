@@ -1,7 +1,8 @@
 import { CLASSES, type ClassId } from "../data/classes";
+import { L } from "../i18n";
 
-// Cutscene overlay shared by the opening cinematic and the in-game arrival: letterbox bars, typewriter
-// narration (with optional voice files in assets/vo/intro_<key>.mp3) and a title card. Holding Space, Enter
+// Cutscene overlay shared by the cutscenes (game/cutscene.ts): letterbox bars, typewriter narration or a
+// character's line with their name (optional voice files in assets/vo/intro_<key>.mp3) and a title card. Holding Space, Enter
 // or the mouse button speeds the scene up; skipping it outright is only allowed in dev builds.
 
 /** How much faster the cutscene runs while the player holds the button. */
@@ -10,6 +11,8 @@ export const FAST = 3;
 export class CinematicUi {
   private wrap = document.createElement("div");
   private text: HTMLDivElement;
+  private lineEl: HTMLDivElement;
+  private speakerEl: HTMLDivElement;
   private titleEl: HTMLDivElement;
   private typing?: number;
   private voice?: HTMLAudioElement;
@@ -20,10 +23,12 @@ export class CinematicUi {
   constructor(onSkip: () => void, opts: { instantBars?: boolean; onSpeed?: (factor: number) => void } = {}) {
     const dev = import.meta.env.DEV;
     this.wrap.className = `intro interactive${opts.instantBars ? " instant" : ""}`;
-    this.wrap.innerHTML = `<div class="lb top"></div><div class="lb bottom"></div><div class="intro-text"></div>
-      <div class="intro-title"></div><div class="intro-skip"><span class="ff">▸▸</span> Segure <kbd>Espaço</kbd> para acelerar${dev ? ` · <button>Pular (Esc)</button>` : ""}</div>`;
+    this.wrap.innerHTML = `<div class="lb top"></div><div class="lb bottom"></div><div class="intro-text"><div class="intro-speaker"></div><div class="intro-line"></div></div>
+      <div class="intro-title"></div><div class="intro-skip"><span class="ff">▸▸</span> ${L("Segure <kbd>Espaço</kbd> para acelerar", "Hold <kbd>Space</kbd> to speed up")}${dev ? ` · <button>${L("Pular (Esc)", "Skip (Esc)")}</button>` : ""}</div>`;
     document.getElementById("ui")!.appendChild(this.wrap);
     this.text = this.wrap.querySelector(".intro-text")!;
+    this.lineEl = this.wrap.querySelector(".intro-line")!;
+    this.speakerEl = this.wrap.querySelector(".intro-speaker")!;
     this.titleEl = this.wrap.querySelector(".intro-title")!;
     const hint = this.wrap.querySelector(".intro-skip") as HTMLElement;
     const skipBtn = hint.querySelector("button");
@@ -52,15 +57,18 @@ export class CinematicUi {
     this.listeners.push([type, fn]);
   }
 
-  /** Types a line; resolves after `hold` ms (or the time the line needs to be read). `wait` is the game clock. */
-  say(key: string, line: string, hold: number, wait: (ms: number) => Promise<void>) {
+  /** Types a line (narration, or spoken by `speaker`); resolves after `hold` ms (or the time the line needs
+   * to be read). `wait` is the game clock. */
+  say(key: string, line: string, hold: number, wait: (ms: number) => Promise<void>, speaker?: string) {
     window.clearInterval(this.typing);
-    this.text.textContent = "";
+    this.lineEl.textContent = "";
+    this.speakerEl.textContent = speaker ?? "";
+    this.text.classList.toggle("spoken", !!speaker);
     this.text.classList.add("on");
     let i = 0;
     this.typing = window.setInterval(() => {
       i += this.speed;
-      this.text.textContent = line.slice(0, i);
+      this.lineEl.textContent = line.slice(0, i);
       if (i >= line.length) window.clearInterval(this.typing);
     }, 32);
     this.voice?.pause();
@@ -75,7 +83,7 @@ export class CinematicUi {
   }
 
   title(cls: ClassId) {
-    this.titleEl.innerHTML = `<div class="it-name">Diablo Minhau</div><div class="it-cls">${CLASSES[cls].name}</div>`;
+    this.titleEl.innerHTML = `<div class="it-name">Chronicles of Minhau</div><div class="it-cls">${CLASSES[cls].name}</div>`;
     this.titleEl.classList.add("on");
   }
 

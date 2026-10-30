@@ -29,16 +29,69 @@ export const SPRITES = [
   "npc_elder", "npc_smith", "npc_hunter", "skeleton", "spider", "troll", "lich", "chest", "portal", "crypt",
   "house", "barn", "fence_h", "fence_v", "tree_big", "tree_medium", "bush", "stump", "campfire",
   "crypt_floor", "tombstone", "dead_tree", "grave_fence", "village_gate", "npc_marker",
+  // monsters of inimmigos.md
+  "wolf", "boar", "wasp", "slime", "worg_rider", "ent", "mimic", "kobold", "zombie", "ghoul", "lizardman", "cultist",
+  "leech", "wisp", "ghost", "gargoyle", "orc", "hobgoblin", "armor", "bat", "ant", "beetle", "centipede", "manticore", "dragon",
+  // villagers of Acts II and III
+  "npc_healer", "npc_merchant", "npc_boatman", "npc_captain", "npc_dwarf", "npc_seer",
+  "town_portal",
+  // Act I (rewrite): characters of the prologue and the village, and their props
+  "npc_aldo", "aldo_young", "sarah_young", "jimmy_pup", "lisa", "jimmynelson", "royal_guard", "kira", "dog_caramelo", "dog_trovao", "dog_mancha", "polvo_broom",
+  "castle_floor", "castle_column", "castle_throne", "castle_carpet", "castle_lily_vase", "castle_tapestry", "castle_gate", "castle_window", "golden_bowl",
+  "straw_bed", "hearth", "wash_basin", "dry_fountain", "canvas_tent", "ruined_hut", "oak_beam", "goblin_cauldron", "tool_chest", "forge_chimney",
+  "castle_wall_back", "castle_wall_side", "castle_banner", "castle_candelabrum",
+  "hut_floor", "hut_wall_back", "hut_wall_side", "hut_table", "hut_stool", "hut_shelf", "hanging_herbs", "hut_rug", "hut_door", "firewood", "hut_candle", "royal_chest",
+  "jimmynelson_carry",
+  // Act I desolation: gore and the burning castle, the ruined village, the dead woods and the old road
+  "blood_splat", "gore_chunks", "guard_remains", "fire_large", "fire_small", "fire_wall", "castle_column_broken", "castle_tapestry_burning",
+  "castle_banner_burning", "castle_throne_broken", "castle_rubble", "scorch_mark", "castle_floor_cracked",
+  "aldo_hut", "smithy", "hunter_lodge", "burned_house", "patched_house", "palisade_h", "palisade_v", "rubble_pile", "broken_cart",
+  "cold_campfire", "dead_crops", "scorched_ground", "refugee_bedroll", "crow", "grave_mound", "well_broken",
+  "twisted_tree", "burnt_tree", "dead_bush", "mossy_rock", "wolf_den", "trash_fire", "bone_hang", "rotten_barricade", "goblin_tent",
+  "skull_stake", "junk_throne", "looted_carriage", "toll_post", "podium_carts", "torn_banner_pole", "road_stones",
+  // Act I dungeons (the abandoned house's cellar, the butcher's cellar, the bat cave), their entrances, Lula's barricade
+  "cellar_barrels", "cellar_rack", "cellar_sacks", "cellar_stairs", "cobweb_floor", "flea_nest", "cellar_beam",
+  "meat_hook", "butcher_block", "butcher_table", "bone_pile", "blood_drain", "cage",
+  "stalagmite", "cave_boulder", "guano_pile", "glow_mushrooms", "cave_puddle", "ogre_bed",
+  "cellar_entrance", "butcher_entrance", "cave_entrance", "customs_gate",
+  "polvo",
+  // The three mutts, plague-corrupted (they turn back into dog_* when beaten), and their stone circle
+  "dog_caramelo_demon", "dog_trovao_demon", "dog_mancha_demon", "standing_stone", "offal_pile", "plague_pool", "gnawed_bones",
 ] as const;
-/** Optional variants: when their export is missing they fall back to the base sprite instead of a placeholder. */
-const VARIANT_OF: Partial<Record<string, SpriteName>> = { goblin_hurt: "goblin", goblin_maimed: "goblin" };
+/** Optional variants: when their export is missing they fall back to the base sprite instead of a placeholder
+ * (KilnSprite and kilnImage resolve them on their own, see resolveSprite). */
+const VARIANT_OF: Partial<Record<string, SpriteName>> = {
+  goblin_hurt: "goblin", goblin_maimed: "goblin",
+  npc_aldo: "npc_elder", aldo_young: "npc_elder", sarah_young: "npc_seer", jimmy_pup: "wolf", lisa: "wolf", jimmynelson: "troll",
+  royal_guard: "bandit", jimmynelson_carry: "jimmynelson", kira: "wolf", dog_caramelo: "wolf", dog_trovao: "wolf", dog_mancha: "wolf", polvo_broom: "bandit", polvo: "bandit",
+  dog_caramelo_demon: "wolf", dog_trovao_demon: "wolf", dog_mancha_demon: "wolf",
+};
 /** Props modelled in SpriteKiln; while missing, the game falls back to its older art. */
 const OPTIONAL = new Set<string>([
   "chest", "portal", "crypt", "house", "barn", "fence_h", "fence_v", "tree_big", "tree_medium", "bush", "stump", "campfire",
-  "crypt_floor", "tombstone", "dead_tree", "grave_fence", "village_gate", "npc_marker",
+  "crypt_floor", "tombstone", "dead_tree", "grave_fence", "village_gate", "npc_marker", "town_portal",
+  "castle_floor", "castle_column", "castle_throne", "castle_carpet", "castle_lily_vase", "castle_tapestry", "castle_gate", "castle_window", "golden_bowl",
+  "straw_bed", "hearth", "wash_basin", "dry_fountain", "canvas_tent", "ruined_hut", "oak_beam", "goblin_cauldron", "tool_chest", "forge_chimney",
+  "castle_wall_back", "castle_wall_side", "castle_banner", "castle_candelabrum",
+  "hut_floor", "hut_wall_back", "hut_wall_side", "hut_table", "hut_stool", "hut_shelf", "hanging_herbs", "hut_rug", "hut_door", "firewood", "hut_candle", "royal_chest",
+  // Act I desolation: gore and the burning castle, the ruined village, the dead woods and the old road
+  "blood_splat", "gore_chunks", "guard_remains", "fire_large", "fire_small", "fire_wall", "castle_column_broken", "castle_tapestry_burning",
+  "castle_banner_burning", "castle_throne_broken", "castle_rubble", "scorch_mark", "castle_floor_cracked",
+  "aldo_hut", "smithy", "hunter_lodge", "burned_house", "patched_house", "palisade_h", "palisade_v", "rubble_pile", "broken_cart",
+  "cold_campfire", "dead_crops", "scorched_ground", "refugee_bedroll", "crow", "grave_mound", "well_broken",
+  "twisted_tree", "burnt_tree", "dead_bush", "mossy_rock", "wolf_den", "trash_fire", "bone_hang", "rotten_barricade", "goblin_tent",
+  "skull_stake", "junk_throne", "looted_carriage", "toll_post", "podium_carts", "torn_banner_pole", "road_stones",
+  // Act I dungeons (the abandoned house's cellar, the butcher's cellar, the bat cave), their entrances, Lula's barricade
+  "cellar_barrels", "cellar_rack", "cellar_sacks", "cellar_stairs", "cobweb_floor", "flea_nest", "cellar_beam",
+  "meat_hook", "butcher_block", "butcher_table", "bone_pile", "blood_drain", "cage",
+  "stalagmite", "cave_boulder", "guano_pile", "glow_mushrooms", "cave_puddle", "ogre_bed",
+  "cellar_entrance", "butcher_entrance", "cave_entrance", "customs_gate",
+  "standing_stone", "offal_pile", "plague_pool", "gnawed_bones",
 ]);
 const available = new Set<string>();
 export const hasSprite = (name: SpriteName) => available.has(name);
+/** The sprite to draw for `name`: itself when exported, else the base sprite it is a variant of. */
+export const resolveSprite = (name: SpriteName): SpriteName => (available.has(name) ? name : VARIANT_OF[name] ?? name);
 export type SpriteName = (typeof SPRITES)[number];
 
 export function preloadKiln(scene: Phaser.Scene) {
@@ -50,7 +103,7 @@ export function preloadKiln(scene: Phaser.Scene) {
 }
 
 /** Placeholder look per sprite while SpriteKiln renders are missing. */
-const PLACEHOLDER: Record<SpriteName, { body: number; head: number; h: number }> = {
+const PLACEHOLDER: Partial<Record<SpriteName, { body: number; head: number; h: number }>> = {
   campfire: { body: 0x5d351f, head: 0xfe6607, h: 12 },
   barbarian: { body: 0xc13a2b, head: 0xeaab86, h: 30 },
   archer: { body: 0x5dab3d, head: 0xeaab86, h: 30 },
@@ -85,10 +138,42 @@ const PLACEHOLDER: Record<SpriteName, { body: number; head: number; h: number }>
   grave_fence: { body: 0x4b5266, head: 0x4b5266, h: 14 },
   village_gate: { body: 0x7a3a22, head: 0x7a3a22, h: 20 },
   npc_marker: { body: 0xffe14d, head: 0xffe14d, h: 10 },
+  wolf: { body: 0x6a6a72, head: 0x8a8a92, h: 14 },
+  boar: { body: 0x5d351f, head: 0x7a4a2a, h: 16 },
+  wasp: { body: 0xe1a227, head: 0x2a2038, h: 10 },
+  slime: { body: 0x5dab3d, head: 0x8fd060, h: 10 },
+  worg_rider: { body: 0x41344f, head: 0x7ab041, h: 30 },
+  ent: { body: 0x7a4a2a, head: 0x3f8a2e, h: 34 },
+  mimic: { body: 0x9e6d32, head: 0xc13a2b, h: 14 },
+  kobold: { body: 0xb5502a, head: 0xd07a3a, h: 22 },
+  zombie: { body: 0x5d4f3c, head: 0x8aa070, h: 30 },
+  ghoul: { body: 0x6a6480, head: 0xc0c8b0, h: 28 },
+  lizardman: { body: 0x3f8a6e, head: 0x5dab8d, h: 32 },
+  cultist: { body: 0x7a1420, head: 0x2a1020, h: 30 },
+  leech: { body: 0x4a4a2a, head: 0x7a1420, h: 8 },
+  wisp: { body: 0x9fffe0, head: 0xe0fff8, h: 12 },
+  ghost: { body: 0xc8d8f0, head: 0xe8f0ff, h: 30 },
+  gargoyle: { body: 0x6a6a72, head: 0x8a8a92, h: 30 },
+  orc: { body: 0x5d351f, head: 0x5d8a2e, h: 36 },
+  hobgoblin: { body: 0x4b5266, head: 0xd0603a, h: 32 },
+  armor: { body: 0x8a92a0, head: 0x5a6070, h: 36 },
+  bat: { body: 0x41344f, head: 0x5d4f6c, h: 12 },
+  ant: { body: 0xa03a20, head: 0xc0502a, h: 14 },
+  beetle: { body: 0x1e4a5a, head: 0x2a6a7a, h: 14 },
+  centipede: { body: 0xa05a20, head: 0xc07a3a, h: 12 },
+  manticore: { body: 0xc08a40, head: 0x5d351f, h: 48 },
+  dragon: { body: 0xc13a2b, head: 0xe0603a, h: 46 },
+  npc_healer: { body: 0x5d6a3a, head: 0xeaab86, h: 28 },
+  npc_merchant: { body: 0x8d44ac, head: 0xeaab86, h: 30 },
+  npc_boatman: { body: 0x9e6d32, head: 0xeaab86, h: 30 },
+  npc_captain: { body: 0x2c60d5, head: 0xeaab86, h: 30 },
+  npc_dwarf: { body: 0x7a4a2a, head: 0xe0664a, h: 24 },
+  npc_seer: { body: 0xe8ebee, head: 0xeaab86, h: 28 },
+  town_portal: { body: 0x5bc8f0, head: 0xe8ebee, h: 32 },
 };
 
 function makePlaceholder(scene: Phaser.Scene, name: SpriteName) {
-  const p = PLACEHOLDER[name];
+  const p = PLACEHOLDER[name] ?? { body: 0x8a8a92, head: 0xeaab86, h: 28 };
   const size = 48;
   const g = scene.make.graphics({ x: 0, y: 0 }, false);
   const frames = 4;
@@ -179,7 +264,8 @@ export interface PlayOpts {
 
 /** A static SpriteKiln prop as a plain image (first `idle` frame), placed by its pivot.
  * `texture` may be a biome skin of the atlas (see makeSkins). */
-export function kilnImage(scene: Phaser.Scene, x: number, y: number, name: SpriteName, texture: string = name) {
+export function kilnImage(scene: Phaser.Scene, x: number, y: number, name: SpriteName, texture: string = resolveSprite(name)) {
+  name = resolveSprite(name);
   const m = metas.get(name)!;
   const frame = m.animations.idle.directions.s!.frames[0];
   return scene.add.image(x, y, texture, frame).setOrigin(m.pivot.x / m.frame_size, m.pivot.y / m.frame_size);
@@ -195,6 +281,7 @@ export class KilnSprite extends Phaser.GameObjects.Sprite {
   private flipped = false;
 
   constructor(scene: Phaser.Scene, x: number, y: number, name: SpriteName) {
+    name = resolveSprite(name);
     super(scene, x, y, name);
     this.spriteName = name;
     this.meta = metas.get(name)!;
@@ -215,7 +302,9 @@ export class KilnSprite extends Phaser.GameObjects.Sprite {
     if (name === this.spriteName || !available.has(name)) return;
     this.spriteName = name;
     this.meta = metas.get(name)!;
-    if (this.current) this.playClip(this.current, this.opts, true);
+    // The new sprite may lack the clip being played (a demon dog's death on the purified dog): fall back to idle.
+    if (this.current && this.has(this.current)) this.playClip(this.current, this.opts, true);
+    else if (this.current) this.playClip((this.current = "idle"), {}, false);
     else this.setTexture(name);
   }
 

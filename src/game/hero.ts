@@ -1,14 +1,15 @@
 import { buffMult, CLASSES, type ClassDef, type ClassId, type SkillDef } from "../data/classes";
 import { itemStats, setNextUid, type Item, type Slot } from "../data/items";
-import { QUESTS } from "../data/quests";
-import type { ZoneId } from "../data/zones";
+import { QUESTS, type WorldFlag } from "../data/quests";
+import { AREAS, ZONE_ORDER, ZONES, type AreaId, type ZoneId } from "../data/zones";
 import type { Difficulty } from "../data/difficulty";
 import { addStats, emptyStats, type Stats } from "../data/stats";
 
 export const INVENTORY_SIZE = 30;
 export const MAX_POTIONS = 9;
 
-export const xpForLevel = (lvl: number) => (lvl <= 1 ? 0 : Math.round(150 * Math.pow(lvl - 1, 1.9)));
+/** Total XP to reach a level: ~15 goblins for level 2, ~80 kills per level around 5, ~90 around 10. */
+export const xpForLevel = (lvl: number) => (lvl <= 1 ? 0 : Math.round(200 * Math.pow(lvl - 1, 2.2)));
 
 export interface Buff { id: string; until: number; stats: Partial<Stats>; tint: number }
 
@@ -16,13 +17,23 @@ export interface Buff { id: string; until: number; stats: Partial<Stats>; tint: 
 export interface QuestState {
   index: number; // QUESTS[index] is the current quest (== QUESTS.length when the story is over)
   status: "available" | "active" | "ready";
+  /** Current step of the quest (QUESTS[index].steps[step]) and the progress made on it. */
+  step: number;
   progress: number;
   prologueSeen: boolean;
-  /** Act I opening: walk to the village, defend it from the raid, collect the reward; then the quests. */
-  intro: "road" | "attack" | "won" | "done";
   /** Story bosses already slain (they never come back). */
   killed: string[];
+  /** World-state flags set by the story (the village changes with them). */
+  flags: WorldFlag[];
+  /** Quest objects of the current step already picked up ("area:x,y" of their spot). */
+  taken?: string[];
 }
+
+/** Save format version: 2 = the rewritten Act I (7 quests, Aldo instead of Bento); 3 = Act I maps drawn by hand. */
+const SAVE_VERSION = 3;
+const ACT1_AREAS: AreaId[] = ["minhau", "goblin_woods", "wolf_wood", "bandit_road", "goblin_hollow"];
+/** Old Act I quest index -> new one (goblins, chests, bandits, krag, grumm); later quests move by 2. */
+const OLD_ACT1 = [0, 1, 5, 5, 6];
 
 /** The hero's persistent state (class, progression, skills, items, quests) and derived stats. */
 export class HeroData {
@@ -35,11 +46,21 @@ export class HeroData {
   equipment: Partial<Record<Slot, Item>> = {};
   ranks: Record<string, number> = {};
   skillPoints = 0;
-  quest: QuestState = { index: 0, status: "available", progress: 0, prologueSeen: false, intro: "road", killed: [] };
-  /** Current zone, fixed world seeds per zone and dungeons already cleared ("forest:0"). */
-  zone: ZoneId = "forest";
+  quest: QuestState = { index: 0, status: "available", step: 0, progress: 0, prologueSeen: false, killed: [], flags: [] };
+  /** Current area, checkpoints touched, areas visited, explored fog per area (see Minimap), fixed world seeds
+   * per area and dungeons already cleared ("bandit_road:0"). */
+  area: AreaId = "minhau";
+  waypoints: AreaId[] = ["minhau"];
+  /** Last checkpoint the hero touched or travelled to: where the town portal (B) leads. */
+  lastWaypoint: AreaId = "minhau";
+  /** Where the hero opened a return portal: a portal back to it waits at the checkpoint until used. */
+  portalBack: { area: AreaId; dungeon: number | null; x: number; y: number } | null = null;
+  visited: AreaId[] = ["minhau"];
+  fog: Partial<Record<AreaId, string>> = {};
   seeds: Record<string, number> = {};
   cleared: string[] = [];
+  /** Dev save (made from the menu in development): no damage taken, 10x damage, double speed. */
+  dev = false;
   /** Marta's current stock (kept for the session, rerolled after quests). */
   shop: (Item | null)[] = [];
   buffs: Buff[] = [];
@@ -59,6 +80,11 @@ export class HeroData {
     this.recalc();
     this.hp = this.stats.maxHp;
     this.mana = cls === "barbarian" ? 0 : this.stats.maxMana;
+  }
+
+  /** The act of the current area. */
+  get zone(): ZoneId {
+    return AREAS[this.area].act;
   }
 
   /** Completed story quests: drives how strong the world is. */
@@ -88,9 +114,12 @@ export class HeroData {
     for (const it of Object.values(this.equipment)) if (it) addStats(s, itemStats(it));
     for (const sk of this.def.skills) if (sk.passive && this.rank(sk)) addStats(s, sk.passive, this.rank(sk));
     for (const b of this.buffs) addStats(s, b.stats);
+    // Lady Kira resting under the plaza tree: the earth blooms and wounds close faster.
+    if (this.hasFlag("kira_home")) s.hpRegen *= 1.05;
     s.dmgMin = Math.max(1, s.dmgMin);
     s.dmgMax = Math.max(s.dmgMin + 1, s.dmgMax);
     s.crit = Math.min(0.75, s.crit);
+    s.statusRes = Math.min(0.75, s.statusRes);
     this.stats = s;
     this.hp = Math.min(this.hp, s.maxHp);
     this.mana = Math.min(this.mana, s.maxMana);
@@ -193,7 +222,7 @@ export class HeroData {
     const s = this.stats;
     const base = s.dmgMin + Math.random() * (s.dmgMax - s.dmgMin) + s.dmgFlat;
     const crit = Math.random() < s.crit;
-    return { dmg: Math.max(1, Math.round(base * (1 + s.dmgPct) * mult * (crit ? 2 : 1))), crit };
+    return { dmg: Math.max(1, Math.round(base * (1 + s.dmgPct) * mult * (crit ? 2 : 1) * (this.dev ? 10 : 1))), crit };
   }
 
   seed(key: string) {
@@ -204,6 +233,16 @@ export class HeroData {
     return QUESTS[this.quest.index];
   }
 
+  /** Step of the current quest being worked on (the last one once the quest is ready). */
+  get currentStep() {
+    const q = this.currentQuest;
+    return q ? q.steps[Math.min(this.quest.step, q.steps.length - 1)] : undefined;
+  }
+
+  hasFlag(f: WorldFlag) {
+    return this.quest.flags.includes(f);
+  }
+
   // ---------- Save slots ----------
   static readonly SLOTS = 3;
   private static key = (slot: number) => `diablo-minhau:slot:${slot}`;
@@ -212,10 +251,11 @@ export class HeroData {
     this.playtime += (performance.now() - this.sessionStart) / 1000;
     this.sessionStart = performance.now();
     const data = {
-      cls: this.cls, difficulty: this.difficulty, playtime: Math.round(this.playtime), savedAt: Date.now(),
+      v: SAVE_VERSION, cls: this.cls, difficulty: this.difficulty, playtime: Math.round(this.playtime), savedAt: Date.now(),
       level: this.level, xp: this.xp, gold: this.gold, potions: this.potions, ranks: this.ranks,
       skillPoints: this.skillPoints, quest: this.quest, inventory: this.inventory, equipment: this.equipment,
-      zone: this.zone, seeds: this.seeds, cleared: this.cleared,
+      zone: this.zone, area: this.area, waypoints: this.waypoints, lastWaypoint: this.lastWaypoint, visited: this.visited, fog: this.fog, seeds: this.seeds, cleared: this.cleared,
+      ...(this.dev ? { dev: true } : {}),
     };
     try {
       localStorage.setItem(HeroData.key(this.slot), JSON.stringify(data));
@@ -248,11 +288,39 @@ export class HeroData {
       if (d.ranks) Object.assign(h.ranks, d.ranks);
       // Older saves had no skill points: grant one per level.
       h.skillPoints = d.skillPoints ?? Math.max(0, h.level - 1);
-      // Saves from before the village raid skip it.
-      if (d.quest) h.quest = { ...h.quest, intro: "done", ...d.quest };
-      if (d.zone) h.zone = d.zone;
+      if (d.quest) {
+        const { intro: _intro, ...q } = d.quest;
+        h.quest = { ...h.quest, ...q, step: q.step ?? 0, flags: q.flags ?? [] };
+        // Saves from before the Act I rewrite: map the old quest onto the new story (a quest in progress restarts).
+        if ((d.v ?? 1) < 2) {
+          const i = h.quest.index;
+          h.quest.index = i < OLD_ACT1.length ? OLD_ACT1[i] : i + 2;
+          if (h.quest.index !== i) Object.assign(h.quest, { status: "available", step: 0, progress: 0 });
+          h.quest.killed = h.quest.killed.filter((k) => k !== "krag");
+          h.quest.prologueSeen = true;
+          h.quest.flags = [...new Set(QUESTS.slice(0, h.quest.index).flatMap((q) => q.reward.flags ?? []))];
+        }
+      }
+      if (d.area && AREAS[d.area as AreaId]) {
+        h.area = d.area;
+        h.waypoints = d.waypoints ?? [h.area];
+        h.lastWaypoint = d.lastWaypoint && h.waypoints.includes(d.lastWaypoint) ? d.lastWaypoint : h.waypoints[0];
+        h.visited = d.visited ?? [...h.waypoints];
+        h.fog = d.fog ?? {};
+      } else {
+        // Saves from before the connected areas: back to the village of their act, with the villages of every
+        // act they had opened as checkpoints.
+        const open = ZONE_ORDER.filter((z) => h.tier >= ZONES[z].unlockAt);
+        h.area = ZONES[d.zone && open.includes(d.zone) ? (d.zone as ZoneId) : "forest"].village;
+        h.waypoints = open.map((z) => ZONES[z].village);
+        h.visited = [...h.waypoints];
+        h.lastWaypoint = h.area;
+      }
       if (d.seeds) h.seeds = d.seeds;
+      // Act I maps were redrawn: the explored fog of the old ones no longer fits.
+      if ((d.v ?? 1) < 3) for (const a of ACT1_AREAS) delete h.fog[a];
       if (d.cleared) h.cleared = d.cleared;
+      h.dev = !!d.dev;
       h.inventory = Array.from({ length: INVENTORY_SIZE }, (_, i) => d.inventory?.[i] ?? null);
       const uids = [...h.inventory, ...Object.values(h.equipment)].map((it) => it?.uid ?? 0);
       setNextUid(Math.max(0, ...uids) + 1);
@@ -281,8 +349,8 @@ export class HeroData {
         const raw = localStorage.getItem(HeroData.key(i));
         if (!raw) return null;
         const d = JSON.parse(raw);
-        return { slot: i, cls: d.cls, level: d.level ?? 1, difficulty: d.difficulty ?? "normal", zone: d.zone ?? "forest",
-          quest: d.quest?.index ?? 0, playtime: d.playtime ?? 0, savedAt: d.savedAt ?? 0 };
+        return { slot: i, cls: d.cls, level: d.level ?? 1, difficulty: d.difficulty ?? "normal", zone: d.zone ?? "forest", area: d.area,
+          quest: d.quest?.index ?? 0, playtime: d.playtime ?? 0, savedAt: d.savedAt ?? 0, dev: !!d.dev };
       } catch {
         return null;
       }
@@ -315,7 +383,9 @@ export interface SlotInfo {
   level: number;
   difficulty: Difficulty;
   zone: ZoneId;
+  area?: AreaId;
   quest: number;
   playtime: number;
   savedAt: number;
+  dev?: boolean;
 }

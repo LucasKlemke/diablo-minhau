@@ -2,6 +2,8 @@ import { MAP_H, MAP_W, TILE, type WorldMap } from "../world/mapgen";
 
 const PX = 2; // canvas pixels per tile
 const REVEAL = 13; // tiles revealed around the hero
+const CELL = 2; // tiles per cell of the saved exploration grid
+const GW = MAP_W / CELL, GH = MAP_H / CELL;
 
 export interface MapMarker {
   x: number; // world px
@@ -18,8 +20,10 @@ export class Minimap {
   private fog = document.createElement("canvas");
   private fogCtx: CanvasRenderingContext2D;
   private ctx: CanvasRenderingContext2D;
+  /** Explored cells, saved per area (exportFog) so the map is remembered on the next visit. */
+  private explored = new Uint8Array(GW * GH);
 
-  constructor(private canvas: HTMLCanvasElement, map: WorldMap) {
+  constructor(private canvas: HTMLCanvasElement, map: WorldMap, fog?: string) {
     canvas.width = MAP_W * PX;
     canvas.height = MAP_H * PX;
     this.ctx = canvas.getContext("2d")!;
@@ -52,9 +56,35 @@ export class Minimap {
     // The village is always known.
     const t = map.town;
     this.fogCtx.clearRect(t.x0 * PX, t.y0 * PX, (t.x1 - t.x0 + 1) * PX, (t.y1 - t.y0 + 2) * PX);
+    if (fog) this.importFog(fog);
+  }
+
+  /** The explored cells as a base64 bitset. */
+  exportFog(): string {
+    const bytes = new Uint8Array(Math.ceil(this.explored.length / 8));
+    this.explored.forEach((v, i) => v && (bytes[i >> 3] |= 1 << (i & 7)));
+    let bin = "";
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin);
+  }
+
+  private importFog(fog: string) {
+    try {
+      const bin = atob(fog);
+      for (let i = 0; i < this.explored.length; i++) if (bin.charCodeAt(i >> 3) & (1 << (i & 7))) this.explored[i] = 1;
+    } catch {
+      return;
+    }
+    const f = this.fogCtx;
+    for (let i = 0; i < this.explored.length; i++)
+      if (this.explored[i]) f.clearRect((i % GW) * CELL * PX, Math.floor(i / GW) * CELL * PX, CELL * PX, CELL * PX);
   }
 
   reveal(wx: number, wy: number) {
+    const cx = wx / TILE / CELL, cy = wy / TILE / CELL, r = (REVEAL * 0.75) / CELL;
+    for (let y = Math.max(0, Math.floor(cy - r)); y <= Math.min(GH - 1, Math.ceil(cy + r)); y++)
+      for (let x = Math.max(0, Math.floor(cx - r)); x <= Math.min(GW - 1, Math.ceil(cx + r)); x++)
+        if (Math.hypot(x + 0.5 - cx, y + 0.5 - cy) <= r) this.explored[y * GW + x] = 1;
     const f = this.fogCtx;
     f.save();
     f.globalCompositeOperation = "destination-out";

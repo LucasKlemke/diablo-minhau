@@ -6,6 +6,7 @@ import { net } from "../net/net";
 import type { HeroData } from "../game/hero";
 import { drawIcon, ICON_IDS } from "../ui/icons";
 import { makeSkins, makeWorldTextures } from "../game/recolor";
+import { L } from "../i18n";
 
 export class BootScene extends Phaser.Scene {
   constructor() {
@@ -13,6 +14,15 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
+    // Loading screen (index.html): the bar follows the loader.
+    const box = document.getElementById("loading");
+    const fill = box?.querySelector(".ld-fill") as HTMLElement | null;
+    const text = box?.querySelector(".ld-text") as HTMLElement | null;
+    if (text) text.textContent = L("Carregando o mundo...", "Loading the world...");
+    this.load.on(Phaser.Loader.Events.PROGRESS, (p: number) => {
+      if (fill) fill.style.width = `${Math.round(p * 100)}%`;
+      if (text) text.textContent = `${L("Carregando o mundo...", "Loading the world...")} ${Math.round(p * 100)}%`;
+    });
     const farm = "assets/farm";
     this.load.image("grass", `${farm}/grass.png`);
     this.load.image("tree", `${farm}/tree.png`);
@@ -27,6 +37,11 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
+    const box = document.getElementById("loading");
+    if (box) {
+      box.classList.add("done");
+      window.setTimeout(() => box.remove(), 500);
+    }
     const missing = setupKiln(this);
     if (missing.length) console.warn("SpriteKiln sprites missing, using placeholders:", missing.join(", "));
 
@@ -62,14 +77,14 @@ export class BootScene extends Phaser.Scene {
           this.scene.start("intro", { hero });
         } else go({ hero });
       } else if (mode.kind === "host") {
-        showWaiting("Abrindo a sessão...", () => { net.leave(); open(); });
+        showWaiting(L("Abrindo a sessão...", "Opening the session..."), () => { net.leave(); open(); });
         net.host().then(() => go({ hero }))
-          .catch(() => showMultiplayer(portraits, start, "", "Não foi possível abrir a sessão. Verifique sua internet."));
+          .catch(() => showMultiplayer(portraits, start, "", L("Não foi possível abrir a sessão. Verifique sua internet.", "Could not open the session. Check your internet connection.")));
       } else {
-        showWaiting(`Conectando à sessão ${mode.code}...`, () => { net.leave(); open(); });
+        showWaiting(L(`Conectando à sessão ${mode.code}...`, `Connecting to session ${mode.code}...`), () => { net.leave(); open(); });
         const fail = () => {
           net.leave();
-          showMultiplayer(portraits, start, mode.code, "Não foi possível entrar: código errado, ou o anfitrião não está mais online.");
+          showMultiplayer(portraits, start, mode.code, L("Não foi possível entrar: código errado, ou o anfitrião não está mais online.", "Could not join: wrong code, or the host is no longer online."));
         };
         net.join(mode.code).then(() => {
           const timer = window.setTimeout(fail, 10000);

@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import { KilnSprite } from "../kiln";
+import { L } from "../i18n";
 
 // Mouse-over feedback for interactive props (portal, chests, crypt entrances): a pulsing outline glow,
 // a small "breath", the SpriteKiln `hover` clip when the prop has one, a name tag and a hand cursor.
 
-interface PropKind {
+export interface PropKind {
   label: string;
   /** Hit box around the sprite's pivot (ground point), in world px. */
   box: { x: number; top: number; bottom: number };
@@ -16,9 +17,13 @@ interface PropKind {
 }
 
 const KINDS: Record<string, PropKind> = {
-  portal: { label: "Portal de Pedra", box: { x: 16, top: -44, bottom: 4 }, glow: 0xd08aff, busy: ["activate"] },
-  chest: { label: "Baú", box: { x: 10, top: -16, bottom: 4 }, glow: 0xffd23d, busy: ["open"], spent: ["open", "opened"] },
-  crypt: { label: "Entrada da Masmorra", box: { x: 40, top: -70, bottom: 10 }, glow: 0xc06bff, busy: [] },
+  portal: { label: L("Checkpoint · Mapa do Mundo", "Checkpoint · World Map"), box: { x: 16, top: -44, bottom: 4 }, glow: 0xd08aff, busy: ["activate"] },
+  chest: { label: L("Baú", "Chest"), box: { x: 10, top: -16, bottom: 4 }, glow: 0xffd23d, busy: ["open"], spent: ["open", "opened"] },
+  town_portal: { label: L("Portal de retorno", "Return Portal"), box: { x: 14, top: -40, bottom: 6 }, glow: 0x7edaf2, busy: ["open", "close"], spent: ["close"] },
+  crypt: { label: L("Entrada da Masmorra", "Dungeon Entrance"), box: { x: 40, top: -70, bottom: 10 }, glow: 0xc06bff, busy: [] },
+  cellar_entrance: { label: L("Entrada da Masmorra", "Dungeon Entrance"), box: { x: 40, top: -70, bottom: 10 }, glow: 0x4e8a2a, busy: [] },
+  butcher_entrance: { label: L("Entrada da Masmorra", "Dungeon Entrance"), box: { x: 40, top: -70, bottom: 10 }, glow: 0xfe8a2a, busy: [] },
+  cave_entrance: { label: L("Entrada da Masmorra", "Dungeon Entrance"), box: { x: 40, top: -70, bottom: 10 }, glow: 0xff5a1f, busy: [] },
 };
 
 export class PropHover {
@@ -49,7 +54,7 @@ export class PropHover {
   private find(wx: number, wy: number): KilnSprite | null {
     for (const o of this.scene.children.list) {
       if (!(o instanceof KilnSprite) || !o.visible) continue;
-      const k = KINDS[o.spriteName];
+      const k = this.kind(o);
       if (!k || k.spent?.includes(o.current)) continue;
       const dx = Math.abs(wx - o.x), dy = wy - o.y;
       if (dx <= k.box.x * o.scaleX && dy >= k.box.top * o.scaleY && dy <= k.box.bottom) return o;
@@ -57,8 +62,13 @@ export class PropHover {
     return null;
   }
 
+  /** A sprite may carry its own kind (`hover` data), e.g. a quest object. */
+  private kind(o: KilnSprite): PropKind | undefined {
+    return (o.getData("hover") as PropKind | undefined) ?? KINDS[o.spriteName];
+  }
+
   private enter(spr: KilnSprite) {
-    const k = KINDS[spr.spriteName];
+    const k = this.kind(spr)!;
     this.current = spr;
     this.scene.input.setDefaultCursor("pointer");
     // Outline glow (WebGL only) that breathes in and out.
@@ -67,7 +77,8 @@ export class PropHover {
     const sy = spr.scaleY;
     this.tweens.push(this.scene.tweens.add({ targets: spr, scaleY: sy * 1.03, duration: 380, yoyo: true, repeat: -1, ease: "Sine.easeInOut" }));
     if (spr.has("hover") && !k.busy.includes(spr.current)) spr.play2("hover", { restart: true });
-    this.tag.textContent = k.label;
+    // A prop may carry its own label (e.g. where a portal leads).
+    this.tag.textContent = (spr.getData("label") as string | undefined) ?? k.label;
     this.tag.style.display = "block";
   }
 
@@ -90,7 +101,9 @@ export class PropHover {
     const spr = this.current;
     if (!spr) return;
     const cam = this.scene.cameras.main;
-    const k = KINDS[spr.spriteName];
+    const k = this.kind(spr);
+    // The prop stopped being interactive while hovered (the cauldron once its soap is taken).
+    if (!k) return this.clear();
     const sx = (spr.x - cam.worldView.x) * cam.zoom, sy = (spr.y + k.box.top * spr.scaleY - 4 - cam.worldView.y) * cam.zoom;
     this.tag.style.transform = `translate(${Math.round(sx)}px, ${Math.round(sy)}px) translate(-50%, -100%)`;
   }

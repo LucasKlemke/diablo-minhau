@@ -4,6 +4,7 @@ import { DIFFICULTIES, DIFFICULTY_ORDER, type Difficulty } from "../data/difficu
 import { sfx } from "../game/audio";
 import { drawKiln, kilnMeta, type Dir } from "../kiln";
 import { skillIconUrl } from "./hud";
+import { L } from "../i18n";
 
 // Character selection around a campfire at night (Diablo IV style): the four heroes, drawn from their
 // SpriteKiln sprites, idle around the fire; clicking one focuses the camera on it and opens its panel.
@@ -18,19 +19,20 @@ const SEATS: Record<ClassId, { x: number; y: number; dir: Dir }> = {
   sorcerer: { x: 44, y: 6, dir: "w" },
 };
 
+const R_LIFE = L("Vida", "Life"), R_DMG = L("Dano", "Damage"), R_RANGE = L("Alcance", "Range"), R_CPLX = L("Complexidade", "Complexity");
 /** 1–5 ratings shown as bars in the class panel. */
 const RATINGS: Record<ClassId, [string, number][]> = {
-  barbarian: [["Vida", 5], ["Dano", 4], ["Alcance", 1], ["Complexidade", 2]],
-  archer: [["Vida", 3], ["Dano", 4], ["Alcance", 5], ["Complexidade", 3]],
-  mage: [["Vida", 2], ["Dano", 5], ["Alcance", 4], ["Complexidade", 4]],
-  sorcerer: [["Vida", 3], ["Dano", 4], ["Alcance", 4], ["Complexidade", 5]],
+  barbarian: [[R_LIFE, 5], [R_DMG, 4], [R_RANGE, 1], [R_CPLX, 2]],
+  archer: [[R_LIFE, 3], [R_DMG, 4], [R_RANGE, 5], [R_CPLX, 3]],
+  mage: [[R_LIFE, 2], [R_DMG, 5], [R_RANGE, 4], [R_CPLX, 4]],
+  sorcerer: [[R_LIFE, 3], [R_DMG, 4], [R_RANGE, 4], [R_CPLX, 5]],
 };
 
 const TAGLINE: Record<ClassId, string> = {
-  barbarian: "Fúria, aço e sangue. Entra no meio da horda e sai sozinho.",
-  archer: "Olhos de águia e flechas que não erram. A morte vem de longe.",
-  mage: "Fogo, gelo e raio. Frágil como vidro, devastador como uma tempestade.",
-  sorcerer: "Magia proibida. Drena a vida dos inimigos e faz seus cadáveres explodirem.",
+  barbarian: L("Fúria, aço e sangue. Entra no meio da horda e sai sozinho.", "Fury, steel and blood. Wades into the horde and walks out alone."),
+  archer: L("Olhos de águia e flechas que não erram. A morte vem de longe.", "Eagle eyes and arrows that never miss. Death comes from afar."),
+  mage: L("Fogo, gelo e raio. Frágil como vidro, devastador como uma tempestade.", "Fire, frost and lightning. Fragile as glass, devastating as a storm."),
+  sorcerer: L("Magia proibida. Drena a vida dos inimigos e faz seus cadáveres explodirem.", "Forbidden magic. Drains the life of foes and makes their corpses explode."),
 };
 
 interface Ember { x: number; y: number; vx: number; vy: number; life: number }
@@ -49,11 +51,11 @@ export function showCampfire(opts: CampfireOpts) {
   const wrap = document.createElement("div");
   wrap.className = "cf mm interactive";
   wrap.innerHTML = `<canvas class="cf-canvas"></canvas>
-    <div class="cf-title"><div class="cf-sub">Espaço ${opts.slot + 1}</div><div class="cf-h">Escolha seu herói</div></div>
-    <div class="cf-hint">Clique em um herói ao redor da fogueira</div>
+    <div class="cf-title"><div class="cf-sub">${L("Espaço", "Slot")} ${opts.slot + 1}</div><div class="cf-h">${L("Escolha seu herói", "Choose Your Hero")}</div></div>
+    <div class="cf-hint">${L("Clique em um herói ao redor da fogueira", "Click a hero around the campfire")}</div>
     <aside class="cf-panel"></aside>
     <nav class="cf-bar"></nav>
-    <button class="cf-back mbtn small">Voltar</button>`;
+    <button class="cf-back mbtn small">${L("Voltar", "Back")}</button>`;
   root.appendChild(wrap);
   const canvas = wrap.querySelector("canvas")!;
   const ctx = canvas.getContext("2d")!;
@@ -176,17 +178,17 @@ export function showCampfire(opts: CampfireOpts) {
       <div class="cf-ph"><div class="cf-name">${esc(c.name)}</div><div class="cf-res" style="color:${c.resourceColor}">${esc(c.resource)}</div></div>
       <div class="cf-tag">${esc(TAGLINE[selected])}</div>
       <div class="cf-desc">${esc(c.desc)}</div>
-      <div class="cf-sec">Estilo de jogo</div>
+      <div class="cf-sec">${L("Estilo de jogo", "Playstyle")}</div>
       <div class="cf-skills">${shown.map((s) => `
         <div class="cf-skill"><img class="pix" src="${skillIconUrl(s.id)}" onerror="this.style.visibility='hidden'">
-          <div><b>${esc(s.name)}</b> <span class="cf-key">${SLOT_KEY[s.slot]}${s.reqLevel > 1 ? ` · nv ${s.reqLevel}` : ""}</span><br>${esc(s.desc)}</div></div>`).join("")}
+          <div><b>${esc(s.name)}</b> <span class="cf-key">${SLOT_KEY[s.slot]}${s.reqLevel > 1 ? ` · ${L("nv", "lv")} ${s.reqLevel}` : ""}</span><br>${esc(s.desc)}</div></div>`).join("")}
       </div>
-      <div class="cf-sec">Atributos</div>
+      <div class="cf-sec">${L("Atributos", "Attributes")}</div>
       <div class="cf-bars">${RATINGS[selected].map(([k, v]) => `<div><span>${k}</span><i>${"<b></b>".repeat(v)}${"<em></em>".repeat(5 - v)}</i></div>`).join("")}</div>
-      <div class="cf-sec">Dificuldade</div>
+      <div class="cf-sec">${L("Dificuldade", "Difficulty")}</div>
       <div class="cf-diff">${DIFFICULTY_ORDER.map((d) => `<button data-d="${d}" class="${d === difficulty ? "on" : ""}" style="--c:${DIFFICULTIES[d].color}" title="${esc(DIFFICULTIES[d].desc)}">${DIFFICULTIES[d].name}</button>`).join("")}</div>
       <div class="cf-ddesc">${esc(DIFFICULTIES[difficulty].desc)}</div>
-      <button class="mbtn primary cf-go">Começar como ${esc(c.name)}</button>`;
+      <button class="mbtn primary cf-go">${L("Começar como", "Begin as")} ${esc(c.name)}</button>`;
     panel.querySelectorAll<HTMLButtonElement>(".cf-diff button").forEach((b) => (b.onclick = () => {
       difficulty = b.dataset.d as Difficulty;
       sfx.coin();
