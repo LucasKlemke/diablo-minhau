@@ -336,3 +336,189 @@ animations:
         event: dead
         set: {hand_R: [0.44, 0.05, -0.20], hand_L: [0.55, 0.06, -0.20], root: "[0, 0, 0.14 + 0.12*pulse(yaw, 180, 70)]", lean: -1.45, bob: -0.46,
               head_pitch: -0.75, squash: 1.0, axe_pitch: 0.0, axe_roll: -0.25, foot_L: [0.18, 0, 0.30], foot_R: [0.14, 0, 0.26], flap: 0.2}
+  attack2:         # backhand: axe wound across to the left shoulder, flat sweep out to his right (screen right-to-left in s)
+    loop: false
+    keys:
+      - ms: 60
+        set: {hand_R: [-0.05, 0.42, 0.18], hand_L: [0.22, 0.36, 0.14], axe_pitch: 0.3, axe_roll: -0.6,
+              twist: 0.2, squash: 0.98, flap: -0.1}
+      - ms: 160
+        event: windup
+        set: {hand_R: [-0.22, 0.46, 0.06], hand_L: [0.30, 0.40, -0.02], axe_pitch: 0.2, axe_roll: -1.3,
+              twist: 0.6, head_yaw: -0.3, bob: -0.04, squash: 0.93,
+              foot_L: [0.17, 0, 0.10], foot_R: [0.15, 0, -0.06], flap: -0.3}
+      - ms: 50
+        set: {hand_R: [0.18, 0.40, 0.16], hand_L: [0.08, 0.36, 0.16], axe_pitch: 1.0, axe_roll: 0.0,
+              root: [0, 0, 0.02], twist: 0.0, lean: 0.20, squash: 1.05,
+              foot_L: [0.16, 0, 0.16], foot_R: [0.15, 0, -0.10], flap: 0.4,
+              smear_roll: 0, smear_y: 0.92, smear_z: 0, smear_r: 0.82, smear_a0: 1.4, smear_a1: -0.2, smear_w: 0.09}
+      - ms: 90
+        event: hit
+        set: {hand_R: [0.20, 0.38, 0.16], hand_L: [0.10, 0.34, 0.20], axe_pitch: 0.8, axe_roll: "0.7 - 0.4*pulse(yaw, 135, 50)",
+              root: [0, 0, 0.04], twist: "-0.42 + 0.35*pulse(yaw, 135, 50)", head_yaw: 0.2, lean: 0.25, bob: -0.04, squash: 0.95,
+              foot_L: [0.16, 0, 0.18], foot_R: [0.15, 0, -0.12], flap: 0.7,
+              smear_roll: 0, smear_y: 0.92, smear_z: 0, smear_r: 0.82, smear_a0: 1.0, smear_a1: -1.4, smear_w: 0.10}
+      - ms: 110
+        set: {hand_R: [0.24, 0.34, 0.10], hand_L: [0.14, 0.30, 0.16], axe_pitch: 0.7, axe_roll: 0.8,
+              root: [0, 0, 0.03], twist: -0.55, head_yaw: 0.25, lean: 0.20, bob: -0.03, squash: 0.97,
+              foot_L: [0.16, 0, 0.16], foot_R: [0.15, 0, -0.10], flap: 0.3,
+              smear_roll: 0, smear_y: 0.92, smear_z: 0, smear_r: 0.82, smear_a0: -0.6, smear_a1: -1.6, smear_w: 0.06, smear_fade: 0.6}
+      - ms: 90
+        set: {hand_R: [0.36, 0.26, 0.16], hand_L: [0.28, 0.20, 0.14], axe_pitch: 0.3, axe_roll: 0.6,
+              root: [0, 0, 0.02], twist: -0.15, lean: 0.10, flap: -0.1}
+  attack3:         # rising diagonal slash: axe dropped low behind his right hip, ripped up across to high left
+    loop: false
+    keys:
+      - ms: 70
+        set: {hand_R: [0.32, 0.20, 0.02], hand_L: [0.12, 0.20, 0.12], axe_pitch: -0.2, axe_roll: 1.9,
+              twist: -0.3, lean: 0.12, bob: -0.02, squash: 0.97, flap: -0.2}
+      - ms: 170
+        event: windup
+        set: {hand_R: [0.36, 0.24, 0.0], hand_L: [0.06, 0.22, 0.10], axe_pitch: 0.0, axe_roll: 1.75,
+              twist: -0.65, head_yaw: 0.3, lean: 0.24, bob: -0.06, squash: 0.90,
+              foot_L: [0.17, 0, 0.14], foot_R: [0.16, 0, -0.08], flap: -0.4}
+      - ms: 50
+        set: {hand_R: [0.06, 0.40, 0.30], hand_L: [-0.04, 0.36, 0.28], axe_pitch: 0.7, axe_roll: 0.2,
+              root: [0, 0, 0.05], twist: 0.0, lean: 0.08, bob: 0.02, squash: 1.08,
+              foot_L: [0.16, 0, 0.18], foot_R: [0.15, 0, -0.10], flap: 0.5,
+              smear_roll: 0.8, smear_y: 0.90, smear_z: 0.05, smear_r: 0.92, smear_a0: -1.7, smear_a1: 0.0, smear_w: 0.09}
+      - ms: 90
+        event: hit
+        set: {hand_R: [-0.20, 0.70, 0.12], hand_L: [0.28, 0.62, 0.08], axe_pitch: -0.1, axe_roll: -1.0,
+              root: [0, 0, 0.04], twist: 0.45, head_yaw: -0.2, lean: -0.10, bob: 0.03, squash: 1.06, head_pitch: -0.15,
+              foot_L: [0.16, 0, 0.18], foot_R: [0.15, 0, -0.12], flap: 0.8,
+              smear_roll: 0.8, smear_y: 0.90, smear_z: 0.05, smear_r: 0.92, smear_a0: -1.3, smear_a1: 1.2, smear_w: 0.10}
+      - ms: 110
+        set: {hand_R: [-0.18, 0.68, 0.08], hand_L: [0.30, 0.60, 0.04], axe_pitch: -0.25, axe_roll: -1.1,
+              root: [0, 0, 0.03], twist: 0.55, head_yaw: -0.2, lean: -0.14, bob: 0.02, squash: 1.02, head_pitch: -0.12,
+              foot_L: [0.16, 0, 0.16], foot_R: [0.15, 0, -0.10], flap: 0.3,
+              smear_roll: 0.8, smear_y: 0.90, smear_z: 0.05, smear_r: 0.92, smear_a0: 0.3, smear_a1: 1.4, smear_w: 0.06, smear_fade: 0.6}
+      - ms: 100
+        set: {hand_R: [0.30, 0.30, 0.16], hand_L: [0.24, 0.22, 0.14], axe_pitch: 0.3, axe_roll: 0.6,
+              root: [0, 0, 0.02], twist: 0.1, lean: 0.06, flap: -0.1}
+  warcry:          # Whirlwind: deep coiled crouch, two fast full turns with the axe at full reach, ring smears
+    loop: false
+    keys:
+      - ms: 150
+        event: windup
+        set: {hand_R: [0.36, 0.40, -0.14], hand_L: [0.18, 0.28, 0.20], axe_pitch: -0.2, axe_roll: 0.95,
+              twist: -1.0, lean: 0.18, bob: -0.09, squash: 0.87, head_yaw: 0.4,
+              foot_L: [0.21, 0, 0.12], foot_R: [0.21, 0, -0.08], flap: -0.5}
+      - ms: 60
+        set: {hand_R: [0.34, 0.42, 0.04], hand_L: [0.30, 0.42, 0.04], axe_pitch: 0.0, axe_roll: 1.05,
+              twist: 0.9, lean: 0.10, bob: -0.04, squash: 1.05, foot_L: [0.21, 0, 0.05], foot_R: [0.21, 0, 0.0], flap: 0.7,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: -2.8, smear_a1: 0.2, smear_w: 0.11}
+      - ms: 60
+        event: hit
+        set: {hand_R: [0.34, 0.42, 0.04], hand_L: [0.30, 0.42, 0.04], axe_pitch: 0.0, axe_roll: 1.05,
+              twist: 2.5, lean: 0.10, bob: -0.04, squash: 1.05, foot_L: [0.21, 0, 0.05], foot_R: [0.21, 0, 0.0], flap: -0.7,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: -1.6, smear_a1: 2.4, smear_w: 0.12}
+      - ms: 60
+        set: {hand_R: [0.34, 0.42, 0.04], hand_L: [0.30, 0.42, 0.04], axe_pitch: 0.0, axe_roll: 1.05,
+              twist: 4.1, lean: 0.10, bob: -0.04, squash: 1.05, foot_L: [0.21, 0, 0.05], foot_R: [0.21, 0, 0.0], flap: 0.7,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: -0.6, smear_a1: 4.0, smear_w: 0.12}
+      - ms: 60
+        set: {hand_R: [0.34, 0.42, 0.04], hand_L: [0.30, 0.42, 0.04], axe_pitch: 0.0, axe_roll: 1.05,
+              twist: 5.7, lean: 0.10, bob: -0.04, squash: 1.05, foot_L: [0.21, 0, 0.05], foot_R: [0.21, 0, 0.0], flap: -0.7,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: 1.0, smear_a1: 5.6, smear_w: 0.12}
+      - ms: 60
+        set: {hand_R: [0.34, 0.42, 0.04], hand_L: [0.30, 0.42, 0.04], axe_pitch: 0.0, axe_roll: 1.05,
+              twist: 7.3, lean: 0.10, bob: -0.04, squash: 1.05, foot_L: [0.21, 0, 0.05], foot_R: [0.21, 0, 0.0], flap: 0.7,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: 2.6, smear_a1: 7.2, smear_w: 0.11, smear_fade: 0.7}
+      - ms: 90
+        set: {hand_R: [0.34, 0.36, 0.10], hand_L: [0.30, 0.30, 0.10], axe_pitch: 0.1, axe_roll: 0.8,
+              twist: 0.5, lean: 0.12, bob: -0.06, squash: 0.92, foot_L: [0.20, 0, 0.06], foot_R: [0.20, 0, -0.02], flap: -0.4,
+              smear_roll: 0, smear_y: 0.84, smear_z: 0, smear_r: 0.95, smear_a0: 4.6, smear_a1: 6.6, smear_w: 0.06, smear_fade: 0.6}
+      - ms: 120
+        set: {hand_R: [0.38, 0.28, 0.14], hand_L: [0.32, 0.20, 0.10], axe_pitch: 0.2, axe_roll: 0.7,
+              twist: 0.15, lean: 0.08, bob: -0.02, squash: 0.98, foot_L: [0.16, 0, 0.06], foot_R: [0.16, 0, -0.02], flap: 0.2}
+  leap:            # Crushing Leap: crouch, spring (hit = takeoff), airborne with the axe cocked overhead, slam on landing
+    loop: false
+    keys:
+      - ms: 80
+        set: {hand_R: [0.36, 0.20, 0.04], hand_L: [0.32, 0.16, 0.06], axe_pitch: 0.1, axe_roll: 0.8,
+              lean: 0.18, bob: -0.05, squash: 0.93, foot_L: [0.17, 0, 0.06], foot_R: [0.17, 0, -0.02], flap: -0.2}
+      - ms: 100
+        event: windup
+        set: {hand_R: [0.36, 0.08, -0.16], hand_L: [0.32, 0.06, -0.14], axe_pitch: -0.5, axe_roll: 0.9,
+              lean: 0.38, bob: -0.13, squash: 0.82, head_pitch: -0.15,
+              foot_L: [0.18, 0, 0.08], foot_R: [0.18, 0, -0.02], flap: -0.5}
+      - ms: 80
+        event: hit
+        set: {hand_R: [0.20, 0.62, 0.14], hand_L: [0.10, 0.58, 0.16], axe_pitch: -0.7, axe_roll: 0.4,
+              root: [0, 0.04, 0.02], lean: 0.05, bob: 0.05, squash: 1.14, head_pitch: -0.2,
+              foot_L: [0.15, 0.06, -0.06], foot_R: [0.15, 0.03, -0.10], pitch_foot_L: 0.5, pitch_foot_R: 0.6, flap: 0.6}
+      - ms: 180
+        set: {hand_R: [0.12, 0.70, 0.04], hand_L: [0.0, 0.66, 0.06], axe_pitch: "-0.55 + 0.15*pulse(yaw, 0, 60) + 0.4*pulse(yaw, 180, 70)", axe_roll: 0.25,
+              root: [0, 0.04, 0], lean: -0.12, bob: 0.05, squash: 1.04, head_pitch: -0.12,
+              foot_L: [0.16, 0.22, 0.10], foot_R: [0.16, 0.14, -0.04], pitch_foot_L: 0.3, pitch_foot_R: 0.4, flap: 0.8}
+      - ms: 170
+        set: {hand_R: [0.10, 0.64, -0.02], hand_L: [-0.02, 0.60, 0.0], axe_pitch: "-0.85 + 0.45*pulse(yaw, 0, 60) + 0.5*pulse(yaw, 180, 70)", axe_roll: 0.25,
+              root: [0, 0.04, 0], lean: -0.18, bob: 0.05, squash: 1.0, head_pitch: -0.08,
+              foot_L: [0.16, 0.24, 0.14], foot_R: [0.16, 0.16, 0.02], pitch_foot_L: 0.2, pitch_foot_R: 0.3, flap: 0.5}
+      - ms: 50
+        set: {hand_R: [0.04, 0.42, 0.30], hand_L: [-0.06, 0.38, 0.28], axe_pitch: 0.5, axe_roll: 0.0,
+              root: [0, 0.03, 0.04], lean: 0.30, squash: 1.06, foot_L: [0.17, 0.05, 0.12], foot_R: [0.17, 0.03, -0.06], flap: 0.3,
+              smear_roll: 1.57, smear_y: 0.95, smear_z: 0.05, smear_r: 0.85, smear_a0: 1.8, smear_a1: 0.2, smear_w: 0.10}
+      - ms: 110
+        set: {hand_R: [0.02, 0.30, 0.22], hand_L: [-0.06, 0.32, 0.20], axe_pitch: "1.20 - 0.40*pulse(yaw, 0, 60) + 0.45*pulse(yaw, 90, 50)", axe_roll: 0.0,
+              root: [0, 0, 0.02], lean: 0.38, bob: -0.12, squash: 0.84, head_pitch: 0.1,
+              foot_L: [0.20, 0, 0.12], foot_R: [0.20, 0, -0.06], flap: 0.9,
+              smear_roll: 1.57, smear_y: 0.95, smear_z: 0.05, smear_r: 0.85, smear_a0: 1.2, smear_a1: -0.6, smear_w: 0.08, smear_fade: 0.65}
+      - ms: 120
+        set: {hand_R: [0.30, 0.24, 0.20], hand_L: [0.20, 0.20, 0.18], axe_pitch: 0.6, axe_roll: 0.4,
+              root: [0, 0, 0.03], lean: 0.18, bob: -0.04, squash: 0.96, foot_L: [0.17, 0, 0.08], foot_R: [0.17, 0, -0.04], flap: -0.2}
+  berserk:         # Berserker Rage: hunches in, then a roar - chest out, head up, arms and axe flexed wide
+    loop: false
+    keys:
+      - ms: 110
+        set: {hand_R: [0.14, 0.20, 0.20], hand_L: [0.12, 0.18, 0.20], axe_pitch: 0.4, axe_roll: 0.2,
+              lean: 0.30, bob: -0.05, squash: 0.91, head_pitch: 0.25, flap: -0.2}
+      - ms: 130
+        event: windup
+        set: {hand_R: [0.06, 0.24, 0.20], hand_L: [0.04, 0.22, 0.20], axe_pitch: 0.5, axe_roll: 0.1,
+              lean: 0.38, bob: -0.08, squash: 0.86, head_pitch: 0.32,
+              foot_L: [0.18, 0, 0.06], foot_R: [0.18, 0, -0.02], flap: -0.4}
+      - ms: 150
+        event: hit
+        set: {hand_R: [0.52, 0.56, -0.02], hand_L: [0.50, 0.54, -0.02], axe_pitch: -0.25, axe_roll: 0.35,
+              lean: -0.24, bob: 0.05, squash: 1.12, head_pitch: -0.40, roll: 0.03,
+              foot_L: [0.21, 0, 0.06], foot_R: [0.21, 0, -0.02], flap: 0.8}
+      - ms: 150
+        set: {hand_R: [0.50, 0.62, -0.04], hand_L: [0.48, 0.60, -0.04], axe_pitch: -0.40, axe_roll: 0.30,
+              root: [0.02, 0, 0], lean: -0.20, bob: 0.03, squash: 1.06, head_pitch: -0.36, roll: -0.03,
+              foot_L: [0.21, 0, 0.06], foot_R: [0.21, 0, -0.02], flap: 0.4}
+      - ms: 150
+        set: {hand_R: [0.40, 0.30, 0.12], hand_L: [0.36, 0.24, 0.08], axe_pitch: 0.2, axe_roll: 0.6,
+              lean: 0.02, bob: -0.02, squash: 0.97, head_pitch: -0.05,
+              foot_L: [0.18, 0, 0.04], foot_R: [0.18, 0, -0.02], flap: -0.2}
+  quake:           # Earthquake: axe hoisted high behind the head, two-handed overhead slam into the ground, deep squash
+    loop: false
+    keys:
+      - ms: 80
+        set: {hand_R: [0.14, 0.50, 0.14], hand_L: [0.02, 0.46, 0.16], axe_pitch: -0.5, axe_roll: 0.2,
+              lean: 0.05, squash: 1.0, flap: -0.2}
+      - ms: 220
+        event: windup
+        set: {hand_R: [0.06, 0.62, -0.06], hand_L: [-0.04, 0.60, -0.04], axe_pitch: "-1.15 + 0.15*pulse(yaw, 0, 60) + 0.6*pulse(yaw, 180, 70)", axe_roll: 0.1,
+              lean: -0.20, bob: 0.03, squash: 1.08, head_pitch: -0.18,
+              foot_L: [0.21, 0, 0.10], foot_R: [0.21, 0, -0.06], flap: -0.4}
+      - ms: 50
+        set: {hand_R: [0.04, 0.44, 0.30], hand_L: [-0.06, 0.40, 0.28], axe_pitch: 0.55, axe_roll: 0.0,
+              root: [0, 0, 0.03], lean: 0.25, bob: -0.02, squash: 1.04,
+              foot_L: [0.21, 0, 0.12], foot_R: [0.21, 0, -0.06], flap: 0.4,
+              smear_roll: 1.57, smear_y: 0.95, smear_z: 0.05, smear_r: 0.88, smear_a0: 2.2, smear_a1: 0.2, smear_w: 0.11}
+      - ms: 130
+        event: hit
+        set: {hand_R: [0.02, 0.30, 0.22], hand_L: [-0.06, 0.32, 0.20], axe_pitch: "1.25 - 0.40*pulse(yaw, 0, 60) - 0.15*pulse(yaw, 45, 40) + 0.45*pulse(yaw, 90, 50)", axe_roll: 0.0,
+              root: [0, 0, 0.02], lean: 0.40, bob: -0.14, squash: 0.80, head_pitch: 0.12,
+              foot_L: [0.23, 0, 0.12], foot_R: [0.23, 0, -0.06], flap: 0.9,
+              smear_roll: 1.57, smear_y: 0.95, smear_z: 0.05, smear_r: 0.88, smear_a0: 1.4, smear_a1: -0.6, smear_w: 0.12}
+      - ms: 140
+        set: {hand_R: [0.02, 0.32, 0.21], hand_L: [-0.06, 0.34, 0.19], axe_pitch: "1.20 - 0.40*pulse(yaw, 0, 60) - 0.15*pulse(yaw, 45, 40) + 0.45*pulse(yaw, 90, 50)", axe_roll: 0.0,
+              root: [0, 0, 0.02], lean: 0.36, bob: -0.10, squash: 0.92, head_pitch: 0.06,
+              foot_L: [0.23, 0, 0.12], foot_R: [0.23, 0, -0.06], flap: 0.3,
+              smear_roll: 1.57, smear_y: 0.95, smear_z: 0.05, smear_r: 0.88, smear_a0: 0.2, smear_a1: -0.7, smear_w: 0.07, smear_fade: 0.6}
+      - ms: 120
+        set: {hand_R: [0.30, 0.26, 0.20], hand_L: [0.20, 0.20, 0.18], axe_pitch: 0.6, axe_roll: 0.4,
+              root: [0, 0, 0.03], lean: 0.15, bob: -0.03, squash: 0.97, foot_L: [0.18, 0, 0.08], foot_R: [0.18, 0, -0.04], flap: -0.2}

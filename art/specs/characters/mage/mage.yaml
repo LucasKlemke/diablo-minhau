@@ -286,3 +286,133 @@ animations:
         set: {root: "[0.32*pos(sin(2*radians(yaw))) + 0.32*pos(-sin(2*radians(yaw))), -0.08, 0.60 - 0.75*cos(radians(yaw)) + 0.6*sin(radians(yaw))*cos(radians(yaw))]", bob: -0.14, squash: 0.95, fall: -1.45, foot_L: [0.12, 0, 0.14], head_yaw: 0.3,
               hat_off: [0.34, 0.05, -0.38], hat_rx: 1.4, hat_rz: -0.2,
               hand_R: [0.34, 0.38, -0.05], hand_L: [0.34, 0.38, -0.05], staff_pitch: 0.1, staff_roll: 0.5, coat: 0.2, orb: 0.0}
+  attack2:         # basic attack variation 2: staff held back, free (left) hand pushes the bolt forward
+    loop: false
+    keys:
+      - ms: 90
+        set: {twist: 0.15, lean: -0.04, squash: 0.97, hand_L: [0.24, 0.16, -0.08], hand_R: [0.36, 0.16, -0.10],
+              staff_pitch: -0.20, staff_roll: 0.30, coat: -0.1, orb: 1.15}
+      - ms: 150
+        event: windup
+        set: {twist: 0.25, lean: -0.08, bob: -0.03, squash: 0.94, hand_L: [0.26, 0.20, -0.18], hand_R: [0.38, 0.16, -0.18],
+              staff_pitch: -0.30, staff_roll: 0.40, coat: -0.3, head_pitch: -0.05, orb: 1.3}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.03], twist: -0.22, lean: 0.16, squash: 1.05, hand_L: "[0.20 + 0.12*pulse(yaw, 0, 70), 0.20 + 0.10*pulse(yaw, 0, 70), 0.42]", hand_R: [0.38, 0.15, -0.14],
+              staff_pitch: -0.35, staff_roll: 0.35, foot_L: [0.10, 0, 0.12], coat: 0.5, orb: 1.5}
+      - ms: 100
+        set: {root: [0, 0, 0.03], twist: -0.28, lean: 0.12, hand_L: "[0.21 + 0.12*pulse(yaw, 0, 70), 0.19 + 0.10*pulse(yaw, 0, 70), 0.40]", hand_R: [0.37, 0.15, -0.12],
+              staff_pitch: -0.30, staff_roll: 0.30, foot_L: [0.10, 0, 0.10], coat: 0.3, orb: 1.2}
+      - ms: 100
+        set: {twist: -0.10, lean: 0.05, hand_L: [0.22, 0.14, 0.12], hand_R: [0.34, 0.14, 0.08], staff_pitch: -0.05, coat: 0.05}
+  attack3:         # basic attack variation 3: twirl-flick, the staff swings a short arc then points forward
+    loop: false
+    keys:
+      - ms: 80
+        set: {twist: -0.20, squash: 0.96, bob: -0.02, hand_R: [0.28, 0.24, 0.0], hand_L: [0.22, 0.14, 0.10],
+              staff_pitch: -0.25, staff_roll: -0.30, coat: -0.2, orb: 1.2}
+      - ms: 70
+        event: windup
+        set: {twist: -0.05, hand_R: [0.36, 0.30, 0.06], hand_L: [0.22, 0.14, 0.08], staff_pitch: 0.10, staff_roll: 0.95,
+              coat: 0.2, orb: 1.3}
+      - ms: 70
+        set: {twist: 0.15, lean: 0.06, hand_R: [0.26, 0.26, 0.18], hand_L: [0.24, 0.12, 0.0], staff_pitch: 0.55, staff_roll: 0.50,
+              coat: 0.35, orb: 1.4}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.02], twist: 0.25, lean: 0.16, squash: 1.05, hand_R: [0.12, 0.27, 0.26], hand_L: [0.26, 0.10, -0.08],
+              staff_pitch: "0.95 - 0.22*pulse(yaw, 0, 70)", staff_roll: 0.08, foot_L: [0.10, 0, 0.12], coat: 0.5, orb: 1.6}
+      - ms: 100
+        set: {root: [0, 0, 0.02], twist: 0.18, lean: 0.12, hand_R: [0.14, 0.24, 0.26], hand_L: [0.26, 0.10, -0.06],
+              staff_pitch: "0.85 - 0.3*pulse(yaw, 0, 70)", foot_L: [0.10, 0, 0.10], coat: 0.3, orb: 1.15}
+      - ms: 90
+        set: {twist: 0.05, lean: 0.05, hand_R: [0.22, 0.18, 0.20], staff_pitch: 0.35, coat: 0.05}
+  frostnova:       # crouch, lift the staff, slam the butt on the ground with arms spread: burst around self
+    loop: false
+    keys:
+      - ms: 100
+        set: {bob: -0.06, squash: 0.90, lean: 0.14, head_pitch: 0.08, hand_R: [0.34, 0.30, 0.12], hand_L: [0.16, 0.20, 0.14],
+              staff_pitch: 0.05, staff_roll: 0.22, coat: -0.2, orb: 1.2}
+      - ms: 170
+        event: windup
+        set: {bob: 0.03, squash: 1.05, lean: -0.08, head_pitch: -0.08, hand_R: [0.28, 0.50, 0.12], hand_L: [0.20, 0.40, 0.10],
+              staff_pitch: 0.0, staff_roll: 0.05, coat: -0.3, orb: 1.5}
+      - ms: 80
+        event: release
+        set: {bob: -0.07, squash: 0.88, lean: 0.10, head_pitch: 0.05, hand_R: [0.40, 0.04, 0.18], hand_L: [0.46, 0.24, 0.0],
+              staff_pitch: 0.04, staff_roll: "0.24 + 0.40*(dir == 'se') + 0.35*(dir == 'e')", coat: 0.7, orb: 2.0}
+      - ms: 140
+        set: {bob: -0.05, squash: 0.92, lean: 0.08, hand_R: [0.40, 0.05, 0.18], hand_L: [0.44, 0.22, 0.0],
+              staff_pitch: 0.04, staff_roll: "0.22 + 0.40*(dir == 'se') + 0.35*(dir == 'e')", coat: 0.4, orb: 1.6}
+      - ms: 120
+        set: {bob: -0.02, squash: 0.97, lean: 0.04, hand_R: [0.36, 0.11, 0.15], hand_L: [0.30, 0.14, 0.04],
+              staff_pitch: 0.06, staff_roll: 0.16, coat: 0.15, orb: 1.25}
+      - ms: 100
+        set: {hand_R: [0.34, 0.14, 0.14], staff_pitch: 0.08, orb: 1.05}
+  chain:           # chain lightning: braced staff thrust, orb flares, jittery hold while the arc crackles
+    loop: false
+    keys:
+      - ms: 100
+        set: {twist: -0.25, lean: -0.06, squash: 0.96, hand_R: [0.26, 0.20, -0.04], hand_L: [0.22, 0.16, 0.10],
+              staff_pitch: -0.20, coat: -0.2, orb: 1.2}
+      - ms: 130
+        event: windup
+        set: {twist: -0.35, lean: -0.10, bob: -0.03, squash: 0.94, hand_R: [0.26, 0.24, -0.12], hand_L: [0.20, 0.18, 0.14],
+              staff_pitch: -0.35, coat: -0.3, head_pitch: -0.05, orb: 1.45}
+      - ms: 60
+        event: release
+        set: {root: [0, 0, 0.02], twist: 0.15, lean: 0.18, bob: -0.02, squash: 0.97, hand_R: [0.12, 0.28, 0.24], hand_L: [0.24, 0.24, 0.20],
+              staff_pitch: "0.90 - 0.22*pulse(yaw, 0, 70)", foot_L: [0.10, 0, 0.14], coat: 0.5, orb: 1.95}
+      - ms: 70
+        set: {root: [0, 0, 0.02], twist: 0.08, lean: 0.16, bob: -0.03, hand_R: [0.15, 0.26, 0.23], hand_L: [0.25, 0.22, 0.19],
+              staff_pitch: "0.84 - 0.22*pulse(yaw, 0, 70)", staff_roll: 0.02, foot_L: [0.10, 0, 0.14], coat: 0.3, orb: 1.6}
+      - ms: 70
+        set: {root: [0, 0, 0.02], twist: 0.20, lean: 0.18, bob: -0.01, hand_R: [0.11, 0.29, 0.24], hand_L: [0.23, 0.25, 0.21],
+              staff_pitch: "0.86 - 0.22*pulse(yaw, 0, 70)", staff_roll: 0.20, foot_L: [0.10, 0, 0.14], coat: 0.45, orb: 1.9}
+      - ms: 70
+        set: {root: [0, 0, 0.02], twist: 0.10, lean: 0.16, bob: -0.03, hand_R: [0.14, 0.26, 0.23], hand_L: [0.25, 0.22, 0.19],
+              staff_pitch: "0.86 - 0.22*pulse(yaw, 0, 70)", staff_roll: 0.06, foot_L: [0.10, 0, 0.14], coat: 0.3, orb: 1.55}
+      - ms: 110
+        set: {root: [0, 0, 0.01], twist: 0.05, lean: 0.06, hand_R: [0.22, 0.18, 0.20], hand_L: [0.24, 0.12, 0.06],
+              staff_pitch: 0.40, coat: 0.05, orb: 1.15}
+  shield:          # arcane shield: staff vertical in front, free hand raised, orb glows brightest at the peak
+    loop: false
+    keys:
+      - ms: 100
+        set: {bob: -0.03, squash: 0.95, head_pitch: 0.08, hand_R: [0.22, 0.10, 0.16], hand_L: [0.22, 0.08, 0.04],
+              staff_pitch: 0.0, staff_roll: 0.0, coat: -0.1, orb: 1.1}
+      - ms: 140
+        event: windup
+        set: {bob: 0.01, squash: 1.03, hand_R: "[0.20 + 0.14*(dir == 's'), 0.22, 0.22]", hand_L: [0.36, 0.32, 0.10],
+              staff_pitch: 0.10, staff_roll: "-0.04 - 0.40*(dir == 'se')", coat: 0.2, orb: 1.5}
+      - ms: 170
+        event: release
+        set: {bob: 0.03, squash: 1.06, head_pitch: -0.10, hand_R: "[0.18 + 0.16*(dir == 's'), 0.26, 0.25]", hand_L: [0.40, 0.48, 0.12],
+              staff_pitch: 0.16, staff_roll: "-0.06 - 0.45*(dir == 'se')", coat: 0.45, orb: 2.0}
+      - ms: 130
+        set: {bob: 0.01, squash: 1.02, head_pitch: -0.05, hand_R: "[0.19 + 0.15*(dir == 's'), 0.24, 0.24]", hand_L: [0.38, 0.42, 0.10],
+              staff_pitch: 0.13, staff_roll: "-0.05 - 0.42*(dir == 'se')", coat: 0.25, orb: 1.55}
+      - ms: 120
+        set: {hand_R: [0.30, 0.16, 0.16], hand_L: [0.24, 0.14, 0.05], staff_pitch: 0.05, coat: 0.05, orb: 1.15}
+  meteor:          # both arms and staff to the sky, then pulled down toward the target
+    loop: false
+    keys:
+      - ms: 90
+        set: {bob: -0.05, squash: 0.92, lean: 0.12, head_pitch: 0.06, hand_R: [0.30, 0.10, 0.18], hand_L: [0.18, 0.10, 0.18],
+              staff_pitch: 0.15, coat: -0.1, orb: 1.15}
+      - ms: 110
+        set: {bob: 0.02, squash: 1.04, lean: -0.08, head_pitch: -0.10, hand_R: [0.26, 0.48, 0.08], hand_L: [0.28, 0.46, 0.08],
+              staff_pitch: -0.05, coat: -0.25, orb: 1.5}
+      - ms: 170
+        event: windup
+        set: {bob: 0.04, squash: 1.07, lean: -0.16, head_pitch: -0.16, hand_R: [0.22, 0.64, 0.02], hand_L: [0.30, 0.60, 0.02],
+              staff_pitch: -0.20, coat: -0.35, orb: 1.9}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.02], bob: -0.04, squash: 0.94, lean: 0.22, head_pitch: 0.04, hand_R: [0.15, 0.24, 0.23], hand_L: [0.18, 0.22, 0.26],
+              staff_pitch: "0.90 - 0.22*pulse(yaw, 0, 70)", foot_L: [0.10, 0, 0.12], coat: 0.6, orb: 1.7}
+      - ms: 110
+        set: {root: [0, 0, 0.02], bob: -0.05, squash: 0.93, lean: 0.26, head_pitch: 0.06, hand_R: [0.16, 0.20, 0.23], hand_L: [0.20, 0.18, 0.24],
+              staff_pitch: "0.98 - 0.25*pulse(yaw, 0, 70)", foot_L: [0.10, 0, 0.12], coat: 0.4, orb: 1.3}
+      - ms: 120
+        set: {root: [0, 0, 0.01], lean: 0.08, hand_R: [0.24, 0.16, 0.20], hand_L: [0.24, 0.12, 0.08], staff_pitch: 0.40, coat: 0.1, orb: 1.05}

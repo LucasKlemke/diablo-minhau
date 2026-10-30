@@ -37,6 +37,7 @@ materials:
   steel: {ramp: steel, bands: [2, 4]}
   fletch: {ramp: cloth_red, bands: [2, 3]}
   ink:   {ramp: cloth, emissive: true, band: 0, outline: false}
+  ember: {ramp: fire, emissive: true, band: 1, outline: false, line: false, glow: {color: "#fe6607", mix: 0.5, radius: 1}}
 
 channels:
   root: [0, 0, 0]
@@ -55,6 +56,7 @@ channels:
   draw: 0          # 0 = string at rest, 1 = pulled to the right hand
   arrow: 0         # > 0.5 shows the nocked arrow
   volley: 0        # > 0.5 shows two extra arrows (cast)
+  glow: 0          # > 0.5 lights the arrow tip (explosive arrow)
   aimcant: 0       # extra cant of the drawn bow, only near s and n where a vertical bow is edge-on
 
 bones:
@@ -251,11 +253,20 @@ parts:
     prims:
       - cone: {a: [0.13, 0.03, 0.17], b: [0.15, 0.03, 0.26], r: [0.038, 0.008]}
       - cone: {a: [-0.13, 0.03, 0.17], b: [-0.15, 0.03, 0.26], r: [0.038, 0.008]}
+  arrow_glow:      # burning tip of the explosive arrow
+    when: "arrow > 0.5 and glow > 0.5"
+    material: ember
+    space: bowgrip
+    prims:
+      - sphere: {c: [0, 0, 0.27], r: 0.08}
 
 sockets:
   muzzle: {bone: bowgrip, offset: [0, 0, 0.10]}   # arrow spawn: bow centre, just ahead of the grip
 
-timing: {attack: {release: 280ms, total: 450ms}, cast: {release: 300ms, total: 470ms}}
+timing: {attack: {release: 280ms, total: 450ms}, cast: {release: 300ms, total: 470ms},
+         attack2: {release: 200ms, total: 460ms}, attack3: {release: 280ms, total: 540ms},
+         multishot: {release: 310ms, total: 560ms}, explosive: {release: 380ms, total: 670ms},
+         rain: {release: 330ms, total: 600ms}, piercing: {release: 400ms, total: 700ms}}
 
 animations:
   idle:
@@ -324,6 +335,153 @@ animations:
       - ms: 100
         set: {twist: -0.3, lean: -0.02, head_yaw: 0.25, hand_L: [0.32, 0.18, 0.20], bow_rot: [-0.2, 0.45, 0],
               hand_R: [0.18, 0.06, 0.06], foot_L: [0.09, 0, 0.06], cape: 0.2}
+  attack2:         # snap shot: half nock, quick lean-in draw, fast release
+    loop: false
+    keys:
+      - ms: 60
+        set: {twist: -0.35, lean: 0.10, head_yaw: 0.3, hand_L: [0.33, 0.20, 0.24], bow_rot: [0, 0.45, 0.1],
+              hand_R: [-0.02, 0.22, 0.12], arrow: 1, draw: 0.3, aimcant: 0.6, squash: 0.98}
+      - ms: 140
+        event: windup
+        set: {twist: -0.5, lean: 0.16, head_yaw: 0.42, bob: -0.02, hand_L: [0.37, 0.27, 0.28], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.09, 0.27, -0.01], arrow: 1, draw: 0.8, aimcant: 1.1, squash: 0.96,
+              foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.02], cape: -0.2}
+      - ms: 60
+        event: release
+        set: {twist: -0.54, lean: 0.18, head_yaw: 0.45, root: [0, 0, -0.02], hand_L: [0.37, 0.29, 0.27], bow_rot: [-0.08, 0.6, 0.15],
+              hand_R: [-0.20, 0.33, -0.10], draw: -0.1, aimcant: 1.1, squash: 1.03,
+              foot_L: [0.09, 0, 0.10], foot_R: [0.09, 0, -0.02], cape: 0.4}
+      - ms: 120
+        set: {twist: -0.28, lean: 0.10, head_yaw: 0.22, hand_L: [0.32, 0.14, 0.20], bow_rot: [0, 0.45, 0],
+              hand_R: [0.14, 0.08, 0.06], foot_L: [0.09, 0, 0.06], cape: 0.25}
+      - ms: 80
+        set: {twist: -0.08, lean: 0.06, hand_L: [0.28, 0.04, 0.14], bow_rot: [0, 0.8, -0.3], hand_R: [0.22, 0.02, 0.05], cape: 0.1}
+  attack3:         # sidestep into a crouch, fire low, rise back
+    loop: false
+    keys:
+      - ms: 70
+        set: {root: [0.08, 0, 0], bob: -0.05, twist: -0.4, lean: 0.08, head_yaw: 0.3, hand_L: [0.33, 0.16, 0.22], bow_rot: [0, 0.4, 0.1],
+              hand_R: [-0.02, 0.18, 0.12], arrow: 1, draw: 0.2, foot_L: [0.15, 0.06, 0.08], foot_R: [0.09, 0, -0.04], pitch_foot_L: 0.3, cape: 0.4}
+      - ms: 90
+        set: {root: [0.13, 0, 0], bob: -0.17, squash: 0.91, twist: -0.6, lean: 0.14, head_yaw: 0.48, hand_L: [0.37, 0.26, 0.27], bow_rot: [0, 0.6, 0.2],
+              hand_R: [-0.06, 0.26, 0.05], arrow: 1, draw: 0.6, aimcant: 1.1, foot_L: [0.19, 0, 0.14], foot_R: [0.15, 0, -0.11], cape: 0.2}
+      - ms: 120
+        event: windup
+        set: {root: [0.13, 0, 0], bob: -0.19, squash: 0.90, twist: -0.65, lean: 0.16, head_yaw: 0.5, hand_L: [0.38, 0.27, 0.28], bow_rot: [0, 0.6, 0.2],
+              hand_R: [-0.15, 0.27, -0.07], arrow: 1, draw: 1, aimcant: 1.1, foot_L: [0.19, 0, 0.14], foot_R: [0.15, 0, -0.11], cape: -0.1}
+      - ms: 60
+        event: release
+        set: {root: [0.13, 0, -0.03], bob: -0.18, squash: 1.02, twist: -0.68, lean: 0.14, head_yaw: 0.5, hand_L: [0.38, 0.29, 0.26], bow_rot: [-0.1, 0.6, 0.2],
+              hand_R: [-0.25, 0.32, -0.15], draw: -0.12, aimcant: 1.1, foot_L: [0.19, 0, 0.14], foot_R: [0.15, 0, -0.11], cape: 0.45}
+      - ms: 110
+        set: {root: [0.08, 0, -0.01], bob: -0.08, squash: 0.97, twist: -0.35, lean: 0.10, head_yaw: 0.25, hand_L: [0.32, 0.14, 0.20], bow_rot: [0, 0.45, 0],
+              hand_R: [0.14, 0.06, 0.06], foot_L: [0.14, 0, 0.10], foot_R: [0.11, 0, -0.06], cape: 0.3}
+      - ms: 90
+        set: {root: [0.02, 0, 0], bob: -0.01, twist: -0.1, hand_L: [0.28, 0.04, 0.14], bow_rot: [0, 0.8, -0.3], hand_R: [0.22, 0.02, 0.05],
+              foot_L: [0.10, 0, 0.04], cape: 0.1}
+  multishot:       # Fan of Arrows: bow canted flat, three arrows, wide draw
+    loop: false
+    keys:
+      - ms: 80
+        set: {twist: -0.3, head_yaw: 0.25, hand_L: [0.33, 0.18, 0.22], bow_rot: [0, 0.4, 0.6],
+              hand_R: [-0.02, 0.20, 0.12], arrow: 1, volley: 1, draw: 0.15, squash: 0.98}
+      - ms: 100
+        set: {twist: -0.55, head_yaw: 0.45, hand_L: [0.38, 0.24, 0.28], bow_rot: [0, 0.6, 1.15],
+              hand_R: [-0.08, 0.24, 0.03], arrow: 1, volley: 1, draw: 0.6, squash: 0.97,
+              foot_L: [0.12, 0, 0.11], foot_R: [0.12, 0, -0.06]}
+      - ms: 130
+        event: windup
+        set: {twist: -0.65, head_yaw: 0.52, bob: -0.03, hand_L: [0.39, 0.25, 0.29], bow_rot: [0, 0.6, 1.25],
+              hand_R: [-0.19, 0.25, -0.09], arrow: 1, volley: 1, draw: 1.05, squash: 0.95,
+              foot_L: [0.13, 0, 0.12], foot_R: [0.13, 0, -0.07], cape: -0.3}
+      - ms: 70
+        event: release
+        set: {twist: -0.68, head_yaw: 0.52, root: [0, 0, -0.04], hand_L: [0.39, 0.27, 0.27], bow_rot: [-0.08, 0.6, 1.25],
+              hand_R: [-0.29, 0.32, -0.17], draw: -0.12, squash: 1.04,
+              foot_L: [0.13, 0, 0.12], foot_R: [0.13, 0, -0.07], cape: 0.5}
+      - ms: 100
+        set: {twist: -0.35, head_yaw: 0.28, root: [0, 0, -0.02], hand_L: [0.33, 0.16, 0.21], bow_rot: [0, 0.5, 0.6],
+              hand_R: [0.14, 0.08, 0.06], foot_L: [0.11, 0, 0.07], cape: 0.3}
+      - ms: 80
+        set: {twist: -0.1, hand_L: [0.28, 0.04, 0.14], bow_rot: [0, 0.8, -0.2], hand_R: [0.22, 0.02, 0.05], cape: 0.1}
+  explosive:       # heavy deliberate draw, burning tip, release with recoil
+    loop: false
+    keys:
+      - ms: 100
+        set: {twist: -0.3, bob: -0.02, head_yaw: 0.25, hand_L: [0.32, 0.12, 0.20], bow_rot: [0, 0.35, 0.05],
+              hand_R: [0.0, 0.14, 0.14], arrow: 1, glow: 1, draw: 0.1, squash: 0.97, foot_L: [0.10, 0, 0.08]}
+      - ms: 110
+        set: {twist: -0.55, bob: -0.03, head_yaw: 0.45, hand_L: [0.36, 0.26, 0.26], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.06, 0.26, 0.06], arrow: 1, glow: 1, draw: 0.55, aimcant: 1.1, squash: 0.96,
+              foot_L: [0.11, 0, 0.12], foot_R: [0.11, 0, -0.06]}
+      - ms: 170
+        event: windup
+        set: {twist: -0.64, lean: 0.0, bob: -0.05, head_yaw: 0.52, hand_L: [0.37, 0.28, 0.27], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.17, 0.28, -0.08], arrow: 1, glow: 1, draw: 1.08, aimcant: 1.1, squash: 0.93,
+              foot_L: [0.11, 0, 0.12], foot_R: [0.11, 0, -0.06], cape: -0.3}
+      - ms: 60
+        event: release
+        set: {twist: -0.6, lean: -0.2, bob: -0.01, head_yaw: 0.48, head_pitch: -0.12, root: [0, 0, -0.08], hand_L: [0.35, 0.38, 0.22], bow_rot: [-0.35, 0.6, 0.15],
+              hand_R: [-0.25, 0.36, -0.14], draw: -0.15, aimcant: 1.1, squash: 1.06,
+              foot_L: [0.11, 0, 0.14], foot_R: [0.11, 0, -0.04], cape: 0.7}
+      - ms: 110
+        set: {twist: -0.45, lean: -0.12, head_yaw: 0.35, head_pitch: -0.06, root: [0, 0, -0.07], hand_L: [0.34, 0.30, 0.22], bow_rot: [-0.2, 0.55, 0.1],
+              hand_R: [-0.05, 0.22, 0.0], squash: 0.98, foot_L: [0.11, 0, 0.14], foot_R: [0.11, 0, -0.04], cape: 0.5}
+      - ms: 120
+        set: {twist: -0.15, lean: 0.02, root: [0, 0, -0.03], hand_L: [0.29, 0.06, 0.15], bow_rot: [0, 0.8, -0.25],
+              hand_R: [0.20, 0.03, 0.05], foot_L: [0.10, 0, 0.06], cape: 0.2}
+  rain:            # Rain of Arrows: lean back, bow raised to the sky, release upward
+    loop: false
+    keys:
+      - ms: 90
+        set: {twist: -0.3, lean: -0.05, head_yaw: 0.25, head_pitch: -0.1, hand_L: [0.31, 0.30, 0.21], bow_rot: [-0.5, 0.35, 0.1],
+              hand_R: [-0.02, 0.22, 0.12], arrow: 1, draw: 0.1, squash: 0.97}
+      - ms: 100
+        set: {twist: -0.5, lean: -0.15, head_yaw: 0.42, head_pitch: -0.3, hand_L: [0.29, 0.62, 0.17], bow_rot: [-1.05, 0.55, 0.1],
+              hand_R: [-0.05, 0.34, 0.05], arrow: 1, draw: 0.5, aimcant: 0.6, squash: 0.97,
+              foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0, -0.07]}
+      - ms: 140
+        event: windup
+        set: {twist: -0.55, lean: -0.2, bob: -0.03, head_yaw: 0.45, head_pitch: -0.35, hand_L: [0.29, 0.66, 0.16], bow_rot: [-1.1, 0.55, 0.1],
+              hand_R: [-0.13, 0.30, -0.06], arrow: 1, draw: 1, aimcant: 0.6, squash: 0.95,
+              foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0, -0.07], cape: -0.3}
+      - ms: 70
+        event: release
+        set: {twist: -0.58, lean: -0.22, bob: 0.02, head_yaw: 0.45, head_pitch: -0.4, root: [0, 0, -0.03], hand_L: [0.29, 0.70, 0.14], bow_rot: [-1.2, 0.55, 0.1],
+              hand_R: [-0.23, 0.34, -0.14], draw: -0.12, aimcant: 0.6, squash: 1.05,
+              foot_L: [0.10, 0, 0.12], foot_R: [0.10, 0, -0.07], cape: 0.5}
+      - ms: 110
+        set: {twist: -0.35, lean: -0.12, head_yaw: 0.25, head_pitch: -0.25, hand_L: [0.31, 0.40, 0.18], bow_rot: [-0.7, 0.45, 0],
+              hand_R: [0.12, 0.10, 0.06], foot_L: [0.10, 0, 0.08], cape: 0.3}
+      - ms: 90
+        set: {twist: -0.1, lean: -0.02, head_pitch: -0.08, hand_L: [0.28, 0.08, 0.14], bow_rot: [-0.1, 0.8, -0.25],
+              hand_R: [0.22, 0.02, 0.05], cape: 0.1}
+  piercing:        # long charged draw, lean back under tension, powerful release, big follow-through
+    loop: false
+    keys:
+      - ms: 80
+        set: {twist: -0.35, head_yaw: 0.3, hand_L: [0.33, 0.16, 0.22], bow_rot: [0, 0.35, 0.1],
+              hand_R: [-0.02, 0.18, 0.14], arrow: 1, draw: 0.15, squash: 0.98, foot_L: [0.10, 0, 0.08]}
+      - ms: 110
+        set: {twist: -0.6, lean: -0.06, head_yaw: 0.48, hand_L: [0.37, 0.28, 0.27], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.10, 0.28, -0.01], arrow: 1, draw: 0.65, aimcant: 1.1, squash: 0.96,
+              foot_L: [0.12, 0, 0.14], foot_R: [0.12, 0, -0.09]}
+      - ms: 210
+        event: windup
+        set: {twist: -0.75, lean: -0.24, bob: -0.05, head_yaw: 0.6, hand_L: [0.39, 0.29, 0.29], bow_rot: [0, 0.6, 0.15],
+              hand_R: [-0.22, 0.29, -0.13], arrow: 1, draw: 1.15, aimcant: 1.1, squash: 0.92,
+              foot_L: [0.13, 0, 0.15], foot_R: [0.13, 0, -0.10], cape: -0.4}
+      - ms: 60
+        event: release
+        set: {twist: -0.8, lean: 0.10, bob: -0.02, head_yaw: 0.6, root: [0, 0, -0.06], hand_L: [0.40, 0.31, 0.29], bow_rot: [-0.15, 0.6, 0.15],
+              hand_R: [-0.34, 0.40, -0.22], draw: -0.18, aimcant: 1.1, squash: 1.07,
+              foot_L: [0.13, 0, 0.15], foot_R: [0.13, 0, -0.10], cape: 0.8}
+      - ms: 120
+        set: {twist: -0.55, lean: 0.20, bob: -0.04, head_yaw: 0.42, root: [0, 0, -0.04], hand_L: [0.38, 0.22, 0.28], bow_rot: [-0.05, 0.55, 0.1],
+              hand_R: [-0.20, 0.36, -0.10], squash: 0.97, foot_L: [0.13, 0, 0.15], foot_R: [0.13, 0, -0.08], cape: 0.6}
+      - ms: 120
+        set: {twist: -0.2, lean: 0.08, root: [0, 0, -0.02], hand_L: [0.30, 0.08, 0.16], bow_rot: [0, 0.8, -0.2],
+              hand_R: [0.18, 0.04, 0.05], foot_L: [0.10, 0, 0.06], cape: 0.25}
   hit:
     loop: false
     keys:

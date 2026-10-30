@@ -2100,10 +2100,3475 @@
    },
    "duration": 160
   },
-  "hit_s_0": {
+  "attack2_s_0": {
    "frame": {
     "x": 0,
     "y": 960,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 960,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "attack2_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 960,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack2_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 960,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "attack2_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 960,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1008,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 1008,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "attack2_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 1008,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack2_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 1008,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "attack2_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 1008,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1056,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 1056,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "attack2_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 1056,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack2_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 1056,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "attack2_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 1056,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1104,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 1104,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "attack2_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 1104,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack2_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 1104,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "attack2_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 1104,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1152,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack2_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 1152,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "attack2_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 1152,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack2_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 1152,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "attack2_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 1152,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "attack3_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack3_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_s_5": {
+   "frame": {
+    "x": 240,
+    "y": 1200,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "attack3_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack3_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_se_5": {
+   "frame": {
+    "x": 240,
+    "y": 1248,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "attack3_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack3_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_e_5": {
+   "frame": {
+    "x": 240,
+    "y": 1296,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "attack3_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack3_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_ne_5": {
+   "frame": {
+    "x": 240,
+    "y": 1344,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "attack3_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "attack3_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "attack3_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "attack3_n_5": {
+   "frame": {
+    "x": 240,
+    "y": 1392,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "drain_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "drain_s_5": {
+   "frame": {
+    "x": 240,
+    "y": 1440,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "drain_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "drain_se_5": {
+   "frame": {
+    "x": 240,
+    "y": 1488,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "drain_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "drain_e_5": {
+   "frame": {
+    "x": 240,
+    "y": 1536,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "drain_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "drain_ne_5": {
+   "frame": {
+    "x": 240,
+    "y": 1584,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "drain_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "drain_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "drain_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "drain_n_5": {
+   "frame": {
+    "x": 240,
+    "y": 1632,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "plague_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "plague_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "plague_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_s_5": {
+   "frame": {
+    "x": 240,
+    "y": 1680,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "plague_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "plague_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_se_5": {
+   "frame": {
+    "x": 240,
+    "y": 1728,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "plague_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "plague_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_e_5": {
+   "frame": {
+    "x": 240,
+    "y": 1776,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "plague_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "plague_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_ne_5": {
+   "frame": {
+    "x": 240,
+    "y": 1824,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 110
+  },
+  "plague_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "plague_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 70
+  },
+  "plague_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 100
+  },
+  "plague_n_5": {
+   "frame": {
+    "x": 240,
+    "y": 1872,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 1920,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 1920,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "corpse_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 1920,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 60
+  },
+  "corpse_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 1920,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 1920,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "corpse_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 1968,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 1968,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "corpse_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 1968,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 60
+  },
+  "corpse_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 1968,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 1968,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "corpse_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 2016,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 2016,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "corpse_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 2016,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 60
+  },
+  "corpse_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 2016,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 2016,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "corpse_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 2064,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 2064,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "corpse_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 2064,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 60
+  },
+  "corpse_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 2064,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 2064,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "corpse_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 2112,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 2112,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "corpse_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 2112,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 60
+  },
+  "corpse_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 2112,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "corpse_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 2112,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 130
+  },
+  "bloodpact_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 2160,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "bloodpact_s_1": {
+   "frame": {
+    "x": 48,
+    "y": 2160,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 160
+  },
+  "bloodpact_s_2": {
+   "frame": {
+    "x": 96,
+    "y": 2160,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "bloodpact_s_3": {
+   "frame": {
+    "x": 144,
+    "y": 2160,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 180
+  },
+  "bloodpact_s_4": {
+   "frame": {
+    "x": 192,
+    "y": 2160,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "bloodpact_se_0": {
+   "frame": {
+    "x": 0,
+    "y": 2208,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "bloodpact_se_1": {
+   "frame": {
+    "x": 48,
+    "y": 2208,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 160
+  },
+  "bloodpact_se_2": {
+   "frame": {
+    "x": 96,
+    "y": 2208,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "bloodpact_se_3": {
+   "frame": {
+    "x": 144,
+    "y": 2208,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 180
+  },
+  "bloodpact_se_4": {
+   "frame": {
+    "x": 192,
+    "y": 2208,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "bloodpact_e_0": {
+   "frame": {
+    "x": 0,
+    "y": 2256,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "bloodpact_e_1": {
+   "frame": {
+    "x": 48,
+    "y": 2256,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 160
+  },
+  "bloodpact_e_2": {
+   "frame": {
+    "x": 96,
+    "y": 2256,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "bloodpact_e_3": {
+   "frame": {
+    "x": 144,
+    "y": 2256,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 180
+  },
+  "bloodpact_e_4": {
+   "frame": {
+    "x": 192,
+    "y": 2256,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "bloodpact_ne_0": {
+   "frame": {
+    "x": 0,
+    "y": 2304,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "bloodpact_ne_1": {
+   "frame": {
+    "x": 48,
+    "y": 2304,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 160
+  },
+  "bloodpact_ne_2": {
+   "frame": {
+    "x": 96,
+    "y": 2304,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "bloodpact_ne_3": {
+   "frame": {
+    "x": 144,
+    "y": 2304,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 180
+  },
+  "bloodpact_ne_4": {
+   "frame": {
+    "x": 192,
+    "y": 2304,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "bloodpact_n_0": {
+   "frame": {
+    "x": 0,
+    "y": 2352,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 120
+  },
+  "bloodpact_n_1": {
+   "frame": {
+    "x": 48,
+    "y": 2352,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 160
+  },
+  "bloodpact_n_2": {
+   "frame": {
+    "x": 96,
+    "y": 2352,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 90
+  },
+  "bloodpact_n_3": {
+   "frame": {
+    "x": 144,
+    "y": 2352,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 180
+  },
+  "bloodpact_n_4": {
+   "frame": {
+    "x": 192,
+    "y": 2352,
+    "w": 48,
+    "h": 48
+   },
+   "rotated": false,
+   "trimmed": false,
+   "spriteSourceSize": {
+    "x": 0,
+    "y": 0,
+    "w": 48,
+    "h": 48
+   },
+   "sourceSize": {
+    "w": 48,
+    "h": 48
+   },
+   "duration": 140
+  },
+  "hit_s_0": {
+   "frame": {
+    "x": 0,
+    "y": 2400,
     "w": 48,
     "h": 48
    },
@@ -2124,7 +5589,7 @@
   "hit_s_1": {
    "frame": {
     "x": 48,
-    "y": 960,
+    "y": 2400,
     "w": 48,
     "h": 48
    },
@@ -2145,7 +5610,7 @@
   "hit_s_2": {
    "frame": {
     "x": 96,
-    "y": 960,
+    "y": 2400,
     "w": 48,
     "h": 48
    },
@@ -2166,7 +5631,7 @@
   "hit_se_0": {
    "frame": {
     "x": 0,
-    "y": 1008,
+    "y": 2448,
     "w": 48,
     "h": 48
    },
@@ -2187,7 +5652,7 @@
   "hit_se_1": {
    "frame": {
     "x": 48,
-    "y": 1008,
+    "y": 2448,
     "w": 48,
     "h": 48
    },
@@ -2208,7 +5673,7 @@
   "hit_se_2": {
    "frame": {
     "x": 96,
-    "y": 1008,
+    "y": 2448,
     "w": 48,
     "h": 48
    },
@@ -2229,7 +5694,7 @@
   "hit_e_0": {
    "frame": {
     "x": 0,
-    "y": 1056,
+    "y": 2496,
     "w": 48,
     "h": 48
    },
@@ -2250,7 +5715,7 @@
   "hit_e_1": {
    "frame": {
     "x": 48,
-    "y": 1056,
+    "y": 2496,
     "w": 48,
     "h": 48
    },
@@ -2271,7 +5736,7 @@
   "hit_e_2": {
    "frame": {
     "x": 96,
-    "y": 1056,
+    "y": 2496,
     "w": 48,
     "h": 48
    },
@@ -2292,7 +5757,7 @@
   "hit_ne_0": {
    "frame": {
     "x": 0,
-    "y": 1104,
+    "y": 2544,
     "w": 48,
     "h": 48
    },
@@ -2313,7 +5778,7 @@
   "hit_ne_1": {
    "frame": {
     "x": 48,
-    "y": 1104,
+    "y": 2544,
     "w": 48,
     "h": 48
    },
@@ -2334,7 +5799,7 @@
   "hit_ne_2": {
    "frame": {
     "x": 96,
-    "y": 1104,
+    "y": 2544,
     "w": 48,
     "h": 48
    },
@@ -2355,7 +5820,7 @@
   "hit_n_0": {
    "frame": {
     "x": 0,
-    "y": 1152,
+    "y": 2592,
     "w": 48,
     "h": 48
    },
@@ -2376,7 +5841,7 @@
   "hit_n_1": {
    "frame": {
     "x": 48,
-    "y": 1152,
+    "y": 2592,
     "w": 48,
     "h": 48
    },
@@ -2397,7 +5862,7 @@
   "hit_n_2": {
    "frame": {
     "x": 96,
-    "y": 1152,
+    "y": 2592,
     "w": 48,
     "h": 48
    },
@@ -2418,7 +5883,7 @@
   "death_s_0": {
    "frame": {
     "x": 0,
-    "y": 1200,
+    "y": 2640,
     "w": 48,
     "h": 48
    },
@@ -2439,7 +5904,7 @@
   "death_s_1": {
    "frame": {
     "x": 48,
-    "y": 1200,
+    "y": 2640,
     "w": 48,
     "h": 48
    },
@@ -2460,7 +5925,7 @@
   "death_s_2": {
    "frame": {
     "x": 96,
-    "y": 1200,
+    "y": 2640,
     "w": 48,
     "h": 48
    },
@@ -2481,7 +5946,7 @@
   "death_s_3": {
    "frame": {
     "x": 144,
-    "y": 1200,
+    "y": 2640,
     "w": 48,
     "h": 48
    },
@@ -2502,7 +5967,7 @@
   "death_s_4": {
    "frame": {
     "x": 192,
-    "y": 1200,
+    "y": 2640,
     "w": 48,
     "h": 48
    },
@@ -2523,7 +5988,7 @@
   "death_se_0": {
    "frame": {
     "x": 0,
-    "y": 1248,
+    "y": 2688,
     "w": 48,
     "h": 48
    },
@@ -2544,7 +6009,7 @@
   "death_se_1": {
    "frame": {
     "x": 48,
-    "y": 1248,
+    "y": 2688,
     "w": 48,
     "h": 48
    },
@@ -2565,7 +6030,7 @@
   "death_se_2": {
    "frame": {
     "x": 96,
-    "y": 1248,
+    "y": 2688,
     "w": 48,
     "h": 48
    },
@@ -2586,7 +6051,7 @@
   "death_se_3": {
    "frame": {
     "x": 144,
-    "y": 1248,
+    "y": 2688,
     "w": 48,
     "h": 48
    },
@@ -2607,7 +6072,7 @@
   "death_se_4": {
    "frame": {
     "x": 192,
-    "y": 1248,
+    "y": 2688,
     "w": 48,
     "h": 48
    },
@@ -2628,7 +6093,7 @@
   "death_e_0": {
    "frame": {
     "x": 0,
-    "y": 1296,
+    "y": 2736,
     "w": 48,
     "h": 48
    },
@@ -2649,7 +6114,7 @@
   "death_e_1": {
    "frame": {
     "x": 48,
-    "y": 1296,
+    "y": 2736,
     "w": 48,
     "h": 48
    },
@@ -2670,7 +6135,7 @@
   "death_e_2": {
    "frame": {
     "x": 96,
-    "y": 1296,
+    "y": 2736,
     "w": 48,
     "h": 48
    },
@@ -2691,7 +6156,7 @@
   "death_e_3": {
    "frame": {
     "x": 144,
-    "y": 1296,
+    "y": 2736,
     "w": 48,
     "h": 48
    },
@@ -2712,7 +6177,7 @@
   "death_e_4": {
    "frame": {
     "x": 192,
-    "y": 1296,
+    "y": 2736,
     "w": 48,
     "h": 48
    },
@@ -2733,7 +6198,7 @@
   "death_ne_0": {
    "frame": {
     "x": 0,
-    "y": 1344,
+    "y": 2784,
     "w": 48,
     "h": 48
    },
@@ -2754,7 +6219,7 @@
   "death_ne_1": {
    "frame": {
     "x": 48,
-    "y": 1344,
+    "y": 2784,
     "w": 48,
     "h": 48
    },
@@ -2775,7 +6240,7 @@
   "death_ne_2": {
    "frame": {
     "x": 96,
-    "y": 1344,
+    "y": 2784,
     "w": 48,
     "h": 48
    },
@@ -2796,7 +6261,7 @@
   "death_ne_3": {
    "frame": {
     "x": 144,
-    "y": 1344,
+    "y": 2784,
     "w": 48,
     "h": 48
    },
@@ -2817,7 +6282,7 @@
   "death_ne_4": {
    "frame": {
     "x": 192,
-    "y": 1344,
+    "y": 2784,
     "w": 48,
     "h": 48
    },
@@ -2838,7 +6303,7 @@
   "death_n_0": {
    "frame": {
     "x": 0,
-    "y": 1392,
+    "y": 2832,
     "w": 48,
     "h": 48
    },
@@ -2859,7 +6324,7 @@
   "death_n_1": {
    "frame": {
     "x": 48,
-    "y": 1392,
+    "y": 2832,
     "w": 48,
     "h": 48
    },
@@ -2880,7 +6345,7 @@
   "death_n_2": {
    "frame": {
     "x": 96,
-    "y": 1392,
+    "y": 2832,
     "w": 48,
     "h": 48
    },
@@ -2901,7 +6366,7 @@
   "death_n_3": {
    "frame": {
     "x": 144,
-    "y": 1392,
+    "y": 2832,
     "w": 48,
     "h": 48
    },
@@ -2922,7 +6387,7 @@
   "death_n_4": {
    "frame": {
     "x": 192,
-    "y": 1392,
+    "y": 2832,
     "w": 48,
     "h": 48
    },
@@ -2948,7 +6413,7 @@
   "format": "RGBA8888",
   "size": {
    "w": 288,
-   "h": 1440
+   "h": 2880
   },
   "scale": "1",
   "frameTags": [
@@ -3073,63 +6538,243 @@
     "direction": "forward"
    },
    {
-    "name": "hit_s",
+    "name": "attack2_s",
     "from": 100,
-    "to": 102,
+    "to": 104,
     "direction": "forward"
    },
    {
-    "name": "hit_se",
-    "from": 103,
-    "to": 105,
+    "name": "attack2_se",
+    "from": 105,
+    "to": 109,
     "direction": "forward"
    },
    {
-    "name": "hit_e",
-    "from": 106,
-    "to": 108,
-    "direction": "forward"
-   },
-   {
-    "name": "hit_ne",
-    "from": 109,
-    "to": 111,
-    "direction": "forward"
-   },
-   {
-    "name": "hit_n",
-    "from": 112,
+    "name": "attack2_e",
+    "from": 110,
     "to": 114,
     "direction": "forward"
    },
    {
-    "name": "death_s",
+    "name": "attack2_ne",
     "from": 115,
     "to": 119,
     "direction": "forward"
    },
    {
-    "name": "death_se",
+    "name": "attack2_n",
     "from": 120,
     "to": 124,
     "direction": "forward"
    },
    {
-    "name": "death_e",
+    "name": "attack3_s",
     "from": 125,
-    "to": 129,
+    "to": 130,
+    "direction": "forward"
+   },
+   {
+    "name": "attack3_se",
+    "from": 131,
+    "to": 136,
+    "direction": "forward"
+   },
+   {
+    "name": "attack3_e",
+    "from": 137,
+    "to": 142,
+    "direction": "forward"
+   },
+   {
+    "name": "attack3_ne",
+    "from": 143,
+    "to": 148,
+    "direction": "forward"
+   },
+   {
+    "name": "attack3_n",
+    "from": 149,
+    "to": 154,
+    "direction": "forward"
+   },
+   {
+    "name": "drain_s",
+    "from": 155,
+    "to": 160,
+    "direction": "forward"
+   },
+   {
+    "name": "drain_se",
+    "from": 161,
+    "to": 166,
+    "direction": "forward"
+   },
+   {
+    "name": "drain_e",
+    "from": 167,
+    "to": 172,
+    "direction": "forward"
+   },
+   {
+    "name": "drain_ne",
+    "from": 173,
+    "to": 178,
+    "direction": "forward"
+   },
+   {
+    "name": "drain_n",
+    "from": 179,
+    "to": 184,
+    "direction": "forward"
+   },
+   {
+    "name": "plague_s",
+    "from": 185,
+    "to": 190,
+    "direction": "forward"
+   },
+   {
+    "name": "plague_se",
+    "from": 191,
+    "to": 196,
+    "direction": "forward"
+   },
+   {
+    "name": "plague_e",
+    "from": 197,
+    "to": 202,
+    "direction": "forward"
+   },
+   {
+    "name": "plague_ne",
+    "from": 203,
+    "to": 208,
+    "direction": "forward"
+   },
+   {
+    "name": "plague_n",
+    "from": 209,
+    "to": 214,
+    "direction": "forward"
+   },
+   {
+    "name": "corpse_s",
+    "from": 215,
+    "to": 219,
+    "direction": "forward"
+   },
+   {
+    "name": "corpse_se",
+    "from": 220,
+    "to": 224,
+    "direction": "forward"
+   },
+   {
+    "name": "corpse_e",
+    "from": 225,
+    "to": 229,
+    "direction": "forward"
+   },
+   {
+    "name": "corpse_ne",
+    "from": 230,
+    "to": 234,
+    "direction": "forward"
+   },
+   {
+    "name": "corpse_n",
+    "from": 235,
+    "to": 239,
+    "direction": "forward"
+   },
+   {
+    "name": "bloodpact_s",
+    "from": 240,
+    "to": 244,
+    "direction": "forward"
+   },
+   {
+    "name": "bloodpact_se",
+    "from": 245,
+    "to": 249,
+    "direction": "forward"
+   },
+   {
+    "name": "bloodpact_e",
+    "from": 250,
+    "to": 254,
+    "direction": "forward"
+   },
+   {
+    "name": "bloodpact_ne",
+    "from": 255,
+    "to": 259,
+    "direction": "forward"
+   },
+   {
+    "name": "bloodpact_n",
+    "from": 260,
+    "to": 264,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_s",
+    "from": 265,
+    "to": 267,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_se",
+    "from": 268,
+    "to": 270,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_e",
+    "from": 271,
+    "to": 273,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_ne",
+    "from": 274,
+    "to": 276,
+    "direction": "forward"
+   },
+   {
+    "name": "hit_n",
+    "from": 277,
+    "to": 279,
+    "direction": "forward"
+   },
+   {
+    "name": "death_s",
+    "from": 280,
+    "to": 284,
+    "direction": "forward"
+   },
+   {
+    "name": "death_se",
+    "from": 285,
+    "to": 289,
+    "direction": "forward"
+   },
+   {
+    "name": "death_e",
+    "from": 290,
+    "to": 294,
     "direction": "forward"
    },
    {
     "name": "death_ne",
-    "from": 130,
-    "to": 134,
+    "from": 295,
+    "to": 299,
     "direction": "forward"
    },
    {
     "name": "death_n",
-    "from": 135,
-    "to": 139,
+    "from": 300,
+    "to": 304,
     "direction": "forward"
    }
   ]
@@ -4242,11 +7887,1766 @@
      }
     }
    },
-   "hit": {
+   "attack2": {
     "loop": false,
     "directions": {
      "s": {
       "row": 20,
+      "frames": [
+       "attack2_s_0",
+       "attack2_s_1",
+       "attack2_s_2",
+       "attack2_s_3",
+       "attack2_s_4"
+      ],
+      "durations": [
+       110,
+       130,
+       70,
+       90,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -2.32,
+         -6.13,
+         5.34
+        ],
+        [
+         -1.75,
+         -6.04,
+         5.82
+        ],
+        [
+         -3.94,
+         -8.55,
+         -0.89
+        ],
+        [
+         -3.77,
+         -8.73,
+         -1.21
+        ],
+        [
+         -5.48,
+         -6.76,
+         4.75
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 21,
+      "frames": [
+       "attack2_se_0",
+       "attack2_se_1",
+       "attack2_se_2",
+       "attack2_se_3",
+       "attack2_se_4"
+      ],
+      "durations": [
+       110,
+       130,
+       70,
+       90,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         2.14,
+         -6.08,
+         5.42
+        ],
+        [
+         2.88,
+         -6.33,
+         5.36
+        ],
+        [
+         -2.77,
+         -6.84,
+         2.16
+        ],
+        [
+         -2.87,
+         -7.04,
+         1.81
+        ],
+        [
+         -0.26,
+         -5.3,
+         7.24
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 22,
+      "frames": [
+       "attack2_e_0",
+       "attack2_e_1",
+       "attack2_e_2",
+       "attack2_e_3",
+       "attack2_e_4"
+      ],
+      "durations": [
+       110,
+       130,
+       70,
+       90,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         5.34,
+         -7.99,
+         2.32
+        ],
+        [
+         5.82,
+         -8.55,
+         1.75
+        ],
+        [
+         0.02,
+         -6.14,
+         3.94
+        ],
+        [
+         -0.3,
+         -6.23,
+         3.77
+        ],
+        [
+         5.12,
+         -6.54,
+         5.48
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 23,
+      "frames": [
+       "attack2_ne_0",
+       "attack2_ne_1",
+       "attack2_ne_2",
+       "attack2_ne_3",
+       "attack2_ne_4"
+      ],
+      "durations": [
+       110,
+       130,
+       70,
+       90,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         5.42,
+         -10.73,
+         -2.14
+        ],
+        [
+         5.36,
+         -11.4,
+         -2.88
+        ],
+        [
+         2.8,
+         -6.85,
+         3.42
+        ],
+        [
+         2.45,
+         -6.78,
+         3.52
+        ],
+        [
+         7.5,
+         -9.75,
+         0.52
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 24,
+      "frames": [
+       "attack2_n_0",
+       "attack2_n_1",
+       "attack2_n_2",
+       "attack2_n_3",
+       "attack2_n_4"
+      ],
+      "durations": [
+       110,
+       130,
+       70,
+       90,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         2.32,
+         -12.7,
+         -5.34
+        ],
+        [
+         1.75,
+         -13.21,
+         -5.82
+        ],
+        [
+         3.94,
+         -8.57,
+         0.89
+        ],
+        [
+         3.77,
+         -8.37,
+         1.21
+        ],
+        [
+         5.48,
+         -13.06,
+         -4.75
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "attack3": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 25,
+      "frames": [
+       "attack3_s_0",
+       "attack3_s_1",
+       "attack3_s_2",
+       "attack3_s_3",
+       "attack3_s_4",
+       "attack3_s_5"
+      ],
+      "durations": [
+       110,
+       100,
+       120,
+       70,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -1.09,
+         -8.25,
+         3.8
+        ],
+        [
+         -1.45,
+         -9.61,
+         1.74
+        ],
+        [
+         -1.09,
+         -9.94,
+         1.28
+        ],
+        [
+         -1.31,
+         -5.09,
+         7.79
+        ],
+        [
+         -1.54,
+         -5.18,
+         7.58
+        ],
+        [
+         -3.64,
+         -6.15,
+         4.86
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 26,
+      "frames": [
+       "attack3_se_0",
+       "attack3_se_1",
+       "attack3_se_2",
+       "attack3_se_3",
+       "attack3_se_4",
+       "attack3_se_5"
+      ],
+      "durations": [
+       110,
+       100,
+       120,
+       70,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         1.91,
+         -8.46,
+         3.46
+        ],
+        [
+         0.2,
+         -9.29,
+         2.26
+        ],
+        [
+         0.13,
+         -9.69,
+         1.68
+        ],
+        [
+         5.35,
+         -6.12,
+         6.43
+        ],
+        [
+         4.91,
+         -6.04,
+         6.45
+        ],
+        [
+         1.12,
+         -5.51,
+         6.01
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 27,
+      "frames": [
+       "attack3_e_0",
+       "attack3_e_1",
+       "attack3_e_2",
+       "attack3_e_3",
+       "attack3_e_4",
+       "attack3_e_5"
+      ],
+      "durations": [
+       110,
+       100,
+       120,
+       70,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.8,
+         -9.92,
+         1.09
+        ],
+        [
+         1.74,
+         -9.79,
+         1.45
+        ],
+        [
+         1.28,
+         -10.05,
+         1.09
+        ],
+        [
+         8.88,
+         -9.75,
+         1.31
+        ],
+        [
+         8.49,
+         -9.46,
+         1.54
+        ],
+        [
+         5.22,
+         -7.13,
+         3.64
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 28,
+      "frames": [
+       "attack3_ne_0",
+       "attack3_ne_1",
+       "attack3_ne_2",
+       "attack3_ne_3",
+       "attack3_ne_4",
+       "attack3_ne_5"
+      ],
+      "durations": [
+       110,
+       100,
+       120,
+       70,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.46,
+         -11.77,
+         -1.91
+        ],
+        [
+         2.26,
+         -10.81,
+         -0.2
+        ],
+        [
+         1.68,
+         -10.81,
+         -0.13
+        ],
+        [
+         7.2,
+         -13.85,
+         -4.58
+        ],
+        [
+         7.1,
+         -13.43,
+         -4.27
+        ],
+        [
+         6.27,
+         -10.06,
+         -0.87
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 29,
+      "frames": [
+       "attack3_n_0",
+       "attack3_n_1",
+       "attack3_n_2",
+       "attack3_n_3",
+       "attack3_n_4",
+       "attack3_n_5"
+      ],
+      "durations": [
+       110,
+       100,
+       120,
+       70,
+       100,
+       110
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         1.09,
+         -12.93,
+         -3.8
+        ],
+        [
+         1.45,
+         -11.76,
+         -1.74
+        ],
+        [
+         1.09,
+         -11.51,
+         -1.28
+        ],
+        [
+         1.31,
+         -16.02,
+         -7.79
+        ],
+        [
+         1.54,
+         -15.64,
+         -7.58
+        ],
+        [
+         3.64,
+         -12.58,
+         -4.86
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "drain": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 30,
+      "frames": [
+       "drain_s_0",
+       "drain_s_1",
+       "drain_s_2",
+       "drain_s_3",
+       "drain_s_4",
+       "drain_s_5"
+      ],
+      "durations": [
+       110,
+       130,
+       130,
+       90,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -1.01,
+         -5.63,
+         7.94
+        ],
+        [
+         -0.32,
+         -5.57,
+         8.08
+        ],
+        [
+         -1.74,
+         -7.08,
+         6.7
+        ],
+        [
+         -2.67,
+         -10.44,
+         1.99
+        ],
+        [
+         -2.87,
+         -10.07,
+         2.35
+        ],
+        [
+         -4.0,
+         -7.6,
+         4.36
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 31,
+      "frames": [
+       "drain_se_0",
+       "drain_se_1",
+       "drain_se_2",
+       "drain_se_3",
+       "drain_se_4",
+       "drain_se_5"
+      ],
+      "durations": [
+       110,
+       130,
+       130,
+       90,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         5.28,
+         -6.72,
+         6.33
+        ],
+        [
+         6.0,
+         -7.02,
+         5.94
+        ],
+        [
+         3.64,
+         -7.56,
+         5.97
+        ],
+        [
+         -0.99,
+         -9.51,
+         3.3
+        ],
+        [
+         -0.88,
+         -9.12,
+         3.69
+        ],
+        [
+         0.13,
+         -6.61,
+         5.91
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 32,
+      "frames": [
+       "drain_e_0",
+       "drain_e_1",
+       "drain_e_2",
+       "drain_e_3",
+       "drain_e_4",
+       "drain_e_5"
+      ],
+      "durations": [
+       110,
+       130,
+       130,
+       90,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         8.49,
+         -10.23,
+         1.01
+        ],
+        [
+         8.8,
+         -10.79,
+         0.32
+        ],
+        [
+         6.88,
+         -10.25,
+         1.74
+        ],
+        [
+         1.27,
+         -9.58,
+         2.67
+        ],
+        [
+         1.62,
+         -9.31,
+         2.87
+        ],
+        [
+         4.18,
+         -7.71,
+         4.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 33,
+      "frames": [
+       "drain_ne_0",
+       "drain_ne_1",
+       "drain_ne_2",
+       "drain_ne_3",
+       "drain_ne_4",
+       "drain_ne_5"
+      ],
+      "durations": [
+       110,
+       130,
+       130,
+       90,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         6.72,
+         -14.1,
+         -4.9
+        ],
+        [
+         6.45,
+         -14.68,
+         -5.48
+        ],
+        [
+         6.1,
+         -13.56,
+         -3.51
+        ],
+        [
+         2.78,
+         -10.61,
+         0.48
+        ],
+        [
+         3.17,
+         -10.53,
+         0.37
+        ],
+        [
+         5.79,
+         -10.25,
+         -0.26
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 34,
+      "frames": [
+       "drain_n_0",
+       "drain_n_1",
+       "drain_n_2",
+       "drain_n_3",
+       "drain_n_4",
+       "drain_n_5"
+      ],
+      "durations": [
+       110,
+       130,
+       130,
+       90,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         1.01,
+         -16.08,
+         -7.94
+        ],
+        [
+         0.32,
+         -16.41,
+         -8.08
+        ],
+        [
+         1.74,
+         -15.56,
+         -6.7
+        ],
+        [
+         2.67,
+         -12.0,
+         -1.99
+        ],
+        [
+         2.87,
+         -12.07,
+         -2.35
+        ],
+        [
+         4.0,
+         -12.75,
+         -4.36
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "plague": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 35,
+      "frames": [
+       "plague_s_0",
+       "plague_s_1",
+       "plague_s_2",
+       "plague_s_3",
+       "plague_s_4",
+       "plague_s_5"
+      ],
+      "durations": [
+       110,
+       120,
+       100,
+       70,
+       100,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -3.9,
+         -8.57,
+         -1.9
+        ],
+        [
+         -3.24,
+         -8.81,
+         -2.34
+        ],
+        [
+         -2.6,
+         -5.07,
+         4.59
+        ],
+        [
+         -0.72,
+         -8.97,
+         6.71
+        ],
+        [
+         -0.3,
+         -10.01,
+         5.99
+        ],
+        [
+         -3.41,
+         -7.04,
+         4.99
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 36,
+      "frames": [
+       "plague_se_0",
+       "plague_se_1",
+       "plague_se_2",
+       "plague_se_3",
+       "plague_se_4",
+       "plague_se_5"
+      ],
+      "durations": [
+       110,
+       120,
+       100,
+       70,
+       100,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -4.1,
+         -6.53,
+         1.41
+        ],
+        [
+         -3.95,
+         -6.98,
+         0.63
+        ],
+        [
+         1.41,
+         -4.77,
+         5.08
+        ],
+        [
+         4.24,
+         -9.87,
+         5.25
+        ],
+        [
+         4.03,
+         -10.96,
+         4.45
+        ],
+        [
+         1.12,
+         -6.46,
+         5.94
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 37,
+      "frames": [
+       "plague_e_0",
+       "plague_e_1",
+       "plague_e_2",
+       "plague_e_3",
+       "plague_e_4",
+       "plague_e_5"
+      ],
+      "durations": [
+       110,
+       120,
+       100,
+       70,
+       100,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -1.9,
+         -5.0,
+         3.9
+        ],
+        [
+         -2.34,
+         -5.37,
+         3.24
+        ],
+        [
+         4.59,
+         -6.3,
+         2.6
+        ],
+        [
+         6.71,
+         -12.66,
+         0.72
+        ],
+        [
+         5.99,
+         -13.52,
+         0.3
+        ],
+        [
+         4.99,
+         -8.02,
+         3.41
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 38,
+      "frames": [
+       "plague_ne_0",
+       "plague_ne_1",
+       "plague_ne_2",
+       "plague_ne_3",
+       "plague_ne_4",
+       "plague_ne_5"
+      ],
+      "durations": [
+       110,
+       120,
+       100,
+       70,
+       100,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         1.41,
+         -4.87,
+         4.1
+        ],
+        [
+         0.63,
+         -4.94,
+         3.95
+        ],
+        [
+         5.08,
+         -8.76,
+         -1.41
+        ],
+        [
+         5.25,
+         -15.71,
+         -4.24
+        ],
+        [
+         4.45,
+         -16.18,
+         -4.03
+        ],
+        [
+         5.94,
+         -10.8,
+         -1.12
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 39,
+      "frames": [
+       "plague_n_0",
+       "plague_n_1",
+       "plague_n_2",
+       "plague_n_3",
+       "plague_n_4",
+       "plague_n_5"
+      ],
+      "durations": [
+       110,
+       120,
+       100,
+       70,
+       100,
+       120
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "3": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.9,
+         -6.22,
+         1.9
+        ],
+        [
+         3.24,
+         -5.92,
+         2.34
+        ],
+        [
+         2.6,
+         -10.72,
+         -4.59
+        ],
+        [
+         0.72,
+         -17.23,
+         -6.71
+        ],
+        [
+         0.3,
+         -17.39,
+         -5.99
+        ],
+        [
+         3.41,
+         -13.19,
+         -4.99
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "corpse": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 40,
+      "frames": [
+       "corpse_s_0",
+       "corpse_s_1",
+       "corpse_s_2",
+       "corpse_s_3",
+       "corpse_s_4"
+      ],
+      "durations": [
+       120,
+       140,
+       60,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -3.27,
+         -13.82,
+         3.09
+        ],
+        [
+         -2.91,
+         -15.22,
+         2.45
+        ],
+        [
+         -2.96,
+         -3.66,
+         5.17
+        ],
+        [
+         -2.94,
+         -3.93,
+         5.11
+        ],
+        [
+         -4.0,
+         -6.34,
+         4.83
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 41,
+      "frames": [
+       "corpse_se_0",
+       "corpse_se_1",
+       "corpse_se_2",
+       "corpse_se_3",
+       "corpse_se_4"
+      ],
+      "durations": [
+       120,
+       140,
+       60,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -0.13,
+         -12.96,
+         4.5
+        ],
+        [
+         -0.32,
+         -14.4,
+         3.79
+        ],
+        [
+         1.95,
+         -3.41,
+         5.75
+        ],
+        [
+         1.92,
+         -3.66,
+         5.7
+        ],
+        [
+         0.72,
+         -5.5,
+         6.24
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 42,
+      "frames": [
+       "corpse_e_0",
+       "corpse_e_1",
+       "corpse_e_2",
+       "corpse_e_3",
+       "corpse_e_4"
+      ],
+      "durations": [
+       120,
+       140,
+       60,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.09,
+         -13.71,
+         3.27
+        ],
+        [
+         2.45,
+         -14.94,
+         2.91
+        ],
+        [
+         5.72,
+         -5.36,
+         2.96
+        ],
+        [
+         5.66,
+         -5.6,
+         2.94
+        ],
+        [
+         5.01,
+         -6.96,
+         4.0
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 43,
+      "frames": [
+       "corpse_ne_0",
+       "corpse_ne_1",
+       "corpse_ne_2",
+       "corpse_ne_3",
+       "corpse_ne_4"
+      ],
+      "durations": [
+       120,
+       140,
+       60,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         4.5,
+         -15.64,
+         0.13
+        ],
+        [
+         3.79,
+         -16.53,
+         0.32
+        ],
+        [
+         6.13,
+         -8.39,
+         -1.57
+        ],
+        [
+         6.08,
+         -8.59,
+         -1.53
+        ],
+        [
+         6.37,
+         -9.87,
+         -0.59
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 44,
+      "frames": [
+       "corpse_n_0",
+       "corpse_n_1",
+       "corpse_n_2",
+       "corpse_n_3",
+       "corpse_n_4"
+      ],
+      "durations": [
+       120,
+       140,
+       60,
+       120,
+       130
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.27,
+         -17.62,
+         -3.09
+        ],
+        [
+         2.91,
+         -18.24,
+         -2.45
+        ],
+        [
+         2.96,
+         -10.7,
+         -5.17
+        ],
+        [
+         2.94,
+         -10.89,
+         -5.11
+        ],
+        [
+         4.0,
+         -12.51,
+         -4.83
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "bloodpact": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 45,
+      "frames": [
+       "bloodpact_s_0",
+       "bloodpact_s_1",
+       "bloodpact_s_2",
+       "bloodpact_s_3",
+       "bloodpact_s_4"
+      ],
+      "durations": [
+       120,
+       160,
+       90,
+       180,
+       140
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         1.09,
+         -7.56,
+         4.46
+        ],
+        [
+         1.45,
+         -7.14,
+         4.15
+        ],
+        [
+         -7.27,
+         -12.73,
+         0.47
+        ],
+        [
+         -7.64,
+         -13.34,
+         0.11
+        ],
+        [
+         -4.36,
+         -7.42,
+         4.0
+        ]
+       ]
+      }
+     },
+     "se": {
+      "row": 46,
+      "frames": [
+       "bloodpact_se_0",
+       "bloodpact_se_1",
+       "bloodpact_se_2",
+       "bloodpact_se_3",
+       "bloodpact_se_4"
+      ],
+      "durations": [
+       120,
+       160,
+       90,
+       180,
+       140
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         3.92,
+         -8.84,
+         2.38
+        ],
+        [
+         3.96,
+         -8.52,
+         1.91
+        ],
+        [
+         -4.81,
+         -9.65,
+         5.48
+        ],
+        [
+         -5.32,
+         -10.04,
+         5.47
+        ],
+        [
+         -0.26,
+         -6.24,
+         5.91
+        ]
+       ]
+      }
+     },
+     "e": {
+      "row": 47,
+      "frames": [
+       "bloodpact_e_0",
+       "bloodpact_e_1",
+       "bloodpact_e_2",
+       "bloodpact_e_3",
+       "bloodpact_e_4"
+      ],
+      "durations": [
+       120,
+       160,
+       90,
+       180,
+       140
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         4.46,
+         -10.98,
+         -1.09
+        ],
+        [
+         4.15,
+         -10.59,
+         -1.45
+        ],
+        [
+         0.47,
+         -8.54,
+         7.27
+        ],
+        [
+         0.11,
+         -8.7,
+         7.64
+        ],
+        [
+         4.0,
+         -7.2,
+         4.36
+        ]
+       ]
+      }
+     },
+     "ne": {
+      "row": 48,
+      "frames": [
+       "bloodpact_ne_0",
+       "bloodpact_ne_1",
+       "bloodpact_ne_2",
+       "bloodpact_ne_3",
+       "bloodpact_ne_4"
+      ],
+      "durations": [
+       120,
+       160,
+       90,
+       180,
+       140
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         2.38,
+         -12.72,
+         -3.92
+        ],
+        [
+         1.91,
+         -12.14,
+         -3.96
+        ],
+        [
+         5.48,
+         -10.06,
+         4.81
+        ],
+        [
+         5.47,
+         -10.13,
+         5.32
+        ],
+        [
+         5.91,
+         -9.73,
+         0.26
+        ]
+       ]
+      }
+     },
+     "n": {
+      "row": 49,
+      "frames": [
+       "bloodpact_n_0",
+       "bloodpact_n_1",
+       "bloodpact_n_2",
+       "bloodpact_n_3",
+       "bloodpact_n_4"
+      ],
+      "durations": [
+       120,
+       160,
+       90,
+       180,
+       140
+      ],
+      "events": {
+       "0": [
+        "windup"
+       ],
+       "2": [
+        "release"
+       ]
+      },
+      "sockets": {
+       "muzzle": [
+        [
+         -1.09,
+         -13.05,
+         -4.46
+        ],
+        [
+         -1.45,
+         -12.25,
+         -4.15
+        ],
+        [
+         7.27,
+         -13.31,
+         -0.47
+        ],
+        [
+         7.64,
+         -13.47,
+         -0.11
+        ],
+        [
+         4.36,
+         -12.35,
+         -4.0
+        ]
+       ]
+      }
+     }
+    }
+   },
+   "hit": {
+    "loop": false,
+    "directions": {
+     "s": {
+      "row": 50,
       "frames": [
        "hit_s_0",
        "hit_s_1",
@@ -4283,7 +9683,7 @@
       }
      },
      "se": {
-      "row": 21,
+      "row": 51,
       "frames": [
        "hit_se_0",
        "hit_se_1",
@@ -4320,7 +9720,7 @@
       }
      },
      "e": {
-      "row": 22,
+      "row": 52,
       "frames": [
        "hit_e_0",
        "hit_e_1",
@@ -4357,7 +9757,7 @@
       }
      },
      "ne": {
-      "row": 23,
+      "row": 53,
       "frames": [
        "hit_ne_0",
        "hit_ne_1",
@@ -4394,7 +9794,7 @@
       }
      },
      "n": {
-      "row": 24,
+      "row": 54,
       "frames": [
        "hit_n_0",
        "hit_n_1",
@@ -4436,7 +9836,7 @@
     "loop": false,
     "directions": {
      "s": {
-      "row": 25,
+      "row": 55,
       "frames": [
        "death_s_0",
        "death_s_1",
@@ -4487,7 +9887,7 @@
       }
      },
      "se": {
-      "row": 26,
+      "row": 56,
       "frames": [
        "death_se_0",
        "death_se_1",
@@ -4538,7 +9938,7 @@
       }
      },
      "e": {
-      "row": 27,
+      "row": 57,
       "frames": [
        "death_e_0",
        "death_e_1",
@@ -4589,7 +9989,7 @@
       }
      },
      "ne": {
-      "row": 28,
+      "row": 58,
       "frames": [
        "death_ne_0",
        "death_ne_1",
@@ -4640,7 +10040,7 @@
       }
      },
      "n": {
-      "row": 29,
+      "row": 59,
       "frames": [
        "death_n_0",
        "death_n_1",

@@ -272,6 +272,8 @@ export class GameScene extends Phaser.Scene {
 
   private busy = false;
   private castToken = 0;
+  /** Next basic-attack variation (attack, attack2, attack3...). */
+  private comboIdx = 0;
   private dead = false;
   private leaping = false;
   private dashUntil = 0;
@@ -1452,7 +1454,7 @@ export class GameScene extends Phaser.Scene {
       this.busy = false;
       if (!this.leaping) this.hero.play2("idle");
     };
-    this.hero.play2(sk.anim, {
+    this.hero.play2(this.skillClip(this.hero, sk), {
       restart: true,
       timeScale: 1 + d.stats.attackSpeed,
       onEvent: (ev) => ev === sk.event && apply(),
@@ -1460,6 +1462,17 @@ export class GameScene extends Phaser.Scene {
     });
     // Safety net in case a clip never completes (e.g. interrupted).
     this.time.delayedCall(1500, () => this.busy && finish());
+  }
+
+  /** The clip a skill plays: its own clip when the hero has one, the basic attack cycling through its
+   * variations, else the generic attack/cast. */
+  private skillClip(spr: KilnSprite, sk: SkillDef) {
+    if (spr.has(sk.id)) return sk.id;
+    if (sk.slot === "primary") {
+      const clips = [sk.anim, `${sk.anim}2`, `${sk.anim}3`].filter((c) => spr.has(c));
+      return clips[this.comboIdx++ % clips.length];
+    }
+    return sk.anim;
   }
 
   /** Point on the line hero → target, at most the skill's range away. */
@@ -1549,8 +1562,11 @@ export class GameScene extends Phaser.Scene {
             this.heroBody.enable = true;
             this.heroBody.reset(h.x, h.y);
             this.leaping = false;
-            this.busy = false;
-            this.hero.play2("idle");
+            // A dedicated leap clip still has its landing slam to play: its completion frees the hero.
+            if (!(this.hero.current === "leap" && this.hero.anims.isPlaying)) {
+              this.busy = false;
+              this.hero.play2("idle");
+            }
             this.ringFx(h.x, h.y - 2, sk.radius!, 0xe0662a, 300);
             this.emitters.dust.explode(36, h.x, h.y);
             this.shake(180, 0.006);
@@ -2639,7 +2655,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
     // Loops come from the state; attacks and casts from "cast" messages.
-    const busy = (r.spr.current === "attack" || r.spr.current === "cast" || r.spr.current === "death") && r.spr.anims.isPlaying;
+    const busy = !!r.spr.current && r.spr.current !== "idle" && r.spr.current !== "walk" && r.spr.anims.isPlaying;
     if (!busy && (p.anim === "idle" || p.anim === "walk")) {
       const turned = r.spr.dir !== p.dir;
       r.spr.dir = p.dir as Dir;
@@ -2661,7 +2677,7 @@ export class GameScene extends Phaser.Scene {
     const sk = CLASSES[r.st.cls as keyof typeof CLASSES]?.skills.find((x) => x.id === m.skill);
     if (!sk) return;
     r.spr.face(m.tx - r.spr.x, m.ty - r.spr.y);
-    r.spr.play2(sk.anim, { restart: true });
+    r.spr.play2(this.skillClip(r.spr, sk), { restart: true });
     this.time.delayedCall(230, () => {
       if (!this.remote) return;
       const x = r.spr.x, y = r.spr.y;
