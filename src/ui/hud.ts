@@ -53,6 +53,8 @@ export interface HeroView {
   cooldowns: Record<string, number>;
   dashCooldown: number;
   buffs: { id: string; until: number }[];
+  /** Harmful effects on the hero (shown after the buffs, with a red frame). */
+  debuffs: { kind: "poison" | "slow" | "stun"; until: number }[];
   now: number;
   quest: { title: string; goal: string; progress: string; ready: boolean; targets?: { label: string; dist: number }[] } | null;
 }
@@ -80,6 +82,13 @@ export const skillIconUrl = (id: string) => `assets/icons/skills/${id}.png`;
 /** Skill icon generated with Antigravity; falls back to the skill name when missing. */
 const skillIcon = (sk: SkillDef | string) =>
   `<img class="sicon" src="${skillIconUrl(typeof sk === "string" ? sk : sk.id)}" onload="this.parentElement.classList.add('has-icon')" onerror="this.remove()">`;
+
+/** Debuff tiles: a glyph and a name. */
+const DEBUFF = {
+  poison: ["☠", L("Envenenado", "Poisoned")],
+  slow: ["❄", L("Lento", "Slowed")],
+  stun: ["✦", L("Atordoado", "Stunned")],
+} as const;
 
 const DOLL_DIRS: Dir[] = ["s", "sw", "w", "nw", "n", "ne", "e", "se"];
 
@@ -129,7 +138,6 @@ export class Hud {
     r.appendChild(this.vignette);
     r.appendChild(this.top);
     r.appendChild(this.tracker);
-    r.appendChild(this.buffsEl);
     r.appendChild(this.target);
     r.appendChild(this.log);
 
@@ -154,6 +162,8 @@ export class Hud {
     (this.orbMp.querySelector(".fill") as HTMLElement).style.background =
       `radial-gradient(circle at 35% 30%, #fff8, ${resourceColor} 45%, #0008)`;
     const center = el("div", "bar-center");
+    // Buffs and debuffs: a row just above the skill bar.
+    center.appendChild(this.buffsEl);
     const row = el("div", "skills");
     const active = skills.filter((s) => s.slot !== "passive");
     for (const sk of active) {
@@ -364,6 +374,10 @@ export class Hud {
       .map((b) => {
         const sk = this.skills.find((x) => x.id === b.id);
         return sk ? `<div class="buff">${skillIcon(sk)}<span>${Math.ceil((b.until - h.now) / 1000)}s</span><em>${esc(sk.name)}</em></div>` : "";
+      }).join("")
+      + h.debuffs.map((b) => {
+        const [glyph, name] = DEBUFF[b.kind];
+        return `<div class="buff debuff ${b.kind}"><b>${glyph}</b><span>${Math.max(1, Math.ceil((b.until - h.now) / 1000))}s</span><em>${name}</em></div>`;
       }).join("");
     if (this.cache.buffs !== buffs) this.buffsEl.innerHTML = this.cache.buffs = buffs;
 

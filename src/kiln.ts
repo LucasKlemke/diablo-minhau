@@ -57,6 +57,14 @@ export const SPRITES = [
   "polvo",
   // The three mutts, plague-corrupted (they turn back into dog_* when beaten), and their stone circle
   "dog_caramelo_demon", "dog_trovao_demon", "dog_mancha_demon", "standing_stone", "offal_pile", "plague_pool", "gnawed_bones",
+  // The mage's spell effects
+  "fx_fireball", "fx_meteor", "fx_frost_nova", "fx_lightning", "fx_arcane_shield",
+  // The sorcerer's spell effects
+  "fx_shadowbolt", "fx_soul_drain", "fx_plague", "fx_corpse_blast", "fx_blood_pact",
+  // The barbarian's effects and his Berserker Rage look
+  "fx_cleave", "fx_whirlwind", "fx_leap_impact", "fx_quake", "fx_war_roar", "barbarian_berserk",
+  // The archer's effects
+  "fx_arrow", "fx_piercing_arrow", "fx_explosive_arrow", "fx_arrow_fan", "fx_arrow_rain",
 ] as const;
 /** Optional variants: when their export is missing they fall back to the base sprite instead of a placeholder
  * (KilnSprite and kilnImage resolve them on their own, see resolveSprite). */
@@ -87,6 +95,10 @@ const OPTIONAL = new Set<string>([
   "stalagmite", "cave_boulder", "guano_pile", "glow_mushrooms", "cave_puddle", "ogre_bed",
   "cellar_entrance", "butcher_entrance", "cave_entrance", "customs_gate",
   "standing_stone", "offal_pile", "plague_pool", "gnawed_bones",
+  "fx_fireball", "fx_meteor", "fx_frost_nova", "fx_lightning", "fx_arcane_shield",
+  "fx_shadowbolt", "fx_soul_drain", "fx_plague", "fx_corpse_blast", "fx_blood_pact",
+  "fx_cleave", "fx_whirlwind", "fx_leap_impact", "fx_quake", "fx_war_roar", "barbarian_berserk",
+  "fx_arrow", "fx_piercing_arrow", "fx_explosive_arrow", "fx_arrow_fan", "fx_arrow_rain",
 ]);
 const available = new Set<string>();
 export const hasSprite = (name: SpriteName) => available.has(name);

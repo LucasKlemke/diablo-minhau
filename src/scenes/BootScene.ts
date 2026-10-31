@@ -155,7 +155,7 @@ export class BootScene extends Phaser.Scene {
       draw();
       g.generateTexture(key, w, h);
     };
-    tex("fx_arrow", 12, 3, () => {
+    tex("fx_arrow_px", 12, 3, () => {
       g.fillStyle(0x1c0f1a).fillRect(0, 0, 12, 3);
       g.fillStyle(0xc4a75c).fillRect(1, 1, 8, 1);
       g.fillStyle(0xe8ebee).fillRect(9, 0, 3, 3);

@@ -10,6 +10,8 @@ export type Role = "host" | "guest";
 export interface PlayerState {
   name: string; cls: string; level: number; hp: number; maxHp: number;
   x: number; y: number; anim: string; dir: string; dead: boolean;
+  /** A look other than the class's own (the barbarian in Berserker Rage). */
+  skin?: string;
 }
 
 /** Enemy row in host snapshots: id, type, x, y, anim, dir, hp, maxHp, rank, level, unique? */

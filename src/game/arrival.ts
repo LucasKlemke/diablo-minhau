@@ -45,7 +45,7 @@ export interface ArrivalFoe {
 /** How each class finishes the ambushers: melee reach (0 = ranged), projectile and death. */
 const STYLE: Record<ClassId, { reach: number; skill: string; tex?: string; death: DeathKind }> = {
   barbarian: { reach: 20, skill: "cleave", death: "slice" },
-  archer: { reach: 0, skill: "arrow", tex: "fx_arrow", death: "pierce" },
+  archer: { reach: 0, skill: "arrow", tex: "fx_arrow_px", death: "pierce" },
   mage: { reach: 0, skill: "firebolt", tex: "fx_fire", death: "burn" },
   sorcerer: { reach: 0, skill: "shadowbolt", tex: "fx_shadow", death: "soul" },
 };
@@ -194,7 +194,7 @@ export function playArrival(api: ArrivalApi) {
   function shot(tex: string, target: KilnSprite) {
     const sx = hero.x, sy = hero.y - 14;
     const img = scene.add.image(sx, sy, tex).setDepth(1e5);
-    if (tex !== "fx_arrow") img.setBlendMode(Phaser.BlendModes.ADD);
+    if (tex !== "fx_arrow_px") img.setBlendMode(Phaser.BlendModes.ADD);
     const dist = Phaser.Math.Distance.Between(sx, sy, target.x, target.y);
     return new Promise<void>((r) => scene.tweens.addCounter({
       from: 0, to: 1, duration: Math.max(90, dist * 2.6),
@@ -215,7 +215,7 @@ export function playArrival(api: ArrivalApi) {
     if (cls === "archer") {
       hero.play2("attack", { restart: true });
       await wait(280);
-      const arrow = scene.add.image(x, y - 12, "fx_arrow").setRotation(Math.atan2(ay - y, ax - x)).setDepth(1e5);
+      const arrow = scene.add.image(x, y - 12, "fx_arrow_px").setRotation(Math.atan2(ay - y, ax - x)).setDepth(1e5);
       sfx.hit(false);
       await new Promise<void>((r) => scene.tweens.add({ targets: arrow, x: ax, y: ay - 12, duration: 220, onComplete: () => r() }));
       arrow.destroy();

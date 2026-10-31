@@ -14,7 +14,8 @@ import { generateDungeon } from "../world/dungeon";
 import { buildAuthoredMap } from "../world/authored";
 import { LAYOUTS } from "../world/layouts/act1";
 import { armorReduction } from "../data/stats";
-import { HeroData, MAX_POTIONS, type QuestState } from "../game/hero";
+import { HeroData, MAX_POTIONS, type QuestState, xpForLevel } from "../game/hero";
+import { DEV_ENABLED, dev, fullResource, isGod, saveDev, speedMult } from "../game/dev";
 import { playDeath } from "../game/deaths";
 import { Minimap, type MapMarker } from "../game/minimap";
 import { PropHover } from "../game/propHover";
@@ -124,7 +125,7 @@ interface Loot {
 }
 
 interface Projectile {
-  img: Phaser.GameObjects.Image;
+  img: Phaser.GameObjects.Image | KilnSprite;
   vx: number;
   vy: number;
   left: number;
@@ -148,8 +149,28 @@ interface Zone {
   skill: SkillDef;
   mult: number;
   fx: "rain" | "cloud" | "fire";
-  img?: Phaser.GameObjects.Image;
+  img?: Phaser.GameObjects.Image | KilnSprite;
 }
+
+/** Projectiles drawn with their own SpriteKiln effect: `fly` while flying, `hit` on each enemy it hits and
+ * `end` where it stops (an explosion), when the effect has them. */
+const PROJECTILE_FX: Record<string, { name: SpriteName; hit?: string; end?: string; endOnGround?: boolean }> = {
+  firebolt: { name: "fx_fireball", end: "explode" },
+  shadowbolt: { name: "fx_shadowbolt", end: "explode" },
+  arrow: { name: "fx_arrow", hit: "hit" },
+  multishot: { name: "fx_arrow", hit: "hit" },
+  explosive: { name: "fx_explosive_arrow", end: "explode", endOnGround: true }, // the blast sits on the ground under the arrow
+  piercing: { name: "fx_piercing_arrow" },
+};
+
+/** Buffs drawn over the hero with their own effect: rising clip, loop, and the clip played when it ends. */
+const BUFF_FX: Record<string, { name: SpriteName; up: string; loop: string; end: string }> = {
+  shield: { name: "fx_arcane_shield", up: "up", loop: "loop", end: "break" },
+  bloodpact: { name: "fx_blood_pact", up: "up", loop: "loop", end: "end" },
+};
+
+/** Level the dev menu's "max level" button raises the hero to. */
+const DEV_MAX_LEVEL = 50;
 
 /** Story bosses who are beaten, not killed: Lula is handed a broom, the three mutts are purified. */
 const SPARED: Partial<Record<UniqueId, "lula" | "dog">> = { polvo: "lula", caramelo: "dog", trovao: "dog", mancha: "dog" };
@@ -294,14 +315,18 @@ export class GameScene extends Phaser.Scene {
   private decals: Phaser.GameObjects.Image[] = [];
   private bars!: Phaser.GameObjects.Graphics;
   private aura!: Phaser.GameObjects.Image;
-  private emitters!: Record<"blood" | "fire" | "frost" | "shadow" | "gold" | "red" | "dust" | "smoke", Phaser.GameObjects.Particles.ParticleEmitter>;
+  private emitters!: Record<"blood" | "fire" | "frost" | "shadow" | "gold" | "red" | "dust" | "smoke" | "sparks", Phaser.GameObjects.Particles.ParticleEmitter>;
   private keys!: Record<string, Phaser.Input.Keyboard.Key>;
 
   private busy = false;
   private castToken = 0;
   private elemFx!: ElementFx;
-  /** Next basic-attack variation (attack, attack2, attack3...). */
-  private comboIdx = 0;
+  /** Basic-attack combo per sprite (the hero and the partner): the next hit and when the last one started. */
+  private combo = new WeakMap<KilnSprite, { i: number; at: number }>();
+  /** Buff effects drawn over the hero (Arcane Shield, Blood Pact), by buff id. */
+  private buffSprs = new Map<string, KilnSprite>();
+  /** The hero's last basic attack was the combo finisher (a heavier slash). */
+  private heroFinisher = false;
   private dead = false;
   private leaping = false;
   private dashUntil = 0;
@@ -368,6 +393,8 @@ export class GameScene extends Phaser.Scene {
     this.enemySeq = 0;
     this.vote = undefined;
     this.cineSkip = undefined;
+    this.buffSprs = new Map();
+    this.devEl = undefined;
     this.questSent = "";
     this.reviveMs = 0;
     this.reviveGfx = undefined;
@@ -464,6 +491,9 @@ export class GameScene extends Phaser.Scene {
       fire: em([0xfe6607, 0xfbbe71, 0x902308]), frost: em(0x7edaf2), shadow: em([0x5dff3d, 0x7a0ff8]), gold: em(0xffe14d), red: em(0xc13a2b),
       dust: em([0xc9a06a, 0xa87a4f], { speed: { min: 10, max: 40 }, gravityY: -20, lifespan: { min: 250, max: 450 } }),
       smoke: em([0x3a3438, 0x5a5258], { speed: { min: 5, max: 20 }, gravityY: -40, lifespan: { min: 500, max: 900 }, scale: { start: 1.5, end: 0.5 }, alpha: { start: 0.8, end: 0 } }),
+      // Steel sparks off the barbarian's axe.
+      sparks: em([0xffffff, 0xfff2b0, 0xffb040, 0xff6a1a], { speed: { min: 60, max: 190 }, lifespan: { min: 120, max: 340 }, gravityY: 280,
+        scale: { start: 0.9, end: 0 }, blendMode: Phaser.BlendModes.ADD }),
     };
     this.elemFx = new ElementFx(this);
 
@@ -913,7 +943,7 @@ export class GameScene extends Phaser.Scene {
     const types = pack.types ?? this.area.mix[pack.faction] ?? campTypes[pack.faction];
     // Forest beast camps are often a wolf pack, led by an alpha from level 3 (Blackfang leads his own).
     const wolves = !pack.types && pack.faction === "beast" && this.area.act === "forest"
-      && (pack.unique === "fang" || (pack.x * 7 + pack.y * 13) % 10 < 5);
+      && (pack.unique === "fang" || (pack.x * 7 + pack.y * 13) % 10 < 3);
     for (let i = 0; i < pack.count; i++) {
       let type: EnemyType = types[Math.floor(Math.random() * types.length)];
       let rank: EnemyRank = "normal";
@@ -1020,6 +1050,7 @@ export class GameScene extends Phaser.Scene {
     k.ONE.on("down", () => this.drinkPotion("hp"));
     k.TWO.on("down", () => this.drinkPotion("mp"));
     k.SPACE.on("down", () => this.dash());
+    if (DEV_ENABLED) this.input.keyboard!.on("keydown-F2", () => this.toggleDevMenu());
     for (const [key, slot] of [["Q", "q"], ["E", "e"], ["R", "r"]] as [string, ActiveSlot][]) {
       k[key].on("down", () => this.castSlot(slot));
     }
@@ -1172,7 +1203,7 @@ export class GameScene extends Phaser.Scene {
       d.hp = Math.min(d.stats.maxHp, d.hp + regen * dt);
       const fury = this.lastHit && time - this.lastHit.t < 3000;
       const mreg = d.cls === "barbarian" ? (fury ? 0 : -2.5) + Math.max(0, d.stats.manaRegen + 1) : d.stats.manaRegen;
-      d.mana = Phaser.Math.Clamp(d.mana + mreg * dt, 0, d.stats.maxMana);
+      d.mana = fullResource() ? d.stats.maxMana : Phaser.Math.Clamp(d.mana + mreg * dt, 0, d.stats.maxMana);
     }
 
     this.updateHover(pw.x, pw.y);
@@ -1183,6 +1214,8 @@ export class GameScene extends Phaser.Scene {
     if (!this.dead) this.updateHeroStatus(time);
     this.updateEnemies(time, delta);
     this.updateElementStatus(time);
+    this.updateAxeTrail();
+    this.updateBerserkLook();
     this.updateRevive(delta);
     this.updateTraps(time);
     this.updateExits(time);
@@ -1217,6 +1250,11 @@ export class GameScene extends Phaser.Scene {
       cls: d.cls, level: d.level, xp: d.xp, xpNext: d.xpNext, xpPrev: d.xpPrev, gold: d.gold, hp: d.hp, mana: d.mana,
       absorb: d.absorb, stats: d.stats, potions: d.potions, inventory: d.inventory, equipment: d.equipment,
       ranks: d.ranks, skillPoints: d.skillPoints, cooldowns: this.cooldowns, dashCooldown: this.dashCd, buffs: d.buffs, now: time,
+      debuffs: [
+        ...(this.heroPoison ? [{ kind: "poison" as const, until: this.heroPoison.until }] : []),
+        ...(time < this.heroSlow.until ? [{ kind: "slow" as const, until: this.heroSlow.until }] : []),
+        ...(time < this.heroStunUntil ? [{ kind: "stun" as const, until: this.heroStunUntil }] : []),
+      ],
       quest: this.questTracker(),
     });
     const boss = this.enemies.find((e) => e.boss && e.aggro && e.state !== "dead" && Phaser.Math.Distance.Between(e.spr.x, e.spr.y, this.hero.x, this.hero.y) < 340);
@@ -1317,7 +1355,7 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
-    const speed = BASE_SPEED * (1 + d.stats.moveSpeed) * (time < this.heroSlow.until ? this.heroSlow.mult : 1) * (d.dev ? 2 : 1);
+    const speed = BASE_SPEED * (1 + d.stats.moveSpeed) * (time < this.heroSlow.until ? this.heroSlow.mult : 1) * speedMult(d);
     let vx = 0, vy = 0;
     const k = this.keys;
     const kx = (k.D.isDown ? 1 : 0) - (k.A.isDown ? 1 : 0);
@@ -1503,6 +1541,10 @@ export class GameScene extends Phaser.Scene {
     this.busy = true;
     this.heroBody.setVelocity(0, 0);
     if (sk.kind !== "buff") this.hero.face(tx - this.hero.x, ty - this.hero.y);
+    if (sk.id === "piercing") {
+      const m = this.hero.socket("muzzle");
+      this.spellFx("fx_piercing_arrow", "charge", this.hero.x + (m?.x ?? 0), this.hero.y + (m?.y ?? -14), 1e5);
+    }
     let applied = false;
     const apply = () => {
       if (applied) return;
@@ -1520,22 +1562,47 @@ export class GameScene extends Phaser.Scene {
     this.hero.play2(this.skillClip(this.hero, sk), {
       restart: true,
       timeScale: 1 + d.stats.attackSpeed,
-      onEvent: (ev) => ev === sk.event && apply(),
+      onEvent: (ev) => {
+        if (ev !== sk.event) return;
+        if (d.cls === "barbarian") this.axeSparks(sk.kind === "melee" ? (this.heroFinisher ? 22 : 12) : 18);
+        apply();
+      },
       onComplete: finish,
     });
     // Safety net in case a clip never completes (e.g. interrupted).
     this.time.delayedCall(1500, () => this.busy && finish());
   }
 
-  /** The clip a skill plays: its own clip when the hero has one, the basic attack cycling through its
-   * variations, else the generic attack/cast. */
+  /** The clip a skill plays: its own clip when the hero has one, else the generic attack/cast. The basic
+   * attack is a 5-hit combo (attack, attack2 ... attack5, the last one the finisher); 1.2 s without
+   * attacking starts it over. */
   private skillClip(spr: KilnSprite, sk: SkillDef) {
     if (spr.has(sk.id)) return sk.id;
-    if (sk.slot === "primary") {
-      const clips = [sk.anim, `${sk.anim}2`, `${sk.anim}3`].filter((c) => spr.has(c));
-      return clips[this.comboIdx++ % clips.length];
+    if (sk.slot !== "primary") return sk.anim;
+    const clips = [sk.anim, ...[2, 3, 4, 5].map((n) => `${sk.anim}${n}`)].filter((c) => spr.has(c));
+    const now = this.time.now;
+    const st = this.combo.get(spr) ?? { i: 0, at: -1e9 };
+    if (now - st.at > 1200) st.i = 0;
+    const clip = clips[st.i % clips.length];
+    st.i++;
+    st.at = now;
+    this.combo.set(spr, st);
+    if (spr === this.hero) this.heroFinisher = clip === `${sk.anim}5`;
+    return clip;
+  }
+
+  /** A SpriteKiln spell effect at x, y: a one-shot that removes itself when done, or a loop the caller keeps.
+   * Null while the effect's export (or that clip) is missing: the caller keeps its older effect. */
+  private spellFx(name: SpriteName, anim: string, x: number, y: number, depth = y, loop = false) {
+    if (!hasSprite(name)) return null;
+    const s = new KilnSprite(this, x, y, name);
+    if (!s.has(anim)) {
+      s.destroy();
+      return null;
     }
-    return sk.anim;
+    s.setDepth(depth);
+    s.play2(anim, { restart: true, onComplete: loop ? undefined : () => s.destroy() });
+    return s;
   }
 
   /** Point on the line hero → target, at most the skill's range away. */
@@ -1558,25 +1625,31 @@ export class GameScene extends Phaser.Scene {
   private applySkill(sk: SkillDef, tx: number, ty: number, target: Enemy | undefined, mult: number) {
     const h = this.hero;
     const now = this.time.now;
-    sfx.skill(sk.id, sk.kind === "melee" ? "swing" : sk.projectile?.tex === "fx_arrow" ? "bow" : "cast");
+    sfx.skill(sk.id, sk.kind === "melee" ? "swing" : sk.projectile?.tex === "fx_arrow_px" ? "bow" : "cast");
     switch (sk.kind) {
       case "melee": {
         const ang = Phaser.Math.Angle.Between(h.x, h.y - 8, tx, ty);
+        const slash = this.spellFx("fx_cleave", this.heroFinisher ? "slash_heavy" : "slash", h.x, h.y, h.y + 1);
+        slash?.face(Math.cos(ang), Math.sin(ang));
         let hits = 0;
         for (const e of this.enemiesIn(h.x, h.y, sk.range + ENEMY_RADIUS)) {
           const a = Phaser.Math.Angle.Between(h.x, h.y, e.spr.x, e.spr.y);
           if (e !== target && Math.abs(Phaser.Math.Angle.Wrap(a - ang)) > Phaser.Math.DegToRad((sk.arc ?? 90) / 2)) continue;
           this.heroHits(e, sk, mult);
+          if (this.data_.cls === "barbarian") this.emitters.sparks.explode(5, e.spr.x, e.spr.y - 10 * e.spr.scaleY);
           hits++;
         }
-        if (hits) this.shake(70, 0.002);
+        if (hits) this.shake(this.heroFinisher ? 140 : 70, this.heroFinisher ? 0.004 : 0.002);
         break;
       }
       case "warcry":
       case "nova": {
         const frost = sk.slow !== undefined;
-        this.ringFx(h.x, h.y - 4, sk.radius!, frost ? 0x7edaf2 : 0xe0662a, 320);
-        if (frost) this.emitters.frost.explode(30, h.x, h.y - 6);
+        const nova = frost ? this.spellFx("fx_frost_nova", "burst", h.x, h.y, h.y + 2)
+          : sk.id === "warcry" ? this.spellFx("fx_whirlwind", "spin", h.x, h.y, h.y + 1)
+          : sk.id === "quake" ? this.spellFx("fx_quake", "quake", h.x, h.y, h.y - 1) : null;
+        if (!nova) this.ringFx(h.x, h.y - 4, sk.radius!, frost ? 0x7edaf2 : 0xe0662a, 320);
+        if (frost) this.emitters.frost.explode(nova ? 12 : 30, h.x, h.y - 6);
         else this.emitters.dust.explode(sk.stun ? 40 : 16, h.x, h.y);
         this.shake(sk.stun ? 260 : 140, sk.stun ? 0.008 : 0.004);
         for (const e of this.enemiesIn(h.x, h.y, sk.radius!)) {
@@ -1594,11 +1667,11 @@ export class GameScene extends Phaser.Scene {
         const base = Phaser.Math.Angle.Between(ox, oy, tx, ty);
         const p = sk.projectile!;
         const n = p.count ?? 1;
+        if (sk.id === "multishot") this.spellFx("fx_arrow_fan", "release", ox, oy, 1e5)?.face(Math.cos(base), Math.sin(base));
         for (let i = 0; i < n; i++) {
           const a = base + (n > 1 ? Phaser.Math.DegToRad(-p.spread! / 2 + (p.spread! * i) / (n - 1)) : 0);
-          const img = this.add.image(ox, oy, p.tex).setRotation(a).setDepth(1e5);
-          if (p.tex !== "fx_arrow") img.setBlendMode(Phaser.BlendModes.ADD);
-          if (sk.id === "piercing") img.setScale(1.6).setTint(0xfff0b8);
+          const img = this.projectileImg(sk, ox, oy, a);
+          if (sk.id === "piercing" && !(img instanceof KilnSprite)) img.setScale(1.6).setTint(0xfff0b8);
           this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: p.pierce ?? 0, hit: new Set(), skill: sk, mult,
             el: this.projectileElement(sk, weaponElements(this.data_.stats)) });
         }
@@ -1606,9 +1679,13 @@ export class GameScene extends Phaser.Scene {
       }
       case "drain": {
         const c = this.clampTarget(sk, tx, ty);
-        this.discFx(c.x, c.y, sk.radius!, 0x7a0ff8, 600);
-        this.emitters.shadow.explode(24, c.x, c.y);
-        for (const e of this.enemiesIn(c.x, c.y, sk.radius!)) this.heroHits(e, sk, mult);
+        const curse = this.spellFx("fx_soul_drain", "curse", c.x, c.y, c.y + 2);
+        if (!curse) this.discFx(c.x, c.y, sk.radius!, 0x7a0ff8, 600);
+        this.emitters.shadow.explode(curse ? 10 : 24, c.x, c.y);
+        const hit = this.enemiesIn(c.x, c.y, sk.radius!);
+        for (const e of hit) this.heroHits(e, sk, mult);
+        // Souls fly from the cursed enemies into the sorcerer.
+        if (curse) hit.slice(0, 6).forEach((e, i) => this.time.delayedCall(280 + i * 60, () => this.soulWisp(e.spr.x, e.spr.y - 12)));
         break;
       }
       case "leap": {
@@ -1631,7 +1708,8 @@ export class GameScene extends Phaser.Scene {
               this.busy = false;
               this.hero.play2("idle");
             }
-            this.ringFx(h.x, h.y - 2, sk.radius!, 0xe0662a, 300);
+            if (!this.spellFx("fx_leap_impact", "impact", h.x, h.y, h.y - 1)) this.ringFx(h.x, h.y - 2, sk.radius!, 0xe0662a, 300);
+            this.axeSparks(16);
             this.emitters.dust.explode(36, h.x, h.y);
             this.shake(180, 0.006);
             for (const e of this.enemiesIn(h.x, h.y, sk.radius!)) {
@@ -1644,7 +1722,8 @@ export class GameScene extends Phaser.Scene {
       }
       case "buff": {
         this.data_.addBuff(sk, now);
-        this.ringFx(h.x, h.y - 4, 30, sk.buff!.tint, 400);
+        if (!(sk.id === "berserk" && this.spellFx("fx_war_roar", "roar", h.x, h.y, h.y - 1))) this.ringFx(h.x, h.y - 4, 30, sk.buff!.tint, 400);
+        if (sk.id === "berserk") this.shake(200, 0.005);
         this.emitters.gold.explode(14, h.x, h.y - 14);
         this.hud.message(`${sk.name} ativado!`, "#ffb38a");
         this.hud.markInventoryDirty();
@@ -1654,12 +1733,20 @@ export class GameScene extends Phaser.Scene {
       case "cloud": {
         const c = this.clampTarget(sk, tx, ty);
         const z: Zone = { x: c.x, y: c.y, r: sk.radius!, until: now + sk.duration!, next: now, skill: sk, mult, fx: sk.kind };
-        if (sk.kind === "cloud") {
+        const plague = sk.kind === "cloud" ? this.spellFx("fx_plague", "spawn", c.x, c.y, c.y, true) : null;
+        if (plague) {
+          plague.play2("spawn", { restart: true, onComplete: () => plague.active && plague.play2("cloud") });
+          z.img = plague;
+        } else if (sk.kind === "cloud") {
           z.img = this.add.image(c.x, c.y, "disc").setTint(0x5dff3d).setAlpha(0).setDepth(-1)
             .setScale(sk.radius! / 32, (sk.radius! / 32) * 0.65).setBlendMode(Phaser.BlendModes.ADD);
           this.tweens.add({ targets: z.img, alpha: 0.7, duration: 300 });
         } else {
-          z.img = this.add.image(c.x, c.y, "ring").setTint(0xffe14d).setAlpha(0.6).setDepth(-1)
+          const rain = this.spellFx("fx_arrow_rain", "mark", c.x, c.y, c.y + 1, true);
+          if (rain) {
+            rain.play2("mark", { restart: true, onComplete: () => rain.active && rain.play2("rain") });
+            z.img = rain;
+          } else z.img = this.add.image(c.x, c.y, "ring").setTint(0xffe14d).setAlpha(0.6).setDepth(-1)
             .setScale(sk.radius! / 30, (sk.radius! / 30) * 0.62);
         }
         this.zones.push(z);
@@ -1669,20 +1756,29 @@ export class GameScene extends Phaser.Scene {
         const c = this.clampTarget(sk, tx, ty);
         const mark = this.add.image(c.x, c.y, "ring").setTint(0xff3a1a).setDepth(-1).setScale(sk.radius! / 30, (sk.radius! / 30) * 0.62);
         this.tweens.add({ targets: mark, alpha: { from: 0.2, to: 0.9 }, duration: 150, yoyo: true, repeat: 2 });
-        const rock = this.add.image(c.x + 60, c.y - 200, "fx_fire").setScale(3).setDepth(1e5).setBlendMode(Phaser.BlendModes.ADD);
+        // The rock dives in from the upper left (the meteor sprite is drawn falling that way).
+        const rock = this.spellFx("fx_meteor", "fall", c.x - 60, c.y - 200, 1e5, true)
+          ?? this.add.image(c.x - 60, c.y - 200, "fx_fire").setScale(3).setDepth(1e5).setBlendMode(Phaser.BlendModes.ADD);
         this.tweens.add({
           targets: rock, x: c.x, y: c.y - 6, duration: 650, ease: "Quad.easeIn",
           onUpdate: () => this.emitters.fire.explode(2, rock.x, rock.y),
           onComplete: () => {
             rock.destroy();
             mark.destroy();
+            const impact = this.spellFx("fx_meteor", "impact", c.x, c.y, c.y + 40);
             this.emitters.fire.explode(50, c.x, c.y - 6);
             this.emitters.dust.explode(20, c.x, c.y);
             this.ringFx(c.x, c.y, sk.radius!, 0xfe6607, 380);
             this.shake(260, 0.01);
             for (const e of this.enemiesIn(c.x, c.y, sk.radius!)) this.heroHits(e, sk, mult);
-            const scorch = this.add.image(c.x, c.y, "disc").setTint(0xfe6607).setDepth(-1).setAlpha(0.7)
-              .setScale(sk.radius! / 32, (sk.radius! / 32) * 0.65).setBlendMode(Phaser.BlendModes.ADD);
+            const scorch = this.spellFx("fx_meteor", "burn", c.x, c.y, -1, true)
+              ?? this.add.image(c.x, c.y, "disc").setTint(0xfe6607).setDepth(-1).setAlpha(0.7)
+                .setScale(sk.radius! / 32, (sk.radius! / 32) * 0.65).setBlendMode(Phaser.BlendModes.ADD);
+            // The impact's last frame is the crater: the burning crater takes over when it ends.
+            if (impact && scorch instanceof KilnSprite) {
+              scorch.setVisible(false);
+              impact.once(Phaser.GameObjects.Events.DESTROY, () => scorch.active && scorch.setVisible(true));
+            }
             this.zones.push({ x: c.x, y: c.y, r: sk.radius!, until: this.time.now + sk.duration!, next: this.time.now + sk.tick!,
               skill: sk, mult: mult * 0.12, fx: "fire", img: scorch });
           },
@@ -1703,6 +1799,7 @@ export class GameScene extends Phaser.Scene {
         for (let i = 0; i < (sk.chains ?? 3) && cur; i++) {
           const ex = cur.spr.x, ey = cur.spr.y - 10 * cur.spr.scaleY;
           this.boltFx(fx, fy, ex, ey);
+          this.spellFx("fx_lightning", "strike", cur.spr.x, cur.spr.y + 1, cur.spr.y + 2);
           this.heroHits(cur, sk, m);
           this.emitters.frost.explode(8, ex, ey);
           hit.add(cur);
@@ -1721,7 +1818,7 @@ export class GameScene extends Phaser.Scene {
             const x = corpse.spr.x, y = corpse.spr.y;
             this.gibs(x, y - 6, 6);
             this.splat(x, y, 3);
-            this.ringFx(x, y, 44, 0xc1272d, 260);
+            if (!this.spellFx("fx_corpse_blast", "explode", x, y, y + 30)) this.ringFx(x, y, 44, 0xc1272d, 260);
             this.removeCorpse(corpse);
             const dmg = Math.round(corpse.maxHp * 0.35 * mult + this.data_.rollDamage(1).dmg);
             for (const e of this.enemiesIn(x, y, 50))
@@ -1764,16 +1861,19 @@ export class GameScene extends Phaser.Scene {
   private updateZones(time: number) {
     for (const z of this.zones) {
       if (time >= z.until) {
-        if (z.img) this.tweens.add({ targets: z.img, alpha: 0, duration: 300, onComplete: () => z.img!.destroy() });
+        // An effect with an ending clip plays it out (the last arrows of the rain land); the rest fade.
+        const img = z.img;
+        if (img instanceof KilnSprite && img.has("end")) img.play2("end", { restart: true, onComplete: () => img.destroy() });
+        else if (img) this.tweens.add({ targets: img, alpha: 0, duration: 300, onComplete: () => img.destroy() });
         continue;
       }
       if (time < z.next) continue;
       z.next = time + (z.skill.tick ?? 300);
-      if (z.fx === "rain") {
+      if (z.fx === "rain" && !(z.img instanceof KilnSprite)) {
         for (let i = 0; i < 4; i++) {
           const a = Math.random() * Math.PI * 2, r = Math.random() * z.r;
           const x = z.x + Math.cos(a) * r, y = z.y + Math.sin(a) * r * 0.62;
-          const arrow = this.add.image(x, y - 90, "fx_arrow").setRotation(Math.PI / 2).setDepth(1e5);
+          const arrow = this.add.image(x, y - 90, "fx_arrow_px").setRotation(Math.PI / 2).setDepth(1e5);
           this.tweens.add({ targets: arrow, y, duration: 180, ease: "Quad.easeIn", onComplete: () => {
             arrow.destroy();
             this.emitters.dust.explode(3, x, y);
@@ -1781,7 +1881,7 @@ export class GameScene extends Phaser.Scene {
         }
       } else if (z.fx === "cloud") {
         this.emitters.shadow.explode(5, z.x + (Math.random() - 0.5) * z.r, z.y + (Math.random() - 0.5) * z.r * 0.5);
-      } else {
+      } else if (z.fx === "fire") {
         this.emitters.fire.explode(6, z.x + (Math.random() - 0.5) * z.r, z.y + (Math.random() - 0.5) * z.r * 0.5);
       }
       for (const e of this.enemiesIn(z.x, z.y, z.r)) {
@@ -3013,7 +3113,8 @@ export class GameScene extends Phaser.Scene {
   private localState(): PlayerState {
     const d = this.data_;
     return { name: d.def.name, cls: d.cls, level: d.level, hp: Math.round(d.hp), maxHp: Math.round(d.stats.maxHp),
-      x: Math.round(this.hero.x), y: Math.round(this.hero.y), anim: this.hero.current, dir: this.hero.dir, dead: this.dead };
+      x: Math.round(this.hero.x), y: Math.round(this.hero.y), anim: this.hero.current, dir: this.hero.dir, dead: this.dead,
+      ...(this.hero.spriteName !== d.cls ? { skin: this.hero.spriteName } : {}) };
   }
 
   private updateNet(time: number, dt: number) {
@@ -3068,7 +3169,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onRemoteState(p: PlayerState) {
-    if (!this.remote || this.remote.spr.spriteName !== p.cls) {
+    if (!this.remote || this.remote.st.cls !== p.cls) {
       this.dropRemote();
       const spr = new KilnSprite(this, p.x, p.y, p.cls as SpriteName);
       spr.play2("idle");
@@ -3082,6 +3183,8 @@ export class GameScene extends Phaser.Scene {
     const r = this.remote;
     const prev = r.st;
     r.st = p;
+    const look = (p.skin && hasSprite(p.skin as SpriteName) ? p.skin : p.cls) as SpriteName;
+    if (r.spr.spriteName !== look) r.spr.setSprite(look);
     if (prev.level !== p.level) r.tag.querySelector(".pn")!.textContent = L(`${p.name} nv ${p.level}`, `${p.name} lv ${p.level}`);
     if (p.dead) {
       if (r.spr.current !== "death") {
@@ -3097,6 +3200,51 @@ export class GameScene extends Phaser.Scene {
       r.spr.dir = p.dir as Dir;
       r.spr.play2(p.anim, { restart: turned || r.spr.current === "death" });
     }
+  }
+
+  // ---------------------------------------------------------------- dev menu (F2, dev builds only)
+
+  private devEl?: HTMLDivElement;
+
+  private toggleDevMenu() {
+    if (this.devEl) {
+      this.devEl.remove();
+      this.devEl = undefined;
+      return;
+    }
+    const d = this.data_;
+    const el = document.createElement("div");
+    el.className = "devmenu interactive";
+    const opts = (vals: number[], cur: number) => vals.map((v) => `<option value="${v}" ${v === cur ? "selected" : ""}>${v}x</option>`).join("");
+    el.innerHTML = `<div class="dv-title">Dev <small>F2</small></div>
+      <button class="btn" data-a="max">${L("Nível máximo", "Max level")} (${DEV_MAX_LEVEL})</button>
+      <button class="btn" data-a="up">+1 ${L("nível", "level")}</button>
+      <label><input type="checkbox" data-a="god" ${dev.god ? "checked" : ""}> God mode</label>
+      <label><input type="checkbox" data-a="mana" ${dev.mana ? "checked" : ""}> ${d.def.resource} ${L("máxima", "always full")}</label>
+      <label>${L("Velocidade", "Speed")} <select data-a="speed">${opts([1, 1.5, 2, 3, 5], dev.speed)}</select></label>
+      <label>${L("Dano", "Damage")} <select data-a="dmg">${opts([1, 2, 5, 10, 100], dev.dmg)}</select></label>
+      ${d.dev ? `<div class="dv-note">${L("Save de dev: já tem god mode, dano x10 e velocidade x2.", "Dev save: already has god mode, 10x damage and 2x speed.")}</div>` : ""}`;
+    const levelTo = (lvl: number) => {
+      if (d.level >= lvl) return;
+      this.giveXp(Math.max(1, xpForLevel(lvl) - d.xp));
+      this.hud.markInventoryDirty();
+    };
+    el.querySelector<HTMLButtonElement>("[data-a=max]")!.onclick = () => levelTo(DEV_MAX_LEVEL);
+    el.querySelector<HTMLButtonElement>("[data-a=up]")!.onclick = () => levelTo(d.level + 1);
+    for (const k of ["god", "mana"] as const)
+      el.querySelector<HTMLInputElement>(`[data-a=${k}]`)!.onchange = (e) => {
+        dev[k] = (e.target as HTMLInputElement).checked;
+        saveDev();
+      };
+    for (const k of ["speed", "dmg"] as const)
+      el.querySelector<HTMLSelectElement>(`[data-a=${k}]`)!.onchange = (e) => {
+        dev[k] = Number((e.target as HTMLSelectElement).value);
+        saveDev();
+      };
+    // Keys typed in the menu do not move the hero or cast.
+    el.addEventListener("keydown", (e) => e.stopPropagation());
+    document.getElementById("ui")!.appendChild(el);
+    this.devEl = el;
   }
 
   private heads = new Map<string, HTMLCanvasElement>();
@@ -3157,26 +3305,40 @@ export class GameScene extends Phaser.Scene {
           const base = Phaser.Math.Angle.Between(x, y - 12, m.tx, m.ty);
           for (let i = 0; i < n; i++) {
             const a = base + (n > 1 ? Phaser.Math.DegToRad(-p.spread! / 2 + (p.spread! * i) / (n - 1)) : 0);
-            const img = this.add.image(x, y - 12, p.tex).setRotation(a).setDepth(1e5);
-            if (p.tex !== "fx_arrow") img.setBlendMode(Phaser.BlendModes.ADD);
+            const img = this.projectileImg(sk, x, y - 12, a);
             this.projectiles.push({ img, vx: Math.cos(a) * p.speed, vy: Math.sin(a) * p.speed, left: sk.range, pierce: 99, hit: new Set(), skill: sk, mult: 1, ghost: true,
               el: this.projectileElement(sk, []) });
           }
           break;
         }
-        case "melee": case "warcry": case "nova": case "leap":
-          this.ringFx(x, y - 4, sk.radius ?? sk.range, sk.slow ? 0x7edaf2 : 0xe0662a, 300);
+        case "melee": case "warcry": case "nova": case "leap": {
+          if (sk.kind === "melee") {
+            const slash = this.spellFx("fx_cleave", "slash", x, y, y + 1);
+            slash?.face(m.tx - x, m.ty - y);
+            if (slash) break;
+          }
+          const own = sk.slow ? this.spellFx("fx_frost_nova", "burst", x, y, y + 2)
+            : sk.id === "warcry" ? this.spellFx("fx_whirlwind", "spin", x, y, y + 1)
+            : sk.id === "quake" ? this.spellFx("fx_quake", "quake", x, y, y - 1) : null;
+          if (!own)
+            this.ringFx(x, y - 4, sk.radius ?? sk.range, sk.slow ? 0x7edaf2 : 0xe0662a, 300);
           break;
+        }
         case "buff":
+          if (sk.id === "berserk" && this.spellFx("fx_war_roar", "roar", x, y, y - 1)) break;
           this.ringFx(x, y - 4, 30, sk.buff!.tint, 400);
           break;
         case "chain": {
           const c = clamp();
           this.boltFx(x, y - 16, c.x, c.y);
+          this.spellFx("fx_lightning", "strike", c.x, c.y, c.y + 2);
           break;
         }
         case "drain": case "cloud": case "rain": case "meteor": {
           const c = clamp();
+          if (sk.kind === "meteor" && this.spellFx("fx_meteor", "impact", c.x, c.y, c.y + 40)) break;
+          if (sk.kind === "drain" && this.spellFx("fx_soul_drain", "curse", c.x, c.y, c.y + 2)) break;
+          if (sk.kind === "cloud" && this.spellFx("fx_plague", "spawn", c.x, c.y, c.y)) break;
           this.discFx(c.x, c.y, sk.radius ?? 40, sk.kind === "meteor" ? 0xfe6607 : sk.kind === "rain" ? 0xffe14d : sk.kind === "drain" ? 0x7a0ff8 : 0x5dff3d, 700);
           break;
         }
@@ -3560,7 +3722,7 @@ export class GameScene extends Phaser.Scene {
 
   private hurtHeroRaw(raw: number, level: number, fx: HitEffects = {}) {
     const d = this.data_;
-    if (this.dead || d.dev) return; // dev save: god mode
+    if (this.dead || isGod(d)) return; // god mode (dev save or the F2 menu)
     if (this.time.now < this.invulnUntil) {
       this.floatAt(this.hero.x, this.hero.y - 30, L("Esquivou", "Dodged"), "heal");
       return;
@@ -3628,7 +3790,7 @@ export class GameScene extends Phaser.Scene {
       else if (time >= p.next) {
         p.next += 1000;
         const d = this.data_;
-        if (d.dev) return;
+        if (isGod(d)) return;
         const dmg = Math.max(1, Math.round(p.dps));
         d.hp -= dmg;
         this.floatAt(this.hero.x, this.hero.y - 30, String(dmg), "hurt");
@@ -4833,6 +4995,59 @@ export class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- projectiles
 
+  /** Sparks flying off the barbarian's axe blade (its `hit` socket). */
+  private axeSparks(n: number) {
+    const s = this.hero.socket("hit");
+    this.emitters.sparks.explode(n, this.hero.x + (s?.x ?? 10), this.hero.y + (s?.y ?? -14));
+  }
+
+  /** While the barbarian swings, the blade sheds a trail of sparks. */
+  private updateAxeTrail() {
+    const h = this.hero;
+    if (this.data_.cls !== "barbarian" || !this.busy || !h.anims.isPlaying || Math.random() > 0.55) return;
+    const c = h.current;
+    if (!(c.startsWith("attack") || c === "cast" || c === "warcry" || c === "quake" || c === "leap")) return;
+    const s = h.socket("hit");
+    if (s) this.emitters.sparks.explode(1, h.x + s.x, h.y + s.y);
+  }
+
+  /** Berserker Rage changes the barbarian's look (bulkier, red eyes, wild hair, a rage aura) while it lasts. */
+  private updateBerserkLook() {
+    const d = this.data_;
+    if (d.cls !== "barbarian") return;
+    const rage = !this.dead && d.buffs.some((b) => b.id === "berserk") && hasSprite("barbarian_berserk");
+    const want: SpriteName = rage ? "barbarian_berserk" : "barbarian";
+    if (this.hero.spriteName !== want) this.hero.setSprite(want);
+  }
+
+  /** A soul flying from x, y into the hero (Soul Drain's heal). */
+  private soulWisp(x: number, y: number) {
+    const w = this.spellFx("fx_soul_drain", "wisp", x, y, 1e5, true);
+    if (!w) return;
+    const h = this.hero;
+    this.tweens.add({
+      targets: w, duration: 520, ease: "Quad.easeIn",
+      x: { getEnd: () => h.x }, y: { getEnd: () => h.y - 14 },
+      onComplete: () => {
+        w.destroy();
+        this.emitters.shadow.explode(4, h.x, h.y - 14);
+      },
+    });
+  }
+
+  /** A projectile's look: the mage's fireball has its own animated sprite, turned to where it flies. */
+  private projectileImg(sk: SkillDef, x: number, y: number, a: number) {
+    const own = PROJECTILE_FX[sk.id];
+    const fb = own ? this.spellFx(own.name, "fly", x, y, 1e5, true) : null;
+    if (fb) {
+      fb.face(Math.cos(a), Math.sin(a));
+      return fb;
+    }
+    const img = this.add.image(x, y, sk.projectile!.tex).setRotation(a).setDepth(1e5);
+    if (sk.projectile!.tex !== "fx_arrow_px") img.setBlendMode(Phaser.BlendModes.ADD);
+    return img;
+  }
+
   /** The skill's own element, else the first element of the hero's gear (a fire bow's arrows trail embers). */
   private projectileElement(sk: SkillDef, gear: Element[]): Element | undefined {
     return ELEMENT_OF[sk.death] ?? (sk.projectile?.tex === "fx_fire" ? "fire" : gear[0]);
@@ -4861,6 +5076,8 @@ export class GameScene extends Phaser.Scene {
       if (dd < 10 * e.spr.scaleX * (e.type === "brute" ? 1.3 : 1)) {
         p.hit.add(e);
         this.heroHits(e, p.skill, p.mult, false, Math.atan2(p.vy, p.vx));
+        const own = PROJECTILE_FX[p.skill.id];
+        if (own?.hit) this.spellFx(own.name, own.hit, p.img.x, p.img.y, 1e5);
         if (p.skill.projectile?.tex === "fx_shadow") this.emitters.shadow.explode(8, p.img.x, p.img.y);
         if (p.pierce-- <= 0) done = true;
       }
@@ -4870,8 +5087,10 @@ export class GameScene extends Phaser.Scene {
     if (!done && p.skill.range - p.left > 16 && !this.grid.free(tx, ty) && !this.isFenceOrBorder(tx, ty)) done = true;
     if (done) {
       const ex = p.skill.projectile?.explode;
+      const own = PROJECTILE_FX[p.skill.id];
+      const burst = !!own?.end && !!this.spellFx(own.name, own.end, p.img.x, p.img.y + (own.endOnGround ? 12 : 0), 1e5);
       if (ex) {
-        this.emitters.fire.explode(ex > 30 ? 30 : 16, p.img.x, p.img.y);
+        this.emitters.fire.explode(burst ? 6 : ex > 30 ? 30 : 16, p.img.x, p.img.y);
         this.ringFx(p.img.x, p.img.y + 8, ex, 0xfe6607, 220);
         if (ex > 30) this.shake(100, 0.004);
         if (!p.ghost) for (const e of this.enemiesIn(p.img.x, p.img.y + 10, ex)) if (!p.hit.has(e)) this.heroHits(e, p.skill, p.mult * (ex > 30 ? 0.8 : 0.5));
@@ -5121,13 +5340,41 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateAura(time: number) {
+    this.updateBuffFx();
     const b = this.data_.buffs[0];
+    // Buffs with their own effect skip the plain aura (it only shows the others).
+    if (this.data_.buffs.every((x) => this.buffSprs.has(x.id)) && (this.data_.absorb <= 0 || this.buffSprs.has("shield"))) {
+      this.aura.setAlpha(0);
+      return;
+    }
     if (!b && this.data_.absorb <= 0) {
       this.aura.setAlpha(0);
       return;
     }
     this.aura.setPosition(this.hero.x, this.hero.y - 2).setDepth(this.hero.y - 1)
       .setTint(this.data_.absorb > 0 ? 0x7a9bff : b!.tint).setAlpha(0.45 + 0.25 * Math.sin(time / 120));
+  }
+
+  /** Buffs with their own effect rise over the hero, loop while they last and play their end clip when they
+   * run out (the Arcane Shield shatters once it has absorbed all it could). */
+  private updateBuffFx() {
+    const d = this.data_;
+    for (const [id, fx] of Object.entries(BUFF_FX)) {
+      const on = !this.dead && (id === "shield" ? d.absorb > 0 : d.buffs.some((b) => b.id === id));
+      const s = this.buffSprs.get(id);
+      if (on && !s) {
+        const spr = this.spellFx(fx.name, fx.up, this.hero.x, this.hero.y, this.hero.y + 1, true);
+        if (!spr) continue;
+        spr.play2(fx.up, { restart: true, onComplete: () => spr.active && spr.play2(fx.loop) });
+        this.buffSprs.set(id, spr);
+      } else if (!on && s) {
+        this.buffSprs.delete(id);
+        if (s.has(fx.end)) s.play2(fx.end, { restart: true, onComplete: () => s.destroy() });
+        else s.destroy();
+        if (id === "shield") sfx.hit(false);
+      }
+      this.buffSprs.get(id)?.setPosition(this.hero.x, this.hero.y).setDepth(this.hero.y + 1);
+    }
   }
 
   private updateTrees() {

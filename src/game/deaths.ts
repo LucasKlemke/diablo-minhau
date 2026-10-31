@@ -174,7 +174,7 @@ export function playDeath(ctx: DeathCtx, spr: KilnSprite, kind: DeathKind, angle
       for (let i = 0; i < n; i++) {
         const oy = -height * (0.35 + Math.random() * 0.35) * s, ox = (Math.random() - 0.5) * 6;
         const a = angle + (Math.random() - 0.5) * 0.3;
-        const arrow = scene.add.image(spr.x + ox - Math.cos(a) * 3, spr.y + oy - Math.sin(a) * 3, "fx_arrow")
+        const arrow = scene.add.image(spr.x + ox - Math.cos(a) * 3, spr.y + oy - Math.sin(a) * 3, "fx_arrow_px")
           .setRotation(a).setDepth(spr.depth + 1);
         arrows.push(arrow);
       }

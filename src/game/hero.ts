@@ -1,4 +1,5 @@
 import { buffMult, CLASSES, type ClassDef, type ClassId, type SkillDef } from "../data/classes";
+import { dmgMult } from "./dev";
 import { itemStats, setNextUid, type Item, type Slot } from "../data/items";
 import { QUESTS, type WorldFlag } from "../data/quests";
 import { AREAS, ZONE_ORDER, ZONES, type AreaId, type ZoneId } from "../data/zones";
@@ -222,7 +223,7 @@ export class HeroData {
     const s = this.stats;
     const base = s.dmgMin + Math.random() * (s.dmgMax - s.dmgMin) + s.dmgFlat;
     const crit = Math.random() < s.crit;
-    return { dmg: Math.max(1, Math.round(base * (1 + s.dmgPct) * mult * (crit ? 2 : 1) * (this.dev ? 10 : 1))), crit };
+    return { dmg: Math.max(1, Math.round(base * (1 + s.dmgPct) * mult * (crit ? 2 : 1) * dmgMult(this))), crit };
   }
 
   seed(key: string) {

@@ -759,10 +759,21 @@ img.icon { image-rendering: pixelated; }
 .log { left: auto; right: 14px; bottom: 44px; align-items: flex-end; text-align: right; font-size: 13px; max-width: 360px; }
 
 /* Bottom left: active buffs as icons with time left. */
-.buffs { top: auto; left: 14px; bottom: 14px; display: flex; gap: 6px; color: #ece3cf; }
+.buffs {
+  /* A row floating just above the central skill bar (it does not change the bar's height). */
+  position: absolute; left: 50%; top: auto; bottom: calc(100% + 10px); transform: translateX(-50%);
+  display: flex; gap: 6px; color: #ece3cf;
+}
+/* Names only on hover: side by side they would run into each other. */
+.buff em { display: none; }
+.buff:hover em { display: block; }
 .buff { position: relative; width: 36px; height: 36px; border: 2px solid #c8963e; background: #120c0e; box-shadow: 0 0 0 1px #0a0608, 0 0 8px rgba(255, 200, 90, 0.4); }
 .buff .sicon { width: 100%; height: 100%; image-rendering: pixelated; }
 .buff span { position: absolute; right: 1px; bottom: 0; font-size: 10px; text-shadow: 1px 1px 0 #000; }
+.buff.debuff { border-color: #c13a2b; box-shadow: 0 0 0 1px #0a0608, 0 0 8px rgba(255, 70, 60, 0.45); }
+.buff.debuff b { display: grid; place-items: center; width: 100%; height: 100%; font-size: 20px; }
+.buff.poison b { color: #7bea6a; } .buff.slow b { color: #9fe8ff; } .buff.stun b { color: #ffe14d; }
+.buff.debuff em { color: #ff8a7a; }
 .buff em { position: absolute; left: 50%; bottom: calc(100% + 2px); transform: translateX(-50%); font-style: normal; font-size: 10px; white-space: nowrap; color: #ffb38a; text-shadow: 1px 1px 0 #000; }
 .session { top: 40px; }
 
@@ -843,3 +854,12 @@ img.icon { image-rendering: pixelated; }
 
 /* Dev save marker on the title screen's hero cards. */
 .tm-dev { font-style: normal; font-size: 10px; color: #0a0608; background: #7bea6a; padding: 0 3px; border-radius: 2px; }
+.devmenu {
+  position: absolute; left: 12px; bottom: 120px; z-index: 30; width: 210px; padding: 10px; display: flex; flex-direction: column; gap: 6px;
+  background: rgba(20, 10, 16, 0.94); border: 2px dashed #ff3aa0; box-shadow: 0 0 0 2px var(--ink); font-size: 13px;
+}
+.devmenu .dv-title { font-family: "Silkscreen", monospace; color: #ff6ac0; }
+.devmenu .dv-title small { color: var(--muted); font-size: 10px; margin-left: 4px; }
+.devmenu label { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.devmenu select { font: inherit; background: var(--panel); color: var(--text); border: 1px solid var(--edge); }
+.devmenu .dv-note { color: var(--muted); font-size: 11px; }
