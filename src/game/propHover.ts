@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { KilnSprite } from "../kiln";
+import { relight } from "./lighting";
 import { L } from "../i18n";
 
 // Mouse-over feedback for interactive props (portal, chests, crypt entrances): a pulsing outline glow,
@@ -90,7 +91,10 @@ export class PropHover {
     this.scene.input.setDefaultCursor("default");
     this.tag.style.display = "none";
     if (!spr || !spr.active) return;
-    if (this.glow) spr.preFX?.remove(this.glow);
+    if (this.glow) {
+      spr.preFX?.remove(this.glow);
+      relight(spr);
+    }
     this.glow = undefined;
     spr.setScale(spr.scaleX); // undo the breath
     if (spr.current === "hover") spr.play2("idle", { restart: true });

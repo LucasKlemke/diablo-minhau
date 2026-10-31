@@ -1,9 +1,23 @@
 // Game sound effects: ElevenLabs samples from public/assets/sfx (scripts/gen-sfx.mjs),
 // with a tiny WebAudio synth as fallback while a sample is missing or still loading.
-import { onSettingsChange, settings } from "./settings";
+import { onSettingsChange, settings, type SoundChannel } from "./settings";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
+/** One gain per sound channel, all into the master gain (music plays through <audio> elements instead). */
+const buses: Partial<Record<SoundChannel, GainNode>> = {};
+type Bus = Exclude<SoundChannel, "music">;
+
+function bus(ch: Bus) {
+  ac();
+  let g = buses[ch];
+  if (!g) {
+    g = buses[ch] = ctx!.createGain();
+    g.gain.value = settings.channels[ch];
+    g.connect(master!);
+  }
+  return g;
+}
 let muted = (() => {
   try {
     return localStorage.getItem("diablo-minhau:mute") === "1";
@@ -17,7 +31,10 @@ function ac() {
     ctx = new AudioContext();
     master = ctx.createGain();
     master.gain.value = 0.5 * settings.volume;
-    onSettingsChange(() => master && (master.gain.value = 0.5 * settings.volume));
+    onSettingsChange(() => {
+      if (master) master.gain.value = 0.5 * settings.volume;
+      for (const [ch, g] of Object.entries(buses)) g.gain.value = settings.channels[ch as Bus];
+    });
     master.connect(ctx.destination);
     loadSamples(ctx);
   }
@@ -61,7 +78,7 @@ function loadSamples(a: AudioContext) {
 }
 
 /** Plays one of the named samples at random; false when none is loaded yet (caller falls back to the synth). */
-function sample(names: string[], vol = 1) {
+function sample(names: string[], vol = 1, ch: Bus = "combat") {
   if (muted) return true;
   const a = ac();
   const loaded = names.filter((n) => samples[n]);
@@ -71,7 +88,7 @@ function sample(names: string[], vol = 1) {
   src.playbackRate.value = 0.95 + Math.random() * 0.1;
   const g = a.createGain();
   g.gain.value = vol;
-  src.connect(g).connect(master!);
+  src.connect(g).connect(bus(ch));
   src.start();
   return true;
 }
@@ -91,7 +108,7 @@ function playAmbience() {
   src.loop = true;
   const g = a.createGain();
   g.gain.value = 0.35;
-  src.connect(g).connect(master!);
+  src.connect(g).connect(bus("ambience"));
   src.start();
   ambience = { name: wantAmbience, src };
 }
@@ -121,7 +138,7 @@ const tracks: Partial<Record<Track, HTMLAudioElement>> = {};
 let wantMusic: Track | null = null;
 
 function musicVolume() {
-  return muted ? 0 : MUSIC_VOL * settings.volume;
+  return muted ? 0 : MUSIC_VOL * settings.volume * settings.channels.music;
 }
 
 function fade(el: HTMLAudioElement, to: number, ms = 1200) {
@@ -186,7 +203,7 @@ export function toggleMute() {
   return muted;
 }
 
-function tone(freq: number, start: number, dur: number, type: OscillatorType = "square", vol = 0.2, slideTo?: number) {
+function tone(freq: number, start: number, dur: number, type: OscillatorType = "square", vol = 0.2, slideTo?: number, ch: Bus = "ui") {
   if (muted) return;
   const a = ac();
   const o = a.createOscillator();
@@ -197,12 +214,12 @@ function tone(freq: number, start: number, dur: number, type: OscillatorType = "
   g.gain.setValueAtTime(0, a.currentTime + start);
   g.gain.linearRampToValueAtTime(vol, a.currentTime + start + 0.01);
   g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + start + dur);
-  o.connect(g).connect(master!);
+  o.connect(g).connect(bus(ch));
   o.start(a.currentTime + start);
   o.stop(a.currentTime + start + dur + 0.05);
 }
 
-function noise(start: number, dur: number, vol = 0.2, lowpass = 800) {
+function noise(start: number, dur: number, vol = 0.2, lowpass = 800, ch: Bus = "ui") {
   if (muted) return;
   const a = ac();
   const buf = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate);
@@ -215,7 +232,7 @@ function noise(start: number, dur: number, vol = 0.2, lowpass = 800) {
   f.frequency.value = lowpass;
   const g = a.createGain();
   g.gain.value = vol;
-  src.connect(f).connect(g).connect(master!);
+  src.connect(f).connect(g).connect(bus(ch));
   src.start(a.currentTime + start);
 }
 
@@ -223,7 +240,7 @@ function noise(start: number, dur: number, vol = 0.2, lowpass = 800) {
 export const cine = {
   /** One of the samples cine_<name> (or cine_<name>_01..03 at random). */
   play(name: string, vol = 1) {
-    sample([`cine_${name}`, ...[1, 2, 3].map((i) => `cine_${name}_0${i}`)], vol);
+    sample([`cine_${name}`, ...[1, 2, 3].map((i) => `cine_${name}_0${i}`)], vol, "cinematic");
   },
   /** Starts a looping sample; the returned function fades it out. */
   loop(name: string, vol = 1, fadeIn = 0.8) {
@@ -235,7 +252,7 @@ export const cine = {
     const g = a.createGain();
     g.gain.setValueAtTime(0, a.currentTime);
     g.gain.linearRampToValueAtTime(vol, a.currentTime + fadeIn);
-    src.connect(g).connect(master!);
+    src.connect(g).connect(bus("cinematic"));
     src.start();
     let stopped = false;
     return (fade = 0.8) => {
@@ -251,7 +268,7 @@ export const cine = {
 
 export const sfx = {
   levelUp() {
-    if (sample(["levelUp"])) return;
+    if (sample(["levelUp"], 1, "ui")) return;
     // Rising arpeggio + shimmering chord.
     [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, i * 0.07, 0.25, "square", 0.12));
     [1047, 1319, 1568].forEach((f) => tone(f, 0.38, 0.9, "triangle", 0.1));
@@ -259,48 +276,48 @@ export const sfx = {
     noise(0.35, 0.5, 0.08, 4000);
   },
   drop(rarity: string) {
-    if (["rare", "epic", "legendary", "unique"].includes(rarity) && sample([`drop_${rarity}`])) return;
+    if (["rare", "epic", "legendary", "unique"].includes(rarity) && sample([`drop_${rarity}`], 1, "ui")) return;
     const tiers: Record<string, number[]> = {
       rare: [880, 1175], epic: [784, 988, 1319], legendary: [659, 880, 1109, 1480], unique: [523, 784, 1047, 1568],
     };
     (tiers[rarity] ?? []).forEach((f, i) => tone(f, i * 0.09, 0.45, "triangle", 0.14));
   },
   coin() {
-    if (sample(["coin_01", "coin_02"], 0.7)) return;
+    if (sample(["coin_01", "coin_02"], 0.7, "ui")) return;
     tone(1568, 0, 0.06, "square", 0.06);
     tone(2093, 0.05, 0.1, "square", 0.05);
   },
   hit(crit = false) {
     if (sample(crit ? ["hit_crit"] : ["hit_01", "hit_02", "hit_03"], crit ? 0.9 : 0.6)) return;
-    noise(0, crit ? 0.12 : 0.06, crit ? 0.18 : 0.08, crit ? 1800 : 900);
-    if (crit) tone(220, 0, 0.12, "sawtooth", 0.08, 110);
+    noise(0, crit ? 0.12 : 0.06, crit ? 0.18 : 0.08, crit ? 1800 : 900, "combat");
+    if (crit) tone(220, 0, 0.12, "sawtooth", 0.08, 110, "combat");
   },
   hurt() {
     if (sample(["hurt_01", "hurt_02", "hurt_03"], 0.7)) return;
-    tone(180, 0, 0.12, "sawtooth", 0.1, 90);
+    tone(180, 0, 0.12, "sawtooth", 0.1, 90, "combat");
   },
   portal() {
     if (sample(["portal"])) return;
-    tone(220, 0, 0.6, "sine", 0.12, 880);
-    noise(0, 0.5, 0.06, 2500);
+    tone(220, 0, 0.6, "sine", 0.12, 880, "combat");
+    noise(0, 0.5, 0.06, 2500, "combat");
   },
   boss() {
     if (sample(["boss"])) return;
-    tone(70, 0, 1.2, "sawtooth", 0.18, 45);
-    noise(0, 1.0, 0.15, 400);
+    tone(70, 0, 1.2, "sawtooth", 0.18, 45, "combat");
+    noise(0, 1.0, 0.15, 400, "combat");
   },
   quest() {
-    if (sample(["quest"])) return;
+    if (sample(["quest"], 1, "ui")) return;
     [784, 988, 1175, 1568].forEach((f, i) => tone(f, i * 0.1, 0.3, "triangle", 0.12));
   },
   buy() {
-    if (sample(["buy"], 0.8)) return;
+    if (sample(["buy"], 0.8, "ui")) return;
     tone(1319, 0, 0.08, "square", 0.07);
     tone(1760, 0.07, 0.12, "square", 0.07);
   },
   // Sample-only sounds: silent until their file loads.
   step(stone: boolean) {
-    sample(STEPS(stone ? "stone" : "grass"), 0.25);
+    sample(STEPS(stone ? "stone" : "grass"), 0.25, "steps");
   },
   swing() {
     sample(["swing_01", "swing_02", "swing_03"], 0.5);
@@ -325,13 +342,13 @@ export const sfx = {
     sample(["dash"], 0.5);
   },
   click() {
-    if (!sample(["ui_click"], 0.6)) sfx.coin();
+    if (!sample(["ui_click"], 0.6, "ui")) sfx.coin();
   },
   panel(open: boolean) {
-    sample([open ? "ui_open" : "ui_close"], 0.5);
+    sample([open ? "ui_open" : "ui_close"], 0.5, "ui");
   },
   equip() {
-    sample(["equip"], 0.6);
+    sample(["equip"], 0.6, "ui");
   },
   die(sprite: string) {
     sample([DEATH[sprite] ?? `die_${sprite}`], 0.7);

@@ -109,7 +109,7 @@ export type SpriteName = (typeof SPRITES)[number];
 export function preloadKiln(scene: Phaser.Scene) {
   for (const name of SPRITES) {
     const base = `assets/sprites/${name}/${name}`;
-    scene.load.atlas(name, `${base}.png`, `${base}.json`);
+    scene.load.atlas(name, [`${base}.png`, `${base}_normal.png`], `${base}.json`);
     scene.load.json(`${name}:kiln`, `${base}.json`);
   }
 }

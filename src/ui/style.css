@@ -422,6 +422,10 @@ img.icon { image-rendering: pixelated; }
 .mm .classes { grid-template-columns: repeat(4, minmax(0, 200px)); justify-content: center; }
 @media (max-width: 860px) { .mm .classes { grid-template-columns: repeat(2, minmax(0, 200px)); } }
 .options label:has(input[type=checkbox]) { justify-content: flex-start; }
+.options { min-width: min(440px, 80vw); max-height: 70vh; overflow-y: auto; padding-right: 4px; }
+.options h3 { font-family: "Silkscreen", monospace; font-size: 13px; color: var(--edge-light); margin: 6px 0 -4px; border-bottom: 1px solid var(--edge); padding-bottom: 3px; }
+.options .vol { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 260px; }
+.options .vol output { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; color: var(--edge-light); }
 
 /* ---------- Multiplayer ---------- */
 .mp-error { color: #ff8a7a; background: #3a1414; border: 2px solid #8a2a2a; padding: 6px 10px; }

@@ -28,6 +28,7 @@ import { Director } from "../game/cutscene";
 import { blobTile } from "../world/autotile";
 import { generateMap, MAP_H, MAP_W, rng, TILE, type Pack, type Prop, type WorldMap } from "../world/mapgen";
 import { Grid } from "../world/pathfind";
+import { Lighting, relight, type Ambience } from "../game/lighting";
 import { L } from "../i18n";
 
 /** NPC profession icons for the name tags (pixel icons as data URLs, drawn once). */
@@ -264,6 +265,7 @@ export class GameScene extends Phaser.Scene {
   private portalSpr?: Phaser.GameObjects.Image | KilnSprite;
   private portalSwirl?: Phaser.GameObjects.Image;
   private darkEl?: HTMLDivElement;
+  private lighting!: Lighting;
   private slowmoUntil = 0;
   private hitSfxAt = 0;
   /** Mouse buttons pressed on the game canvas (clicks on the HTML UI never count). */
@@ -449,6 +451,7 @@ export class GameScene extends Phaser.Scene {
       this.map = layout ? buildAuthoredMap(this.area.id, layout) : generateMap(this.mapSeed, this.area.id);
     }
     this.grid = new Grid(MAP_W, MAP_H, this.map.blocked);
+    this.lighting = new Lighting(this, this.ambience());
     this.buildWorld();
     this.buildGates(this.gatesLocked);
     this.buildArenaGate();
@@ -475,6 +478,7 @@ export class GameScene extends Phaser.Scene {
     this.heroBody = this.hero.body as Phaser.Physics.Arcade.Body;
     this.setupBody(this.hero, 5);
     this.hero.play2("idle");
+    this.heroLight(this.hero);
     this.physics.add.collider(this.hero, this.collision);
     this.aura = this.add.image(0, 0, "ring").setScale(0.42, 0.26).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD);
 
@@ -596,9 +600,9 @@ export class GameScene extends Phaser.Scene {
     if (this.dungeonRef) {
       this.hud.zoneTitle(this.area.dungeons[this.dungeonRef.index].name, L(`${this.area.name} · Masmorra`, `${this.area.name} · Dungeon`));
       this.hud.vignette.classList.add("dungeon");
-      this.darkEl = document.createElement("div");
-      this.darkEl.className = "darkness";
-      document.getElementById("ui")!.prepend(this.darkEl);
+      // Without the lights (no WebGL, or switched off in the options), a darkness overlay around the hero.
+      this.darkOverlay(!this.lighting.enabled);
+      this.lighting.changed = (on) => this.darkOverlay(!on);
     } else if (d.quest.prologueSeen && !this.cinematic) {
       this.hud.zoneTitle(this.area.name, `${this.zone.subtitle} · ${this.zone.name}`);
       // First steps into a new act.
@@ -629,6 +633,30 @@ export class GameScene extends Phaser.Scene {
       emitZone: { type: "random", source: new Phaser.Geom.Rectangle(-260, -200, 520, 300) } as Phaser.Types.GameObjects.Particles.EmitZoneData,
     }).setDepth(1e6 - 3);
     ash.startFollow(cam.midPoint);
+  }
+
+  private darkOverlay(on: boolean) {
+    if (!on) {
+      this.darkEl?.remove();
+      this.darkEl = undefined;
+    } else if (!this.darkEl) {
+      this.darkEl = document.createElement("div");
+      this.darkEl.className = "darkness";
+      document.getElementById("ui")!.prepend(this.darkEl);
+    }
+  }
+
+  /** How dark this map is: black dungeons, the grey light of the blighted Act I, plain day elsewhere. */
+  private ambience(): Ambience {
+    if (this.dungeonRef) return "dungeon";
+    if (this.area.act === "forest") return this.area.village && this.data_.hasFlag("act1_clean") ? "day" : "blight";
+    return "day";
+  }
+
+  /** The warm light every hero carries around (stronger in the dark of a dungeon). */
+  private heroLight(spr: KilnSprite) {
+    const dark = !!this.dungeonRef;
+    this.lighting.follow(spr, 0xffe2b8, dark ? 150 : 120, dark ? 1.3 : 0.9, 14);
   }
 
   /** Ground skin and texture: Act I is a blighted land (ash, dead grass) until the village is rebuilt. */
@@ -1266,7 +1294,10 @@ export class GameScene extends Phaser.Scene {
   private setHovered(e: Enemy | null) {
     const prev = this.hovered;
     if (prev) {
-      if (this.hoverGlow) prev.spr.preFX?.remove(this.hoverGlow);
+      if (this.hoverGlow) {
+        prev.spr.preFX?.remove(this.hoverGlow);
+        relight(prev.spr);
+      }
       if (prev.state !== "dead") this.restoreTint(prev);
     }
     this.hoverGlow = undefined;
@@ -3173,6 +3204,7 @@ export class GameScene extends Phaser.Scene {
       this.dropRemote();
       const spr = new KilnSprite(this, p.x, p.y, p.cls as SpriteName);
       spr.play2("idle");
+      this.heroLight(spr);
       const tag = document.createElement("div");
       tag.className = "ptag";
       tag.innerHTML = `<div class="pn">${p.name} ${L("nv", "lv")} ${p.level}</div><div class="pb"><div></div></div>`;

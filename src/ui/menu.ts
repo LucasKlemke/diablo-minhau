@@ -8,8 +8,8 @@ import { DIFFICULTIES, type Difficulty } from "../data/difficulty";
 import { QUESTS } from "../data/quests";
 import { AREAS, ZONES } from "../data/zones";
 import { HeroData, type SlotInfo } from "../game/hero";
-import { saveSettings, settings } from "../game/settings";
-import { isMuted, setMusic, sfx, toggleMute } from "../game/audio";
+import { saveSettings, settings, SOUND_CHANNELS, type SoundChannel } from "../game/settings";
+import { cine, isMuted, setMusic, sfx, toggleMute } from "../game/audio";
 
 // Main menu, save slots, new game (class + difficulty), options, controls and the in-game pause menu.
 
@@ -401,29 +401,65 @@ export function showWaiting(text: string, onCancel: () => void) {
   m.appendChild(box);
 }
 
+const CHANNEL_NAME: Record<SoundChannel, [string, string]> = {
+  music: ["Música", "Music"],
+  combat: ["Efeitos sonoros", "Sound Effects"],
+  ambience: ["Ambiente", "Ambience"],
+  steps: ["Passos", "Footsteps"],
+  ui: ["Interface e itens", "Interface and Items"],
+  cinematic: ["Cinemáticas e história", "Cutscenes and Story"],
+};
+/** A sound of the channel, played when its slider is let go (music and ambience are heard already). */
+const CHANNEL_PREVIEW: Partial<Record<SoundChannel, () => void>> = {
+  combat: () => sfx.hit(true),
+  steps: () => sfx.step(false),
+  ui: () => sfx.coin(),
+  cinematic: () => cine.play("bell"),
+};
+
+/** Options in three sections: sound (general volume and one per channel), graphics and game. */
 export function showOptions(onBack: () => void) {
   const m = screen();
   const box = el("div", "mm-panel");
   box.innerHTML = `<h2>${L("Opções", "Options")}</h2>`;
   const form = el("div", "options");
+  const pct = (v: number) => Math.round(v * 100);
+  const slider = (key: string, name: string, v: number) => `<label>${name}
+    <span class="vol"><input type="range" min="0" max="100" value="${pct(v)}" data-k="${key}"><output>${pct(v)}%</output></span></label>`;
+  const check = (key: string, on: boolean, name: string) => `<label><input type="checkbox" ${on ? "checked" : ""} data-k="${key}"> ${name}</label>`;
   form.innerHTML = `
-    <label>Volume <input type="range" min="0" max="100" value="${Math.round(settings.volume * 100)}" data-k="volume"></label>
-    <label><input type="checkbox" ${isMuted() ? "checked" : ""} data-k="mute"> ${L("Silenciar tudo", "Mute All")}</label>
-    <label><input type="checkbox" ${settings.shake ? "checked" : ""} data-k="shake"> ${L("Tremor de tela", "Screen Shake")}</label>
-    <label><input type="checkbox" ${settings.damageNumbers ? "checked" : ""} data-k="damageNumbers"> ${L("Números de dano", "Damage Numbers")}</label>
+    <h3>${L("Som", "Sound")}</h3>
+    ${slider("volume", L("Volume geral", "Master Volume"), settings.volume)}
+    ${SOUND_CHANNELS.map((c) => slider(c, L(...CHANNEL_NAME[c]), settings.channels[c])).join("")}
+    ${check("mute", isMuted(), L("Silenciar tudo", "Mute All"))}
+    <h3>${L("Gráficos", "Graphics")}</h3>
+    ${check("lighting", settings.lighting, L("Iluminação e sombras dinâmicas", "Dynamic Lights and Shadows"))}
+    ${check("shake", settings.shake, L("Tremor de tela", "Screen Shake"))}
+    <label>${L("Zoom da câmera", "Camera Zoom")} <select data-k="zoom">
+      ${["auto", 2, 3, 4].map((z) => `<option value="${z}" ${settings.zoom === z ? "selected" : ""}>${z === "auto" ? L("Automático", "Automatic") : `${z}x`}</option>`).join("")}
+    </select></label>
+    <h3>${L("Jogo", "Game")}</h3>
+    ${check("damageNumbers", settings.damageNumbers, L("Números de dano", "Damage Numbers"))}
     <label>Idioma / Language <select data-k="lang">
       <option value="en" ${lang === "en" ? "selected" : ""}>English</option>
       <option value="pt" ${lang === "pt" ? "selected" : ""}>Português</option>
-    </select></label>
-    <label>${L("Zoom da câmera", "Camera Zoom")} <select data-k="zoom">
-      ${["auto", 2, 3, 4].map((z) => `<option value="${z}" ${settings.zoom === z ? "selected" : ""}>${z === "auto" ? L("Automático", "Automatic") : `${z}x`}</option>`).join("")}
     </select></label>`;
   form.oninput = form.onchange = (ev) => {
     const t = ev.target as HTMLInputElement;
-    switch (t.dataset.k) {
-      case "volume": settings.volume = Number(t.value) / 100; break;
+    const k = t.dataset.k!;
+    if (t.type === "range") {
+      const v = Number(t.value) / 100;
+      if (k === "volume") settings.volume = v;
+      else settings.channels[k as SoundChannel] = v;
+      (t.nextElementSibling as HTMLOutputElement).value = `${t.value}%`;
+      if (ev.type === "change") CHANNEL_PREVIEW[k as SoundChannel]?.();
+      saveSettings();
+      return;
+    }
+    switch (k) {
       case "mute": if (t.checked !== isMuted()) toggleMute(); break;
       case "shake": settings.shake = t.checked; break;
+      case "lighting": settings.lighting = t.checked; break;
       case "damageNumbers": settings.damageNumbers = t.checked; break;
       case "zoom": settings.zoom = t.value === "auto" ? "auto" : (Number(t.value) as 2 | 3 | 4); break;
       case "lang": saveSettings(); setLang(t.value as Lang); return; // reloads the game (progress is saved)

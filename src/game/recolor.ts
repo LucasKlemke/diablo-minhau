@@ -44,6 +44,9 @@ export function makeSkins(scene: Phaser.Scene, keys: string[]) {
       }
       ctx.putImageData(data, 0, 0);
       const out = scene.textures.addCanvas(`${key}_${skin}`, c)!;
+      // Same shapes, same relief: the skin keeps the source's normal map for the lights.
+      const normal = src.dataSource[0]?.image;
+      if (normal) out.setDataSource(normal as HTMLImageElement);
       // Copy named and numbered frames (atlas regions, spritesheet cells).
       for (const name of src.getFrameNames()) {
         const f = src.get(name);

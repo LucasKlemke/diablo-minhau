@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trailer",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["trailer/serve.mjs", "/private/tmp/claude-501/-Users-luke-orca-projects-diablo-minhau/e78aacd4-3f46-44f3-8897-1db5f0e615c7/scratchpad/frames"],
+      "port": 5190
+    }
+  ]
+}
