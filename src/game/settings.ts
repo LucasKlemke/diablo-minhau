@@ -11,7 +11,7 @@ export interface Settings {
   /** Dynamic lights and shadows (WebGL). */
   lighting: boolean;
   damageNumbers: boolean;
-  zoom: "auto" | 2 | 3 | 4;
+  zoom: "auto" | 2 | 3 | 4 | 5;
 }
 
 const KEY = "diablo-minhau:settings";

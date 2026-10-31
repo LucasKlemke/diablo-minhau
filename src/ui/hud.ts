@@ -2,11 +2,25 @@ import { CLASSES, rankMult, SLOT_KEY, type ClassId, type SkillDef } from "../dat
 import { COMPARE_MARK, compareItem, itemLines, itemStats, itemValue, RARITIES, RARITY_COLOR, RARITY_LABEL, SLOT_LABEL, SLOTS, type Item, type Rarity, type Slot } from "../data/items";
 import { formatStat, STAT_LABEL, type Stats } from "../data/stats";
 import { isMuted, sfx, toggleMute } from "../game/audio";
-import { iconUrl } from "./icons";
+import { coins, iconUrl } from "./icons";
 import { L, locale } from "../i18n";
 import { drawKiln, type Dir } from "../kiln";
 import type Phaser from "phaser";
 import { AREAS, canEnter, exitsOf, LINKS, ZONES, type AreaId } from "../data/zones";
+
+/** A quest's reward as it is promised (items are only their rarity and slot until they are made). */
+export interface RewardView { xp: number; gold: number; potions: number; items: { rarity: Rarity; slot?: Slot; name?: string }[] }
+
+/** The reward as a row of chips: XP, gold, potions and the items in their rarity colour. */
+export function rewardHtml(r: RewardView) {
+  const items = r.items.map((it) => {
+    const icon = it.slot && it.slot !== "weapon" ? `<img class="icon" src="${iconUrl(it.slot)}">` : "<b>◆</b>";
+    const name = it.name ?? `${RARITY_LABEL[it.rarity]}${it.slot ? ` · ${SLOT_LABEL[it.slot]}` : ""}`;
+    return `<span class="rw" style="color:${RARITY_COLOR[it.rarity]}">${icon}${esc(name)}</span>`;
+  });
+  return `<div class="rewards"><span class="rw xp">✦ ${r.xp.toLocaleString(locale())} XP</span><span class="rw gold">${coins(r.gold)}</span>`
+    + (r.potions ? `<span class="rw"><img class="icon" src="${iconUrl("potion_hp")}">×${r.potions}</span>` : "") + items.join("") + "</div>";
+}
 
 /** What the world map shows (see Hud.worldMap). */
 export interface WorldMapView {
@@ -56,7 +70,7 @@ export interface HeroView {
   /** Harmful effects on the hero (shown after the buffs, with a red frame). */
   debuffs: { kind: "poison" | "slow" | "stun"; until: number }[];
   now: number;
-  quest: { title: string; goal: string; progress: string; ready: boolean; targets?: { label: string; dist: number }[] } | null;
+  quest: { title: string; goal: string; progress: string; ready: boolean; targets?: { label: string; dist: number }[]; reward?: RewardView } | null;
 }
 
 export interface HudActions {
@@ -69,6 +83,7 @@ export interface HudActions {
   buy(index: number): void;
   sell(index: number): void;
   buyPotion(kind: "hp" | "mp"): void;
+  buyBack(index: number): void;
   reroll(): void;
   move(from: number, to: number): void;
   unequipTo(slot: Slot, index: number): void;
@@ -115,6 +130,9 @@ export class Hud {
   private invDirty = true;
   private dialogOpen: HTMLDivElement | null = null;
   private shopStock: (Item | null)[] = [];
+  /** Items sold to the vendor this visit, newest first: they can be bought back for what they fetched. */
+  shopBuyback: Item[] = [];
+  private shopVendor: { name: string; title: string; portrait: HTMLCanvasElement | null } = { name: "", title: "", portrait: null };
   private shopOpen = false;
   private rerollCost = 0;
   private pick: Pick | null = null;
@@ -129,6 +147,8 @@ export class Hud {
   textures?: Phaser.Textures.TextureManager;
   /** The animated hero between the equipment slots (Diablo style); clicking turns them around. */
   private doll = el("canvas", "doll-canvas");
+  /** Inventory tab: gear in the backpack, or the consumables (potions). */
+  private invTab: "gear" | "items" = "gear";
   private dollDir = 0;
   private dollRaf = 0;
 
@@ -348,7 +368,7 @@ export class Hud {
     (this.xp.firstChild as HTMLElement).style.width = `${((h.xp - h.xpPrev) / (h.xpNext - h.xpPrev)) * 100}%`;
     // Top right, over the minimap (Diablo IV style): zone, gold and the clock.
     const clock = new Date().toLocaleTimeString(locale(), { hour: "2-digit", minute: "2-digit" });
-    const top = `<span class="zl">${esc(this.zoneName)}</span><span class="gold">◉ ${h.gold.toLocaleString(locale())}</span><span class="clock">${clock}</span>`;
+    const top = `<span class="zl">${esc(this.zoneName)}</span><span class="gold">${coins(h.gold)}</span><span class="clock">${clock}</span>`;
     if (this.cache.top !== top) this.top.innerHTML = this.cache.top = top;
     const lvl = `<b>${h.level}</b>`;
     if (this.cache.lvl !== lvl) {
@@ -367,6 +387,7 @@ export class Hud {
     const tr = q
       ? `<div class="qt">${esc(q.title)} <i>◆</i></div><div class="${q.ready ? "qready" : ""}">${q.ready ? esc(q.goal) : `${esc(q.goal)} ${q.progress}`}</div>`
         + (q.targets?.length ? `<ul class="qtargets">${q.targets.map((t) => `<li>${esc(t.label)} <b>${t.dist} m</b></li>`).join("")}</ul>` : "")
+        + (q.reward ? `<div class="qreward">${rewardHtml(q.reward)}</div>` : "")
       : "";
     if (this.cache.tr !== tr) this.tracker.innerHTML = this.cache.tr = tr;
 
@@ -457,15 +478,31 @@ export class Hud {
     const h = this.hero;
     const p = this.pick;
     const c = CLASSES[h.cls], s = h.stats;
-    this.inv.innerHTML = `<div class="doll-head"><b>${esc(c.name)}</b><span>${L("Nível", "Level")} ${h.level}</span></div>`;
+    // Diablo IV layout: the hero's sheet on the left, the figure among its equipment, then the bag in tabs.
+    this.inv.innerHTML = "";
+    const n = (v: number) => Math.round(v).toLocaleString(locale());
+    const val = (k: keyof Stats) => formatStat(k, s[k]).split(" ")[0].replace(/^\+/, "");
+    const big = (icon: Parameters<typeof iconUrl>[0], label: string, v: string) =>
+      `<div class="inv-big"><i><img src="${iconUrl(icon)}"></i><div><span>${label}</span><b>${v}</b></div></div>`;
+    const attr = (label: string, v: string) => `<div class="inv-attr"><span>${label}</span><b>${v}</b></div>`;
+    const xpPct = Math.round(((h.xp - h.xpPrev) / Math.max(1, h.xpNext - h.xpPrev)) * 100);
+    const side = el("div", "inv-side", `<div class="inv-id"><i class="inv-lvl"><span>${h.level}</span></i><b>${esc(c.name)}</b>
+        <span>${L("Experiência", "Experience")} ${xpPct}%</span></div>
+      ${big("axe", L("Dano", "Damage"), `${n((s.dmgMin + s.dmgFlat) * (1 + s.dmgPct))}–${n((s.dmgMax + s.dmgFlat) * (1 + s.dmgPct))}`)}
+      ${big("armor", STAT_LABEL.armor, n(s.armor))}
+      ${big("potion_hp", STAT_LABEL.maxHp, n(s.maxHp))}
+      <div class="inv-attrs">${attr(L("Vel. de ataque", "Attack speed"), val("attackSpeed"))}${attr(L("Crítico", "Critical"), val("crit"))}
+        ${attr(L("Vel. de movimento", "Move speed"), val("moveSpeed"))}${attr(L("Roubo de vida", "Life steal"), val("lifeSteal"))}
+        ${attr(L("Vida/s", "Life/s"), s.hpRegen.toFixed(1))}${attr(STAT_LABEL.maxMana, n(s.maxMana))}</div>`);
+    const top = el("div", "inv-top");
     const eq = el("div", "equip doll");
     const stage = el("div", "doll-stage");
     stage.appendChild(this.doll);
-    stage.insertAdjacentHTML("beforeend", `<div class="doll-stats">
-      <div><span>${L("Dano", "Damage")}</span><b>${Math.round((s.dmgMin + s.dmgFlat) * (1 + s.dmgPct))}–${Math.round((s.dmgMax + s.dmgFlat) * (1 + s.dmgPct))}</b></div>
-      <div><span>${STAT_LABEL.armor}</span><b>${Math.round(s.armor)}</b></div>
-      <div><span>${STAT_LABEL.maxHp}</span><b>${Math.round(s.maxHp)}</b></div></div>`);
     eq.appendChild(stage);
+    const close = el("button", "shop-x inv-x", "✕");
+    close.title = L("Fechar (I)", "Close (I)");
+    close.onclick = () => { this.inv.classList.remove("open"); this.closeShop(); this.hideTip(); };
+    top.append(side, eq, close);
     this.doll.onclick = () => { this.dollDir = (this.dollDir + 1) % DOLL_DIRS.length; };
     this.doll.title = L("Clique para girar", "Click to rotate");
     this.startDoll();
@@ -489,9 +526,30 @@ export class Hud {
       d.style.gridArea = slot;
       eq.appendChild(d);
     }
-    this.inv.appendChild(eq);
-    this.inv.appendChild(el("h3", "", L("Mochila", "Backpack")));
-    const grid = el("div", "grid");
+    this.inv.appendChild(top);
+    const tabs = el("div", "inv-tabs", `<span class="inv-tabname">${this.invTab === "gear" ? L("Equipamento", "Equipment") : L("Consumíveis", "Consumables")}</span>`);
+    for (const [t, icon, title] of [["gear", "armor", L("Equipamento", "Equipment")], ["items", "potion_hp", L("Consumíveis", "Consumables")]] as const) {
+      const b = el("button", `inv-tab${this.invTab === t ? " on" : ""}`, `<img src="${iconUrl(icon)}">`);
+      b.title = title;
+      b.onclick = () => { this.invTab = t; this.invDirty = true; };
+      tabs.appendChild(b);
+    }
+    this.inv.appendChild(tabs);
+    const foot = el("div", "inv-foot", `${coins(h.gold)}<span class="inv-pots"><img src="${iconUrl("potion_hp")}">${h.potions.hp}
+      <img src="${iconUrl("potion_mp")}">${h.potions.mp}</span>`);
+    if (this.invTab === "items") {
+      const cons = el("div", "grid bag");
+      for (const k of ["hp", "mp"] as const) {
+        const d = el("div", "slot r-consumable", `<img class="icon" src="${iconUrl(k === "hp" ? "potion_hp" : "potion_mp")}"><span class="count">${h.potions[k]}</span>`);
+        d.title = k === "hp" ? L("Poção de vida (1)", "Health potion (1)") : L("Poção de recurso (2)", "Resource potion (2)");
+        d.onclick = () => this.actions.drinkPotion(k);
+        cons.appendChild(d);
+      }
+      while (cons.childElementCount < h.inventory.length) cons.appendChild(el("div", "slot"));
+      this.inv.append(cons, foot);
+      return;
+    }
+    const grid = el("div", "grid bag");
     h.inventory.forEach((it, i) => {
       const d = this.slotEl(it);
       if (p?.kind === "inv" && p.i === i) d.classList.add("picked");
@@ -520,6 +578,7 @@ export class Hud {
       grid.appendChild(d);
     });
     this.inv.appendChild(grid);
+    this.inv.appendChild(foot);
 
     // Drop the selection of items that no longer exist.
     for (const i of [...this.selected]) if (!h.inventory[i]) this.selected.delete(i);
@@ -529,7 +588,7 @@ export class Hud {
       const bar = el("div", "sel-bar");
       bar.appendChild(el("span", "", L(`${items.length} selecionado${items.length > 1 ? "s" : ""}`, `${items.length} selected`)));
       if (this.shopOpen) {
-        const sell = el("button", "btn primary", L(`Vender (${gold} ouro)`, `Sell (${gold} gold)`));
+        const sell = el("button", "btn primary", `${L("Vender", "Sell")} ${coins(gold)}`);
         sell.onclick = () => {
           this.actions.sellMany([...this.selected]);
           this.selected.clear();
@@ -663,10 +722,10 @@ export class Hud {
     if (sk.cost) lines.push(`${L("Custo", "Cost")}: ${sk.cost}`);
     if (sk.cooldown) lines.push(`${L("Recarga", "Cooldown")}: ${(sk.cooldown / 1000).toFixed(1)}s`);
     if (sk.passive) for (const [k, v] of Object.entries(sk.passive)) lines.push(formatStat(k as keyof Stats, (v as number) * r));
-    this.tip.innerHTML = `<div class="tname" style="color:#ffe14d">${esc(sk.name)}</div>
+    this.tip.innerHTML = `<div class="tcard"><div class="tname" style="color:#ffe14d">${esc(sk.name)}</div>
       <div class="tbase">${SLOT_KEY[sk.slot]} · ${L("nível", "rank")} ${rank}/${sk.maxRank} · ${L("requer nível", "requires level")} ${sk.reqLevel}</div>
-      <div>${esc(sk.desc)}</div>${lines.map((l) => `<div class="aff">${l}</div>`).join("")}`;
-    this.tip.style.display = "block";
+      <div>${esc(sk.desc)}</div>${lines.map((l) => `<div class="aff">${l}</div>`).join("")}</div>`;
+    this.tip.style.display = "flex";
     this.moveTip(x, y);
   }
 
@@ -679,9 +738,18 @@ export class Hud {
     this.moveTip(x, y);
   }
 
-  private showTip(item: Item, x: number, y: number) {
+  /** One item's card in the tooltip: icon, name, base line, stats and affixes. */
+  private tipCard(item: Item, label = "") {
     const lines = itemLines(item).map((l) => `<div>${l}</div>`).join("");
     const aff = item.affixes.map((a) => `<div class="aff">${formatStat(a.k, a.v)}</div>`).join("");
+    return `${label ? `<div class="tlabel">${label}</div>` : ""}<div class="thead"><img class="ticon r-${item.rarity}" src="${iconUrl(item.icon)}"><div>
+      <div class="tname" style="color:${RARITY_COLOR[item.rarity]}">${esc(item.name)}</div>
+      <div class="tbase">${item.rarity === "normal" ? "" : esc(item.base) + " · "}${RARITY_LABEL[item.rarity]} · ${SLOT_LABEL[item.slot]} · ${L("nv", "lv")} ${item.ilvl}</div>
+      </div></div>${lines}${aff}`;
+  }
+
+  /** Item tooltip; for an item not worn, the equipped one of that slot sits beside it (Diablo style) with the difference. */
+  private showTip(item: Item, x: number, y: number) {
     const eq = this.hero.equipment[item.slot];
     let cmp = "";
     if (eq && eq !== item) {
@@ -698,14 +766,14 @@ export class Hud {
     }
     const inShop = this.shopStock.includes(item);
     const price = this.shopOpen
-      ? `<div class="price">${inShop ? `${L("Preço", "Price")}: ${itemValue(item)}` : `${L("Venda", "Sell")}: ${Math.round(itemValue(item) / 4)}`} ${L("ouro", "gold")}</div>` : "";
+      ? `<div class="price">${inShop ? L("Preço", "Price") : L("Venda", "Sell")}: ${coins(inShop ? itemValue(item) : Math.round(itemValue(item) / 4))}</div>` : "";
     const c = Object.values(this.hero.equipment).includes(item) ? "same" : compareItem(item, this.hero.equipment);
     const verdict = c === "same" ? "" : `<div class="verdict ${c}">${COMPARE_MARK[c]} ${c === "up" ? (eq ? L("Melhor que o equipado", "Better than equipped") : L("Espaço vazio: melhor que nada", "Empty slot: better than nothing")) : L("Pior que o equipado", "Worse than equipped")}</div>`;
-    this.tip.innerHTML = `<div class="thead"><img class="ticon r-${item.rarity}" src="${iconUrl(item.icon)}"><div>
-      <div class="tname" style="color:${RARITY_COLOR[item.rarity]}">${esc(item.name)}</div>
-      <div class="tbase">${item.rarity === "normal" ? "" : esc(item.base) + " · "}${RARITY_LABEL[item.rarity]} · ${SLOT_LABEL[item.slot]} · ${L("nv", "lv")} ${item.ilvl}</div>
-      </div></div>${verdict}${lines}${aff}${cmp}${price}`;
-    this.tip.style.display = "block";
+    const worn = Object.values(this.hero.equipment).includes(item);
+    const main = `<div class="tcard">${this.tipCard(item, worn ? L("Equipado", "Equipped") : "")}${verdict}${cmp}${price}</div>`;
+    const side = eq && !worn ? `<div class="tcard worn">${this.tipCard(eq, L("Equipado agora", "Currently equipped"))}</div>` : "";
+    this.tip.innerHTML = main + side;
+    this.tip.style.display = "flex";
     this.moveTip(x, y);
   }
 
@@ -721,10 +789,10 @@ export class Hud {
 
   /**
    * Dialogue box: pages through `lines`, then shows `choices`.
-   * Closing without a choice calls `onClose`.
+   * Closing without a choice calls `onClose`. `extra` (HTML, e.g. a quest's reward) is shown under the last page.
    */
   dialog(speaker: string, portrait: HTMLCanvasElement | null, lines: string[], choices: { label: string; action: () => void }[] = [],
-    onClose?: () => void) {
+    onClose?: () => void, extra = "") {
     this.dialogOpen?.remove();
     this.closeAll();
     const box = el("div", "dialog interactive");
@@ -734,8 +802,9 @@ export class Hud {
     const body = el("div", "dbody");
     const name = el("div", "dname", esc(speaker));
     const text = el("div", "dtext");
+    const more = el("div", "dextra", extra);
     const btns = el("div", "dbtns");
-    body.append(name, text, btns);
+    body.append(name, text, more, btns);
     box.append(pic, body);
     root().appendChild(box);
     this.dialogOpen = box;
@@ -747,6 +816,7 @@ export class Hud {
     };
     const render = () => {
       text.textContent = lines[page];
+      more.style.display = extra && page === lines.length - 1 ? "" : "none";
       btns.innerHTML = "";
       if (page < lines.length - 1) {
         const b = el("button", "btn", L("Continuar ▸", "Continue ▸"));
@@ -772,7 +842,8 @@ export class Hud {
   }
 
   // ---------- Shop ----------
-  openShop(stock: (Item | null)[], rerollCost: number) {
+  openShop(stock: (Item | null)[], rerollCost: number, vendor = this.shopVendor) {
+    this.shopVendor = vendor;
     this.shopOpen = true;
     this.shopStock = stock;
     this.rerollCost = rerollCost;
@@ -796,29 +867,70 @@ export class Hud {
     this.invDirty = true;
   }
 
+  /** Vendor window (Diablo IV style): the vendor, the wares as rows with their price, potions, buyback and gold. */
   private renderShop() {
-    this.shop.innerHTML = `<h3>${L("Forja da Marta", "Marta's Forge")}</h3><div class="points">${L("Seu ouro", "Your gold")}: <b>${this.hero.gold}</b></div>`;
-    const grid = el("div", "grid");
+    const gold = this.hero.gold, v = this.shopVendor;
+    this.shop.innerHTML = "";
+    const head = el("div", "shop-head");
+    const pic = el("div", "shop-pic");
+    if (v.portrait) pic.appendChild(v.portrait);
+    head.append(pic, el("div", "shop-who", `<div class="shop-name">${esc(v.name)}</div><div class="shop-title">${esc(v.title)}</div>`));
+    const x = el("button", "shop-x", "✕");
+    x.title = L("Fechar loja", "Close Shop");
+    x.onclick = () => { this.closeShop(); this.inv.classList.remove("open"); };
+    head.appendChild(x);
+    this.shop.appendChild(head);
+
+    const row = (icon: HTMLElement, name: string, sub: string, price: number, buy: () => void, color = "") => {
+      const r = el("button", `shop-item${price > gold ? " poor" : ""}`);
+      const item = (icon as HTMLElement & { item?: Item }).item;
+      if (item) {
+        r.onmouseenter = (e) => this.showTip(item, e.clientX, e.clientY);
+        r.onmousemove = (e) => this.moveTip(e.clientX, e.clientY);
+        r.onmouseleave = () => this.hideTip();
+      }
+      r.append(icon, el("div", "si-text", `<div class="si-name"${color ? ` style="color:${color}"` : ""}>${name}</div><div class="si-sub">${sub}</div>`),
+        el("div", "si-price", coins(price)));
+      r.onclick = () => { this.hideTip(); buy(); };
+      return r;
+    };
+    const list = el("div", "shop-list wares");
     this.shopStock.forEach((it, i) => {
+      if (!it) return;
+      list.appendChild(row(Object.assign(this.slotEl(it), { item: it }), esc(it.name), `${RARITY_LABEL[it.rarity]} · ${SLOT_LABEL[it.slot]}`, itemValue(it),
+        () => this.actions.buy(i), RARITY_COLOR[it.rarity]));
+    });
+    if (!list.childElementCount) list.appendChild(el("div", "shop-empty", L("Tudo vendido. Renove o estoque ou volte mais tarde.", "Sold out. Restock or come back later.")));
+    this.shop.appendChild(el("div", "shop-sec", L("Mercadorias", "Wares")));
+    this.shop.appendChild(list);
+
+    this.shop.appendChild(el("div", "shop-sec", L("Consumíveis", "Consumables")));
+    const potions = el("div", "shop-list short");
+    for (const k of ["hp", "mp"] as const) {
+      const icon = el("div", "slot", `<img class="icon" src="${iconUrl(k === "hp" ? "potion_hp" : "potion_mp")}">`);
+      potions.appendChild(row(icon, k === "hp" ? L("Poção de vida", "Health Potion") : L("Poção de recurso", "Resource Potion"),
+        L("Vai para o cinto (teclas 1 e 2)", "Goes to your belt (keys 1 and 2)"), 25, () => this.actions.buyPotion(k)));
+    }
+    this.shop.appendChild(potions);
+
+    this.shop.appendChild(el("div", "shop-sec", L("Recomprar", "Buyback")));
+    const back = el("div", "shop-buyback");
+    for (let i = 0; i < 6; i++) {
+      const it = this.shopBuyback[i];
       const d = this.slotEl(it);
       if (it) {
-        d.insertAdjacentHTML("beforeend", `<span class="count">${itemValue(it)}</span>`);
-        d.onclick = () => { this.hideTip(); this.actions.buy(i); };
+        d.insertAdjacentHTML("beforeend", `<span class="count">${Math.round(itemValue(it) / 4)}</span>`);
+        d.onclick = () => { this.hideTip(); this.actions.buyBack(i); };
       }
-      grid.appendChild(d);
-    });
-    this.shop.appendChild(grid);
-    const row = el("div", "shop-row");
-    const ph = el("button", "btn", `<img class="icon" src="${iconUrl("potion_hp")}"> ${L("Poção de vida", "Health Potion")} · 25`);
-    ph.onclick = () => this.actions.buyPotion("hp");
-    const pm = el("button", "btn", `<img class="icon" src="${iconUrl("potion_mp")}"> ${L("Poção de recurso", "Resource Potion")} · 25`);
-    pm.onclick = () => this.actions.buyPotion("mp");
-    const rr = el("button", "btn", `${L("Renovar estoque", "Restock")} · ${this.rerollCost}`);
+      back.appendChild(d);
+    }
+    this.shop.appendChild(back);
+
+    const foot = el("div", "shop-foot");
+    const rr = el("button", "btn", `${L("Renovar estoque", "Restock")} ${coins(this.rerollCost)}`);
     rr.onclick = () => this.actions.reroll();
-    const close = el("button", "btn", L("Fechar loja", "Close Shop"));
-    close.onclick = () => { this.closeShop(); this.inv.classList.remove("open"); };
-    row.append(ph, pm, rr, close);
-    this.shop.appendChild(row);
+    foot.append(el("div", "shop-gold", coins(gold)), rr);
+    this.shop.appendChild(foot);
 
     // Quick sell: everything of one rarity in the backpack (equipped items are never sold).
     const inv = this.hero.inventory;
@@ -830,9 +942,9 @@ export class Hud {
       for (const r of RARITIES) {
         const idx = byRarity.get(r);
         if (!idx) continue;
-        const gold = idx.reduce((a, i) => a + Math.round(itemValue(inv[i]!) / 4), 0);
-        const b = el("button", "btn", `<span style="color:${RARITY_COLOR[r]}">${RARITY_LABEL[r]}</span> ×${idx.length} · ${gold}`);
-        b.title = L(`Vender ${idx.length} ${RARITY_LABEL[r].toLowerCase()} por ${gold} ouro`, `Sell ${idx.length} ${RARITY_LABEL[r].toLowerCase()} for ${gold} gold`);
+        const total = idx.reduce((a, i) => a + Math.round(itemValue(inv[i]!) / 4), 0);
+        const b = el("button", "btn", `<span style="color:${RARITY_COLOR[r]}">${RARITY_LABEL[r]}</span> ×${idx.length} ${coins(total)}`);
+        b.title = L(`Vender ${idx.length} ${RARITY_LABEL[r].toLowerCase()} por ${total} ouro`, `Sell ${idx.length} ${RARITY_LABEL[r].toLowerCase()} for ${total} gold`);
         b.onclick = () => {
           // Valuable rarities ask for a second click.
           if ((r === "epic" || r === "legendary" || r === "unique") && b.dataset.armed !== "1") {
@@ -846,7 +958,7 @@ export class Hud {
       }
       this.shop.appendChild(quick);
     }
-    this.shop.appendChild(el("div", "hint", L("Clique num item da loja para comprar · clique direito num item da mochila para vender (¼ do valor)", "Click a shop item to buy · right-click a backpack item to sell (¼ of its value)")));
+    this.shop.appendChild(el("div", "hint", L("Clique para comprar · clique direito num item da mochila para vender (¼ do valor)", "Click to buy · right-click a backpack item to sell (¼ of its value)")));
   }
 
   // ---------- Big moments ----------
@@ -863,6 +975,36 @@ export class Hud {
     setTimeout(() => box.classList.add("out"), 3400);
     setTimeout(() => box.remove(), 4000);
   }
+
+  /** Quest turned in: what was gained, the items as real slots (hover for their stats). Closes on click or after a while. */
+  questComplete(title: string, r: RewardView, items: Item[]) {
+    this.questDone?.remove();
+    const box = el("div", "quest-done interactive");
+    box.innerHTML = `<div class="qd-label">${L("Missão concluída", "Quest complete")}</div><div class="qd-title">${esc(title)}</div>
+      ${rewardHtml({ ...r, items: [] })}`;
+    if (items.length) {
+      const row = el("div", "qd-items");
+      for (const it of items) {
+        const cell = el("div", "qd-item");
+        cell.append(this.slotEl(it), el("span", "", `<b style="color:${RARITY_COLOR[it.rarity]}">${esc(it.name)}</b><small>${RARITY_LABEL[it.rarity]} · ${SLOT_LABEL[it.slot]}</small>`));
+        row.appendChild(cell);
+      }
+      box.appendChild(row);
+    }
+    const ok = el("button", "btn primary", L("Ótimo!", "Great!"));
+    const close = () => {
+      this.hideTip();
+      box.classList.add("out");
+      setTimeout(() => box.remove(), 400);
+      if (this.questDone === box) this.questDone = undefined;
+    };
+    ok.onclick = close;
+    box.appendChild(ok);
+    root().appendChild(box);
+    this.questDone = box;
+    setTimeout(() => box.isConnected && !box.matches(":hover") && close(), 9000);
+  }
+  private questDone?: HTMLDivElement;
 
   /** Full-width zone title card. */
   zoneTitle(name: string, sub: string) {

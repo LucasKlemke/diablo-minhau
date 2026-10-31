@@ -1,7 +1,9 @@
 // Procedural 12x12 pixel-art item icons in the Farm RPG palette (outline #1c0f1a).
+import { locale } from "../i18n";
+
 export type IconId =
   | "axe" | "bow" | "staff" | "wand" | "helm" | "armor" | "gloves" | "boots" | "ring" | "amulet"
-  | "potion_hp" | "potion_mp" | "gold" | "town_portal"
+  | "potion_hp" | "potion_mp" | "gold" | "coin" | "town_portal"
   // item bases (see BASES in data/items.ts)
   | "hatchet" | "double_axe" | "executioner" | "shortbow" | "compbow" | "dragonbow" | "oakstaff" | "runestaff" | "archstaff" | "bonewand" | "scepter" | "moonwand" | "hood" | "horned_helm" | "bone_crown" | "greathelm" | "tunic" | "chainmail" | "plate" | "robe" | "bracers" | "gauntlets" | "claws" | "sandals" | "greaves" | "walker_boots" | "ring_copper" | "ring_silver" | "ring_bone" | "ring_ruby" | "ring_sapphire" | "ring_emerald" | "amulet_tooth" | "amulet_silver" | "amulet_cateye";
 
@@ -64,6 +66,10 @@ const MAPS: Record<IconId, string[]> = {
   town_portal: [
     "....kkkk....", "...kBccBk...", "..kBcxxcBk..", "..kcxBBxck..", ".kBcBkkBcBk.", ".kcxBkkBxck.",
     ".kcxBkkBxck.", ".kBcBkkBcBk.", "..kcxBBxck..", "..kBcxxcBk..", "..kkBccBkk..", ".kkkkkkkkkk.",
+  ],
+  coin: [
+    "....kkkk....", "..kkGGGGkk..", ".kGGGggggWk.", ".kGGwwwwgWk.", "kGGgwGGwggWk", "kGggwGgwggWk",
+    "kgggwGgwggWk", "kgggwwwwggWk", ".kggggggWWk.", ".kgggggWWWk.", "..kkWWWWkk..", "....kkkk....",
   ],
   gold: [
     "............", "............", "............", "....kkkk....", "...kgGGgk...", "..kgGggggk..",
@@ -228,6 +234,10 @@ export function drawIcon(id: IconId): HTMLCanvasElement {
 }
 
 const urls = new Map<IconId, string>();
+/** An amount of gold with the coin icon in front (HUD, shop, rewards). */
+export const coins = (n: number) =>
+  `<span class="coins"><img class="coin" src="${iconUrl("coin")}" alt="">${Math.round(n).toLocaleString(locale())}</span>`;
+
 export function iconUrl(id: IconId): string {
   let u = urls.get(id);
   if (!u) urls.set(id, (u = drawIcon(id).toDataURL()));

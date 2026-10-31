@@ -117,7 +117,8 @@ export function showMainMenu(portraits: Portraits, onStart: OnStart) {
     if (h) onStart(h, SOLO);
   };
 
-  const renderStage = () => stage?.set(chosen?.cls ?? null, filled.filter((s) => s !== chosen).map((s) => s.cls));
+  // At most four heroes wait by the fire behind the chosen one.
+  const renderStage = () => stage?.set(chosen?.cls ?? null, filled.filter((s) => s !== chosen).slice(0, 4).map((s) => s.cls));
 
   const renderInfo = () => {
     if (!chosen) {
@@ -134,7 +135,10 @@ export function showMainMenu(portraits: Portraits, onStart: OnStart) {
 
   const renderRoster = () => {
     roster.innerHTML = "";
+    // Every hero, plus one card for a new hero in the first free slot.
+    const free = slots.findIndex((s) => !s);
     slots.forEach((s, i) => {
+      if (!s && i !== free) return;
       const card = el("button", `tm-card${s ? "" : " empty"}${s && s === chosen ? " on" : ""}`);
       if (s) {
         card.appendChild(heroPic(s.cls, 64));
@@ -223,7 +227,7 @@ function slotCard(info: SlotInfo | null, i: number, portraits: Portraits) {
 
 function showSlots(portraits: Portraits, mode: "new" | "load", onStart: OnStart) {
   const m = screen();
-  const box = el("div", "mm-panel");
+  const box = el("div", "mm-panel wide");
   box.innerHTML = `<h2>${mode === "new" ? L("Novo Jogo — escolha um espaço", "New Game — Choose a Slot") : L("Carregar Jogo", "Load Game")}</h2>`;
   const slots = HeroData.slots();
   const grid = el("div", "slot-list");
@@ -436,7 +440,7 @@ export function showOptions(onBack: () => void) {
     ${check("lighting", settings.lighting, L("Iluminação e sombras dinâmicas", "Dynamic Lights and Shadows"))}
     ${check("shake", settings.shake, L("Tremor de tela", "Screen Shake"))}
     <label>${L("Zoom da câmera", "Camera Zoom")} <select data-k="zoom">
-      ${["auto", 2, 3, 4].map((z) => `<option value="${z}" ${settings.zoom === z ? "selected" : ""}>${z === "auto" ? L("Automático", "Automatic") : `${z}x`}</option>`).join("")}
+      ${["auto", 2, 3, 4, 5].map((z) => `<option value="${z}" ${settings.zoom === z ? "selected" : ""}>${z === "auto" ? L("Automático", "Automatic") : `${z}x`}</option>`).join("")}
     </select></label>
     <h3>${L("Jogo", "Game")}</h3>
     ${check("damageNumbers", settings.damageNumbers, L("Números de dano", "Damage Numbers"))}
@@ -461,7 +465,7 @@ export function showOptions(onBack: () => void) {
       case "shake": settings.shake = t.checked; break;
       case "lighting": settings.lighting = t.checked; break;
       case "damageNumbers": settings.damageNumbers = t.checked; break;
-      case "zoom": settings.zoom = t.value === "auto" ? "auto" : (Number(t.value) as 2 | 3 | 4); break;
+      case "zoom": settings.zoom = t.value === "auto" ? "auto" : (Number(t.value) as 2 | 3 | 4 | 5); break;
       case "lang": saveSettings(); setLang(t.value as Lang); return; // reloads the game (progress is saved)
     }
     saveSettings();

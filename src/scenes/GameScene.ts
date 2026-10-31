@@ -22,7 +22,7 @@ import { PropHover } from "../game/propHover";
 import { drawIcon, type IconId } from "../ui/icons";
 import { ELEM_STAT, ELEMENT_OF, ElementFx, weaponElements, type ElemDmg, type Element } from "../game/elements";
 import { hasSprite, kilnImage, kilnMeta, KilnSprite, portrait, type Dir, type SpriteName } from "../kiln";
-import { Hud } from "../ui/hud";
+import { Hud, rewardHtml } from "../ui/hud";
 import { CinematicUi } from "../ui/cinematic";
 import { Director } from "../game/cutscene";
 import { blobTile } from "../world/autotile";
@@ -535,8 +535,20 @@ export class GameScene extends Phaser.Scene {
         const it = d.inventory[i];
         if (!it) return;
         d.inventory[i] = null;
+        this.toBuyback(it);
         d.gold += Math.round(itemValue(it) / 4);
         sfx.coin();
+        this.afterItemsChanged();
+      },
+      buyBack: (i) => {
+        const it = this.hud.shopBuyback[i];
+        if (!it) return;
+        const price = Math.round(itemValue(it) / 4);
+        if (d.gold < price) return this.say(L("Ouro insuficiente.", "Not enough gold."));
+        if (!d.addItem(it)) return this.say(L("Mochila cheia!", "Inventory full!"));
+        d.gold -= price;
+        this.hud.shopBuyback.splice(i, 1);
+        sfx.buy();
         this.afterItemsChanged();
       },
       buyPotion: (k) => {
@@ -561,6 +573,7 @@ export class GameScene extends Phaser.Scene {
           const it = d.inventory[i];
           if (!it) continue;
           d.inventory[i] = null;
+          this.toBuyback(it);
           gold += Math.round(itemValue(it) / 4);
           n++;
         }
@@ -579,7 +592,7 @@ export class GameScene extends Phaser.Scene {
       },
     }, d.def.skills, d.def.resourceColor);
     this.hud.textures = this.textures;
-    this.minimap = new Minimap(this.hud.minimap, this.map, this.dungeonRef ? undefined : d.fog[this.area.id]);
+    this.minimap = new Minimap(this.hud.minimap, this.map, this.dungeonRef ? undefined : d.fog[this.area.id], this.areaLook().skin);
     this.propHover = new PropHover(this, this.hud.world);
     this.spawnNpcs();
     this.buildExitTags();
@@ -694,7 +707,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private fitZoom() {
-    const auto = Math.max(2, Math.min(4, Math.round(Math.min(window.innerWidth / 400, window.innerHeight / 250))));
+    const auto = Math.max(2, Math.min(5, Math.round(Math.min(window.innerWidth / 330, window.innerHeight / 205))));
     const z = settings.zoom === "auto" ? auto : settings.zoom;
     if (this.cameras.main.zoom === z) return;
     this.cameras.main.setZoom(z);
@@ -1266,8 +1279,10 @@ export class GameScene extends Phaser.Scene {
     if (time > this.mapAt) {
       this.mapAt = time + 120;
       this.minimap.reveal(this.hero.x, this.hero.y);
-      this.minimap.draw(this.hero, this.mapMarkers(), time);
     }
+    // Every frame: zoomed in, the minimap scrolls with the hero. It shows what the camera sees.
+    const view = this.cameras.main.worldView;
+    this.minimap.draw(this.hero, this.mapMarkers(), time, Math.max(view.width, view.height));
     if (time > this.mapAt - 60) this.fitZoom();
     if (time > this.saveAt) {
       this.saveAt = time + 20000;
@@ -2267,9 +2282,12 @@ export class GameScene extends Phaser.Scene {
       if (h.dead || (!e.raider && (this.inTownAt(h.x, h.y) || fromHome > 320))) {
         if (e.aggro) {
           e.aggro = false;
-          e.hp = e.maxHp;
+          // Leashed back home or the hero in a safe area: the wounds stay. Only the hero's death heals them.
+          if (h.dead) {
+            e.hp = e.maxHp;
+            if (e.def.hurt) e.spr.setSprite(e.def.sprite);
+          }
           e.path = [];
-          if (e.def.hurt) e.spr.setSprite(e.def.sprite);
         }
       } else if (dist < e.def.aggro * (e.rank === "boss" ? 1.3 : 1) && !this.lairAsleep(e)) {
         // Beasts growl when they spot their prey (not the whole pack at once).
@@ -3870,6 +3888,12 @@ export class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- shop
 
+  /** A sold item waits in the vendor's buyback row (the last six). */
+  private toBuyback(it: Item) {
+    this.hud.shopBuyback.unshift(it);
+    this.hud.shopBuyback.length = Math.min(this.hud.shopBuyback.length, 6);
+  }
+
   private rerollCost() {
     return 40 + this.data_.level * 15;
   }
@@ -3892,11 +3916,13 @@ export class GameScene extends Phaser.Scene {
     if (!it) return;
     const price = itemValue(it);
     if (d.gold < price) return this.say(L("Ouro insuficiente.", "Not enough gold."));
-    if (!d.addItem(it)) return this.say(L("Mochila cheia!", "Inventory full!"));
+    const put = d.addItem(it);
+    if (!put) return this.say(L("Mochila cheia!", "Inventory full!"));
     d.gold -= price;
     d.shop[i] = null;
     sfx.buy();
-    this.hud.message(L(`Comprou: ${it.name}`, `Bought: ${it.name}`), RARITY_COLOR[it.rarity]);
+    this.hud.message(put === "equipped" ? L(`Comprou e equipou: ${it.name}`, `Bought and equipped: ${it.name}`)
+      : L(`Comprou: ${it.name}`, `Bought: ${it.name}`), RARITY_COLOR[it.rarity]);
     this.hud.refreshShop(d.shop, this.rerollCost());
     this.afterItemsChanged();
   }
@@ -3980,13 +4006,13 @@ export class GameScene extends Phaser.Scene {
     const q = d.currentQuest;
     if (!q) return null;
     if (d.quest.status === "available") return { title: L("Nova missão", "New quest"), goal: this.speakTo(q.giver), progress: "", ready: false, targets: this.objTargets() };
-    if (d.quest.status === "ready") return { title: q.title, goal: this.speakTo(q.turnIn ?? q.giver), progress: "", ready: true, targets: this.objTargets() };
+    if (d.quest.status === "ready") return { title: q.title, goal: this.speakTo(q.turnIn ?? q.giver), progress: "", ready: true, targets: this.objTargets(), reward: q.reward };
     const st = d.currentStep!;
     const steps = q.steps.length > 1 ? ` (${d.quest.step + 1}/${q.steps.length})` : "";
     return {
       title: q.title + steps,
       goal: st.area === this.area.id ? st.goal : `${st.goal} · ${AREAS[st.area].name}`,
-      progress: `${Math.min(d.quest.progress, st.objective.count)}/${st.objective.count}`, ready: false, targets: this.objTargets(),
+      progress: `${Math.min(d.quest.progress, st.objective.count)}/${st.objective.count}`, ready: false, targets: this.objTargets(), reward: q.reward,
     };
   }
 
@@ -4870,16 +4896,21 @@ export class GameScene extends Phaser.Scene {
     const done = () => n.spr.play2("idle");
     const q = d.currentQuest;
     const pic = this.npcPortrait(n);
-    const shop = npc.role === "shop" ? [{ label: L("Ver mercadorias", "Browse wares"), action: () => { done(); this.hud.openShop(d.shop, this.rerollCost()); } }] : [];
+    const shop = npc.role === "shop" ? [{ label: L("Ver mercadorias", "Browse wares"), action: () => {
+      done();
+      this.hud.openShop(d.shop, this.rerollCost(), { name: npc.name, title: npc.title, portrait: this.npcPortrait(n) });
+    } }] : [];
     const st = d.quest.status;
     if (q && (st === "ready" ? (q.turnIn ?? q.giver) === n.id : q.giver === n.id)) {
       if (st === "available") {
-        this.hud.dialog(npc.name, pic, q.intro, [{ label: L(`Aceitar: ${q.title}`, `Accept: ${q.title}`), action: () => { this.acceptQuest(); done(); } }, ...shop], done);
+        this.hud.dialog(npc.name, pic, q.intro, [{ label: L(`Aceitar: ${q.title}`, `Accept: ${q.title}`), action: () => { this.acceptQuest(); done(); } }, ...shop], done,
+          `<div class="dreward-label">${L("Recompensas", "Rewards")}</div>${rewardHtml(q.reward)}`);
       } else if (st === "active") {
         const step = d.currentStep!;
         this.hud.dialog(npc.name, pic, [`${step.goal}: ${d.quest.progress}/${step.objective.count}. ${npc.idle[0]}`], shop, done);
       } else {
-        this.hud.dialog(npc.name, pic, q.done, [{ label: L("Receber recompensa", "Claim reward"), action: () => { this.completeQuest(); done(); } }], done);
+        this.hud.dialog(npc.name, pic, q.done, [{ label: L("Receber recompensa", "Claim reward"), action: () => { this.completeQuest(); done(); } }], done,
+          `<div class="dreward-label">${L("Recompensas", "Rewards")}</div>${rewardHtml(q.reward)}`);
       }
       return;
     }
@@ -4941,13 +4972,18 @@ export class GameScene extends Phaser.Scene {
     const r = q.reward;
     d.gold += r.gold;
     d.potions.hp = Math.min(MAX_POTIONS, d.potions.hp + r.potions);
+    const made: Item[] = [];
     for (const it of r.items) {
       const item = generateItem(d.level + this.tier, d.def, it.rarity, it.slot);
       if (it.name) item.name = it.name;
-      if (d.addItem(item)) this.hud.message(L(`Recompensa: ${item.name}`, `Reward: ${item.name}`), RARITY_COLOR[item.rarity]);
+      made.push(item);
+      const put = d.addItem(item);
+      if (put) this.hud.message(put === "equipped" ? L(`Recompensa equipada: ${item.name}`, `Reward equipped: ${item.name}`)
+        : L(`Recompensa: ${item.name}`, `Reward: ${item.name}`), RARITY_COLOR[item.rarity]);
       else this.spawnLoot({ kind: "item", amount: 1, item }, this.hero.x, this.hero.y);
     }
     this.hud.message(L(`+${r.xp} XP · +${r.gold} ouro · +${r.potions} poções`, `+${r.xp} XP · +${r.gold} gold · +${r.potions} potion${r.potions === 1 ? "" : "s"}`), "#ffe14d");
+    this.hud.questComplete(q.title, r, made);
     sfx.quest();
     this.emitters.gold.explode(40, this.hero.x, this.hero.y - 14);
   }
@@ -5274,11 +5310,14 @@ export class GameScene extends Phaser.Scene {
       sfx.coin();
       this.floatAt(l.img.x, l.img.y - 6, L(`+${l.amount} ouro`, `+${l.amount} gold`), "");
     } else if (l.kind === "item") {
-      if (!d.addItem(l.item!)) {
+      const put = d.addItem(l.item!);
+      if (!put) {
         this.hud.message(L("Mochila cheia!", "Inventory full!"), "#ff6a5a");
         return;
       }
-      this.hud.message(L(`Pegou: ${l.item!.name}`, `Picked up: ${l.item!.name}`), RARITY_COLOR[l.item!.rarity]);
+      this.hud.message(put === "equipped" ? L(`Equipou: ${l.item!.name}`, `Equipped: ${l.item!.name}`)
+        : L(`Pegou: ${l.item!.name}`, `Picked up: ${l.item!.name}`), RARITY_COLOR[l.item!.rarity]);
+      if (put === "equipped") sfx.equip();
       this.afterItemsChanged();
     } else {
       const k = l.kind === "potion_hp" ? "hp" : "mp";
@@ -5513,7 +5552,8 @@ export class GameScene extends Phaser.Scene {
     const now = this.time.now;
     g.clear();
     for (const e of this.enemies) {
-      if (e.state === "dead" || !e.active || e.dormant || e.hp >= e.maxHp) continue;
+      // Always shown over every living enemy, wounded or not.
+      if (e.state === "dead" || !e.active || e.dormant) continue;
       const w = e.rank === "boss" ? 24 : e.type === "brute" ? 18 : 14;
       const top = e.type === "brute" ? 40 : Math.max(26, e.def.height * 0.85);
       const ratio = Math.max(0, e.hp / e.maxHp);

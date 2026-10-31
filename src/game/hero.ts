@@ -173,11 +173,17 @@ export class HeroData {
     return ups;
   }
 
-  addItem(item: Item): boolean {
+  /** A new item: worn at once when nothing is equipped in its slot, else into the backpack (null when full). */
+  addItem(item: Item): "equipped" | "bag" | null {
+    if (!this.equipment[item.slot]) {
+      this.equipment[item.slot] = item;
+      this.recalc();
+      return "equipped";
+    }
     const i = this.inventory.indexOf(null);
-    if (i < 0) return false;
+    if (i < 0) return null;
     this.inventory[i] = item;
-    return true;
+    return "bag";
   }
 
   equipFromInventory(i: number) {
@@ -245,7 +251,7 @@ export class HeroData {
   }
 
   // ---------- Save slots ----------
-  static readonly SLOTS = 3;
+  static readonly SLOTS = 8;
   private static key = (slot: number) => `diablo-minhau:slot:${slot}`;
 
   save() {
