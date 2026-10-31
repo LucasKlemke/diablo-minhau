@@ -4,7 +4,7 @@
 import type { QuestItemId } from "../data/quests";
 import { AREAS, exitsOf, type AreaId, type NpcSpots, type Side } from "../data/zones";
 import type { SpriteName } from "../kiln";
-import { MAP_H, MAP_W, rng, type Pack, type Prop, type WorldMap } from "./mapgen";
+import { MAP_H, MAP_W, rng, valueNoise, type Pack, type Prop, type WorldMap } from "./mapgen";
 
 export type Pt = [number, number];
 export type Shape = { rect: [number, number, number, number] } | { circle: [number, number, number] } | { poly: Pt[] };
@@ -229,12 +229,16 @@ export function buildAuthoredMap(area: AreaId, L: Layout): WorldMap {
       if ((x + y) % 2 === 0 && rand() < 0.85) props.push({ kind: "kiln", x, y, ...pick(L.border), tree: true });
     }
 
-  // Woods.
+  // Woods: dense groves that wall the map in (a woods' density decides how much of it they cover), open
+  // ground between them with a lone tree here and there, now and then even on a road.
+  const grove = valueNoise(rand, 10);
   for (const w of L.woods)
     forEach(w.shape, (x, y) => {
       const i = idx(x, y);
-      // Trees only grow on grass: clearings and camps stay open.
-      if (reserved[i] || blocked[i] || !grass[i] || rand() >= w.density) return;
+      if (reserved[i] || blocked[i]) return;
+      const inGrove = grass[i] && grove(x, y) > 0.62 - w.density;
+      const p = inGrove ? 0.82 : grass[i] ? 0.006 : 0.002;
+      if (rand() >= p) return;
       const tr = pick(w.trees);
       place({ ...tr, at: [x, y], tree: tr.tree ?? true, block: tr.block ?? [0, 0, 0, 0] });
       reserve(x, y, x, y);
@@ -249,6 +253,34 @@ export function buildAuthoredMap(area: AreaId, L: Layout): WorldMap {
       reserved[i] = true;
     });
 
+  // More fighting in the open: the authored camps grow by two, and the clearings between the woods get extra
+  // camps (outside the village areas), each borrowing the level and kind of the nearest authored camp.
+  const packs: Pack[] = L.packs.map((p) => ({ ...p, count: p.unique || p.quest ? p.count : p.count + 2 }));
+  if (!AREAS[area].village && L.packs.length) {
+    const open = (cx: number, cy: number) => {
+      for (let y = cy - 3; y <= cy + 3; y++)
+        for (let x = cx - 3; x <= cx + 3; x++) if (!inside(x, y) || blocked[idx(x, y)]) return false;
+      return true;
+    };
+    const exitPts = Object.values(L.exits).filter(Boolean) as [number, number][];
+    let extra = 0, tries = 0;
+    while (extra < 16 && tries++ < 4000) {
+      const x = 6 + Math.floor(rand() * (MAP_W - 12)), y = 6 + Math.floor(rand() * (MAP_H - 12));
+      if (!open(x, y) || Math.hypot(x - L.spawn[0], y - L.spawn[1]) < 18) continue;
+      if (exitPts.some(([ex, ey]) => Math.hypot(ex - x, ey - y) < 16)) continue;
+      if (packs.some((p) => Math.hypot(p.x - x, p.y - y) < 9)) continue;
+      if ([...L.dungeons, ...Object.values(L.spots).flat()].some((q) => q && Math.hypot(q[0] - x, q[1] - y) < 8)) continue;
+      const near = L.packs.filter((p) => !p.quest).sort((a, b) => Math.hypot(a.x - x, a.y - y) - Math.hypot(b.x - x, b.y - y))[0];
+      if (!near) break;
+      // The kind of camp follows the area's mix (goblins, beasts, spiders, the risen dead...).
+      const camps = AREAS[area].camps, total = camps.reduce((a, c) => a + c.weight, 0);
+      let r = rand() * total, faction = camps[0].kind;
+      for (const c of camps) if ((r -= c.weight) < 0) { faction = c.kind; break; }
+      packs.push({ x, y, level: near.level, count: 4 + Math.floor(rand() * 3), champion: rand() < 0.2, faction });
+      extra++;
+    }
+  }
+
   const chests: WorldMap["chests"] = L.chests.map(([x, y]) => {
     block(x, y);
     return { x, y, level: AREAS[area].level };
@@ -261,7 +293,7 @@ export function buildAuthoredMap(area: AreaId, L: Layout): WorldMap {
     .map((side) => ({ side, to: sides[side]!, x: L.exits[side]![0], y: L.exits[side]![1] }));
 
   return {
-    kind: "zone", grass, blocked, props, chests, packs: L.packs.map((p) => ({ ...p })),
+    kind: "zone", grass, blocked, props, chests, packs,
     spawn: { x: L.spawn[0], y: L.spawn[1] }, gates, portal, exits, dungeons, town: t, npcs: L.npcs ?? null,
     gateSpots: L.gates?.spots, spots: L.spots, arena, lair,
   };

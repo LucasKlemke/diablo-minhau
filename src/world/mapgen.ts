@@ -73,7 +73,7 @@ export function rng(seed: number) {
   };
 }
 
-function valueNoise(rand: () => number, cell: number) {
+export function valueNoise(rand: () => number, cell: number) {
   const gw = Math.ceil(MAP_W / cell) + 2;
   const gh = Math.ceil(MAP_H / cell) + 2;
   const g = Array.from({ length: gw * gh }, () => rand() * 2 - 1);
@@ -266,8 +266,9 @@ export function generateMap(seed: number, areaId: AreaId = "minhau"): WorldMap {
         continue;
       }
       if (reserved[i] || blocked[i]) continue;
+      // Woods grow as dense groves that wall the map in; between them the ground is open with a lone tree here and there.
       const f = forestN(x, y);
-      const p = f > 0.3 ? 0.28 : 0.012;
+      const p = f > 0.42 ? 0.8 : 0.004;
       if (grass[i] && rand() < p) {
         const r = rand();
         const kind: TreeKind = r < 0.5 ? "big" : r < 0.8 ? "medium" : r < 0.93 ? "bush" : "stump";
@@ -297,19 +298,19 @@ export function generateMap(seed: number, areaId: AreaId = "minhau"): WorldMap {
   // Goblin camps.
   const packs: Pack[] = [];
   let tries = 0;
-  const maxPacks = village ? 10 : 30;
+  const maxPacks = village ? 14 : 55;
   while (packs.length < maxPacks && tries++ < 5000) {
     const x = 4 + Math.floor(rand() * (MAP_W - 8));
     const y = 4 + Math.floor(rand() * (MAP_H - 8));
     if (!free(x, y) || nearTrail[idx(x, y)] || exitGap[idx(x, y)] || dist(x, y) < (village ? 25 : 14)) continue;
     if (exits.some((e) => Math.hypot(e.x - x, e.y - y) < 18)) continue; // a quiet stretch where the hero walks in
-    if (packs.some((p) => Math.hypot(p.x - x, p.y - y) < 9)) continue;
+    if (packs.some((p) => Math.hypot(p.x - x, p.y - y) < 8)) continue;
     const level = levelAt(x, y);
     // Bandits camp along the roads, farther out; goblins everywhere.
     const nearRoad = Math.abs(x - cx) < 8 || Math.abs(y - cy) < 8;
     let faction = pickCamp(nearRoad);
     if (faction === "bandit" && level < 2) faction = "goblin";
-    packs.push({ x, y, level, count: 3 + Math.floor(rand() * 3) + Math.floor(level / 3), champion: rand() < 0.18, faction });
+    packs.push({ x, y, level, count: 5 + Math.floor(rand() * 3) + Math.floor(level / 3), champion: rand() < 0.18, faction });
   }
   // Story bosses live in the farthest camps of their kind, far from each other.
   packs.sort((a, b) => dist(b.x, b.y) - dist(a.x, a.y));

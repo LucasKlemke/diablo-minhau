@@ -59,8 +59,13 @@ export interface AreaDef {
 }
 
 const FOREST_MIX: AreaDef["mix"] = {
-  goblin: ["goblin", "goblin", "goblin", "goblin", "goblin", "worg_rider"],
-  beast: ["boar", "boar", "wasp", "wasp", "slime", "slime", "ent"],
+  goblin: ["goblin", "goblin", "goblin", "goblin", "worg_rider", "worg_rider", "kobold"],
+  beast: ["boar", "boar", "wasp", "wasp", "slime", "ent", "bat", "beetle", "centipede", "ant"],
+  bandit: ["bandit", "bandit", "bandit", "cultist"],
+  // Webbed hollows of the blighted woods.
+  spider: ["spider", "spider", "spider", "centipede", "beetle"],
+  // The dead the plague raised.
+  undead: ["zombie", "zombie", "skeleton", "ghoul", "bat"],
 };
 const SWAMP_MIX: AreaDef["mix"] = {
   undead: ["zombie", "zombie", "zombie", "skeleton", "skeleton", "ghoul", "ghoul"],
@@ -80,17 +85,17 @@ export const AREAS: Record<AreaId, AreaDef> = {
   minhau: { id: "minhau", act: "forest", name: L("Vila de Minhau", "Minhau Village"), level: 1, village: true, waypoint: true, pos: [1, 8],
     camps: [{ kind: "goblin", weight: 1 }], mix: FOREST_MIX, uniques: [], dungeons: [] },
   goblin_woods: { id: "goblin_woods", act: "forest", name: L("Bosque dos Goblins", "Goblin Woods"), level: 2, pos: [1, 7],
-    camps: [{ kind: "goblin", weight: 6 }, { kind: "beast", weight: 2 }], mix: FOREST_MIX, uniques: [],
+    camps: [{ kind: "goblin", weight: 6 }, { kind: "beast", weight: 3 }, { kind: "spider", weight: 2 }], mix: FOREST_MIX, uniques: [],
     dungeons: [{ name: L("Casa Abandonada", "Abandoned House"), boss: "flea", enemies: ["spider", "spider", "goblin"], theme: "cellar" }] },
   bandit_road: { id: "bandit_road", act: "forest", name: L("Estrada dos Bandidos", "Bandit Road"), level: 5, waypoint: true, pos: [2, 7],
-    camps: [{ kind: "bandit", weight: 5 }, { kind: "goblin", weight: 2 }], mix: FOREST_MIX, uniques: [{ id: "polvo", camp: "bandit" }],
+    camps: [{ kind: "bandit", weight: 5 }, { kind: "goblin", weight: 2 }, { kind: "undead", weight: 2 }, { kind: "beast", weight: 1 }], mix: FOREST_MIX, uniques: [{ id: "polvo", camp: "bandit" }],
     dungeons: [{ name: L("Porão do Açougueiro", "Butcher's Cellar"), boss: "butcher", enemies: ["bandit", "goblin"], theme: "butcher" }] },
   wolf_wood: { id: "wolf_wood", act: "forest", name: L("Mata dos Lobos", "Wolf Wood"), level: 4, pos: [1, 6],
-    camps: [{ kind: "beast", weight: 6 }, { kind: "goblin", weight: 2 }], mix: FOREST_MIX,
+    camps: [{ kind: "beast", weight: 6 }, { kind: "goblin", weight: 2 }, { kind: "spider", weight: 3 }, { kind: "undead", weight: 1 }], mix: FOREST_MIX,
     uniques: [{ id: "caramelo", camp: "beast" }, { id: "trovao", camp: "beast" }, { id: "mancha", camp: "beast" }, { id: "fang", camp: "beast" }],
     dungeons: [{ name: L("Caverna dos Morcegos", "Bat Cave"), boss: "ogre", enemies: ["bat", "bat", "kobold", "centipede", "slime"], theme: "cave" }] },
   goblin_hollow: { id: "goblin_hollow", act: "forest", name: L("Clareira do Rei Goblin", "Goblin King's Hollow"), level: 6, waypoint: true, pos: [2, 6],
-    camps: [{ kind: "goblin", weight: 6 }, { kind: "beast", weight: 1 }, { kind: "bandit", weight: 1 }], mix: FOREST_MIX,
+    camps: [{ kind: "goblin", weight: 6 }, { kind: "beast", weight: 2 }, { kind: "bandit", weight: 1 }, { kind: "spider", weight: 2 }, { kind: "undead", weight: 2 }], mix: FOREST_MIX,
     uniques: [{ id: "grumm", camp: "goblin" }], dungeons: [] },
   // Act II
   swamp_camp: { id: "swamp_camp", act: "swamp", name: L("Acampamento do Pântano", "Swamp Camp"), level: 8, village: true, waypoint: true, pos: [2, 5],

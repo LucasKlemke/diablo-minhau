@@ -123,12 +123,12 @@ const MINHAU: Layout = {
     at("crow", 20, 104),
   ],
   woods: [
-    { shape: rect(3, 3, 42, 40), density: 0.3, trees: DEAD_WOODS },
-    { shape: rect(86, 40, 124, 124), density: 0.3, trees: DEAD_WOODS },
-    { shape: rect(3, 40, 42, 84), density: 0.14, trees: DEAD_WOODS },
-    { shape: rect(42, 102, 86, 124), density: 0.28, trees: DEAD_WOODS },
-    { shape: rect(3, 116, 42, 124), density: 0.3, trees: DEAD_WOODS },
-    { shape: rect(42, 3, 86, 40), density: 0.08, trees: DEAD_WOODS },
+    { shape: rect(3, 3, 42, 40), density: 0.17, trees: DEAD_WOODS },
+    { shape: rect(86, 40, 124, 124), density: 0.17, trees: DEAD_WOODS },
+    { shape: rect(3, 40, 42, 84), density: 0.09, trees: DEAD_WOODS },
+    { shape: rect(42, 102, 86, 124), density: 0.16, trees: DEAD_WOODS },
+    { shape: rect(3, 116, 42, 124), density: 0.17, trees: DEAD_WOODS },
+    { shape: rect(42, 3, 86, 40), density: 0.05, trees: DEAD_WOODS },
   ],
   scatter: [
     { shape: circle(24, 100, 14), density: 0.22, items: FIELDS },
@@ -177,7 +177,7 @@ const GOBLIN_WOODS: Layout = {
     at("crow", 64, 60),
   ],
   woods: [
-    { shape: rect(3, 3, 124, 124), density: 0.19, trees: DEAD_WOODS },
+    { shape: rect(3, 3, 124, 124), density: 0.11, trees: DEAD_WOODS },
   ],
   scatter: [{ shape: rect(3, 3, 124, 124), density: 0.02, items: RUBBLE }],
   packs: [
@@ -228,7 +228,7 @@ const WOLF_WOOD: Layout = {
     at("wolf_den", 20, 92, { alt: "tree_stump", block: [-2, -2, 1, -1] }),
     at("wolf_den", 104, 100, { alt: "tree_stump", block: [-2, -2, 1, -1] }),
   ],
-  woods: [{ shape: rect(3, 3, 124, 124), density: 0.22, trees: MOSSY_WOODS }],
+  woods: [{ shape: rect(3, 3, 124, 124), density: 0.13, trees: MOSSY_WOODS }],
   scatter: [{ shape: rect(3, 3, 124, 124), density: 0.015, items: RUBBLE }],
   packs: [
     pack(34, 41, 4, 5, "beast"),
@@ -278,7 +278,7 @@ const BANDIT_ROAD: Layout = {
     ...paved([[3, 62, 66, 66], [62, 3, 66, 61], [66, 62, 96, 66]]),
     at("crow", 52, 60), at("crow", 90, 68),
   ],
-  woods: [{ shape: rect(3, 3, 124, 124), density: 0.17, trees: DEAD_WOODS }],
+  woods: [{ shape: rect(3, 3, 124, 124), density: 0.1, trees: DEAD_WOODS }],
   scatter: [
     { shape: rect(10, 70, 58, 100), density: 0.12, items: FIELDS },
     { shape: rect(3, 3, 124, 124), density: 0.015, items: RUBBLE },
@@ -319,7 +319,7 @@ const GOBLIN_HOLLOW: Layout = {
     at("trash_fire", 52, 56, { alt: "campfire", block: [0, 0, 1, 0] }), at("trash_fire", 76, 56, { alt: "campfire", block: [0, 0, 1, 0] }), at("trash_fire", 64, 70, { alt: "campfire", block: [0, 0, 1, 0] }),
     ...goblinCamp(28, 28), ...goblinCamp(100, 28), ...goblinCamp(100, 100),
   ],
-  woods: [{ shape: rect(3, 3, 124, 124), density: 0.2, trees: DEAD_WOODS }],
+  woods: [{ shape: rect(3, 3, 124, 124), density: 0.12, trees: DEAD_WOODS }],
   scatter: [{ shape: circle(64, 60, 19), density: 0.03, items: RUBBLE }],
   packs: [
     pack(64, 52, 7, 6, "goblin", { unique: "grumm" }),
