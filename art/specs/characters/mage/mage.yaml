@@ -186,7 +186,7 @@ parts:
 sockets:
   muzzle: {bone: staff, offset: [0, 0.92, 0.04]}
 
-timing: {attack: {release: 240ms, total: 480ms}}
+timing: {attack: {release: 240ms, total: 480ms}, attack4: {release: 240ms, total: 530ms}, attack5: {release: 350ms, total: 750ms}}
 
 animations:
   idle:
@@ -416,3 +416,51 @@ animations:
               staff_pitch: "0.98 - 0.25*pulse(yaw, 0, 70)", foot_L: [0.10, 0, 0.12], coat: 0.4, orb: 1.3}
       - ms: 120
         set: {root: [0, 0, 0.01], lean: 0.08, hand_R: [0.24, 0.16, 0.20], hand_L: [0.24, 0.12, 0.08], staff_pitch: 0.40, coat: 0.1, orb: 1.05}
+  attack4:         # basic attack variation 4: staff spun overhead (roll flips side to side), then a two-handed jab
+    loop: false
+    keys:
+      - ms: 80
+        set: {twist: -0.15, bob: -0.02, squash: 0.96, hand_R: [0.28, 0.38, 0.06], hand_L: [0.20, 0.20, 0.12],
+              staff_pitch: -0.05, staff_roll: 0.75, coat: -0.15, orb: 1.2}
+      - ms: 90
+        event: windup
+        set: {twist: -0.25, lean: -0.10, bob: 0.02, squash: 1.04, head_pitch: -0.10, hand_R: [0.20, 0.54, 0.02], hand_L: [0.16, 0.40, 0.08],
+              staff_pitch: -0.30, staff_roll: -0.70, coat: -0.3, orb: 1.4}
+      - ms: 70
+        set: {twist: -0.05, lean: 0.0, bob: 0.01, hand_R: [0.20, 0.46, 0.12], hand_L: [0.18, 0.36, 0.14],
+              staff_pitch: 0.35, staff_roll: 0.45, coat: 0.0, orb: 1.5}
+      - ms: 70
+        event: release
+        set: {root: [0, 0, 0.03], twist: 0.10, lean: 0.18, bob: -0.02, squash: 1.05, hand_R: [0.12, 0.27, 0.24], hand_L: [0.18, 0.25, 0.22],
+              staff_pitch: "0.92 - 0.22*pulse(yaw, 0, 70) - 0.12*(dir == 'e')", staff_roll: 0.05, foot_L: [0.10, 0, 0.13], coat: 0.55, orb: 1.7}
+      - ms: 110
+        set: {root: [0, 0, 0.03], twist: 0.06, lean: 0.14, hand_R: [0.14, 0.25, 0.24], hand_L: [0.20, 0.22, 0.20],
+              staff_pitch: "0.86 - 0.28*pulse(yaw, 0, 70)", staff_roll: 0.05, foot_L: [0.10, 0, 0.10], coat: 0.3, orb: 1.2}
+      - ms: 110
+        set: {root: [0, 0, 0.01], twist: 0.02, lean: 0.05, hand_R: [0.24, 0.18, 0.20], hand_L: [0.24, 0.13, 0.06],
+              staff_pitch: 0.35, staff_roll: 0.10, coat: 0.05, orb: 1.05}
+  attack5:         # combo finisher: crouch and gather (orb swells), full-body staff thrust, strong recoil
+    loop: false
+    keys:
+      - ms: 100
+        set: {bob: -0.07, squash: 0.88, lean: 0.18, head_pitch: 0.08, hand_R: [0.30, 0.08, 0.18], hand_L: [0.16, 0.14, 0.22],
+              staff_pitch: 0.12, staff_roll: 0.18, coat: -0.2, orb: 1.4}
+      - ms: 130
+        event: windup
+        set: {twist: -0.35, lean: -0.06, bob: -0.06, squash: 0.90, head_pitch: -0.04, hand_R: [0.26, 0.26, -0.12], hand_L: [0.20, 0.20, 0.14],
+              staff_pitch: -0.35, staff_roll: 0.15, coat: -0.35, orb: 1.9}
+      - ms: 120
+        set: {root: [0, 0, -0.02], twist: -0.45, lean: -0.12, bob: -0.07, squash: 0.88, head_pitch: -0.06, hand_R: [0.26, 0.28, -0.16], hand_L: [0.20, 0.22, 0.12],
+              staff_pitch: -0.45, staff_roll: 0.15, coat: -0.45, orb: 2.3}
+      - ms: 70
+        event: release
+        set: {root: "[0, 0, 0.05 - 0.04*(dir == 'e')]", twist: 0.30, lean: 0.26, bob: -0.01, squash: 1.08, head_pitch: 0.04, hand_R: "[0.11, 0.27, 0.26 - 0.03*(dir == 'e')]", hand_L: [0.18, 0.25, 0.24],
+              staff_pitch: "0.95 - 0.22*pulse(yaw, 0, 70) - 0.25*(dir == 'e')", staff_roll: 0.05, foot_L: [0.10, 0, 0.16], coat: 0.75, orb: "2.4 - 0.2*(dir == 'e')"}
+      - ms: 90
+        set: {root: [0, 0, -0.03], twist: -0.10, lean: -0.16, bob: 0.01, squash: 0.95, head_pitch: -0.12, hand_R: [0.24, 0.30, 0.08], hand_L: [0.26, 0.16, 0.02],
+              staff_pitch: "0.25 - 0.1*pulse(yaw, 0, 70)", staff_roll: 0.25, foot_L: [0.10, 0, 0.0], coat: -0.45, orb: 1.4}
+      - ms: 130
+        set: {root: [0, 0, -0.01], twist: 0.0, lean: 0.06, bob: -0.02, squash: 0.97, hand_R: [0.30, 0.18, 0.14], hand_L: [0.24, 0.13, 0.05],
+              staff_pitch: 0.18, staff_roll: 0.15, coat: 0.2, orb: 1.15}
+      - ms: 110
+        set: {hand_R: [0.34, 0.14, 0.14], staff_pitch: 0.08, coat: 0.05, orb: 1.0}
