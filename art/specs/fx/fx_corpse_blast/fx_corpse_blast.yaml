@@ -1,0 +1,249 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_corpse_blast
+kind: prop
+view: topdown
+size: 128
+directions: [s]
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.83755, 0]}   # 12 px above the pivot -> pivot (64, 76)
+shadow: null             # a spell effect: no ground shadow
+
+# The sorcerer's Corpse Explosion: a corpse detonates, damaging everything in ~50 px.
+brief:
+  summary: |
+    `explode` a dark-red blast dome with a fel-green heart, a fel shockwave ring racing out on the ground to
+    ~50 px, bone shards, gore chunks and blood drops flying out, then a lingering fel mist that shrinks away
+    over a blood splat.
+  must_keep: [dark red + fel green blast, ring reaches the spell radius (~50 px), outlined bone shards and gore chunks, shrinking green mist]
+  simplify: [blast layers one band each without outline, a flat blood decal, no transparency - fading is shrinking]
+  exceptions: |
+    kind prop, size 128, directions [s] only, mirror false, shadow null, camera.center [0, 0.83755, 0]
+    (integer pivot). Blast, ring, drops and mist are emissive without outline (own ramps `gore` and `mist`,
+    the fel ramp); bone shards (farm `bone`) and gore chunks (farm `cloth_red`) are lit and outlined so
+    they read over grass. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 76) = the ground point under the corpse (the centre of the blast).
+    `explode` is one-shot, 9 frames, 550 ms; event `start` on frame 0 and `hit` on frame 1 (40 ms), when the
+    ring is at ~29 px and the dome is at full fury; the ring reaches 50 px on frame 3-4.
+    Blast layers sit on bones pushed toward the camera (c0 back .. f3 front) so the inner tones draw over
+    the outer ones without changing the silhouette. Debris lands on the ring and shrinks away with the mist
+    (channel sz) so nothing pops when the sprite is removed.
+
+ramps:
+  gore: ["#3a0712", "#6e1d24", "#c13a2b", "#e0664a"]
+  mist: ["#24521f", "#3f8f2e", "#6fcf4a", "#b6ff83"]
+
+materials:
+  outer:  {ramp: gore, emissive: true, band: 0, outline: false, line: false, glow: {color: "#c13a2b", mix: 0.25, radius: 1}}
+  mid:    {ramp: gore, emissive: true, band: 2, outline: false, line: false}
+  inner:  {ramp: fel, emissive: true, band: 1, outline: false, line: false, glow: {color: "#5dff3d", mix: 0.4, radius: 1}}
+  core:   {ramp: fel, emissive: true, band: 2, outline: false, line: false}
+  ring:   {ramp: fel, emissive: true, band: 1, outline: false, line: false, glow: {color: "#5dff3d", mix: 0.35, radius: 1}}
+  ring_hi: {ramp: fel, emissive: true, band: 3, outline: false, line: false}
+  drop:   {ramp: gore, emissive: true, band: 2, outline: false, line: false}
+  bone:   {ramp: bone, bands: [2, 4]}
+  flesh:  {ramp: cloth_red, bands: [1, 3]}
+  splat:  {ramp: gore, emissive: true, band: 0, outline: false, line: false}
+  splat_hi: {ramp: gore, emissive: true, band: 1, outline: false, line: false}
+  mist_rim: {ramp: mist, emissive: true, band: 0, outline: false, line: false}
+  mist:   {ramp: mist, emissive: true, band: 1, outline: false, line: false, glow: {color: "#5dff3d", mix: 0.2, radius: 1}}
+  mist_hi: {ramp: mist, emissive: true, band: 2, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  dr: 0.0         # blast dome radius
+  dc: 0.0         # fel core radius
+  up: 0.0         # how far the dome puffs have risen
+  rr: 0.0         # shockwave ring radius (2.75 = 50 px)
+  rt: 0.0         # shockwave ring tube radius
+  cd: 0.0         # debris: distance from the centre
+  ch: 0.0         # debris: height
+  sz: 1.0         # debris size (shrinks away at the end)
+  m: 0.0          # lingering mist size
+  mu: 0.0         # mist rise
+  sl: 0.0         # blood splat size
+
+bones:
+  body: {parent: root}
+  # layers along the view ray (camera direction (0, 0.616, 0.788)): same pixels, nearer = drawn on top
+  c0: {parent: body, pos: [0, -0.616, -0.788]}   # 1.0 back
+  f1: {parent: body, pos: [0, 0.370, 0.473]}     # 0.6 front
+  f2: {parent: body, pos: [0, 0.739, 0.946]}     # 1.2 front
+  f3: {parent: body, pos: [0, 1.109, 1.418]}     # 1.8 front
+  f4: {parent: body, pos: [0, 1.663, 2.128]}     # 2.7 front (fel heart, in front of the red dome)
+  f5: {parent: body, pos: [0, 2.094, 2.679]}     # 3.4 front
+
+parts:
+  # ================= ground: blood splat =================
+  splat:
+    when: "sl > 0.05"
+    material: splat
+    space: c0
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0], r: "v(1.10*sl, 0.004, 0.95*sl)", rot: [0, 0.4, 0]}
+      - ellipsoid: {c: "v(1.15*sl, 0.004, 0.45*sl)", r: "v(0.40*sl, 0.004, 0.14*sl)", rot: [0, -0.4, 0]}
+      - ellipsoid: {c: "v(-1.05*sl, 0.004, 0.65*sl)", r: "v(0.38*sl, 0.004, 0.13*sl)", rot: [0, 0.55, 0]}
+      - ellipsoid: {c: "v(-0.55*sl, 0.004, -1.05*sl)", r: "v(0.36*sl, 0.004, 0.12*sl)", rot: [0, -1.1, 0]}
+      - ellipsoid: {c: "v(0.45*sl, 0.004, 1.15*sl)", r: "v(0.34*sl, 0.004, 0.12*sl)", rot: [0, -1.2, 0]}
+      - sphere: {c: "v(1.70*sl, 0.0, 0.70*sl)", r: "0.10*sl"}
+      - sphere: {c: "v(-1.60*sl, 0.0, 1.00*sl)", r: "0.09*sl"}
+      - sphere: {c: "v(-0.80*sl, 0.0, -1.60*sl)", r: "0.09*sl"}
+  splat_hi:
+    when: "sl > 0.05"
+    material: splat_hi
+    space: body
+    prims:
+      - ellipsoid: {c: "v(-0.20*sl, 0.006, -0.15*sl)", r: "v(0.40*sl, 0.004, 0.25*sl)", rot: [0, 0.5, 0]}
+
+  # ================= shockwave ring =================
+  ring:
+    when: "rr > 0.05 and rt > 0.03"
+    material: ring
+    space: body
+    prims:
+      - torus: {c: [0, 0.02, 0], R: rr, r: "rt*1.5"}
+  ring_hi:
+    when: "rr > 0.05 and rt > 0.09"
+    material: ring_hi
+    space: f1
+    prims:
+      - torus: {c: [0, 0.02, 0], R: "rr - 0.03", r: "rt*0.6"}
+
+  # ================= blast dome: dark red outside, fel heart =================
+  dome_outer:
+    when: "dr > 0.05"
+    material: outer
+    space: body
+    blend: 0.15
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(dr, 0.80*dr, dr)"}
+      - sphere: {c: "v(0.62*dr, 0.30*dr + 0.5*up, 0.30)", r: "0.30*dr*(1 - 0.35*up)"}
+      - sphere: {c: "v(-0.45*dr, 0.42*dr + 0.6*up, -0.10)", r: "0.40*dr*(1 - 0.25*up)"}
+      - sphere: {c: "v(0.10*dr, 0.70*dr + 1.2*up, -0.20)", r: "0.34*dr*(1 - 0.4*up)"}
+      - sphere: {c: "v(0.78*dr + 0.3*up, 0.18*dr, 0.30*dr)", r: "0.34*dr"}
+      - sphere: {c: "v(-0.78*dr - 0.3*up, 0.18*dr, 0.20*dr)", r: "0.34*dr"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  dome_mid:
+    when: "dr > 0.05"
+    material: mid
+    space: f1
+    blend: 0.12
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(0.78*dr, 0.62*dr, 0.78*dr)"}
+      - sphere: {c: "v(0.58*dr, 0.34*dr + 0.5*up, 0.30)", r: "0.20*dr*(1 - 0.4*up)"}
+      - sphere: {c: "v(-0.48*dr, 0.46*dr + 0.6*up, -0.10)", r: "0.27*dr*(1 - 0.3*up)"}
+      - sphere: {c: "v(0.06*dr, 0.74*dr + 1.2*up, -0.20)", r: "0.22*dr*(1 - 0.45*up)"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  dome_inner:
+    when: "dr > 0.05 and up < 0.9"
+    material: inner
+    space: f4
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(0.55*dr*(1 - 0.6*up), 0.45*dr*(1 - 0.6*up), 0.55*dr*(1 - 0.6*up))"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  dome_core:
+    when: "dc > 0.05"
+    material: core
+    space: f5
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(dc, 0.75*dc, dc)"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+
+  # ================= debris: bone shards, gore chunks, blood drops =================
+  shards:
+    when: "cd > 0.05 and sz > 0.1"
+    material: bone
+    space: body
+    prims:
+      - cone: {a: "v(0.940*cd, 0.05 + 1.0*ch, 0.342*cd) - v(0.18*sz*0.940*cos(cd*4 + 0.3), 0.18*sz*sin(cd*4 + 0.3), 0.18*sz*0.342*cos(cd*4 + 0.3))", b: "v(0.940*cd, 0.05 + 1.0*ch, 0.342*cd) + v(0.18*sz*0.940*cos(cd*4 + 0.3), 0.18*sz*sin(cd*4 + 0.3), 0.18*sz*0.342*cos(cd*4 + 0.3))", r: ["0.07*sz", "0.02*sz"]}
+      - cone: {a: "v(0.174*cd, 0.05 + 1.15*ch, 0.985*cd) - v(0.18*sz*0.174*cos(cd*4 + 1.1), 0.18*sz*sin(cd*4 + 1.1), 0.18*sz*0.985*cos(cd*4 + 1.1))", b: "v(0.174*cd, 0.05 + 1.15*ch, 0.985*cd) + v(0.18*sz*0.174*cos(cd*4 + 1.1), 0.18*sz*sin(cd*4 + 1.1), 0.18*sz*0.985*cos(cd*4 + 1.1))", r: ["0.07*sz", "0.02*sz"]}
+      - cone: {a: "v(-0.766*cd, 0.05 + 0.9*ch, 0.643*cd) - v(0.18*sz*-0.766*cos(cd*4 + 2.0), 0.18*sz*sin(cd*4 + 2.0), 0.18*sz*0.643*cos(cd*4 + 2.0))", b: "v(-0.766*cd, 0.05 + 0.9*ch, 0.643*cd) + v(0.18*sz*-0.766*cos(cd*4 + 2.0), 0.18*sz*sin(cd*4 + 2.0), 0.18*sz*0.643*cos(cd*4 + 2.0))", r: ["0.07*sz", "0.02*sz"]}
+      - cone: {a: "v(-0.940*cd, 0.05 + 1.2*ch, -0.342*cd) - v(0.18*sz*-0.940*cos(cd*4 + 0.7), 0.18*sz*sin(cd*4 + 0.7), 0.18*sz*-0.342*cos(cd*4 + 0.7))", b: "v(-0.940*cd, 0.05 + 1.2*ch, -0.342*cd) + v(0.18*sz*-0.940*cos(cd*4 + 0.7), 0.18*sz*sin(cd*4 + 0.7), 0.18*sz*-0.342*cos(cd*4 + 0.7))", r: ["0.07*sz", "0.02*sz"]}
+      - cone: {a: "v(-0.174*cd, 0.05 + 1.05*ch, -0.985*cd) - v(0.18*sz*-0.174*cos(cd*4 + 1.6), 0.18*sz*sin(cd*4 + 1.6), 0.18*sz*-0.985*cos(cd*4 + 1.6))", b: "v(-0.174*cd, 0.05 + 1.05*ch, -0.985*cd) + v(0.18*sz*-0.174*cos(cd*4 + 1.6), 0.18*sz*sin(cd*4 + 1.6), 0.18*sz*-0.985*cos(cd*4 + 1.6))", r: ["0.07*sz", "0.02*sz"]}
+      - cone: {a: "v(0.766*cd, 0.05 + 0.95*ch, -0.643*cd) - v(0.18*sz*0.766*cos(cd*4 + 2.5), 0.18*sz*sin(cd*4 + 2.5), 0.18*sz*-0.643*cos(cd*4 + 2.5))", b: "v(0.766*cd, 0.05 + 0.95*ch, -0.643*cd) + v(0.18*sz*0.766*cos(cd*4 + 2.5), 0.18*sz*sin(cd*4 + 2.5), 0.18*sz*-0.643*cos(cd*4 + 2.5))", r: ["0.07*sz", "0.02*sz"]}
+  gore:
+    when: "cd > 0.05 and sz > 0.1"
+    material: flesh
+    space: body
+    blend: 0.03
+    prims:
+      - sphere: {c: "v(0.92*0.643*cd, 0.06 + 0.8*ch, 0.92*0.766*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.92*0.643*cd + 0.07*sz, 0.10 + 0.8*ch, 0.92*0.766*cd - 0.04*sz)", r: "0.08*sz"}
+      - sphere: {c: "v(0.85*-0.342*cd, 0.06 + 0.95*ch, 0.85*0.940*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.85*-0.342*cd + 0.07*sz, 0.10 + 0.95*ch, 0.85*0.940*cd - 0.04*sz)", r: "0.08*sz"}
+      - sphere: {c: "v(0.95*-0.985*cd, 0.06 + 0.75*ch, 0.95*0.174*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.95*-0.985*cd + 0.07*sz, 0.10 + 0.75*ch, 0.95*0.174*cd - 0.04*sz)", r: "0.08*sz"}
+      - sphere: {c: "v(0.88*-0.643*cd, 0.06 + 0.9*ch, 0.88*-0.766*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.88*-0.643*cd + 0.07*sz, 0.10 + 0.9*ch, 0.88*-0.766*cd - 0.04*sz)", r: "0.08*sz"}
+      - sphere: {c: "v(0.9*0.342*cd, 0.06 + 1.0*ch, 0.9*-0.940*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.9*0.342*cd + 0.07*sz, 0.10 + 1.0*ch, 0.9*-0.940*cd - 0.04*sz)", r: "0.08*sz"}
+      - sphere: {c: "v(0.96*0.985*cd, 0.06 + 0.85*ch, 0.96*-0.174*cd)", r: "0.12*sz"}
+      - sphere: {c: "v(0.96*0.985*cd + 0.07*sz, 0.10 + 0.85*ch, 0.96*-0.174*cd - 0.04*sz)", r: "0.08*sz"}
+  drops:
+    when: "cd > 0.05 and ch > 0.3"
+    material: drop
+    space: f3
+    prims:
+      - sphere: {c: "v(0.75*1.000*cd, 0.15 + 1.5*ch, 0.75*0.000*cd)", r: "0.055*sz"}
+      - sphere: {c: "v(0.75*0.423*cd, 0.15 + 1.5*ch, 0.75*0.906*cd)", r: "0.055*sz"}
+      - sphere: {c: "v(0.75*-0.574*cd, 0.15 + 1.5*ch, 0.75*0.819*cd)", r: "0.055*sz"}
+      - sphere: {c: "v(0.75*-0.996*cd, 0.15 + 1.5*ch, 0.75*-0.087*cd)", r: "0.055*sz"}
+      - sphere: {c: "v(0.75*-0.423*cd, 0.15 + 1.5*ch, 0.75*-0.906*cd)", r: "0.055*sz"}
+      - sphere: {c: "v(0.75*0.574*cd, 0.15 + 1.5*ch, 0.75*-0.819*cd)", r: "0.055*sz"}
+
+  # ================= lingering fel mist: one lumpy low mass that rises a little and shrinks =================
+  mist_rim:
+    when: "m > 0.05"
+    material: mist_rim
+    space: body
+    blend: 0.20
+    prims:
+      - ellipsoid: {c: "v(0, 0.22*m + 0.8*mu, 0)", r: "v(1.15*m, 0.42*m, 0.95*m)"}
+      - sphere: {c: "v(0.80*m, 0.25*m + 0.7*mu, 0.35*m)", r: "0.42*m"}
+      - sphere: {c: "v(-0.85*m, 0.28*m + 0.9*mu, 0.10*m)", r: "0.45*m"}
+      - sphere: {c: "v(-0.20*m, 0.45*m + 1.0*mu, -0.45*m)", r: "0.48*m"}
+      - sphere: {c: "v(0.35*m, 0.30*m + 0.8*mu, 0.70*m)", r: "0.36*m"}
+      - sphere: {c: "v(0.80*m, 0.32*m + 0.8*mu, -0.15*m)", r: "0.30*m"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  mist:
+    when: "m > 0.05"
+    material: mist
+    space: f1
+    blend: 0.16
+    prims:
+      - ellipsoid: {c: "v(-0.10*m, 0.30*m + 0.8*mu, 0)", r: "v(0.92*m, 0.32*m, 0.76*m)"}
+      - sphere: {c: "v(0.72*m, 0.32*m + 0.7*mu, 0.35*m)", r: "0.32*m"}
+      - sphere: {c: "v(-0.92*m, 0.36*m + 0.9*mu, 0.10*m)", r: "0.34*m"}
+      - sphere: {c: "v(-0.28*m, 0.55*m + 1.0*mu, -0.45*m)", r: "0.37*m"}
+      - sphere: {c: "v(0.74*m, 0.38*m + 0.8*mu, -0.15*m)", r: "0.21*m"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  mist_hi:
+    when: "m > 0.05"
+    material: mist_hi
+    space: f2
+    prims:
+      - ellipsoid: {c: "v(-0.45*m, 0.42*m + 0.8*mu, 0)", r: "v(0.38*m, 0.12*m, 0.25*m)"}
+      - sphere: {c: "v(-0.42*m, 0.70*m + 1.0*mu, -0.45*m)", r: "0.16*m"}
+      - sphere: {c: "v(0.66*m, 0.48*m + 0.8*mu, -0.15*m)", r: "0.09*m"}
+
+animations:
+  explode:
+    loop: false
+    keys:
+      - {ms: 40, event: start, set: {dr: 0.90, dc: 0.42, rr: 0.80, rt: 0.16, cd: 0.30, ch: 0.35, sl: 0.3}}
+      - {ms: 50, event: hit, set: {dr: 1.55, dc: 0.55, rr: 1.60, rt: 0.15, cd: 0.80, ch: 0.85, sl: 0.6}}
+      - {ms: 60, set: {dr: 1.95, dc: 0.50, up: 0.2, rr: 2.25, rt: 0.14, cd: 1.35, ch: 1.25, sl: 0.9, m: 0.4}}
+      - {ms: 60, set: {dr: 2.00, dc: 0.36, up: 0.5, rr: 2.62, rt: 0.12, cd: 1.85, ch: 1.35, sl: 1.0, m: 0.7}}
+      - {ms: 70, set: {dr: 1.50, up: 1.0, rr: 2.72, rt: 0.07, cd: 2.25, ch: 1.00, sl: 1.0, m: 1.0, mu: 0.1}}
+      - {ms: 70, set: {dr: 0.80, up: 1.5, rr: 2.76, rt: 0.04, cd: 2.50, ch: 0.45, sl: 1.0, m: 1.0, mu: 0.2}}
+      - {ms: 70, set: {cd: 2.60, ch: 0.08, sz: 0.8, sl: 0.9, m: 0.85, mu: 0.3}}
+      - {ms: 70, set: {cd: 2.60, ch: 0.05, sz: 0.5, sl: 0.7, m: 0.6, mu: 0.4}}
+      - {ms: 60, set: {cd: 2.60, ch: 0.05, sz: 0.25, sl: 0.4, m: 0.3, mu: 0.5}}

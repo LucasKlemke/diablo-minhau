@@ -1,0 +1,297 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_explosive_arrow
+kind: prop
+view: topdown
+size: 96
+directions: 8
+mirror: true             # symmetric arrow and a radial blast: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (48, 48)
+shadow: null             # a projectile in the air and a blast of light: no ground shadow
+
+# The archer's Explosive Arrow (skill effect).
+brief:
+  summary: |
+    `fly` an arrow flying along +Z with a bundle of black powder tied behind its head, a sputtering fuse
+    shedding sparks and grey smoke puffs, and a hot ember-red glowing tip.
+    `explode` a punchy powder blast: a white flash, an orange fireball ~80 px wide, a dark smoke ring,
+    a ground shockwave (ellipse 0.62 as tall as wide, ~40 px radius) and burning wood splinters flying out.
+  must_keep: [head in front and fletching behind in every direction, the powder bundle and lit fuse read,
+    ember-red tip, the blast reaches the skill radius (~40 px), same blast from every side]
+  simplify: [fire layers of the farm `fire` ramp, one band each, no outline; smoke flat 2 bands, dark outline]
+  exceptions: |
+    kind prop, size 96 (the frame must hold the explosion), directions 8 mirrored, shadow null,
+    camera.center [0, 0, 0]. Flames, sparks and the tip are emissive with no outline (as fx_fireball);
+    the arrow, bundle, smoke and splinters are lit with the dark outline. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (48, 48). `fly`: the arrow's centre (the game places the sprite at the
+    projectile point, ~12 px above the ground) and the arrow points along the facing direction.
+    `explode`: the ground point at the blast centre (the shockwave ring is centred on it, the fireball
+    dome sits on it). The blast parts hang from `wb`, a bone counter-rotated by the direction's yaw, so
+    every direction renders the same image; the game may play `explode` with any direction.
+    Fire layers sit on bones pushed toward the camera so the inner tones always draw over the outer ones
+    without changing the silhouette. Fletching uses the archer's green (cloth_green).
+
+ramps:
+  ember: ["#1c0f1a", "#902308", "#e0402a", "#fe6607"]
+  smoke: ["#1c0f1a", "#3a3340", "#5e5866", "#8c8794", "#bdb9c2"]
+  soot:  ["#1c0f1a", "#2a2230", "#3e3546", "#574d5e"]
+  powder: ["#1c0f1a", "#241c26", "#3a3038", "#55484e"]
+
+materials:
+  outer: {ramp: fire, emissive: true, band: 0, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+  mid:   {ramp: fire, emissive: true, band: 1, outline: false}
+  inner: {ramp: fire, emissive: true, band: 2, outline: false}
+  core:  {ramp: fire, emissive: true, band: 3, outline: false}
+  white: {ramp: fx_core, emissive: true, band: 0, outline: false}
+  tip:   {ramp: ember, emissive: true, band: 2, outline: true, glow: {color: "#e0402a", mix: 0.35, radius: 1}}
+  tiphot: {ramp: ember, emissive: true, band: 3, outline: false}
+  shaft: {ramp: wood, bands: [2, 3]}
+  fletch: {ramp: cloth_green, bands: [2, 3]}
+  bag:   {ramp: powder, bands: [1, 3]}
+  twine: {ramp: rag, bands: [2, 3], line: false}
+  fuse:  {ramp: rag, bands: [1, 2], line: false}
+  smoke: {ramp: smoke, bands: [2, 4], line: false}
+  soot:  {ramp: soot, bands: [1, 3], line: false}
+  splinter: {ramp: wood, bands: [1, 3], line: false}
+
+channels:
+  root: [0, 0, 0]
+  fly: 1          # 1 = the arrow is visible
+  boom: 0         # explode: 1 = blast parts visible
+  wf: 0.0         # white flash radius
+  fr: 0.0         # fireball dome radius (outer layer)
+  fc: 0.0         # fireball hot core radius
+  up: 0.0         # how far the fire puffs have risen / broken apart
+  sr: 0.0         # dark smoke ring radius
+  st: 0.0         # dark smoke ring tube radius
+  sy: 0.55        # smoke ring height
+  rr: 0.0         # ground shockwave ring radius
+  rt: 0.10        # ground shockwave tube radius
+  rh: 1.0         # shockwave heat: 1 = hot cream line, 0 = cooled to orange
+  sd: 0.0         # splinters: distance from the centre
+  sh: 0.0         # splinters: height
+  sb: 0.0         # splinters: burning tip radius
+  pf: 0.0         # late soot puffs size
+
+bones:
+  body: {parent: root}
+  # fly layers pushed toward the camera (model space, from yaw)
+  c1: {parent: body, pos: "0.30*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c2: {parent: body, pos: "0.60*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c3: {parent: body, pos: "0.90*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  # explode: world-locked frame (counter-rotated by yaw) + layers along the view ray
+  wb:  {parent: root, rot: "[0, -radians(yaw), 0]"}
+  w1:  {parent: wb, pos: [0, 0.370, 0.473]}     # 0.6 front
+  w2:  {parent: wb, pos: [0, 0.739, 0.946]}     # 1.2 front
+  w3:  {parent: wb, pos: [0, 1.109, 1.418]}     # 1.8 front
+  w4:  {parent: wb, pos: [0, 1.478, 1.891]}     # 2.4 front
+
+parts:
+  # ================= fly: arrow along +Z, origin = arrow centre =================
+  arrow_shaft:
+    when: "fly > 0.5"
+    material: shaft
+    space: body
+    prims:
+      - cylinder: {a: [0, 0, -0.66], b: [0, 0, 0.44], r: 0.038}
+  arrow_fletch:
+    when: "fly > 0.5"
+    material: fletch
+    space: body
+    blend: 0.02
+    prims:
+      - box: {c: [0, 0.08, -0.56], half: [0.018, 0.07, 0.11], rot: [0.25, 0, 0], round: 0.01}
+      - box: {c: [0.075, -0.04, -0.56], half: [0.07, 0.018, 0.11], rot: [0, -0.2, 0.5], round: 0.01}
+      - box: {c: [-0.075, -0.04, -0.56], half: [0.07, 0.018, 0.11], rot: [0, 0.2, -0.5], round: 0.01}
+  arrow_tip:
+    when: "fly > 0.5"
+    material: tip
+    space: body
+    blend: 0.02
+    prims:
+      - cone: {a: [0, 0, 0.42], b: [0, 0, 0.70], r: [0.105, 0.02]}
+  arrow_tip_hot:
+    when: "fly > 0.5"
+    material: tiphot
+    space: c1
+    prims:
+      - cone: {a: [0, 0, 0.47], b: [0, 0, 0.62], r: ["0.045 + 0.008*sin(2*p)", 0.015]}
+  powder_bag:
+    when: "fly > 0.5"
+    material: bag
+    space: body
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0.02, 0.22], r: [0.15, 0.14, 0.19]}
+      - sphere: {c: [0.04, 0.12, 0.14], r: 0.07}
+  powder_twine:
+    when: "fly > 0.5"
+    material: twine
+    space: body
+    prims:
+      - torus: {c: [0, 0.02, 0.10], R: 0.12, r: 0.024, rot: [1.5708, 0, 0]}
+      - torus: {c: [0, 0.02, 0.34], R: 0.11, r: 0.024, rot: [1.5708, 0, 0]}
+  fuse_cord:
+    when: "fly > 0.5"
+    material: fuse
+    space: body
+    prims:
+      - chain: {pts: [[0, 0.15, 0.12], [0, 0.24, 0.02], ["0.03*sin(p)", 0.30, -0.10], ["0.05*sin(p + 1)", "0.33 + 0.02*sin(2*p)", -0.20]], r: [0.026, 0.024, 0.022, 0.02]}
+  # the sputtering fuse end: flickering spark ball
+  fuse_spark:
+    when: "fly > 0.5"
+    material: inner
+    space: c2
+    prims:
+      - sphere: {c: ["0.05*sin(p + 1)", "0.33 + 0.02*sin(2*p)", -0.22], r: "0.065 + 0.02*sin(2*p + 0.5)"}
+  fuse_spark_core:
+    when: "fly > 0.5"
+    material: core
+    space: c3
+    prims:
+      - sphere: {c: ["0.05*sin(p + 1)", "0.34 + 0.02*sin(2*p)", -0.22], r: "0.035 + 0.01*sin(2*p)"}
+  # sparks shed backward from the fuse (phase-staggered, wrap around each loop)
+  fuse_sparks:
+    when: "fly > 0.5"
+    material: mid
+    space: c3
+    prims:
+      - sphere: {c: ["0.10 + 0.14*(p/tau + 0.00 - floor(p/tau + 0.00))", "0.36 + 0.10*(p/tau + 0.00 - floor(p/tau + 0.00))", "-0.28 - 0.45*(p/tau + 0.00 - floor(p/tau + 0.00))"], r: "0.035*(1 - 0.5*(p/tau + 0.00 - floor(p/tau + 0.00)))"}
+      - sphere: {c: ["-0.08 - 0.14*(p/tau + 0.50 - floor(p/tau + 0.50))", "0.40 + 0.12*(p/tau + 0.50 - floor(p/tau + 0.50))", "-0.26 - 0.40*(p/tau + 0.50 - floor(p/tau + 0.50))"], r: "0.035*(1 - 0.5*(p/tau + 0.50 - floor(p/tau + 0.50)))"}
+      - sphere: {c: ["0.02", "0.46 + 0.14*(p/tau + 0.25 - floor(p/tau + 0.25))", "-0.22 - 0.30*(p/tau + 0.25 - floor(p/tau + 0.25))"], r: "0.03*(1 - 0.5*(p/tau + 0.25 - floor(p/tau + 0.25)))"}
+  # grey smoke puffs drifting back from the fuse, growing as they go
+  fuse_smoke:
+    when: "fly > 0.5"
+    material: smoke
+    space: body
+    prims:
+      - sphere: {c: ["0.02", "0.38 + 0.10*(p/tau + 0.00 - floor(p/tau + 0.00))", "-0.38 - 0.55*(p/tau + 0.00 - floor(p/tau + 0.00))"], r: "0.07 + 0.06*(p/tau + 0.00 - floor(p/tau + 0.00))"}
+      - sphere: {c: ["-0.04", "0.38 + 0.10*(p/tau + 0.50 - floor(p/tau + 0.50))", "-0.38 - 0.55*(p/tau + 0.50 - floor(p/tau + 0.50))"], r: "0.07 + 0.06*(p/tau + 0.50 - floor(p/tau + 0.50))"}
+
+  # ================= explode: radial blast in the world-locked frame `wb` =================
+  # ground shockwave: thin torus on the ground (ellipse 0.62 on screen), hot line inside
+  bx_ring_outer:
+    when: "boom > 0.5 and rr > 0.05"
+    material: outer
+    space: wb
+    prims:
+      - torus: {c: [0, 0.02, 0], R: rr, r: "rt*1.5"}
+  bx_ring_hot:
+    when: "boom > 0.5 and rr > 0.05 and rh > 0.3"
+    material: inner
+    space: w1
+    prims:
+      - torus: {c: [0, 0.02, 0], R: "rr - 0.02", r: "rt*0.7*rh"}
+  # dark smoke ring around the base of the fireball
+  bx_smoke_ring:
+    when: "boom > 0.5 and st > 0.02"
+    material: soot
+    space: wb
+    blend: 0.10
+    prims:
+      - torus: {c: "[0, sy, 0]", R: sr, r: st}
+      - sphere: {c: "v(0.92*sr, sy + 0.05, 0.38*sr)", r: "1.25*st"}
+      - sphere: {c: "v(-0.71*sr, sy + 0.08, 0.71*sr)", r: "1.20*st"}
+      - sphere: {c: "v(-0.85*sr, sy + 0.04, -0.53*sr)", r: "1.25*st"}
+      - sphere: {c: "v(0.30*sr, sy + 0.06, -0.95*sr)", r: "1.20*st"}
+  # late soot puffs rising out of the fireball
+  bx_soot_puffs:
+    when: "boom > 0.5 and pf > 0.02"
+    material: soot
+    space: wb
+    blend: 0.12
+    prims:
+      - sphere: {c: "v(0.35, 0.7 + 0.5*up, -0.10)", r: "0.55*pf"}
+      - sphere: {c: "v(-0.45, 0.6 + 0.4*up, 0.15)", r: "0.50*pf"}
+      - sphere: {c: "v(0.05, 0.9 + 0.6*up, -0.30)", r: "0.45*pf"}
+  # the fireball: a dome of puffs on the ground, layered outer -> core along the view ray
+  bx_fire_outer:
+    when: "boom > 0.5 and fr > 0.05"
+    material: outer
+    space: wb
+    blend: 0.15
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(fr*(1 - 0.35*up), 0.78*fr*(1 - 0.35*up), fr*(1 - 0.35*up))"}
+      - sphere: {c: "v(0.45*fr, 0.45*fr + 0.6*up, 0.15*fr)", r: "0.42*fr"}
+      - sphere: {c: "v(-0.48*fr, 0.42*fr + 0.5*up, -0.05*fr)", r: "0.40*fr"}
+      - sphere: {c: "v(0.05*fr, 0.62*fr + 0.8*up, -0.25*fr)", r: "0.40*fr"}
+      - sphere: {c: "v(0.80*fr + 0.25*up, 0.18*fr, -0.30*fr)", r: "0.34*fr"}
+      - sphere: {c: "v(-0.78*fr - 0.25*up, 0.18*fr, 0.35*fr)", r: "0.34*fr"}
+      - sphere: {c: "v(0.25*fr, 0.20*fr, 0.80*fr + 0.2*up)", r: "0.34*fr"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  bx_fire_mid:
+    when: "boom > 0.5 and fr > 0.05"
+    material: mid
+    space: w1
+    blend: 0.12
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(0.76*fr*(1 - 0.45*up), 0.60*fr*(1 - 0.45*up), 0.76*fr*(1 - 0.45*up))"}
+      - sphere: {c: "v(0.45*fr, 0.45*fr + 0.6*up, 0.15*fr)", r: "0.28*fr"}
+      - sphere: {c: "v(0.05*fr, 0.62*fr + 0.8*up, -0.25*fr)", r: "0.26*fr"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  bx_fire_inner:
+    when: "boom > 0.5 and fr > 0.05 and up < 0.8"
+    material: inner
+    space: w2
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(0.52*fr*(1 - 0.9*up), 0.42*fr*(1 - 0.9*up), 0.52*fr*(1 - 0.9*up))"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  bx_fire_core:
+    when: "boom > 0.5 and fc > 0.05"
+    material: core
+    space: w3
+    prims:
+      - ellipsoid: {c: [0, 0, 0], r: "v(fc, 0.8*fc, fc)"}
+    cut:
+      - box: {c: [0, -2.0, 0], half: [4, 2.0, 4]}
+  bx_flash:
+    when: "boom > 0.5 and wf > 0.05"
+    material: white
+    space: w4
+    prims:
+      - ellipsoid: {c: [0, 0.15, 0], r: "v(wf, 0.85*wf, wf)"}
+  # burning splinters: wood sticks tumbling outward, a burning tip on each
+  bx_splinters:
+    when: "boom > 0.5 and sd > 0.05"
+    material: splinter
+    space: wb
+    prims:
+      - box: {c: "v(0.94*sd, sh, 0.34*sd)",       half: [0.045, 0.045, 0.15], rot: "[sd*2.0, 1.92, 0.4]", round: 0.01}
+      - box: {c: "v(0.17*sd, 1.2*sh, 0.98*sd)",   half: [0.045, 0.045, 0.13], rot: "[sd*2.5, 0.17, 0.0]", round: 0.01}
+      - box: {c: "v(-0.77*sd, 0.9*sh, 0.64*sd)",  half: [0.045, 0.045, 0.14], rot: "[sd*1.8, -0.88, 0.3]", round: 0.01}
+      - box: {c: "v(-0.98*sd, 1.1*sh, -0.17*sd)", half: [0.045, 0.045, 0.12], rot: "[sd*2.2, -1.74, 0.0]", round: 0.01}
+      - box: {c: "v(-0.34*sd, 1.3*sh, -0.94*sd)", half: [0.045, 0.045, 0.14], rot: "[sd*1.6, -2.79, 0.2]", round: 0.01}
+      - box: {c: "v(0.64*sd, 0.8*sh, -0.77*sd)",  half: [0.045, 0.045, 0.13], rot: "[sd*2.4, 2.45, 0.5]", round: 0.01}
+  bx_splinter_fire:
+    when: "boom > 0.5 and sb > 0.01"
+    material: inner
+    space: w2
+    prims:
+      - sphere: {c: "v(0.94*sd, sh, 0.34*sd)",       r: sb}
+      - sphere: {c: "v(0.17*sd, 1.2*sh, 0.98*sd)",   r: sb}
+      - sphere: {c: "v(-0.77*sd, 0.9*sh, 0.64*sd)",  r: sb}
+      - sphere: {c: "v(-0.98*sd, 1.1*sh, -0.17*sd)", r: sb}
+      - sphere: {c: "v(-0.34*sd, 1.3*sh, -0.94*sd)", r: sb}
+      - sphere: {c: "v(0.64*sd, 0.8*sh, -0.77*sd)",  r: sb}
+
+animations:
+  fly:
+    frames: 4
+    ms: 60
+    channels: {}
+  explode:
+    loop: false
+    keys:
+      - {ms: 40, event: hit, set: {fly: 0, boom: 1, wf: 0.80, fr: 1.15, fc: 0.7, rr: 0.7, rt: 0.13, sd: 0.4, sh: 0.4, sb: 0.08}}                # white flash
+      - {ms: 50, set: {fly: 0, boom: 1, wf: 0.45, fr: 1.6, fc: 1.0, rr: 1.25, rt: 0.13, sr: 1.1, st: 0.14, sd: 1.0, sh: 0.9, sb: 0.08}}          # bloom
+      - {ms: 60, set: {fly: 0, boom: 1, fr: 1.95, fc: 0.8, up: 0.1, rr: 1.7, rt: 0.12, sr: 1.5, st: 0.20, sd: 1.5, sh: 1.1, sb: 0.075}}         # peak fireball (~80 px)
+      - {ms: 60, set: {fly: 0, boom: 1, fr: 1.95, fc: 0.35, up: 0.3, rr: 2.0, rt: 0.11, sr: 1.75, st: 0.22, sd: 1.9, sh: 1.1, sb: 0.07}}        # breaking
+      - {ms: 70, set: {fly: 0, boom: 1, fr: 1.6, up: 0.6, rr: 2.2, rt: 0.09, rh: 0.6, sr: 1.85, st: 0.19, sd: 2.1, sh: 0.8, sb: 0.06, pf: 0.55}} # ring at 40 px
+      - {ms: 70, set: {fly: 0, boom: 1, fr: 1.1, up: 1.0, rr: 2.3, rt: 0.06, rh: 0.0, sr: 1.9, st: 0.14, sd: 2.2, sh: 0.45, sb: 0.05, pf: 0.7}}  # fire puffs, smoke
+      - {ms: 75, set: {fly: 0, boom: 1, fr: 0.55, up: 1.3, sr: 1.95, st: 0.08, sd: 2.25, sh: 0.15, sb: 0.04, pf: 0.65}}                          # dissipating
+      - {ms: 75, set: {fly: 0, boom: 1, up: 1.5, sd: 2.28, sh: 0.06, pf: 0.40}}                                                                  # last wisps

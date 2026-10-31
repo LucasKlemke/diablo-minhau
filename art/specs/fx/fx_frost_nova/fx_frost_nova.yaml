@@ -1,0 +1,231 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_frost_nova
+kind: prop
+view: topdown
+size: 160
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # frame centre = ground point -> pivot (80, 80)
+shadow: null             # a spell effect: light, not shadow
+
+# Mage spell effect: Frost Nova, played once around the caster.
+brief:
+  summary: an icy burst around the mage - a white-cyan flash, then a ring of jagged ice shards erupts from the ground and races out to ~70 px radius with frost mist, then the shards crack, shrink and sparkle away
+  must_keep: [ellipse ring (0.6 as tall as wide, pitch 38), jagged shards, bright flash at the start, cracking end]
+  simplify: [shards as tapered cones in two pieces (base + tip that breaks off), mist as flat puffs, no transparency - fading is shrinking]
+  exceptions: |
+    fx sprite: kind prop, size 160, directions 1, mirror false, shadow null. Flash, ground frost ring, mist and
+    sparkles are emissive (farm `frost` ramp, one band per layer, no outline). The ice shards are lit solid ice
+    with the frost ramp, outlined in its darkest tone (#174682) so they read over grass. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (80, 80) = the ground point under the caster. `burst` is one-shot, 9 frames, 600 ms;
+    event `hit` on frame 2 (110 ms), when the ring is at ~45 px and the shards are full height.
+
+materials:
+  ice:     {ramp: frost, bands: [1, 3], line: false}
+  frost:   {ramp: frost, emissive: true, band: 1, outline: false, glow: {color: "#219be7", mix: 0.3, radius: 1}}
+  mist:    {ramp: frost, emissive: true, band: 2, outline: false, line: false}
+  flash_o: {ramp: frost, emissive: true, band: 2, outline: false, glow: {color: "#7edaf2", mix: 0.5, radius: 1}}
+  flash:   {ramp: frost, emissive: true, band: 3, outline: false}
+  sparkle: {ramp: frost, emissive: true, band: 3, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  ring: 3.7        # radius of the shard ring (units; 3.7 = 67 px)
+  sh: 1            # outer shard height (0..1)
+  sh_in: 1         # inner shard height
+  sw: 1            # shard width
+  tipr: 1          # size of the shard tips (0 = broken off and gone)
+  crack: 0         # tips breaking off and flying outward/up
+  flash: 0         # central flash radius
+  frost_w: 0.10    # ground frost band thickness
+  mist: 0          # mist puff size
+  mist_out: 0      # mist drifting out and up
+  spark: 0         # sparkle radius
+  spark_up: 0      # sparkles rising
+
+parts:
+  flash_outer:     # cyan halo of the flash
+    material: flash_o
+    when: "flash > 0.05"
+    prims:
+      - ellipsoid: {c: [0, 0.25, 0], r: ["1.35*flash", "0.85*flash", "1.35*flash"]}
+      - cone: {a: [0, 0.2, 0], b: ["2.3*flash", 0.1, 0], r: ["0.35*flash", 0.02]}
+      - cone: {a: [0, 0.2, 0], b: ["-2.3*flash", 0.1, 0], r: ["0.35*flash", 0.02]}
+      - cone: {a: [0, 0.2, 0], b: [0, 0.1, "2.0*flash"], r: ["0.35*flash", 0.02]}
+      - cone: {a: [0, 0.2, 0], b: [0, 0.1, "-2.0*flash"], r: ["0.35*flash", 0.02]}
+      - cone: {a: [0, 0.3, 0], b: [0, "1.9*flash", 0], r: ["0.35*flash", 0.02]}
+  flash_core:      # white-hot centre, in front of the halo so it shows through
+    material: flash
+    when: "flash > 0.05"
+    prims:
+      - ellipsoid: {c: [0, 0.35, "0.75*flash"], r: ["0.75*flash", "0.5*flash", "0.6*flash"]}
+      - cone: {a: [0, 0.35, "0.75*flash"], b: ["1.5*flash", 0.25, "0.9*flash"], r: ["0.2*flash", 0.02]}
+      - cone: {a: [0, 0.35, "0.75*flash"], b: ["-1.5*flash", 0.25, "0.9*flash"], r: ["0.2*flash", 0.02]}
+      - cone: {a: [0, 0.35, "0.75*flash"], b: [0, "1.35*flash", "0.9*flash"], r: ["0.2*flash", 0.02]}
+  ground_ring:     # frost band on the ground under the shards
+    material: frost
+    when: "frost_w > 0.02"
+    prims:
+      - torus: {c: [0, 0, 0], R: "0.97*ring", r: "frost_w"}
+  shards_low:
+    material: ice
+    when: "sh > 0.02"
+    prims:
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.042 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.999 - -0.000"], b: ["(ring + 0.119*sh + 0.0*crack)*-0.042 + -0.068", "0.495*sh", "(ring + 0.119*sh + 0.0*crack)*0.999 - 0.003"], r: ["0.230*sw", "0.143*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.042 + -0.100", "-0.10", "(ring + -0.05 + 0.0*crack)*0.999 - 0.004"], b: ["(ring + 0.218*sh + 0.0*crack)*-0.042 + -0.318", "0.545*sh", "(ring + 0.218*sh + 0.0*crack)*0.999 - 0.013"], r: ["0.143*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.405 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.914 - 0.000"], b: ["(ring + 0.112*sh + 0.0*crack)*0.405 + -0.068", "0.467*sh", "(ring + 0.112*sh + 0.0*crack)*0.914 - -0.030"], r: ["0.220*sw", "0.137*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.405 + 0.091", "-0.10", "(ring + -0.05 + 0.0*crack)*0.914 - 0.040"], b: ["(ring + 0.206*sh + 0.0*crack)*0.405 + 0.280", "0.514*sh", "(ring + 0.206*sh + 0.0*crack)*0.914 - 0.124"], r: ["0.137*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.769 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.639 - 0.000"], b: ["(ring + 0.125*sh + 0.0*crack)*0.769 + -0.045", "0.522*sh", "(ring + 0.125*sh + 0.0*crack)*0.639 - -0.054"], r: ["0.223*sw", "0.138*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.769 + -0.064", "-0.10", "(ring + -0.05 + 0.0*crack)*0.639 - -0.077"], b: ["(ring + 0.230*sh + 0.0*crack)*0.769 + -0.211", "0.574*sh", "(ring + 0.230*sh + 0.0*crack)*0.639 - -0.254"], r: ["0.138*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.993 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.117 - 0.000"], b: ["(ring + 0.153*sh + 0.0*crack)*0.993 + -0.008", "0.639*sh", "(ring + 0.153*sh + 0.0*crack)*0.117 - -0.070"], r: ["0.225*sw", "0.140*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.993 + 0.012", "-0.10", "(ring + -0.05 + 0.0*crack)*0.117 - 0.099"], b: ["(ring + 0.281*sh + 0.0*crack)*0.993 + 0.045", "0.703*sh", "(ring + 0.281*sh + 0.0*crack)*0.117 - 0.379"], r: ["0.140*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.993 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.116 - 0.000"], b: ["(ring + 0.124*sh + 0.0*crack)*0.993 + 0.007", "0.516*sh", "(ring + 0.124*sh + 0.0*crack)*-0.116 - -0.058"], r: ["0.224*sw", "0.139*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.993 + -0.012", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.116 - 0.099"], b: ["(ring + 0.227*sh + 0.0*crack)*0.993 + -0.038", "0.568*sh", "(ring + 0.227*sh + 0.0*crack)*-0.116 - 0.325"], r: ["0.139*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.832 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.555 - 0.000"], b: ["(ring + 0.116*sh + 0.0*crack)*0.832 + -0.028", "0.485*sh", "(ring + 0.116*sh + 0.0*crack)*-0.555 - 0.042"], r: ["0.207*sw", "0.129*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.832 + 0.055", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.555 - -0.083"], b: ["(ring + 0.214*sh + 0.0*crack)*0.832 + 0.174", "0.534*sh", "(ring + 0.214*sh + 0.0*crack)*-0.555 - -0.261"], r: ["0.129*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*0.518 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.856 - 0.000"], b: ["(ring + 0.149*sh + 0.0*crack)*0.518 + 0.055", "0.621*sh", "(ring + 0.149*sh + 0.0*crack)*-0.856 - -0.033"], r: ["0.199*sw", "0.124*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*0.518 + 0.086", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.856 - -0.052"], b: ["(ring + 0.273*sh + 0.0*crack)*0.518 + 0.319", "0.683*sh", "(ring + 0.273*sh + 0.0*crack)*-0.856 - -0.193"], r: ["0.124*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.015 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-1.000 - -0.000"], b: ["(ring + 0.153*sh + 0.0*crack)*-0.015 + -0.005", "0.636*sh", "(ring + 0.153*sh + 0.0*crack)*-1.000 - -0.000"], r: ["0.220*sw", "0.136*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.015 + -0.100", "-0.10", "(ring + -0.05 + 0.0*crack)*-1.000 - -0.002"], b: ["(ring + 0.280*sh + 0.0*crack)*-0.015 + -0.380", "0.699*sh", "(ring + 0.280*sh + 0.0*crack)*-1.000 - -0.006"], r: ["0.136*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.426 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.905 - -0.000"], b: ["(ring + 0.174*sh + 0.0*crack)*-0.426 + 0.036", "0.727*sh", "(ring + 0.174*sh + 0.0*crack)*-0.905 - 0.017"], r: ["0.211*sw", "0.131*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.426 + 0.090", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.905 - 0.043"], b: ["(ring + 0.320*sh + 0.0*crack)*-0.426 + 0.380", "0.800*sh", "(ring + 0.320*sh + 0.0*crack)*-0.905 - 0.179"], r: ["0.131*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.811 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.585 - -0.000"], b: ["(ring + 0.126*sh + 0.0*crack)*-0.811 + -0.002", "0.523*sh", "(ring + 0.126*sh + 0.0*crack)*-0.585 - -0.003"], r: ["0.225*sw", "0.139*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.811 + -0.059", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.585 - -0.081"], b: ["(ring + 0.230*sh + 0.0*crack)*-0.811 + -0.193", "0.576*sh", "(ring + 0.230*sh + 0.0*crack)*-0.585 - -0.268"], r: ["0.139*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.986 + -0.000", "-0.10", "(ring + 0 + 0.0*crack)*-0.169 - -0.000"], b: ["(ring + 0.129*sh + 0.0*crack)*-0.986 + 0.010", "0.536*sh", "(ring + 0.129*sh + 0.0*crack)*-0.169 - 0.060"], r: ["0.252*sw", "0.156*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.986 + -0.017", "-0.10", "(ring + -0.05 + 0.0*crack)*-0.169 - -0.099"], b: ["(ring + 0.236*sh + 0.0*crack)*-0.986 + -0.057", "0.590*sh", "(ring + 0.236*sh + 0.0*crack)*-0.169 - -0.331"], r: ["0.156*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.990 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.143 - -0.000"], b: ["(ring + 0.133*sh + 0.0*crack)*-0.990 + -0.002", "0.553*sh", "(ring + 0.133*sh + 0.0*crack)*0.143 - 0.012"], r: ["0.249*sw", "0.154*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.990 + -0.014", "-0.10", "(ring + -0.05 + 0.0*crack)*0.143 - 0.099"], b: ["(ring + 0.243*sh + 0.0*crack)*-0.990 + -0.049", "0.608*sh", "(ring + 0.243*sh + 0.0*crack)*0.143 - 0.340"], r: ["0.154*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.741 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.672 - -0.000"], b: ["(ring + 0.149*sh + 0.0*crack)*-0.741 + -0.020", "0.622*sh", "(ring + 0.149*sh + 0.0*crack)*0.672 - 0.022"], r: ["0.245*sw", "0.152*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.741 + 0.067", "-0.10", "(ring + -0.05 + 0.0*crack)*0.672 - -0.074"], b: ["(ring + 0.274*sh + 0.0*crack)*-0.741 + 0.251", "0.684*sh", "(ring + 0.274*sh + 0.0*crack)*0.672 - -0.277"], r: ["0.152*sw", 0.012]}
+      - cone: {a: ["(ring + 0 + 0.0*crack)*-0.413 + 0.000", "-0.10", "(ring + 0 + 0.0*crack)*0.911 - -0.000"], b: ["(ring + 0.150*sh + 0.0*crack)*-0.413 + 0.050", "0.624*sh", "(ring + 0.150*sh + 0.0*crack)*0.911 - -0.022"], r: ["0.217*sw", "0.135*sw"]}
+      - cone: {a: ["(ring + -0.05 + 0.0*crack)*-0.413 + 0.091", "-0.10", "(ring + -0.05 + 0.0*crack)*0.911 - -0.041"], b: ["(ring + 0.275*sh + 0.0*crack)*-0.413 + 0.341", "0.686*sh", "(ring + 0.275*sh + 0.0*crack)*0.911 - -0.155"], r: ["0.135*sw", 0.012]}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [6, 1.0, 6]}
+    cut_blend: 0.0
+  shards_tip:
+    material: ice
+    when: "sh > 0.02 and tipr > 0.05"
+    prims:
+      - cone: {a: ["(ring + 0.119*sh + 0.15*crack)*-0.042 + -0.068", "0.495*sh + 0.12*crack", "(ring + 0.119*sh + 0.15*crack)*0.999 - 0.003"], b: ["(ring + 0.277*sh + 0.3*crack)*-0.042 + -0.137", "0.991*sh + 0.30*crack", "(ring + 0.277*sh + 0.3*crack)*0.999 - 0.006"], r: ["0.143*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.112*sh + 0.15*crack)*0.405 + -0.068", "0.467*sh + 0.12*crack", "(ring + 0.112*sh + 0.15*crack)*0.914 - -0.030"], b: ["(ring + 0.262*sh + 0.3*crack)*0.405 + -0.135", "0.935*sh + 0.30*crack", "(ring + 0.262*sh + 0.3*crack)*0.914 - -0.060"], r: ["0.137*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.125*sh + 0.15*crack)*0.769 + -0.045", "0.522*sh + 0.12*crack", "(ring + 0.125*sh + 0.15*crack)*0.639 - -0.054"], b: ["(ring + 0.292*sh + 0.3*crack)*0.769 + -0.090", "1.044*sh + 0.30*crack", "(ring + 0.292*sh + 0.3*crack)*0.639 - -0.109"], r: ["0.138*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.153*sh + 0.15*crack)*0.993 + -0.008", "0.639*sh + 0.12*crack", "(ring + 0.153*sh + 0.15*crack)*0.117 - -0.070"], b: ["(ring + 0.358*sh + 0.3*crack)*0.993 + -0.016", "1.278*sh + 0.30*crack", "(ring + 0.358*sh + 0.3*crack)*0.117 - -0.139"], r: ["0.140*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.124*sh + 0.15*crack)*0.993 + 0.007", "0.516*sh + 0.12*crack", "(ring + 0.124*sh + 0.15*crack)*-0.116 - -0.058"], b: ["(ring + 0.289*sh + 0.3*crack)*0.993 + 0.014", "1.033*sh + 0.30*crack", "(ring + 0.289*sh + 0.3*crack)*-0.116 - -0.117"], r: ["0.139*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.116*sh + 0.15*crack)*0.832 + -0.028", "0.485*sh + 0.12*crack", "(ring + 0.116*sh + 0.15*crack)*-0.555 - 0.042"], b: ["(ring + 0.272*sh + 0.3*crack)*0.832 + -0.056", "0.971*sh + 0.30*crack", "(ring + 0.272*sh + 0.3*crack)*-0.555 - 0.084"], r: ["0.129*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.149*sh + 0.15*crack)*0.518 + 0.055", "0.621*sh + 0.12*crack", "(ring + 0.149*sh + 0.15*crack)*-0.856 - -0.033"], b: ["(ring + 0.348*sh + 0.3*crack)*0.518 + 0.110", "1.243*sh + 0.30*crack", "(ring + 0.348*sh + 0.3*crack)*-0.856 - -0.067"], r: ["0.124*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.153*sh + 0.15*crack)*-0.015 + -0.005", "0.636*sh + 0.12*crack", "(ring + 0.153*sh + 0.15*crack)*-1.000 - -0.000"], b: ["(ring + 0.356*sh + 0.3*crack)*-0.015 + -0.010", "1.271*sh + 0.30*crack", "(ring + 0.356*sh + 0.3*crack)*-1.000 - -0.000"], r: ["0.136*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.174*sh + 0.15*crack)*-0.426 + 0.036", "0.727*sh + 0.12*crack", "(ring + 0.174*sh + 0.15*crack)*-0.905 - 0.017"], b: ["(ring + 0.407*sh + 0.3*crack)*-0.426 + 0.073", "1.454*sh + 0.30*crack", "(ring + 0.407*sh + 0.3*crack)*-0.905 - 0.034"], r: ["0.131*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.126*sh + 0.15*crack)*-0.811 + -0.002", "0.523*sh + 0.12*crack", "(ring + 0.126*sh + 0.15*crack)*-0.585 - -0.003"], b: ["(ring + 0.293*sh + 0.3*crack)*-0.811 + -0.005", "1.046*sh + 0.30*crack", "(ring + 0.293*sh + 0.3*crack)*-0.585 - -0.007"], r: ["0.139*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.129*sh + 0.15*crack)*-0.986 + 0.010", "0.536*sh + 0.12*crack", "(ring + 0.129*sh + 0.15*crack)*-0.169 - 0.060"], b: ["(ring + 0.300*sh + 0.3*crack)*-0.986 + 0.021", "1.073*sh + 0.30*crack", "(ring + 0.300*sh + 0.3*crack)*-0.169 - 0.120"], r: ["0.156*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.133*sh + 0.15*crack)*-0.990 + -0.002", "0.553*sh + 0.12*crack", "(ring + 0.133*sh + 0.15*crack)*0.143 - 0.012"], b: ["(ring + 0.309*sh + 0.3*crack)*-0.990 + -0.004", "1.105*sh + 0.30*crack", "(ring + 0.309*sh + 0.3*crack)*0.143 - 0.025"], r: ["0.154*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.149*sh + 0.15*crack)*-0.741 + -0.020", "0.622*sh + 0.12*crack", "(ring + 0.149*sh + 0.15*crack)*0.672 - 0.022"], b: ["(ring + 0.348*sh + 0.3*crack)*-0.741 + -0.040", "1.244*sh + 0.30*crack", "(ring + 0.348*sh + 0.3*crack)*0.672 - 0.044"], r: ["0.152*sw*tipr", 0.012]}
+      - cone: {a: ["(ring + 0.150*sh + 0.15*crack)*-0.413 + 0.050", "0.624*sh + 0.12*crack", "(ring + 0.150*sh + 0.15*crack)*0.911 - -0.022"], b: ["(ring + 0.349*sh + 0.3*crack)*-0.413 + 0.099", "1.248*sh + 0.30*crack", "(ring + 0.349*sh + 0.3*crack)*0.911 - -0.045"], r: ["0.135*sw*tipr", 0.012]}
+  inner_low:
+    material: ice
+    when: "sh_in > 0.02"
+    prims:
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*0.377 + 0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*0.926 - 0.000"], b: ["(0.6*ring + 0.097*sh_in + 0.0*crack)*0.377 + 0.030", "0.406*sh_in", "(0.6*ring + 0.097*sh_in + 0.0*crack)*0.926 - 0.012"], r: ["0.139*sw", "0.086*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*0.377 + 0.093", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*0.926 - 0.038"], b: ["(0.6*ring + 0.179*sh_in + 0.0*crack)*0.377 + 0.258", "0.446*sh_in", "(0.6*ring + 0.179*sh_in + 0.0*crack)*0.926 - 0.105"], r: ["0.086*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*0.903 + 0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*0.430 - 0.000"], b: ["(0.6*ring + 0.085*sh_in + 0.0*crack)*0.903 + -0.033", "0.354*sh_in", "(0.6*ring + 0.085*sh_in + 0.0*crack)*0.430 - -0.069"], r: ["0.168*sw", "0.104*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*0.903 + 0.043", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*0.430 - 0.090"], b: ["(0.6*ring + 0.156*sh_in + 0.0*crack)*0.903 + 0.110", "0.389*sh_in", "(0.6*ring + 0.156*sh_in + 0.0*crack)*0.430 - 0.231"], r: ["0.104*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*0.937 + -0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*-0.350 - 0.000"], b: ["(0.6*ring + 0.095*sh_in + 0.0*crack)*0.937 + 0.016", "0.396*sh_in", "(0.6*ring + 0.095*sh_in + 0.0*crack)*-0.350 - -0.042"], r: ["0.160*sw", "0.099*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*0.937 + -0.035", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*-0.350 - 0.094"], b: ["(0.6*ring + 0.174*sh_in + 0.0*crack)*0.937 + -0.096", "0.435*sh_in", "(0.6*ring + 0.174*sh_in + 0.0*crack)*-0.350 - 0.257"], r: ["0.099*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*0.463 + -0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*-0.886 - 0.000"], b: ["(0.6*ring + 0.079*sh_in + 0.0*crack)*0.463 + -0.053", "0.328*sh_in", "(0.6*ring + 0.079*sh_in + 0.0*crack)*-0.886 - 0.028"], r: ["0.155*sw", "0.096*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*0.463 + 0.089", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*-0.886 - -0.046"], b: ["(0.6*ring + 0.144*sh_in + 0.0*crack)*0.463 + 0.216", "0.360*sh_in", "(0.6*ring + 0.144*sh_in + 0.0*crack)*-0.886 - -0.113"], r: ["0.096*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*-0.308 + -0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*-0.952 - -0.000"], b: ["(0.6*ring + 0.086*sh_in + 0.0*crack)*-0.308 + 0.055", "0.357*sh_in", "(0.6*ring + 0.086*sh_in + 0.0*crack)*-0.952 - 0.018"], r: ["0.149*sw", "0.093*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*-0.308 + -0.095", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*-0.952 - -0.031"], b: ["(0.6*ring + 0.157*sh_in + 0.0*crack)*-0.308 + -0.244", "0.392*sh_in", "(0.6*ring + 0.157*sh_in + 0.0*crack)*-0.952 - -0.079"], r: ["0.093*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*-0.954 + -0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*-0.301 - -0.000"], b: ["(0.6*ring + 0.080*sh_in + 0.0*crack)*-0.954 + 0.007", "0.333*sh_in", "(0.6*ring + 0.080*sh_in + 0.0*crack)*-0.301 - 0.022"], r: ["0.156*sw", "0.097*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*-0.954 + -0.030", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*-0.301 - -0.095"], b: ["(0.6*ring + 0.147*sh_in + 0.0*crack)*-0.954 + -0.074", "0.367*sh_in", "(0.6*ring + 0.147*sh_in + 0.0*crack)*-0.301 - -0.235"], r: ["0.097*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*-0.876 + 0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*0.482 - -0.000"], b: ["(0.6*ring + 0.074*sh_in + 0.0*crack)*-0.876 + -0.021", "0.310*sh_in", "(0.6*ring + 0.074*sh_in + 0.0*crack)*0.482 - 0.038"], r: ["0.144*sw", "0.090*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*-0.876 + -0.048", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*0.482 - 0.088"], b: ["(0.6*ring + 0.136*sh_in + 0.0*crack)*-0.876 + -0.114", "0.341*sh_in", "(0.6*ring + 0.136*sh_in + 0.0*crack)*0.482 - 0.207"], r: ["0.090*sw", 0.012]}
+      - cone: {a: ["(0.6*ring + 0 + 0.0*crack)*-0.488 + 0.000", "-0.10", "(0.6*ring + 0 + 0.0*crack)*0.873 - -0.000"], b: ["(0.6*ring + 0.105*sh_in + 0.0*crack)*-0.488 + -0.030", "0.437*sh_in", "(0.6*ring + 0.105*sh_in + 0.0*crack)*0.873 - 0.017"], r: ["0.145*sw", "0.090*sw"]}
+      - cone: {a: ["(0.6*ring + -0.05 + 0.0*crack)*-0.488 + -0.087", "-0.10", "(0.6*ring + -0.05 + 0.0*crack)*0.873 - 0.049"], b: ["(0.6*ring + 0.192*sh_in + 0.0*crack)*-0.488 + -0.255", "0.481*sh_in", "(0.6*ring + 0.192*sh_in + 0.0*crack)*0.873 - 0.143"], r: ["0.090*sw", 0.012]}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [6, 1.0, 6]}
+    cut_blend: 0.0
+  inner_tip:
+    material: ice
+    when: "sh_in > 0.02 and tipr > 0.05"
+    prims:
+      - cone: {a: ["(0.6*ring + 0.097*sh_in + 0.15*crack)*0.377 + 0.030", "0.406*sh_in + 0.12*crack", "(0.6*ring + 0.097*sh_in + 0.15*crack)*0.926 - 0.012"], b: ["(0.6*ring + 0.227*sh_in + 0.3*crack)*0.377 + 0.060", "0.812*sh_in + 0.30*crack", "(0.6*ring + 0.227*sh_in + 0.3*crack)*0.926 - 0.024"], r: ["0.086*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.085*sh_in + 0.15*crack)*0.903 + -0.033", "0.354*sh_in + 0.12*crack", "(0.6*ring + 0.085*sh_in + 0.15*crack)*0.430 - -0.069"], b: ["(0.6*ring + 0.198*sh_in + 0.3*crack)*0.903 + -0.066", "0.707*sh_in + 0.30*crack", "(0.6*ring + 0.198*sh_in + 0.3*crack)*0.430 - -0.138"], r: ["0.104*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.095*sh_in + 0.15*crack)*0.937 + 0.016", "0.396*sh_in + 0.12*crack", "(0.6*ring + 0.095*sh_in + 0.15*crack)*-0.350 - -0.042"], b: ["(0.6*ring + 0.222*sh_in + 0.3*crack)*0.937 + 0.032", "0.792*sh_in + 0.30*crack", "(0.6*ring + 0.222*sh_in + 0.3*crack)*-0.350 - -0.084"], r: ["0.099*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.079*sh_in + 0.15*crack)*0.463 + -0.053", "0.328*sh_in + 0.12*crack", "(0.6*ring + 0.079*sh_in + 0.15*crack)*-0.886 - 0.028"], b: ["(0.6*ring + 0.183*sh_in + 0.3*crack)*0.463 + -0.105", "0.655*sh_in + 0.30*crack", "(0.6*ring + 0.183*sh_in + 0.3*crack)*-0.886 - 0.055"], r: ["0.096*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.086*sh_in + 0.15*crack)*-0.308 + 0.055", "0.357*sh_in + 0.12*crack", "(0.6*ring + 0.086*sh_in + 0.15*crack)*-0.952 - 0.018"], b: ["(0.6*ring + 0.200*sh_in + 0.3*crack)*-0.308 + 0.111", "0.713*sh_in + 0.30*crack", "(0.6*ring + 0.200*sh_in + 0.3*crack)*-0.952 - 0.036"], r: ["0.093*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.080*sh_in + 0.15*crack)*-0.954 + 0.007", "0.333*sh_in + 0.12*crack", "(0.6*ring + 0.080*sh_in + 0.15*crack)*-0.301 - 0.022"], b: ["(0.6*ring + 0.187*sh_in + 0.3*crack)*-0.954 + 0.014", "0.667*sh_in + 0.30*crack", "(0.6*ring + 0.187*sh_in + 0.3*crack)*-0.301 - 0.043"], r: ["0.097*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.074*sh_in + 0.15*crack)*-0.876 + -0.021", "0.310*sh_in + 0.12*crack", "(0.6*ring + 0.074*sh_in + 0.15*crack)*0.482 - 0.038"], b: ["(0.6*ring + 0.173*sh_in + 0.3*crack)*-0.876 + -0.041", "0.619*sh_in + 0.30*crack", "(0.6*ring + 0.173*sh_in + 0.3*crack)*0.482 - 0.075"], r: ["0.090*sw*tipr", 0.012]}
+      - cone: {a: ["(0.6*ring + 0.105*sh_in + 0.15*crack)*-0.488 + -0.030", "0.437*sh_in + 0.12*crack", "(0.6*ring + 0.105*sh_in + 0.15*crack)*0.873 - 0.017"], b: ["(0.6*ring + 0.245*sh_in + 0.3*crack)*-0.488 + -0.061", "0.874*sh_in + 0.30*crack", "(0.6*ring + 0.245*sh_in + 0.3*crack)*0.873 - 0.034"], r: ["0.090*sw*tipr", 0.012]}
+  mist:
+    material: mist
+    when: "mist > 0.05"
+    blend: 0.06
+    prims:
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.241 + -0.213*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.970 - -0.053*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.241 + 0.194*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.970 - 0.048*mist"], r: "0.18*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.241 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.970 - 0.000*mist"], r: "0.17*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.715 + -0.154*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.699 - -0.157*mist"], r: "0.27*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.715 + 0.140*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.699 - 0.143*mist"], r: "0.23*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.715 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.699 - 0.000*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.975 + -0.049*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.224 - -0.214*mist"], r: "0.23*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.975 + 0.045*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.224 - 0.195*mist"], r: "0.20*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.975 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.224 - 0.000*mist"], r: "0.18*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.960 + 0.062*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.280 - -0.211*mist"], r: "0.24*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.960 + -0.056*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.280 - 0.192*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.960 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.280 - 0.000*mist"], r: "0.19*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.768 + 0.141*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.640 - -0.169*mist"], r: "0.26*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.768 + -0.128*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.640 - 0.154*mist"], r: "0.23*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.768 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.640 - 0.000*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.206 + 0.215*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.979 - -0.045*mist"], r: "0.26*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.206 + -0.196*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.979 - 0.041*mist"], r: "0.22*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*0.206 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.979 - 0.000*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.314 + 0.209*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.949 - 0.069*mist"], r: "0.22*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.314 + -0.190*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.949 - -0.063*mist"], r: "0.19*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.314 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.949 - -0.000*mist"], r: "0.17*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.691 + 0.159*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.722 - 0.152*mist"], r: "0.19*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.691 + -0.144*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.722 - -0.138*mist"], r: "0.16*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.691 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.722 - -0.000*mist"], r: "0.15*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.972 + 0.052*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.235 - 0.214*mist"], r: "0.19*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.972 + -0.047*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.235 - -0.194*mist"], r: "0.16*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.972 + -0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*-0.235 - -0.000*mist"], r: "0.15*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.985 + -0.038*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.173 - 0.217*mist"], r: "0.20*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.985 + 0.035*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.173 - -0.197*mist"], r: "0.17*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.985 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.173 - -0.000*mist"], r: "0.16*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.754 + -0.144*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.656 - 0.166*mist"], r: "0.21*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.754 + 0.131*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.656 - -0.151*mist"], r: "0.18*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.754 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.656 - -0.000*mist"], r: "0.17*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.346 + -0.206*mist", "0.12 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.938 - 0.076*mist"], r: "0.18*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.346 + 0.188*mist", "0.14 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.938 - -0.069*mist"], r: "0.16*mist"}
+      - sphere: {c: ["(0.78*ring + 0.3*mist_out)*-0.346 + 0.000*mist", "0.28 + 0.2*mist_out", "(0.78*ring + 0.3*mist_out)*0.938 - -0.000*mist"], r: "0.14*mist"}
+  sparkles:
+    material: sparkle
+    when: "spark > 0.01"
+    prims:
+      - sphere: {c: ["(ring*0.74 + 0.1*spark_up)*-0.208", "0.52 + 0.6*spark_up", "(ring*0.74 + 0.1*spark_up)*0.978"], r: "spark"}
+      - sphere: {c: ["(ring*0.98 + 0.1*spark_up)*0.237", "0.67 + 0.6*spark_up", "(ring*0.98 + 0.1*spark_up)*0.972"], r: "spark"}
+      - sphere: {c: ["(ring*0.80 + 0.1*spark_up)*0.742", "0.51 + 0.6*spark_up", "(ring*0.80 + 0.1*spark_up)*0.670"], r: "spark"}
+      - sphere: {c: ["(ring*0.75 + 0.1*spark_up)*0.997", "0.81 + 0.6*spark_up", "(ring*0.75 + 0.1*spark_up)*0.081"], r: "spark"}
+      - sphere: {c: ["(ring*0.89 + 0.1*spark_up)*0.683", "0.59 + 0.6*spark_up", "(ring*0.89 + 0.1*spark_up)*-0.731"], r: "spark"}
+      - sphere: {c: ["(ring*0.74 + 0.1*spark_up)*0.698", "0.51 + 0.6*spark_up", "(ring*0.74 + 0.1*spark_up)*-0.716"], r: "spark"}
+      - sphere: {c: ["(ring*0.98 + 0.1*spark_up)*0.141", "0.40 + 0.6*spark_up", "(ring*0.98 + 0.1*spark_up)*-0.990"], r: "spark"}
+      - sphere: {c: ["(ring*0.98 + 0.1*spark_up)*-0.235", "0.62 + 0.6*spark_up", "(ring*0.98 + 0.1*spark_up)*-0.972"], r: "spark"}
+      - sphere: {c: ["(ring*0.92 + 0.1*spark_up)*-0.741", "0.32 + 0.6*spark_up", "(ring*0.92 + 0.1*spark_up)*-0.671"], r: "spark"}
+      - sphere: {c: ["(ring*0.98 + 0.1*spark_up)*-1.000", "0.82 + 0.6*spark_up", "(ring*0.98 + 0.1*spark_up)*0.017"], r: "spark"}
+      - sphere: {c: ["(ring*0.80 + 0.1*spark_up)*-0.801", "0.52 + 0.6*spark_up", "(ring*0.80 + 0.1*spark_up)*0.598"], r: "spark"}
+      - sphere: {c: ["(ring*0.98 + 0.1*spark_up)*-0.662", "0.62 + 0.6*spark_up", "(ring*0.98 + 0.1*spark_up)*0.750"], r: "spark"}
+
+animations:
+  burst:
+    loop: false
+    keys:
+      - {ms: 50, event: start, set: {flash: 1.25, ring: 0.9, sh: 0.35, sh_in: 0, sw: 0.8, frost_w: 0.14}}
+      - {ms: 60, set: {flash: 0.8, ring: 1.8, sh: 0.8, sh_in: 0.6, mist: 0.6, frost_w: 0.12}}
+      - {ms: 60, event: hit, set: {flash: 0.35, ring: 2.6, sh: 1.0, sh_in: 1.0, mist: 0.9}}
+      - {ms: 60, set: {ring: 3.25, sh: 1.05, mist: 1.0, mist_out: 0.3}}
+      - {ms: 70, set: {ring: 3.6, mist: 1.0, mist_out: 0.6}}
+      - {ms: 80, set: {ring: 3.7, sh: 0.95, crack: 0.3, mist: 0.85, mist_out: 0.9, spark: 0.06}}
+      - {ms: 80, set: {ring: 3.75, sh: 0.7, crack: 0.7, tipr: 0.6, sh_in: 0.5, mist: 0.6, mist_out: 1.1, frost_w: 0.08, spark: 0.08, spark_up: 0.3}}
+      - {ms: 80, set: {ring: 3.8, sh: 0.4, sw: 0.7, crack: 1.0, tipr: 0.3, sh_in: 0.2, mist: 0.35, mist_out: 1.3, frost_w: 0.05, spark: 0.06, spark_up: 0.6}}
+      - {ms: 60, set: {ring: 3.8, sh: 0.15, sw: 0.5, crack: 1.0, tipr: 0, sh_in: 0, mist: 0.15, mist_out: 1.4, frost_w: 0, spark: 0.045, spark_up: 0.9}}

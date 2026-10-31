@@ -1,0 +1,200 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_whirlwind
+kind: prop
+view: topdown
+size: 128
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # frame centre = ground point -> pivot (64, 64)
+shadow: null             # a spell effect: light, not shadow
+
+# Barbarian skill effect: Whirlwind, played once around him.
+brief:
+  summary: the barbarian spins with his axe - a full ring of motion-blurred axe arcs (two crescents chasing each
+    other, steel tail -> orange -> white-hot tip, a rage-red blur just inside) at ~52 px radius, pale wind streaks whirling at other radii and
+    heights, tan dust kicked up from the ground, and sparks flung outward; the middle stays empty so the
+    barbarian (drawn by the game) stays visible
+  must_keep: [ellipse ring (0.62 as tall as wide = pitch 38 on a flat ring), empty middle (nothing inside ~1.8 u),
+    bright leading tips showing the spin direction, sparks flung outward]
+  simplify: [axe arcs and wind are the `arc` smear primitive, one flat band per layer, dust as lit puffs,
+    no transparency - fading is thinning]
+  exceptions: |
+    fx sprite: kind prop, size 128, directions 1, mirror false, shadow null. Axe arcs, wind and sparks are
+    emissive with no outline (as fx_fireball / fx_frost_nova); dust is lit bone-tan with no outline.
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 64) = the ground point under the barbarian. Axe ring radius 2.62 u (outer white edge
+    ~2.88 u = 52 px) at 0.45 u height; it spins counter-clockwise on screen (leading tip brightest),
+    ~46 deg per frame. `spin` is one-shot, 8 frames, 560 ms (70 ms each); event `hit` on frame 2 (140 ms),
+    when the ring is closed. The barbarian's own `warcry` clip already draws his small ring smears; this sprite
+    is the outer layer. White edges and sparks sit on bones pushed toward the camera (`cam1`, `cam2`) so they
+    always draw over the arcs without moving on screen.
+
+ramps:
+  rage: ["#1c0f1a", "#6e1d24", "#c13a2b", "#e0664a"]
+
+materials:
+  ax_rage:   {ramp: rage, emissive: true, band: 2, outline: false, line: false}
+  ax_steel:  {ramp: steel, emissive: true, band: 3, outline: false, line: false}
+  ax_orange: {ramp: fire, emissive: true, band: 1, outline: false, line: false}
+  ax_hot:    {ramp: fire, emissive: true, band: 2, outline: false, line: false}
+  ax_cream:  {ramp: fire, emissive: true, band: 3, outline: false, line: false}
+  ax_white:  {ramp: fx_core, emissive: true, band: 0, outline: false, line: false}
+  wind_lo:   {ramp: steel, emissive: true, band: 3, outline: false, line: false}
+  wind_hi:   {ramp: steel, emissive: true, band: 4, outline: false, line: false}
+  spark:     {ramp: fire, emissive: true, band: 2, outline: false, line: false}
+  spark_o:   {ramp: fire, emissive: true, band: 1, outline: false, line: false}
+  dust:      {ramp: bone, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  rot: 0.0         # spin angle of the axe arcs (rad, counter-clockwise from above)
+  alen: 0.0        # length of each axe arc (rad)
+  aw: 0.0          # axe arc width (0 = hidden)
+  R: 2.62          # axe ring radius (units; outer white edge ~2.88 u = 52 px)
+  ww: 0.0          # wind streak width
+  wlen: 0.0        # wind streak length (rad)
+  dust: 0.0        # dust spread 0..1
+  dsz: 0.0         # dust puff size
+  spk: 0.0         # spark travel (streak head)
+  spt: 0.0         # spark streak tail
+  sr: 0.0          # spark radius
+
+bones:
+  cam1: {parent: root, pos: "0.30*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  cam2: {parent: root, pos: "0.60*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  cam3: {parent: root, pos: "0.90*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  # layer 0 = rage-red motion blur, 1 = axe body, 2 = white-hot edge (each pushed further toward the camera)
+  spinA0: {parent: root, pos: [0, 0.42, 0], rot: "[0, rot - 0.25, 0]"}
+  spinB0: {parent: root, pos: [0, 0.42, 0], rot: "[0, rot - 0.25 + pi, 0]"}
+  spinA:  {parent: cam1, pos: [0, 0.45, 0], rot: "[0, rot, 0]"}
+  spinB:  {parent: cam1, pos: [0, 0.45, 0], rot: "[0, rot + pi, 0]"}
+  spinA1: {parent: cam2, pos: [0, 0.45, 0], rot: "[0, rot, 0]"}
+  spinB1: {parent: cam2, pos: [0, 0.45, 0], rot: "[0, rot + pi, 0]"}
+  windA:  {parent: root, pos: [0, 0.85, 0], rot: "[0, 1.25*rot + 1.2, 0]"}
+  windB:  {parent: root, pos: [0, 0.20, 0], rot: "[0, 1.25*rot + 4.3, 0]"}
+  windC:  {parent: root, pos: [0, 0.60, 0], rot: "[0, 1.10*rot + 2.6, 0]"}
+  windD:  {parent: root, pos: [0, 0.30, 0], rot: "[0, 1.10*rot + 5.7, 0]"}
+  flingA: {parent: cam3, rot: "[0, 0.6*rot, 0]"}
+
+parts:
+  # ---------------- two axe crescents chasing each other (leading tip at angle 0 of their bone) ----------------
+  blur_a:          # rage-red motion blur trailing just inside the axe path
+    when: "aw > 0.06"
+    materials: [ax_rage, ax_rage, ax_orange]
+    space: spinA0
+    blend: 0.03
+    prims:
+      - arc: {c: [0, 0, 0], r: "R - 0.9*aw", a0: "-0.8*alen", a1: 0, width: "0.75*aw", dip: 0.0, segments: 16}
+  blur_b:
+    when: "aw > 0.06"
+    materials: [ax_rage, ax_rage, ax_orange]
+    space: spinB0
+    blend: 0.03
+    prims:
+      - arc: {c: [0, 0, 0], r: "R - 0.9*aw", a0: "-0.8*alen", a1: 0, width: "0.75*aw", dip: 0.0, segments: 16}
+  axe_a:
+    when: "aw > 0.01"
+    materials: [ax_steel, ax_orange, ax_hot]
+    space: spinA
+    blend: 0.03
+    prims:
+      - arc: {c: [0, 0, 0], r: R, a0: "-alen", a1: 0, width: aw, dip: 0.0, segments: 16}
+  axe_b:
+    when: "aw > 0.01"
+    materials: [ax_steel, ax_orange, ax_hot]
+    space: spinB
+    blend: 0.03
+    prims:
+      - arc: {c: [0, 0, 0], r: R, a0: "-alen", a1: 0, width: aw, dip: 0.0, segments: 16}
+  edge_a:
+    when: "aw > 0.04"
+    materials: [ax_orange, ax_cream, ax_white]
+    space: spinA1
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: "R + 0.5*aw", a0: "-0.85*alen", a1: 0, width: "0.45*aw", dip: 0.0, segments: 16}
+  edge_b:
+    when: "aw > 0.04"
+    materials: [ax_orange, ax_cream, ax_white]
+    space: spinB1
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: "R + 0.5*aw", a0: "-0.85*alen", a1: 0, width: "0.45*aw", dip: 0.0, segments: 16}
+
+  # ---------------- wind streaks: thin pale arcs at other radii and heights ----------------
+  wind_a:
+    when: "ww > 0.01"
+    materials: [wind_lo, wind_hi]
+    space: windA
+    prims:
+      - arc: {c: [0, 0, 0], r: 2.25, a0: "-wlen", a1: 0, width: ww, dip: 0.0, segments: 12}
+  wind_b:
+    when: "ww > 0.01"
+    materials: [wind_lo, wind_hi]
+    space: windB
+    prims:
+      - arc: {c: [0, 0, 0], r: 3.05, a0: "-wlen", a1: 0, width: ww, dip: 0.0, segments: 12}
+  wind_c:
+    when: "ww > 0.01"
+    materials: [wind_lo, wind_hi]
+    space: windC
+    prims:
+      - arc: {c: [0, 0, 0], r: 2.05, a0: "-0.8*wlen", a1: 0, width: "0.9*ww", dip: 0.0, segments: 12}
+  wind_d:
+    when: "ww > 0.01"
+    materials: [wind_lo, wind_hi]
+    space: windD
+    prims:
+      - arc: {c: [0, 0, 0], r: 3.00, a0: "-0.8*wlen", a1: 0, width: "0.9*ww", dip: 0.0, segments: 12}
+
+  # ---------------- dust kicked up on the ground under the ring, drifting outward with the spin ----------------
+  dust:
+    when: "dsz > 0.02"
+    material: dust
+    blend: 0.06
+    prims:
+      - sphere: {c: "(2.45 + 0.35*dust)*v(sin(0.3 + 0.5*dust), 0, cos(0.3 + 0.5*dust)) + v(0, 0.06 + 0.12*dust, 0)", r: "dsz"}
+      - sphere: {c: "(2.65 + 0.30*dust)*v(sin(1.1 + 0.5*dust), 0, cos(1.1 + 0.5*dust)) + v(0, 0.05 + 0.10*dust, 0)", r: "0.8*dsz"}
+      - sphere: {c: "(2.40 + 0.35*dust)*v(sin(2.0 + 0.5*dust), 0, cos(2.0 + 0.5*dust)) + v(0, 0.06 + 0.14*dust, 0)", r: "0.9*dsz"}
+      - sphere: {c: "(2.70 + 0.30*dust)*v(sin(2.8 + 0.5*dust), 0, cos(2.8 + 0.5*dust)) + v(0, 0.05 + 0.10*dust, 0)", r: "0.75*dsz"}
+      - sphere: {c: "(2.45 + 0.35*dust)*v(sin(3.6 + 0.5*dust), 0, cos(3.6 + 0.5*dust)) + v(0, 0.06 + 0.12*dust, 0)", r: "dsz"}
+      - sphere: {c: "(2.65 + 0.30*dust)*v(sin(4.4 + 0.5*dust), 0, cos(4.4 + 0.5*dust)) + v(0, 0.05 + 0.10*dust, 0)", r: "0.8*dsz"}
+      - sphere: {c: "(2.40 + 0.35*dust)*v(sin(5.1 + 0.5*dust), 0, cos(5.1 + 0.5*dust)) + v(0, 0.06 + 0.14*dust, 0)", r: "0.9*dsz"}
+      - sphere: {c: "(2.70 + 0.30*dust)*v(sin(5.8 + 0.5*dust), 0, cos(5.8 + 0.5*dust)) + v(0, 0.05 + 0.10*dust, 0)", r: "0.75*dsz"}
+
+  # ---------------- sparks flung outward (streaks from spt to spk), on a bone that turns with the spin ----------------
+  sparks:
+    when: "sr > 0.01"
+    material: spark
+    space: flingA
+    prims:
+      - cone: {a: "(2.80 + 0.45*spt)*v(sin(0.2 + 0.25*spt), 0, cos(0.2 + 0.25*spt)) + v(0, 0.50 + 0.15*spt - 0.5*spt*spt, 0)", b: "(2.80 + 0.45*spk)*v(sin(0.2 + 0.25*spk), 0, cos(0.2 + 0.25*spk)) + v(0, 0.50 + 0.15*spk - 0.5*spk*spk, 0)", r: ["0.5*sr", "sr"]}
+      - cone: {a: "(2.75 + 0.40*spt)*v(sin(1.5 + 0.25*spt), 0, cos(1.5 + 0.25*spt)) + v(0, 0.45 + 0.25*spt - 0.5*spt*spt, 0)", b: "(2.75 + 0.40*spk)*v(sin(1.5 + 0.25*spk), 0, cos(1.5 + 0.25*spk)) + v(0, 0.45 + 0.25*spk - 0.5*spk*spk, 0)", r: ["0.45*sr", "0.9*sr"]}
+      - cone: {a: "(2.85 + 0.40*spt)*v(sin(2.6 + 0.25*spt), 0, cos(2.6 + 0.25*spt)) + v(0, 0.40 + 0.10*spt - 0.5*spt*spt, 0)", b: "(2.85 + 0.40*spk)*v(sin(2.6 + 0.25*spk), 0, cos(2.6 + 0.25*spk)) + v(0, 0.40 + 0.10*spk - 0.5*spk*spk, 0)", r: ["0.5*sr", "sr"]}
+      - cone: {a: "(2.80 + 0.45*spt)*v(sin(3.7 + 0.25*spt), 0, cos(3.7 + 0.25*spt)) + v(0, 0.50 + 0.20*spt - 0.5*spt*spt, 0)", b: "(2.80 + 0.45*spk)*v(sin(3.7 + 0.25*spk), 0, cos(3.7 + 0.25*spk)) + v(0, 0.50 + 0.20*spk - 0.5*spk*spk, 0)", r: ["0.45*sr", "0.9*sr"]}
+      - cone: {a: "(2.75 + 0.40*spt)*v(sin(4.8 + 0.25*spt), 0, cos(4.8 + 0.25*spt)) + v(0, 0.45 + 0.15*spt - 0.5*spt*spt, 0)", b: "(2.75 + 0.40*spk)*v(sin(4.8 + 0.25*spk), 0, cos(4.8 + 0.25*spk)) + v(0, 0.45 + 0.15*spk - 0.5*spk*spk, 0)", r: ["0.5*sr", "sr"]}
+      - cone: {a: "(2.85 + 0.45*spt)*v(sin(5.7 + 0.25*spt), 0, cos(5.7 + 0.25*spt)) + v(0, 0.40 + 0.25*spt - 0.5*spt*spt, 0)", b: "(2.85 + 0.45*spk)*v(sin(5.7 + 0.25*spk), 0, cos(5.7 + 0.25*spk)) + v(0, 0.40 + 0.25*spk - 0.5*spk*spk, 0)", r: ["0.45*sr", "0.9*sr"]}
+  sparks_o:
+    when: "sr > 0.01"
+    material: spark_o
+    space: flingA
+    prims:
+      - cone: {a: "(2.95 + 0.35*spt)*v(sin(0.9 + 0.25*spt), 0, cos(0.9 + 0.25*spt)) + v(0, 0.30 + 0.10*spt - 0.5*spt*spt, 0)", b: "(2.95 + 0.35*spk)*v(sin(0.9 + 0.25*spk), 0, cos(0.9 + 0.25*spk)) + v(0, 0.30 + 0.10*spk - 0.5*spk*spk, 0)", r: ["0.4*sr", "0.8*sr"]}
+      - cone: {a: "(2.90 + 0.35*spt)*v(sin(3.1 + 0.25*spt), 0, cos(3.1 + 0.25*spt)) + v(0, 0.35 + 0.15*spt - 0.5*spt*spt, 0)", b: "(2.90 + 0.35*spk)*v(sin(3.1 + 0.25*spk), 0, cos(3.1 + 0.25*spk)) + v(0, 0.35 + 0.15*spk - 0.5*spk*spk, 0)", r: ["0.4*sr", "0.8*sr"]}
+      - cone: {a: "(2.95 + 0.35*spt)*v(sin(5.2 + 0.25*spt), 0, cos(5.2 + 0.25*spt)) + v(0, 0.30 + 0.10*spt - 0.5*spt*spt, 0)", b: "(2.95 + 0.35*spk)*v(sin(5.2 + 0.25*spk), 0, cos(5.2 + 0.25*spk)) + v(0, 0.30 + 0.10*spk - 0.5*spk*spk, 0)", r: ["0.4*sr", "0.8*sr"]}
+
+animations:
+  spin:
+    loop: false
+    keys:
+      - {ms: 70, set: {rot: 0.0, alen: 1.3, aw: 0.17, ww: 0.04, wlen: 0.8, dust: 0.0, dsz: 0.12}}                                    # spin starts
+      - {ms: 70, set: {rot: 0.8, alen: 2.4, aw: 0.25, ww: 0.06, wlen: 1.3, dust: 0.15, dsz: 0.21}}
+      - {ms: 70, event: hit, set: {rot: 1.6, alen: 2.75, aw: 0.27, ww: 0.06, wlen: 1.6, dust: 0.30, dsz: 0.26, spk: 0.25, spt: 0.0, sr: 0.091}}   # ring closed
+      - {ms: 70, set: {rot: 2.4, alen: 2.75, aw: 0.27, ww: 0.06, wlen: 1.6, dust: 0.45, dsz: 0.27, spk: 0.50, spt: 0.20, sr: 0.091}}
+      - {ms: 70, set: {rot: 3.2, alen: 2.7, aw: 0.26, ww: 0.06, wlen: 1.5, dust: 0.60, dsz: 0.26, spk: 0.75, spt: 0.45, sr: 0.085}}
+      - {ms: 70, set: {rot: 4.0, alen: 2.4, aw: 0.21, ww: 0.05, wlen: 1.3, dust: 0.75, dsz: 0.22, spk: 1.0, spt: 0.70, sr: 0.078}}    # thinning
+      - {ms: 70, set: {rot: 4.8, alen: 1.8, aw: 0.13, ww: 0.045, wlen: 1.0, dust: 0.88, dsz: 0.17, spk: 1.2, spt: 0.95, sr: 0.065}}
+      - {ms: 70, set: {rot: 5.6, alen: 1.1, aw: 0.07, ww: 0.0, wlen: 0.0, dust: 1.0, dsz: 0.11}}                                    # last wisps and dust

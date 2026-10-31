@@ -1,0 +1,150 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_arrow
+kind: prop
+view: topdown
+size: 32
+directions: 8
+mirror: true             # symmetric arrow: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (16, 16) = the arrow's centre
+shadow: null             # a projectile in the air
+
+# The archer's basic projectile (also Fan of Arrows).
+brief:
+  summary: a ~14 px arrow flying along +Z (the facing direction) - wooden shaft, steel head, red-white
+    fletching that flutters, thin white wind streaks trailing behind; `hit` is a small impact of wood
+    splinters, a white spark star and dust that shrinks away
+  must_keep: [head in front and fletching behind in every direction, crisp 1 px shaft, seamless fly loop]
+  simplify: [shaft is one cone, fletching is three thin vanes, streaks are 1 px emissive lines]
+  exceptions: |
+    kind prop, size 32, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. Wind streaks and the
+    spark are emissive with no outline. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (16, 16) = the arrow's centre (the shaft midpoint); the game places it at the
+    projectile point. Colours from the archer: wood, steel, cloth_red fletching plus a bone-white vane.
+    `hit` is built in a world-fixed bone (`w`, counter-rotated by yaw), so every direction renders the
+    same frames; the game may play it with any direction. Event `hit` on frame 0.
+
+ramps:
+  wind: ["#c8d6e6", "#ffffff"]
+  dust: ["#1c0f1a", "#8a7d72", "#b3a796", "#d6cdbd"]
+
+materials:
+  wood:   {ramp: wood, bands: [2, 3]}
+  steel:  {ramp: steel, bands: [2, 4], gamma: 1.4}
+  fletch: {ramp: cloth_red, bands: [2, 3]}
+  vane:   {ramp: bone, bands: [3, 4]}
+  streak: {ramp: wind, emissive: true, band: 1, outline: false, line: false}
+  streak2: {ramp: wind, emissive: true, band: 0, outline: false, line: false}
+  spark:  {ramp: eye_white, emissive: true, band: 2, outline: false, line: false,
+           glow: {color: "#fff6b0", mix: 0.4, radius: 1}}
+  dust:   {ramp: dust, bands: [2, 3], line: false, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  fly: 1          # 1 = arrow visible
+  boom: 0         # hit: 1 = impact visible
+  star: 0.0       # spark star arm length
+  core: 0.0       # spark core radius
+  spl: 0.0        # splinter distance from the centre
+  sl: 0.0         # splinter length
+  dr: 0.0         # dust puff radius
+  dd: 0.0         # dust drift
+
+bones:
+  body: {parent: root}
+  # world-fixed frame for `hit`: +X = screen right, +Z = toward the camera, same in every direction
+  w:  {parent: root, rot: "[0, -radians(yaw), 0]"}
+  wf: {parent: w, pos: [0, 0.35, 0.45]}     # pushed toward the camera: the star draws over everything
+
+parts:
+  # ---------------- fly: head along +Z, fletching along -Z ----------------
+  shaft:
+    when: "fly > 0.5"
+    material: wood
+    space: body
+    prims:
+      - cone: {a: [0, 0, -0.36], b: [0, 0, 0.22], r: [0.03, 0.03]}
+  head:
+    when: "fly > 0.5"
+    material: steel
+    space: body
+    prims:
+      - cone: {a: [0, 0, 0.20], b: [0, 0, 0.26], r: [0.03, 0.072]}
+      - cone: {a: [0, 0, 0.26], b: [0, 0, 0.45], r: [0.072, 0.004]}
+  fletch_red:
+    when: "fly > 0.5"
+    material: fletch
+    space: body
+    prims:
+      - box: {c: ["0.06 + 0.012*sin(p)", 0, -0.30], half: [0.06, 0.014, 0.09], rot: [0, "0.12*sin(p)", 0], round: 0.01}
+      - box: {c: ["-0.06 - 0.012*sin(p + 1.5)", 0, -0.30], half: [0.06, 0.014, 0.09], rot: [0, "-0.12*sin(p + 1.5)", 0], round: 0.01}
+  fletch_white:
+    when: "fly > 0.5"
+    material: vane
+    space: body
+    prims:
+      - box: {c: [0, "0.04 + 0.012*sin(p + 3)", -0.30], half: [0.012, 0.035, 0.07], rot: ["-0.12*sin(p + 3)", 0, 0], round: 0.01}
+  streaks:
+    when: "fly > 0.5"
+    material: streak
+    space: body
+    prims:
+      - cone: {a: [0.09, 0.03, "-0.20 - 0.30*(p/tau - floor(p/tau))"], b: [0.09, 0.03, "-0.44 - 0.30*(p/tau - floor(p/tau))"], r: [0.022, 0.018]}
+      - cone: {a: [-0.08, -0.04, "-0.26 - 0.30*(p/tau + 0.5 - floor(p/tau + 0.5))"], b: [-0.08, -0.04, "-0.52 - 0.30*(p/tau + 0.5 - floor(p/tau + 0.5))"], r: [0.022, 0.018]}
+  streaks_far:
+    when: "fly > 0.5"
+    material: streak2
+    space: body
+    prims:
+      - cone: {a: [0.0, 0.08, "-0.42 - 0.30*(p/tau + 0.25 - floor(p/tau + 0.25))"], b: [0.0, 0.08, "-0.62 - 0.12*(p/tau + 0.25 - floor(p/tau + 0.25))"], r: [0.02, 0.016]}
+
+  # ---------------- hit: splinters, spark star, dust (world-fixed) ----------------
+  dust_puffs:
+    when: "boom > 0.5 and dr > 0.01"
+    material: dust
+    space: w
+    blend: 0.04
+    prims:
+      - sphere: {c: "v(-0.22 - dd, -0.10, 0.0)", r: dr}
+      - sphere: {c: "v(0.24 + dd, -0.12, 0.05)", r: "dr*0.9"}
+      - sphere: {c: "v(0.05, -0.20 - 0.4*dd, -0.10)", r: "dr*0.8"}
+  splinters:
+    when: "boom > 0.5 and sl > 0.01"
+    material: wood
+    space: w
+    prims:
+      - cone: {a: "spl*v(0.80, 0.55, 0.2)", b: "(spl + sl)*v(0.80, 0.55, 0.2)", r: [0.03, 0.02]}
+      - cone: {a: "spl*v(-0.85, 0.45, 0.2)", b: "(spl + sl)*v(-0.85, 0.45, 0.2)", r: [0.03, 0.02]}
+      - cone: {a: "spl*v(0.45, -0.75, 0.3)", b: "(spl + sl)*v(0.45, -0.75, 0.3)", r: [0.03, 0.02]}
+      - cone: {a: "spl*v(-0.55, -0.70, 0.3)", b: "(spl + sl)*v(-0.55, -0.70, 0.3)", r: [0.03, 0.02]}
+      - cone: {a: "spl*v(0.05, 1.0, 0.1)", b: "(spl + sl*0.8)*v(0.05, 1.0, 0.1)", r: [0.03, 0.02]}
+  spark_star:
+    when: "boom > 0.5 and star > 0.01"
+    material: spark
+    space: wf
+    prims:
+      - cone: {a: [0, 0, 0], b: "v(star, 0, 0)", r: [0.04, 0.028]}
+      - cone: {a: [0, 0, 0], b: "v(-star, 0, 0)", r: [0.04, 0.028]}
+      - cone: {a: [0, 0, 0], b: "v(0, 0.9*star, 0)", r: [0.04, 0.028]}
+      - cone: {a: [0, 0, 0], b: "v(0, -0.9*star, 0)", r: [0.04, 0.028]}
+      - cone: {a: [0, 0, 0], b: "0.35*star*v(1, 1, 0)", r: [0.03, 0.026]}
+      - cone: {a: [0, 0, 0], b: "0.35*star*v(-1, 1, 0)", r: [0.03, 0.026]}
+      - cone: {a: [0, 0, 0], b: "0.35*star*v(1, -1, 0)", r: [0.03, 0.026]}
+      - cone: {a: [0, 0, 0], b: "0.35*star*v(-1, -1, 0)", r: [0.03, 0.026]}
+      - sphere: {c: [0, 0, 0], r: core}
+
+animations:
+  fly:
+    frames: 4
+    ms: 60
+    channels: {}
+  hit:
+    loop: false
+    keys:
+      - {ms: 40, event: hit, set: {fly: 0, boom: 1, star: 0.38, core: 0.045, spl: 0.06, sl: 0.12}}            # impact flash
+      - {ms: 45, set: {fly: 0, boom: 1, star: 0.26, core: 0.04, spl: 0.18, sl: 0.13, dr: 0.05}}              # splinters fly
+      - {ms: 50, set: {fly: 0, boom: 1, star: 0.14, core: 0.03, spl: 0.28, sl: 0.10, dr: 0.075, dd: 0.05}}
+      - {ms: 55, set: {fly: 0, boom: 1, spl: 0.35, sl: 0.07, dr: 0.07, dd: 0.10}}                            # dust
+      - {ms: 60, set: {fly: 0, boom: 1, spl: 0.39, sl: 0.04, dr: 0.045, dd: 0.14}}                           # fading

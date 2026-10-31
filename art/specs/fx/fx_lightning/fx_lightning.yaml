@@ -1,0 +1,132 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_lightning
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.11674, 0]}   # 16 px above the pivot -> pivot (32, 48)
+shadow: null             # a spell effect: light, not shadow
+
+# Mage spell effect: chain lightning IMPACT on each enemy hit (the game draws the line between targets).
+brief:
+  summary: a short jagged bolt crashes down onto the target, a white-yellow flash at the ground, crackling arcs spread on the ground and sparks fly; plus a small crackling electric ball loop for the staff tip while casting
+  must_keep: [jagged vertical bolt, white-hot core inside a yellow-gold rim, ground arcs, sparks, snappy one-shot]
+  simplify: [bolt as a zigzag chain (gold rim + white core in front), arcs as jagged chains on the ground, sparks as dots on a parabola]
+  exceptions: |
+    fx sprite: kind prop, size 64, directions 1, mirror false, shadow null. Everything is emissive (spec-local
+    `bolt` ramp: gold rim, yellow, pale yellow, white; one band per layer, no outline). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 48) = the ground point where the bolt hits (place it at the enemy's feet).
+    `strike` is one-shot, 6 frames, 350 ms, event `hit` on frame 1 (40 ms) when the bolt touches the ground.
+    `arc` loops 4 frames x 70 ms: a ~16 px crackling ball CENTRED ON THE PIVOT, so the game puts the pivot on the staff tip.
+
+ramps:
+  bolt: ["#e1a227", "#ffe14d", "#fff6b0", "#ffffff"]
+
+materials:
+  rim:   {ramp: bolt, emissive: true, band: 0, outline: false, glow: {color: "#ffe14d", mix: 0.4, radius: 1}}
+  arc:   {ramp: bolt, emissive: true, band: 1, outline: false, line: false}
+  glow:  {ramp: bolt, emissive: true, band: 2, outline: false}
+  core:  {ramp: bolt, emissive: true, band: 3, outline: false}
+  spark: {ramp: bolt, emissive: true, band: 3, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  top: 3.0         # bolt top (units above the ground; 3.0 = 43 px)
+  bot: 0           # bolt bottom (it grows down from the top)
+  bw: 0            # bolt thickness (0 = no bolt)
+  zig: 1           # zigzag sign/amplitude (flips to make the bolt flicker)
+  flash: 0         # ground flash radius
+  arc_r: 0         # ground arcs length
+  arc_w: 1         # ground arcs thickness
+  spk: 0           # spark travel (0..1)
+  spk_r: 0         # spark radius
+  ball: 0          # crackling ball size (arc loop)
+
+parts:
+  bolt_rim:        # gold outer bolt
+    material: rim
+    when: "bw > 0.02"
+    prims:
+      - chain: {pts: [["0.05*zig", "top", 0], ["-0.30*zig", "top - 0.22*(top - bot)", 0], ["0.22*zig", "top - 0.45*(top - bot)", 0], ["-0.18*zig", "top - 0.66*(top - bot)", 0], ["0.20*zig", "top - 0.85*(top - bot)", 0], [0, "bot", 0]],
+                r: ["0.05*bw", "0.13*bw", "0.15*bw", "0.16*bw", "0.17*bw", "0.18*bw"]}
+  bolt_core:       # white-hot core, in front of the rim
+    material: core
+    when: "bw > 0.02"
+    prims:
+      - chain: {pts: [["0.05*zig", "top - 0.1", 0.3], ["-0.30*zig", "top - 0.22*(top - bot)", 0.3], ["0.22*zig", "top - 0.45*(top - bot)", 0.3], ["-0.18*zig", "top - 0.66*(top - bot)", 0.3], ["0.20*zig", "top - 0.85*(top - bot)", 0.3], [0, "bot", 0.3]],
+                r: [0.02, "0.085*bw", "0.10*bw", "0.105*bw", "0.11*bw", "0.12*bw"]}
+  flash_rim:
+    material: glow
+    when: "flash > 0.05"
+    prims:
+      - ellipsoid: {c: [0, 0.15, 0], r: ["flash", "0.7*flash", "flash"]}
+      - cone: {a: [0, 0.15, 0], b: ["1.9*flash", 0.05, 0], r: ["0.25*flash", 0.015]}
+      - cone: {a: [0, 0.15, 0], b: ["-1.9*flash", 0.05, 0], r: ["0.25*flash", 0.015]}
+      - cone: {a: [0, 0.15, 0], b: ["0.9*flash", "1.4*flash", 0], r: ["0.2*flash", 0.015]}
+      - cone: {a: [0, 0.15, 0], b: ["-0.9*flash", "1.4*flash", 0], r: ["0.2*flash", 0.015]}
+  flash_core:
+    material: core
+    when: "flash > 0.05"
+    prims:
+      - ellipsoid: {c: [0, 0.2, "0.55*flash"], r: ["0.6*flash", "0.45*flash", "0.45*flash"]}
+  ball_halo:       # arc loop: the electric ball around the pivot
+    material: glow
+    when: "ball > 0.05"
+    prims:
+      - sphere: {c: [0, 0, 0], r: "ball*(0.42 + 0.06*sin(2*p))"}
+  ball_core:
+    material: core
+    when: "ball > 0.05"
+    prims:
+      - sphere: {c: [0, 0, "0.3*ball"], r: "ball*(0.26 + 0.05*cos(2*p))"}
+  ground_arcs:
+    material: arc
+    when: "arc_r > 0.05"
+    prims:
+      - chain: {pts: [["arc_r*-0.019", 0.03, "arc_r*0.147"], ["arc_r*0.090", 0.03, "arc_r*0.461"], ["arc_r*-0.056", 0.03, "arc_r*0.712"], ["arc_r*-0.235", 0.03, "arc_r*0.968"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*0.129", 0.03, "arc_r*0.065"], ["arc_r*0.313", 0.03, "arc_r*0.342"], ["arc_r*0.687", 0.03, "arc_r*0.181"], ["arc_r*0.927", 0.03, "arc_r*0.304"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*0.163", 0.03, "arc_r*-0.028"], ["arc_r*0.512", 0.03, "arc_r*0.051"], ["arc_r*0.762", 0.03, "arc_r*-0.245"], ["arc_r*1.111", 0.03, "arc_r*-0.040"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*0.044", 0.03, "arc_r*-0.115"], ["arc_r*0.300", 0.03, "arc_r*-0.282"], ["arc_r*0.266", 0.03, "arc_r*-0.532"], ["arc_r*0.196", 0.03, "arc_r*-0.805"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*-0.066", 0.03, "arc_r*-0.143"], ["arc_r*-0.372", 0.03, "arc_r*-0.349"], ["arc_r*-0.291", 0.03, "arc_r*-0.700"], ["arc_r*-0.607", 0.03, "arc_r*-0.878"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*-0.127", 0.03, "arc_r*0.001"], ["arc_r*-0.382", 0.03, "arc_r*-0.146"], ["arc_r*-0.611", 0.03, "arc_r*-0.105"], ["arc_r*-0.846", 0.03, "arc_r*0.128"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+      - chain: {pts: [["arc_r*-0.113", 0.03, "arc_r*0.120"], ["arc_r*-0.229", 0.03, "arc_r*0.465"], ["arc_r*-0.528", 0.03, "arc_r*0.590"], ["arc_r*-0.644", 0.03, "arc_r*0.904"]], r: ["0.09*arc_w", "0.07*arc_w", "0.06*arc_w", 0.015]}
+  sparks:
+    material: spark
+    when: "spk_r > 0.01"
+    prims:
+      - sphere: {c: ["0.064*spk", "0.25 + 1.75*spk - 1.7*spk*spk", "1.260*spk"], r: "spk_r"}
+      - sphere: {c: ["1.073*spk", "0.25 + 1.99*spk - 1.7*spk*spk", "0.626*spk"], r: "spk_r"}
+      - sphere: {c: ["0.960*spk", "0.25 + 1.89*spk - 1.7*spk*spk", "-0.099*spk"], r: "spk_r"}
+      - sphere: {c: ["0.612*spk", "0.25 + 1.66*spk - 1.7*spk*spk", "-1.103*spk"], r: "spk_r"}
+      - sphere: {c: ["-0.126*spk", "0.25 + 1.87*spk - 1.7*spk*spk", "-0.976*spk"], r: "spk_r"}
+      - sphere: {c: ["-0.748*spk", "0.25 + 1.25*spk - 1.7*spk*spk", "-0.685*spk"], r: "spk_r"}
+      - sphere: {c: ["-1.267*spk", "0.25 + 1.27*spk - 1.7*spk*spk", "0.273*spk"], r: "spk_r"}
+      - sphere: {c: ["-0.605*spk", "0.25 + 1.32*spk - 1.7*spk*spk", "0.875*spk"], r: "spk_r"}
+  ball_arcs:
+    material: arc
+    when: "ball > 0.05"
+    prims:
+      - chain: {pts: [["ball*1.6*0.19*cos(0.32)*sin(-0.12 + 3*p) + ball*0.00*cos(-0.12 + 3*p)", "ball*1.6*0.19*sin(0.32) + ball*0.00*0.5", "ball*1.6*0.19*cos(0.32)*cos(-0.12 + 3*p) - ball*0.00*sin(-0.12 + 3*p)"], ["ball*1.6*0.58*cos(0.32)*sin(-0.12 + 3*p) + ball*-0.08*cos(-0.12 + 3*p)", "ball*1.6*0.58*sin(0.32) + ball*0.08*0.5", "ball*1.6*0.58*cos(0.32)*cos(-0.12 + 3*p) - ball*-0.08*sin(-0.12 + 3*p)"], ["ball*1.6*0.97*cos(0.32)*sin(-0.12 + 3*p) + ball*0.08*cos(-0.12 + 3*p)", "ball*1.6*0.97*sin(0.32) + ball*0.08*0.5", "ball*1.6*0.97*cos(0.32)*cos(-0.12 + 3*p) - ball*0.08*sin(-0.12 + 3*p)"]], r: ["0.09*ball", "0.07*ball", 0.015]}
+      - chain: {pts: [["ball*1.6*0.18*cos(0.10)*sin(1.18 + 3*p) + ball*0.00*cos(1.18 + 3*p)", "ball*1.6*0.18*sin(0.10) + ball*0.00*0.5", "ball*1.6*0.18*cos(0.10)*cos(1.18 + 3*p) - ball*0.00*sin(1.18 + 3*p)"], ["ball*1.6*0.53*cos(0.10)*sin(1.18 + 3*p) + ball*0.14*cos(1.18 + 3*p)", "ball*1.6*0.53*sin(0.10) + ball*0.14*0.5", "ball*1.6*0.53*cos(0.10)*cos(1.18 + 3*p) - ball*0.14*sin(1.18 + 3*p)"], ["ball*1.6*0.89*cos(0.10)*sin(1.18 + 3*p) + ball*-0.14*cos(1.18 + 3*p)", "ball*1.6*0.89*sin(0.10) + ball*0.14*0.5", "ball*1.6*0.89*cos(0.10)*cos(1.18 + 3*p) - ball*-0.14*sin(1.18 + 3*p)"]], r: ["0.09*ball", "0.07*ball", 0.015]}
+      - chain: {pts: [["ball*1.6*0.17*cos(0.60)*sin(2.52 + 3*p) + ball*0.00*cos(2.52 + 3*p)", "ball*1.6*0.17*sin(0.60) + ball*0.00*0.5", "ball*1.6*0.17*cos(0.60)*cos(2.52 + 3*p) - ball*0.00*sin(2.52 + 3*p)"], ["ball*1.6*0.50*cos(0.60)*sin(2.52 + 3*p) + ball*-0.08*cos(2.52 + 3*p)", "ball*1.6*0.50*sin(0.60) + ball*0.08*0.5", "ball*1.6*0.50*cos(0.60)*cos(2.52 + 3*p) - ball*-0.08*sin(2.52 + 3*p)"], ["ball*1.6*0.83*cos(0.60)*sin(2.52 + 3*p) + ball*0.08*cos(2.52 + 3*p)", "ball*1.6*0.83*sin(0.60) + ball*0.08*0.5", "ball*1.6*0.83*cos(0.60)*cos(2.52 + 3*p) - ball*0.08*sin(2.52 + 3*p)"]], r: ["0.09*ball", "0.07*ball", 0.015]}
+      - chain: {pts: [["ball*1.6*0.16*cos(0.57)*sin(4.04 + 3*p) + ball*0.00*cos(4.04 + 3*p)", "ball*1.6*0.16*sin(0.57) + ball*0.00*0.5", "ball*1.6*0.16*cos(0.57)*cos(4.04 + 3*p) - ball*0.00*sin(4.04 + 3*p)"], ["ball*1.6*0.49*cos(0.57)*sin(4.04 + 3*p) + ball*-0.10*cos(4.04 + 3*p)", "ball*1.6*0.49*sin(0.57) + ball*0.10*0.5", "ball*1.6*0.49*cos(0.57)*cos(4.04 + 3*p) - ball*-0.10*sin(4.04 + 3*p)"], ["ball*1.6*0.82*cos(0.57)*sin(4.04 + 3*p) + ball*0.10*cos(4.04 + 3*p)", "ball*1.6*0.82*sin(0.57) + ball*0.10*0.5", "ball*1.6*0.82*cos(0.57)*cos(4.04 + 3*p) - ball*0.10*sin(4.04 + 3*p)"]], r: ["0.09*ball", "0.07*ball", 0.015]}
+      - chain: {pts: [["ball*1.6*0.17*cos(-0.19)*sin(5.31 + 3*p) + ball*0.00*cos(5.31 + 3*p)", "ball*1.6*0.17*sin(-0.19) + ball*0.00*0.5", "ball*1.6*0.17*cos(-0.19)*cos(5.31 + 3*p) - ball*0.00*sin(5.31 + 3*p)"], ["ball*1.6*0.50*cos(-0.19)*sin(5.31 + 3*p) + ball*0.09*cos(5.31 + 3*p)", "ball*1.6*0.50*sin(-0.19) + ball*0.09*0.5", "ball*1.6*0.50*cos(-0.19)*cos(5.31 + 3*p) - ball*0.09*sin(5.31 + 3*p)"], ["ball*1.6*0.84*cos(-0.19)*sin(5.31 + 3*p) + ball*-0.09*cos(5.31 + 3*p)", "ball*1.6*0.84*sin(-0.19) + ball*0.09*0.5", "ball*1.6*0.84*cos(-0.19)*cos(5.31 + 3*p) - ball*-0.09*sin(5.31 + 3*p)"]], r: ["0.09*ball", "0.07*ball", 0.015]}
+
+animations:
+  strike:
+    loop: false
+    keys:
+      - {ms: 40, event: start, set: {top: 3.0, bot: 1.4, bw: 1.0, zig: 1}}
+      - {ms: 50, event: hit, set: {top: 3.0, bot: 0, bw: 1.3, zig: -1, flash: 0.45, arc_r: 0.45, spk: 0.15, spk_r: 0.05}}
+      - {ms: 60, set: {top: 3.0, bot: 0, bw: 1.0, zig: 0.8, flash: 0.6, arc_r: 0.85, spk: 0.4, spk_r: 0.05}}
+      - {ms: 60, set: {top: 1.6, bot: 0, bw: 0.6, zig: -0.7, flash: 0.35, arc_r: 0.95, arc_w: 0.85, spk: 0.65, spk_r: 0.045}}
+      - {ms: 70, set: {flash: 0.18, arc_r: 1.0, arc_w: 0.6, spk: 0.85, spk_r: 0.04}}
+      - {ms: 70, set: {arc_r: 1.05, arc_w: 0.35, spk: 1.0, spk_r: 0.03}}
+  arc:
+    frames: 4
+    ms: 70
+    channels: {ball: "0.42 + 0.03*sin(p)"}

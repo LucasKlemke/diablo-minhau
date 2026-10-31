@@ -1,0 +1,211 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_arcane_shield
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.0470, 0]}   # 15 px above the pivot -> pivot (32, 47)
+shadow: null             # light, not an object
+
+# The mage's Arcane Shield buff, drawn over the hero (game tint #7a9bff).
+brief:
+  summary: a translucent-looking arcane dome around the hero (~40 x 44 px) - bright blue rim, glowing ground ring,
+    a few hexagon facets inside the wall and three violet runes orbiting at knee height; the interior is empty
+  must_keep: [bright emissive rim (front edge of the dome), ground ring, hex facets, orbiting runes, empty interior]
+  simplify: [the dome is drawn as its screen silhouette (billboard), not a shaded solid; facets are hex outlines]
+  exceptions: |
+    kind prop, size 64, directions 1 (s only), mirror false, shadow null, camera.center [0, 1.0470, 0] so the
+    pivot is the integer (32, 47). Everything is emissive with outline false (the rim is the edge), so the
+    project's dark outline does not apply. Own ramps `shield` (blue, around #7a9bff) and `rune` (violet).
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 47) = the ground point under the hero's feet (same pivot as the hero's).
+    Bone `scr` is turned to face the camera (rot x 0.908 = 90-38 deg): in its space x = screen right,
+    z = screen down, y = toward the camera; 1 px = 0.055. The rim is the upper half of a superellipse
+    (exponent 2.5, rounder bubble shoulders) 40 px wide, its top 36 px above the pivot (hero hat tip ~33);
+    the ground ring (rx 1.1, rz 0.72) closes it below (front 8 px under the pivot) -> ~40 x 44 px. The back of the ground ring is cut behind the hero's legs, and
+    no line crosses the face area (|x| < 7 px, 12-26 px above the pivot): facets sit at the sides,
+    runes orbit at knee height. `up` grows the ring then lifts the dome (`grow`); `loop` spins the runes
+    1/3 turn (3 runes = seamless), pulses facets in sequence and slides a glint over the rim; `break` cracks
+    and bursts the rim into tumbling shards that shrink and dim.
+
+ramps:
+  shield: ["#1c0f1a", "#2a2a8c", "#4a5be0", "#7a9bff", "#b4c6ff", "#eef3ff"]
+  rune:   ["#1c0f1a", "#4a1f9a", "#8a4dff", "#c79bff", "#f3e6ff"]
+
+materials:
+  rim:       {ramp: shield, emissive: true, band: 4, outline: false, glow: {color: "#7a9bff", mix: 0.45, radius: 1}}
+  rim_hot:   {ramp: shield, emissive: true, band: 5, outline: false, glow: {color: "#b4c6ff", mix: 0.5, radius: 1}}
+  glint:     {ramp: shield, emissive: true, band: 5, outline: false}
+  ring:      {ramp: shield, emissive: true, band: 3, outline: false, glow: {color: "#7a9bff", mix: 0.35, radius: 1}}
+  ring_back: {ramp: shield, emissive: true, band: 2, outline: false}
+  facet:     {ramp: shield, emissive: true, band: 2, outline: false}
+  facet_hot: {ramp: shield, emissive: true, band: 4, outline: false}
+  rune:      {ramp: rune, emissive: true, band: 3, outline: false, glow: {color: "#8a4dff", mix: 0.4, radius: 1}}
+  rune_back: {ramp: rune, emissive: true, band: 2, outline: false}
+  crack:     {ramp: shield, emissive: true, band: 5, outline: false}
+  shard:     {ramp: shield, emissive: true, band: 4, outline: false}
+  shard_dim: {ramp: shield, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  grow: 1        # dome height 0..1
+  ring: 1        # ground ring size
+  rim: 1         # rim on/off (off once shattered)
+  hot: 0         # rim flash
+  rhot: 0        # ground ring flash (thicker, white)
+  facets: 1      # facets on/off
+  fhot: 0        # all facets lit
+  shimmer: 1     # facet pulse amount
+  pulse: 0       # facet pulse phase
+  runes: 1       # runes on/off
+  spin: 0        # rune orbit angle
+  glint: -2      # glint angle along the rim (radians from the top; |glint| > 1.6 hides it)
+  crack: 0       # crack length (1.6 = full)
+  brk: 0         # shatter progress 0..1 (0 = no shards)
+
+bones:
+  scr: {parent: root, rot: [0.908, 0, 0]}     # camera-facing plane through the pivot
+  hex_a: {parent: scr, pos: "[-0.800, 0.15, -0.700*grow]"}
+  hex_b: {parent: scr, pos: "[-0.667, 0.15, -1.200*grow]"}
+  hex_c: {parent: scr, pos: "[0.667, 0.15, -1.200*grow]"}
+  hex_d: {parent: scr, pos: "[0.800, 0.15, -0.700*grow]"}
+  # runes on a ground orbit (rx 1.0, rz 0.62, y 0.4) written in scr space; smaller at the back
+  rune_0: {parent: scr, pos: "[1.0*sin(spin), 0.246 + 0.489*cos(spin), 0.382*cos(spin) - 0.315]", scale: "[1, 1, 1]*(0.8 + 0.2*cos(spin))"}
+  rune_1: {parent: scr, pos: "[1.0*sin(spin + 2.094), 0.246 + 0.489*cos(spin + 2.094), 0.382*cos(spin + 2.094) - 0.315]", scale: "[1, 1, 1]*(0.8 + 0.2*cos(spin + 2.094))"}
+  rune_2: {parent: scr, pos: "[1.0*sin(spin + 4.189), 0.246 + 0.489*cos(spin + 4.189), 0.382*cos(spin + 4.189) - 0.315]", scale: "[1, 1, 1]*(0.8 + 0.2*cos(spin + 4.189))"}
+  # shards fly out from the dome centre (0, -0.8) and fall
+  sh_0: {parent: scr, pos: "[-1.087 - 0.461*brk, 0.2, -0.488 + 0.133*brk + 0.9*brk*brk]", rot: "[0, 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_1: {parent: scr, pos: "[-0.938 - 0.430*brk, 0.2, -1.269 - 0.215*brk + 0.9*brk*brk]", rot: "[0, 1.3 - 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_2: {parent: scr, pos: "[-0.632 - 0.263*brk, 0.2, -1.765 - 0.401*brk + 0.9*brk*brk]", rot: "[0, 2.6 + 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_3: {parent: scr, pos: "[-0.227 - 0.092*brk, 0.2, -1.965 - 0.471*brk + 0.9*brk*brk]", rot: "[0, 3.9 - 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_4: {parent: scr, pos: "[0.353 + 0.143*brk, 0.2, -1.933 - 0.458*brk + 0.9*brk*brk]", rot: "[0, 5.2 + 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_5: {parent: scr, pos: "[0.746 + 0.320*brk, 0.2, -1.636 - 0.358*brk + 0.9*brk*brk]", rot: "[0, 0.5 - 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_6: {parent: scr, pos: "[0.996 + 0.462*brk, 0.2, -1.081 - 0.130*brk + 0.9*brk*brk]", rot: "[0, 1.8 + 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+  sh_7: {parent: scr, pos: "[1.095 + 0.440*brk, 0.2, -0.325 + 0.191*brk + 0.9*brk*brk]", rot: "[0, 3.1 - 4*brk, 0]", scale: "[1, 1, 1]*max(0.001, 1 - 0.7*brk)"}
+
+parts:
+  # ---- dome rim: upper half of an ellipse 40 px wide, 37 px tall above the pivot ----
+  rim:
+    when: "rim*(1 - hot)*grow > 0.05"
+    material: rim
+    space: scr
+    prims:
+      - chain: {pts: ["[-1.100, 0, 0]", "[-1.070, 0, -0.672*grow]", "[-0.980, 0, -1.137*grow]", "[-0.834, 0, -1.501*grow]", "[-0.632, 0, -1.765*grow]", "[-0.373, 0, -1.926*grow]", "[0, 0, -1.980*grow]", "[0.373, 0, -1.926*grow]", "[0.632, 0, -1.765*grow]", "[0.834, 0, -1.501*grow]", "[0.980, 0, -1.137*grow]", "[1.070, 0, -0.672*grow]", "[1.100, 0, 0]"], r: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]}
+  rim_hot:
+    when: "rim*hot*grow > 0.05"
+    material: rim_hot
+    space: scr
+    prims:
+      - chain: {pts: ["[-1.100, 0, 0]", "[-1.070, 0, -0.672*grow]", "[-0.980, 0, -1.137*grow]", "[-0.834, 0, -1.501*grow]", "[-0.632, 0, -1.765*grow]", "[-0.373, 0, -1.926*grow]", "[0, 0, -1.980*grow]", "[0.373, 0, -1.926*grow]", "[0.632, 0, -1.765*grow]", "[0.834, 0, -1.501*grow]", "[0.980, 0, -1.137*grow]", "[1.070, 0, -0.672*grow]", "[1.100, 0, 0]"], r: [0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06]}
+  # a short white glint sliding along the rim
+  glint:
+    when: "rim*(1.6 - abs(glint)) > 0"
+    material: glint
+    space: scr
+    prims:
+      - chain: {pts: ["[1.1*sign(sin(glint - 0.16))*abs(sin(glint - 0.16))**0.8, 0.05, -1.98*grow*abs(cos(glint - 0.16))**0.8]", "[1.1*sign(sin(glint))*abs(sin(glint))**0.8, 0.05, -1.98*grow*abs(cos(glint))**0.8]", "[1.1*sign(sin(glint + 0.16))*abs(sin(glint + 0.16))**0.8, 0.05, -1.98*grow*abs(cos(glint + 0.16))**0.8]"], r: [0.045, 0.065, 0.045]}
+
+  # ---- ground ring: front arc closes the dome, back arc is cut behind the hero ----
+  ring_front:
+    when: "ring*(1 - rhot) > 0.05"
+    material: ring
+    space: scr
+    prims:
+      - chain: {pts: ["[-1.100*ring, 0, 0]", "[-1.063*ring, 0.147*ring, 0.115*ring]", "[-0.953*ring, 0.284*ring, 0.222*ring]", "[-0.778*ring, 0.401*ring, 0.314*ring]", "[-0.550*ring, 0.491*ring, 0.384*ring]", "[-0.285*ring, 0.548*ring, 0.428*ring]", "[0, 0.567*ring, 0.444*ring]", "[0.285*ring, 0.548*ring, 0.428*ring]", "[0.550*ring, 0.491*ring, 0.384*ring]", "[0.778*ring, 0.401*ring, 0.314*ring]", "[0.953*ring, 0.284*ring, 0.222*ring]", "[1.063*ring, 0.147*ring, 0.115*ring]", "[1.100*ring, 0, 0]"], r: [0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05]}
+  ring_hot:
+    when: "ring*rhot > 0.05"
+    material: rim_hot
+    space: scr
+    prims:
+      - chain: {pts: ["[-1.100*ring, 0, 0]", "[-1.063*ring, 0.147*ring, 0.115*ring]", "[-0.953*ring, 0.284*ring, 0.222*ring]", "[-0.778*ring, 0.401*ring, 0.314*ring]", "[-0.550*ring, 0.491*ring, 0.384*ring]", "[-0.285*ring, 0.548*ring, 0.428*ring]", "[0, 0.567*ring, 0.444*ring]", "[0.285*ring, 0.548*ring, 0.428*ring]", "[0.550*ring, 0.491*ring, 0.384*ring]", "[0.778*ring, 0.401*ring, 0.314*ring]", "[0.953*ring, 0.284*ring, 0.222*ring]", "[1.063*ring, 0.147*ring, 0.115*ring]", "[1.100*ring, 0, 0]"], r: [0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07, 0.07]}
+  ring_back:
+    when: "ring > 0.05"
+    material: ring_back
+    space: scr
+    prims:
+      - chain: {pts: ["[1.100*ring, 0, 0]", "[1.063*ring, -0.147*ring, -0.115*ring]", "[0.953*ring, -0.283*ring, -0.222*ring]", "[0.778*ring, -0.401*ring, -0.314*ring]", "[0.550*ring, -0.491*ring, -0.384*ring]"], r: [0.035, 0.035, 0.035, 0.035, 0.035]}
+      - chain: {pts: ["[-1.100*ring, 0, 0]", "[-1.063*ring, -0.147*ring, -0.115*ring]", "[-0.953*ring, -0.283*ring, -0.222*ring]", "[-0.778*ring, -0.401*ring, -0.314*ring]", "[-0.550*ring, -0.491*ring, -0.384*ring]"], r: [0.035, 0.035, 0.035, 0.035, 0.035]}
+
+  # ---- hex facets in the wall (flat-top hexes, 6 px wide); each pulses at its own phase ----
+  hex_a_hot: {when: "facets*(fhot + shimmer*sin(pulse)) > 0.5", material: facet_hot, space: hex_a, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_a:     {when: "facets*(1.5 - fhot - shimmer*sin(pulse)) >= 1", material: facet, space: hex_a, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_b_hot: {when: "facets*(fhot + shimmer*sin(pulse + 1.57)) > 0.5", material: facet_hot, space: hex_b, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_b:     {when: "facets*(1.5 - fhot - shimmer*sin(pulse + 1.57)) >= 1", material: facet, space: hex_b, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_c_hot: {when: "facets*(fhot + shimmer*sin(pulse + 3.14)) > 0.5", material: facet_hot, space: hex_c, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_c:     {when: "facets*(1.5 - fhot - shimmer*sin(pulse + 3.14)) >= 1", material: facet, space: hex_c, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_d_hot: {when: "facets*(fhot + shimmer*sin(pulse + 4.71)) > 0.5", material: facet_hot, space: hex_d, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+  hex_d:     {when: "facets*(1.5 - fhot - shimmer*sin(pulse + 4.71)) >= 1", material: facet, space: hex_d, prims: [{chain: {pts: [[0.21, 0, 0], [0.105, 0, 0.182], [-0.105, 0, 0.182], [-0.21, 0, 0], [-0.105, 0, -0.182], [0.105, 0, -0.182], [0.21, 0, 0]], r: [0.035, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035]}}]}
+
+  # ---- runes: a diamond crossed by a vertical stroke; bright in front, dim behind ----
+  rune_0:      {when: "runes*(1 + cos(spin)) > 1", material: rune, space: rune_0, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [0, 0, -0.18], b: [0, 0, 0.18], r: [0.03, 0.03]}}]}
+  rune_0_back: {when: "runes*(1 - cos(spin))*(abs(sin(spin)) > 0.4) >= 1", material: rune_back, space: rune_0, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [0, 0, -0.18], b: [0, 0, 0.18], r: [0.03, 0.03]}}]}
+  rune_1:      {when: "runes*(1 + cos(spin + 2.094)) > 1", material: rune, space: rune_1, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [-0.13, 0, -0.13], b: [0.13, 0, 0.13], r: [0.03, 0.03]}}]}
+  rune_1_back: {when: "runes*(1 - cos(spin + 2.094))*(abs(sin(spin + 2.094)) > 0.4) >= 1", material: rune_back, space: rune_1, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [-0.13, 0, -0.13], b: [0.13, 0, 0.13], r: [0.03, 0.03]}}]}
+  rune_2:      {when: "runes*(1 + cos(spin + 4.189)) > 1", material: rune, space: rune_2, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [-0.18, 0, 0], b: [0.18, 0, 0], r: [0.03, 0.03]}}]}
+  rune_2_back: {when: "runes*(1 - cos(spin + 4.189))*(abs(sin(spin + 4.189)) > 0.4) >= 1", material: rune_back, space: rune_2, prims: [{box: {c: [0, 0, 0], half: [0.08, 0.03, 0.08], rot: [0, 0.785, 0]}}, {cone: {a: [-0.18, 0, 0], b: [0.18, 0, 0], r: [0.03, 0.03]}}]}
+
+  # ---- break: cracks from three rim points, then tumbling shards ----
+  cracks:
+    when: "crack > 0.02"
+    material: crack
+    space: scr
+    prims:
+      - chain: {pts: ["[-0.889, 0.25, -1.390]", "[-0.889 + 0.163*crack, 0.25, -1.390 + 0.088*crack]", "[-0.889 + 0.223*crack, 0.25, -1.390 - 0.072*crack]", "[-0.889 + 0.393*crack, 0.25, -1.390 + 0.008*crack]", "[-0.889 + 0.443*crack, 0.25, -1.390 - 0.172*crack]"], r: [0.035, 0.035, 0.035, 0.035, 0.035]}
+      - chain: {pts: ["[-0.726, 0.25, -1.302]", "[-0.726 + 0.02*crack, 0.25, -1.302 + 0.22*crack]", "[-0.726 + 0.16*crack, 0.25, -1.302 + 0.30*crack]"], r: [0.035, 0.035, 0.035]}
+      - chain: {pts: ["[0.980, 0.25, -1.137]", "[0.980 - 0.153*crack, 0.25, -1.137 - 0.082*crack]", "[0.980 - 0.213*crack, 0.25, -1.137 + 0.098*crack]", "[0.980 - 0.373*crack, 0.25, -1.137 + 0.038*crack]", "[0.980 - 0.433*crack, 0.25, -1.137 + 0.218*crack]"], r: [0.035, 0.035, 0.035, 0.035, 0.035]}
+      - chain: {pts: ["[-0.227, 0.25, -1.965]", "[-0.227 - 0.07*crack, 0.25, -1.965 + 0.12*crack]", "[-0.227 + 0.01*crack, 0.25, -1.965 + 0.22*crack]", "[-0.227 - 0.09*crack, 0.25, -1.965 + 0.30*crack]"], r: [0.035, 0.035, 0.035, 0.035]}
+  shards:
+    when: "abs(brk - 0.3) < 0.29"
+    material: shard
+    prims:
+      - tri: {a: {at: sh_0, off: [-0.1, 0, -0.08]}, b: {at: sh_0, off: [0.2, 0, 0.02]}, c: {at: sh_0, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_1, off: [-0.1, 0, -0.08]}, b: {at: sh_1, off: [0.2, 0, 0.02]}, c: {at: sh_1, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_2, off: [-0.1, 0, -0.08]}, b: {at: sh_2, off: [0.2, 0, 0.02]}, c: {at: sh_2, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_3, off: [-0.1, 0, -0.08]}, b: {at: sh_3, off: [0.2, 0, 0.02]}, c: {at: sh_3, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_4, off: [-0.1, 0, -0.08]}, b: {at: sh_4, off: [0.2, 0, 0.02]}, c: {at: sh_4, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_5, off: [-0.1, 0, -0.08]}, b: {at: sh_5, off: [0.2, 0, 0.02]}, c: {at: sh_5, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_6, off: [-0.1, 0, -0.08]}, b: {at: sh_6, off: [0.2, 0, 0.02]}, c: {at: sh_6, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_7, off: [-0.1, 0, -0.08]}, b: {at: sh_7, off: [0.2, 0, 0.02]}, c: {at: sh_7, off: [-0.02, 0, 0.18]}, th: 0.025}
+  shards_dim:
+    when: "brk >= 0.59"
+    material: shard_dim
+    prims:
+      - tri: {a: {at: sh_0, off: [-0.1, 0, -0.08]}, b: {at: sh_0, off: [0.2, 0, 0.02]}, c: {at: sh_0, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_1, off: [-0.1, 0, -0.08]}, b: {at: sh_1, off: [0.2, 0, 0.02]}, c: {at: sh_1, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_2, off: [-0.1, 0, -0.08]}, b: {at: sh_2, off: [0.2, 0, 0.02]}, c: {at: sh_2, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_3, off: [-0.1, 0, -0.08]}, b: {at: sh_3, off: [0.2, 0, 0.02]}, c: {at: sh_3, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_4, off: [-0.1, 0, -0.08]}, b: {at: sh_4, off: [0.2, 0, 0.02]}, c: {at: sh_4, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_5, off: [-0.1, 0, -0.08]}, b: {at: sh_5, off: [0.2, 0, 0.02]}, c: {at: sh_5, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_6, off: [-0.1, 0, -0.08]}, b: {at: sh_6, off: [0.2, 0, 0.02]}, c: {at: sh_6, off: [-0.02, 0, 0.18]}, th: 0.025}
+      - tri: {a: {at: sh_7, off: [-0.1, 0, -0.08]}, b: {at: sh_7, off: [0.2, 0, 0.02]}, c: {at: sh_7, off: [-0.02, 0, 0.18]}, th: 0.025}
+
+animations:
+  loop:
+    frames: 8
+    ms: 100
+    channels:
+      spin: "p/3"            # 3 runes, 1/3 turn per loop -> seamless
+      pulse: "p"
+      glint: "-1.75 + 3.5*p/tau"
+  up:
+    loop: false
+    keys:
+      - {ms: 60, set: {grow: 0, ring: 0.55, rim: 0, facets: 0, runes: 0, rhot: 1}}
+      - {ms: 60, set: {grow: 0, ring: 0.85, rim: 0, facets: 0, runes: 0, rhot: 1}}
+      - {ms: 70, set: {grow: 0.3, ring: 1.05, facets: 0, runes: 0, hot: 1}}
+      - {ms: 70, set: {grow: 0.72, ring: 1.0, facets: 0, runes: 0, hot: 1}}
+      - {ms: 70, set: {grow: 1.06, fhot: 1, hot: 1, spin: -0.6}}
+      - {ms: 80, set: {grow: 1.0, spin: -0.3}}
+  break:
+    loop: false
+    keys:
+      - {ms: 70, set: {crack: 0.9, hot: 1, shimmer: 0, fhot: 1}}
+      - {ms: 70, set: {crack: 1.6, shimmer: 0, runes: 0}}
+      - {ms: 60, set: {rim: 0, facets: 0, runes: 0, brk: 0.1, ring: 0.9}}
+      - {ms: 70, set: {rim: 0, facets: 0, runes: 0, brk: 0.4, ring: 0.6}}
+      - {ms: 70, set: {rim: 0, facets: 0, runes: 0, brk: 0.68, ring: 0}}
+      - {ms: 80, set: {rim: 0, facets: 0, runes: 0, brk: 0.92, ring: 0}}

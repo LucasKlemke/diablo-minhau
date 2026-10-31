@@ -1,0 +1,439 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_arrow_rain
+kind: prop
+view: topdown
+size: 128
+directions: [s]
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.53551, 0]}   # 22 px above the pivot -> pivot (64, 86)
+shadow: null             # a spell effect: no ground shadow
+
+# The archer's Rain of Arrows: arrows pour from the sky onto a circle at the cursor for 3 s.
+brief:
+  summary: |
+    `mark` a green-gold targeting ring (radius ~50 px, ellipse 0.62 as tall as wide) snaps open on the
+    ground; `rain` arrows (wooden shaft, steel head, red-white fletching) streak down at a slight slant
+    with a pale motion streak, land at scattered points inside the ring with a dust puff and stay stuck a
+    few frames, the ring faint; `end` the last arrows land, stuck arrows and ring shrink away, dust settles.
+  must_keep: [radius ~50 px, empty inside of the ring in `mark`, staggered landings (no pulse), red-white fletching]
+  simplify: [arrows are capsules (round fletching), dust puffs are two flat layers without outline]
+  exceptions: |
+    kind prop, size 128, directions [s] only, mirror false, shadow null, camera.center [0, 1.53551, 0]
+    (integer pivot). Ring and streaks emissive without outline; own ramps `aim` (green-gold) and `dust`.
+    camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 86) = the ground point at the centre of the circle (the cursor).
+    The ring is a ground torus of R 2.75 (= 50 px); the 38 deg pitch makes it 0.62 as tall as wide.
+    16 arrows with fixed landing points (radius <= 2.3). Each arrow k has a life index i_k = (f + o_k) mod 8
+    (0 high in the air, 1 low with a long streak, 2 impact + quiver, 3..S_k stuck, then hidden); every
+    offset 0..7 is used by exactly two arrows, so each frame shows the same number of arrows in each stage.
+    Arrows fly along b = (-0.2, 0.98, 0) (from the upper left); hidden ones are pushed below the ground and
+    removed by the ground cut. Dust size d_k per arrow; channel `ascale` shrinks the arrows into the ground,
+    `rs` scales the ring, `dm` scales the dust (used by `end`).
+
+ramps:
+  aim:  ["#2f3a10", "#5c8a22", "#8ec63a", "#ecd65e", "#fff8c8"]
+  dust: ["#1c0f1a", "#7d5a3c", "#a3825a", "#c9ae86", "#e6d9b0"]
+
+materials:
+  ring:      {ramp: aim, emissive: true, band: 2, outline: false, line: false, glow: {color: "#8ec63a", mix: 0.35, radius: 1}}
+  ring_hi:   {ramp: aim, emissive: true, band: 3, outline: false, line: false}
+  ring_dim:  {ramp: aim, emissive: true, band: 2, outline: false, line: false}
+  wood:      {ramp: wood, bands: [2, 4]}
+  steel:     {ramp: steel, bands: [2, 4]}
+  fletch_r:  {ramp: cloth_red, bands: [2, 3]}
+  fletch_w:  {ramp: eye_white, bands: [1, 2]}
+  streak:    {ramp: fx_mid, emissive: true, band: 0, outline: false, line: false}
+  dust:      {ramp: dust, bands: [2, 2], outline: false, line: false}
+  dust_hi:   {ramp: dust, bands: [3, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  rs: 1.0          # ring scale (mark grows it, end shrinks it)
+  rb: 0            # 1 = bright ring (mark), 0 = faint ring
+  ascale: 1.0         # arrow scale (end shrinks the stuck arrows into the ground)
+  dm: 1.0          # dust multiplier (end settles it)
+  rt: 1.0          # faint ring tube thickness (end thins it away)
+
+  # life index of each arrow (99 = hidden); rain sets i_k = (f + o_k) mod 8
+  i0: 99
+  i1: 99
+  i2: 99
+  i3: 99
+  i4: 99
+  i5: 99
+  i6: 99
+  i7: 99
+  i8: 99
+  i9: 99
+  i10: 99
+  i11: 99
+  i12: 99
+  i13: 99
+  i14: 99
+  i15: 99
+  # dust puff size of each arrow
+  d0: 0
+  d1: 0
+  d2: 0
+  d3: 0
+  d4: 0
+  d5: 0
+  d6: 0
+  d7: 0
+  d8: 0
+  d9: 0
+  d10: 0
+  d11: 0
+  d12: 0
+  d13: 0
+  d14: 0
+  d15: 0
+
+bones:
+  body: {parent: root}
+  l1: {parent: body, pos: [0, 0.216, 0.276]}    # 0.35 toward the camera: draws on top, same pixels
+  # arrow frames: origin = the tip, local +y = back along the flight (b = (-0.2, 0.98, 0));
+  # height of the tip along b: 1.8 (i=0), 0.8 (i=1), buried -0.40 while stuck (head hidden), -10 = hidden
+  a0: {parent: body, pos: "v(0.2 - 0.2*(1.8*(i0 == 0) + 0.8*(i0 == 1) - 0.40*(i0 >= 2)*(i0 <= 4) - 10*(i0 > 4)), 0.98*(1.8*(i0 == 0) + 0.8*(i0 == 1) - 0.40*(i0 >= 2)*(i0 <= 4) - 10*(i0 > 4)), 0.1)", rot: "[0, 0, 0.2014 + 0.12*(i0 == 2)]", scale: "max(ascale, 0.01)"}
+  a1: {parent: body, pos: "v(-1.5 - 0.2*(1.8*(i1 == 0) + 0.8*(i1 == 1) - 0.40*(i1 >= 2)*(i1 <= 5) - 10*(i1 > 5)), 0.98*(1.8*(i1 == 0) + 0.8*(i1 == 1) - 0.40*(i1 >= 2)*(i1 <= 5) - 10*(i1 > 5)), -1.0)", rot: "[0, 0, 0.2014 + 0.12*(i1 == 2)]", scale: "max(ascale, 0.01)"}
+  a2: {parent: body, pos: "v(1.6 - 0.2*(1.8*(i2 == 0) + 0.8*(i2 == 1) - 0.40*(i2 >= 2)*(i2 <= 6) - 10*(i2 > 6)), 0.98*(1.8*(i2 == 0) + 0.8*(i2 == 1) - 0.40*(i2 >= 2)*(i2 <= 6) - 10*(i2 > 6)), 0.9)", rot: "[0, 0, 0.2014 + 0.12*(i2 == 2)]", scale: "max(ascale, 0.01)"}
+  a3: {parent: body, pos: "v(-0.6 - 0.2*(1.8*(i3 == 0) + 0.8*(i3 == 1) - 0.40*(i3 >= 2)*(i3 <= 7) - 10*(i3 > 7)), 0.98*(1.8*(i3 == 0) + 0.8*(i3 == 1) - 0.40*(i3 >= 2)*(i3 <= 7) - 10*(i3 > 7)), 1.7)", rot: "[0, 0, 0.2014 + 0.12*(i3 == 2)]", scale: "max(ascale, 0.01)"}
+  a4: {parent: body, pos: "v(0.9 - 0.2*(1.8*(i4 == 0) + 0.8*(i4 == 1) - 0.40*(i4 >= 2)*(i4 <= 4) - 10*(i4 > 4)), 0.98*(1.8*(i4 == 0) + 0.8*(i4 == 1) - 0.40*(i4 >= 2)*(i4 <= 4) - 10*(i4 > 4)), -1.6)", rot: "[0, 0, 0.2014 + 0.12*(i4 == 2)]", scale: "max(ascale, 0.01)"}
+  a5: {parent: body, pos: "v(-2.0 - 0.2*(1.8*(i5 == 0) + 0.8*(i5 == 1) - 0.40*(i5 >= 2)*(i5 <= 5) - 10*(i5 > 5)), 0.98*(1.8*(i5 == 0) + 0.8*(i5 == 1) - 0.40*(i5 >= 2)*(i5 <= 5) - 10*(i5 > 5)), 0.6)", rot: "[0, 0, 0.2014 + 0.12*(i5 == 2)]", scale: "max(ascale, 0.01)"}
+  a6: {parent: body, pos: "v(2.1 - 0.2*(1.8*(i6 == 0) + 0.8*(i6 == 1) - 0.40*(i6 >= 2)*(i6 <= 6) - 10*(i6 > 6)), 0.98*(1.8*(i6 == 0) + 0.8*(i6 == 1) - 0.40*(i6 >= 2)*(i6 <= 6) - 10*(i6 > 6)), -0.5)", rot: "[0, 0, 0.2014 + 0.12*(i6 == 2)]", scale: "max(ascale, 0.01)"}
+  a7: {parent: body, pos: "v(-0.3 - 0.2*(1.8*(i7 == 0) + 0.8*(i7 == 1) - 0.40*(i7 >= 2)*(i7 <= 7) - 10*(i7 > 7)), 0.98*(1.8*(i7 == 0) + 0.8*(i7 == 1) - 0.40*(i7 >= 2)*(i7 <= 7) - 10*(i7 > 7)), -0.8)", rot: "[0, 0, 0.2014 + 0.12*(i7 == 2)]", scale: "max(ascale, 0.01)"}
+  a8: {parent: body, pos: "v(1.0 - 0.2*(1.8*(i8 == 0) + 0.8*(i8 == 1) - 0.40*(i8 >= 2)*(i8 <= 4) - 10*(i8 > 4)), 0.98*(1.8*(i8 == 0) + 0.8*(i8 == 1) - 0.40*(i8 >= 2)*(i8 <= 4) - 10*(i8 > 4)), 0.0)", rot: "[0, 0, 0.2014 + 0.12*(i8 == 2)]", scale: "max(ascale, 0.01)"}
+  a9: {parent: body, pos: "v(-1.1 - 0.2*(1.8*(i9 == 0) + 0.8*(i9 == 1) - 0.40*(i9 >= 2)*(i9 <= 5) - 10*(i9 > 5)), 0.98*(1.8*(i9 == 0) + 0.8*(i9 == 1) - 0.40*(i9 >= 2)*(i9 <= 5) - 10*(i9 > 5)), 0.4)", rot: "[0, 0, 0.2014 + 0.12*(i9 == 2)]", scale: "max(ascale, 0.01)"}
+  a10: {parent: body, pos: "v(0.4 - 0.2*(1.8*(i10 == 0) + 0.8*(i10 == 1) - 0.40*(i10 >= 2)*(i10 <= 6) - 10*(i10 > 6)), 0.98*(1.8*(i10 == 0) + 0.8*(i10 == 1) - 0.40*(i10 >= 2)*(i10 <= 6) - 10*(i10 > 6)), 1.9)", rot: "[0, 0, 0.2014 + 0.12*(i10 == 2)]", scale: "max(ascale, 0.01)"}
+  a11: {parent: body, pos: "v(-0.4 - 0.2*(1.8*(i11 == 0) + 0.8*(i11 == 1) - 0.40*(i11 >= 2)*(i11 <= 7) - 10*(i11 > 7)), 0.98*(1.8*(i11 == 0) + 0.8*(i11 == 1) - 0.40*(i11 >= 2)*(i11 <= 7) - 10*(i11 > 7)), -2.0)", rot: "[0, 0, 0.2014 + 0.12*(i11 == 2)]", scale: "max(ascale, 0.01)"}
+  a12: {parent: body, pos: "v(1.7 - 0.2*(1.8*(i12 == 0) + 0.8*(i12 == 1) - 0.40*(i12 >= 2)*(i12 <= 4) - 10*(i12 > 4)), 0.98*(1.8*(i12 == 0) + 0.8*(i12 == 1) - 0.40*(i12 >= 2)*(i12 <= 4) - 10*(i12 > 4)), -1.3)", rot: "[0, 0, 0.2014 + 0.12*(i12 == 2)]", scale: "max(ascale, 0.01)"}
+  a13: {parent: body, pos: "v(-1.6 - 0.2*(1.8*(i13 == 0) + 0.8*(i13 == 1) - 0.40*(i13 >= 2)*(i13 <= 5) - 10*(i13 > 5)), 0.98*(1.8*(i13 == 0) + 0.8*(i13 == 1) - 0.40*(i13 >= 2)*(i13 <= 5) - 10*(i13 > 5)), 1.5)", rot: "[0, 0, 0.2014 + 0.12*(i13 == 2)]", scale: "max(ascale, 0.01)"}
+  a14: {parent: body, pos: "v(0.7 - 0.2*(1.8*(i14 == 0) + 0.8*(i14 == 1) - 0.40*(i14 >= 2)*(i14 <= 6) - 10*(i14 > 6)), 0.98*(1.8*(i14 == 0) + 0.8*(i14 == 1) - 0.40*(i14 >= 2)*(i14 <= 6) - 10*(i14 > 6)), 0.9)", rot: "[0, 0, 0.2014 + 0.12*(i14 == 2)]", scale: "max(ascale, 0.01)"}
+  a15: {parent: body, pos: "v(-1.0 - 0.2*(1.8*(i15 == 0) + 0.8*(i15 == 1) - 0.40*(i15 >= 2)*(i15 <= 7) - 10*(i15 > 7)), 0.98*(1.8*(i15 == 0) + 0.8*(i15 == 1) - 0.40*(i15 >= 2)*(i15 <= 7) - 10*(i15 > 7)), -1.8)", rot: "[0, 0, 0.2014 + 0.12*(i15 == 2)]", scale: "max(ascale, 0.01)"}
+
+parts:
+  # ================= targeting ring =================
+  ring:
+    when: "rb > 0.5 and rs > 0.05"
+    material: ring
+    space: body
+    prims:
+      - torus: {c: [0, 0.01, 0], R: "2.75*rs", r: 0.075}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  ring_hi:               # gold core line on top of the green-gold ring
+    when: "rb > 0.5 and rs > 0.05"
+    material: ring_hi
+    space: l1
+    prims:
+      - torus: {c: [0, 0.01, 0], R: "2.75*rs", r: 0.028}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  ring_dim:
+    when: "rb < 0.5 and rs > 0.05 and rt > 0.3"
+    material: ring_dim
+    space: body
+    prims:
+      - torus: {c: [0, 0.01, 0], R: "2.75*rs", r: "0.045*rt"}
+    cut:                 # dashed: 20 gaps make the ring read faint (no transparency in the engine)
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+      - sphere: {c: "v(2.75*rs*0.9968, 0, 2.75*rs*0.0799)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.9233, 0, 2.75*rs*0.3840)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.7595, 0, 2.75*rs*0.6506)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.5213, 0, 2.75*rs*0.8534)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.2320, 0, 2.75*rs*0.9727)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.0799, 0, 2.75*rs*0.9968)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.3840, 0, 2.75*rs*0.9233)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.6506, 0, 2.75*rs*0.7595)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.8534, 0, 2.75*rs*0.5213)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.9727, 0, 2.75*rs*0.2320)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.9968, 0, 2.75*rs*-0.0799)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.9233, 0, 2.75*rs*-0.3840)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.7595, 0, 2.75*rs*-0.6506)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.5213, 0, 2.75*rs*-0.8534)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*-0.2320, 0, 2.75*rs*-0.9727)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.0799, 0, 2.75*rs*-0.9968)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.3840, 0, 2.75*rs*-0.9233)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.6506, 0, 2.75*rs*-0.7595)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.8534, 0, 2.75*rs*-0.5213)", r: "0.16*rs"}
+      - sphere: {c: "v(2.75*rs*0.9727, 0, 2.75*rs*-0.2320)", r: "0.16*rs"}
+
+  # ================= arrows (tip at the frame origin, tail up along +y) =================
+  heads:
+    material: steel
+    space: body
+    prims:
+      - cone: {a: {at: a0, off: [0, 0, 0]}, b: {at: a0, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a1, off: [0, 0, 0]}, b: {at: a1, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a2, off: [0, 0, 0]}, b: {at: a2, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a3, off: [0, 0, 0]}, b: {at: a3, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a4, off: [0, 0, 0]}, b: {at: a4, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a5, off: [0, 0, 0]}, b: {at: a5, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a6, off: [0, 0, 0]}, b: {at: a6, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a7, off: [0, 0, 0]}, b: {at: a7, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a8, off: [0, 0, 0]}, b: {at: a8, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a9, off: [0, 0, 0]}, b: {at: a9, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a10, off: [0, 0, 0]}, b: {at: a10, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a11, off: [0, 0, 0]}, b: {at: a11, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a12, off: [0, 0, 0]}, b: {at: a12, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a13, off: [0, 0, 0]}, b: {at: a13, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a14, off: [0, 0, 0]}, b: {at: a14, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+      - cone: {a: {at: a15, off: [0, 0, 0]}, b: {at: a15, off: [0, 0.22, 0]}, r: [0.015, 0.075]}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  shafts:
+    material: wood
+    space: body
+    prims:
+      - cone: {a: {at: a0, off: [0, 0.18, 0]}, b: {at: a0, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a1, off: [0, 0.18, 0]}, b: {at: a1, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a2, off: [0, 0.18, 0]}, b: {at: a2, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a3, off: [0, 0.18, 0]}, b: {at: a3, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a4, off: [0, 0.18, 0]}, b: {at: a4, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a5, off: [0, 0.18, 0]}, b: {at: a5, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a6, off: [0, 0.18, 0]}, b: {at: a6, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a7, off: [0, 0.18, 0]}, b: {at: a7, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a8, off: [0, 0.18, 0]}, b: {at: a8, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a9, off: [0, 0.18, 0]}, b: {at: a9, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a10, off: [0, 0.18, 0]}, b: {at: a10, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a11, off: [0, 0.18, 0]}, b: {at: a11, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a12, off: [0, 0.18, 0]}, b: {at: a12, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a13, off: [0, 0.18, 0]}, b: {at: a13, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a14, off: [0, 0.18, 0]}, b: {at: a14, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+      - cone: {a: {at: a15, off: [0, 0.18, 0]}, b: {at: a15, off: [0, 1.10, 0]}, r: [0.032, 0.032]}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  fletch_red:
+    material: fletch_r
+    space: body
+    prims:
+      - cone: {a: {at: a0, off: [0, 0.76, 0]}, b: {at: a0, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a1, off: [0, 0.76, 0]}, b: {at: a1, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a2, off: [0, 0.76, 0]}, b: {at: a2, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a3, off: [0, 0.76, 0]}, b: {at: a3, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a4, off: [0, 0.76, 0]}, b: {at: a4, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a5, off: [0, 0.76, 0]}, b: {at: a5, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a6, off: [0, 0.76, 0]}, b: {at: a6, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a7, off: [0, 0.76, 0]}, b: {at: a7, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a8, off: [0, 0.76, 0]}, b: {at: a8, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a9, off: [0, 0.76, 0]}, b: {at: a9, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a10, off: [0, 0.76, 0]}, b: {at: a10, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a11, off: [0, 0.76, 0]}, b: {at: a11, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a12, off: [0, 0.76, 0]}, b: {at: a12, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a13, off: [0, 0.76, 0]}, b: {at: a13, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a14, off: [0, 0.76, 0]}, b: {at: a14, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+      - cone: {a: {at: a15, off: [0, 0.76, 0]}, b: {at: a15, off: [0, 0.90, 0]}, r: [0.05, 0.08]}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  fletch_white:
+    material: fletch_w
+    space: body
+    prims:
+      - cone: {a: {at: a0, off: [0, 0.92, 0]}, b: {at: a0, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a1, off: [0, 0.92, 0]}, b: {at: a1, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a2, off: [0, 0.92, 0]}, b: {at: a2, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a3, off: [0, 0.92, 0]}, b: {at: a3, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a4, off: [0, 0.92, 0]}, b: {at: a4, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a5, off: [0, 0.92, 0]}, b: {at: a5, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a6, off: [0, 0.92, 0]}, b: {at: a6, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a7, off: [0, 0.92, 0]}, b: {at: a7, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a8, off: [0, 0.92, 0]}, b: {at: a8, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a9, off: [0, 0.92, 0]}, b: {at: a9, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a10, off: [0, 0.92, 0]}, b: {at: a10, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a11, off: [0, 0.92, 0]}, b: {at: a11, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a12, off: [0, 0.92, 0]}, b: {at: a12, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a13, off: [0, 0.92, 0]}, b: {at: a13, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a14, off: [0, 0.92, 0]}, b: {at: a14, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+      - cone: {a: {at: a15, off: [0, 0.92, 0]}, b: {at: a15, off: [0, 1.06, 0]}, r: [0.08, 0.06]}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  # motion streaks above the falling arrows (pushed under the ground once the arrow has landed)
+  streaks:
+    material: streak
+    space: body
+    prims:
+      - cone: {a: {at: a0, off: "v(0, 1.14 - 30*(i0 >= 2), 0)"}, b: {at: a0, off: "v(0, 1.14 + 0.7*(i0 == 0) + 1.2*(i0 == 1) - 30*(i0 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a1, off: "v(0, 1.14 - 30*(i1 >= 2), 0)"}, b: {at: a1, off: "v(0, 1.14 + 0.7*(i1 == 0) + 1.2*(i1 == 1) - 30*(i1 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a2, off: "v(0, 1.14 - 30*(i2 >= 2), 0)"}, b: {at: a2, off: "v(0, 1.14 + 0.7*(i2 == 0) + 1.2*(i2 == 1) - 30*(i2 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a3, off: "v(0, 1.14 - 30*(i3 >= 2), 0)"}, b: {at: a3, off: "v(0, 1.14 + 0.7*(i3 == 0) + 1.2*(i3 == 1) - 30*(i3 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a4, off: "v(0, 1.14 - 30*(i4 >= 2), 0)"}, b: {at: a4, off: "v(0, 1.14 + 0.7*(i4 == 0) + 1.2*(i4 == 1) - 30*(i4 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a5, off: "v(0, 1.14 - 30*(i5 >= 2), 0)"}, b: {at: a5, off: "v(0, 1.14 + 0.7*(i5 == 0) + 1.2*(i5 == 1) - 30*(i5 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a6, off: "v(0, 1.14 - 30*(i6 >= 2), 0)"}, b: {at: a6, off: "v(0, 1.14 + 0.7*(i6 == 0) + 1.2*(i6 == 1) - 30*(i6 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a7, off: "v(0, 1.14 - 30*(i7 >= 2), 0)"}, b: {at: a7, off: "v(0, 1.14 + 0.7*(i7 == 0) + 1.2*(i7 == 1) - 30*(i7 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a8, off: "v(0, 1.14 - 30*(i8 >= 2), 0)"}, b: {at: a8, off: "v(0, 1.14 + 0.7*(i8 == 0) + 1.2*(i8 == 1) - 30*(i8 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a9, off: "v(0, 1.14 - 30*(i9 >= 2), 0)"}, b: {at: a9, off: "v(0, 1.14 + 0.7*(i9 == 0) + 1.2*(i9 == 1) - 30*(i9 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a10, off: "v(0, 1.14 - 30*(i10 >= 2), 0)"}, b: {at: a10, off: "v(0, 1.14 + 0.7*(i10 == 0) + 1.2*(i10 == 1) - 30*(i10 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a11, off: "v(0, 1.14 - 30*(i11 >= 2), 0)"}, b: {at: a11, off: "v(0, 1.14 + 0.7*(i11 == 0) + 1.2*(i11 == 1) - 30*(i11 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a12, off: "v(0, 1.14 - 30*(i12 >= 2), 0)"}, b: {at: a12, off: "v(0, 1.14 + 0.7*(i12 == 0) + 1.2*(i12 == 1) - 30*(i12 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a13, off: "v(0, 1.14 - 30*(i13 >= 2), 0)"}, b: {at: a13, off: "v(0, 1.14 + 0.7*(i13 == 0) + 1.2*(i13 == 1) - 30*(i13 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a14, off: "v(0, 1.14 - 30*(i14 >= 2), 0)"}, b: {at: a14, off: "v(0, 1.14 + 0.7*(i14 == 0) + 1.2*(i14 == 1) - 30*(i14 >= 2), 0)"}, r: [0.035, 0.01]}
+      - cone: {a: {at: a15, off: "v(0, 1.14 - 30*(i15 >= 2), 0)"}, b: {at: a15, off: "v(0, 1.14 + 0.7*(i15 == 0) + 1.2*(i15 == 1) - 30*(i15 >= 2), 0)"}, r: [0.035, 0.01]}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  # ================= dust puffs at the landing points =================
+  dust:
+    material: dust
+    space: body
+    blend: 0.05
+    prims:
+      - sphere: {c: "v(0.2, 0.03 + 0.10*d0*dm - 10*(d0*dm < 0.05), 0.1)", r: "0.17*d0*dm"}
+      - sphere: {c: "v(0.2 + 0.22*d0*dm, 0.03 + 0.04*d0*dm - 10*(d0*dm < 0.05), 0.1 + 0.05)", r: "0.12*d0*dm"}
+      - sphere: {c: "v(0.2 - 0.24*d0*dm, 0.03 + 0.06*d0*dm - 10*(d0*dm < 0.05), 0.1 - 0.03)", r: "0.12*d0*dm"}
+      - sphere: {c: "v(-1.5, 0.03 + 0.10*d1*dm - 10*(d1*dm < 0.05), -1.0)", r: "0.17*d1*dm"}
+      - sphere: {c: "v(-1.5 + 0.22*d1*dm, 0.03 + 0.04*d1*dm - 10*(d1*dm < 0.05), -1.0 + 0.05)", r: "0.12*d1*dm"}
+      - sphere: {c: "v(-1.5 - 0.24*d1*dm, 0.03 + 0.06*d1*dm - 10*(d1*dm < 0.05), -1.0 - 0.03)", r: "0.12*d1*dm"}
+      - sphere: {c: "v(1.6, 0.03 + 0.10*d2*dm - 10*(d2*dm < 0.05), 0.9)", r: "0.17*d2*dm"}
+      - sphere: {c: "v(1.6 + 0.22*d2*dm, 0.03 + 0.04*d2*dm - 10*(d2*dm < 0.05), 0.9 + 0.05)", r: "0.12*d2*dm"}
+      - sphere: {c: "v(1.6 - 0.24*d2*dm, 0.03 + 0.06*d2*dm - 10*(d2*dm < 0.05), 0.9 - 0.03)", r: "0.12*d2*dm"}
+      - sphere: {c: "v(-0.6, 0.03 + 0.10*d3*dm - 10*(d3*dm < 0.05), 1.7)", r: "0.17*d3*dm"}
+      - sphere: {c: "v(-0.6 + 0.22*d3*dm, 0.03 + 0.04*d3*dm - 10*(d3*dm < 0.05), 1.7 + 0.05)", r: "0.12*d3*dm"}
+      - sphere: {c: "v(-0.6 - 0.24*d3*dm, 0.03 + 0.06*d3*dm - 10*(d3*dm < 0.05), 1.7 - 0.03)", r: "0.12*d3*dm"}
+      - sphere: {c: "v(0.9, 0.03 + 0.10*d4*dm - 10*(d4*dm < 0.05), -1.6)", r: "0.17*d4*dm"}
+      - sphere: {c: "v(0.9 + 0.22*d4*dm, 0.03 + 0.04*d4*dm - 10*(d4*dm < 0.05), -1.6 + 0.05)", r: "0.12*d4*dm"}
+      - sphere: {c: "v(0.9 - 0.24*d4*dm, 0.03 + 0.06*d4*dm - 10*(d4*dm < 0.05), -1.6 - 0.03)", r: "0.12*d4*dm"}
+      - sphere: {c: "v(-2.0, 0.03 + 0.10*d5*dm - 10*(d5*dm < 0.05), 0.6)", r: "0.17*d5*dm"}
+      - sphere: {c: "v(-2.0 + 0.22*d5*dm, 0.03 + 0.04*d5*dm - 10*(d5*dm < 0.05), 0.6 + 0.05)", r: "0.12*d5*dm"}
+      - sphere: {c: "v(-2.0 - 0.24*d5*dm, 0.03 + 0.06*d5*dm - 10*(d5*dm < 0.05), 0.6 - 0.03)", r: "0.12*d5*dm"}
+      - sphere: {c: "v(2.1, 0.03 + 0.10*d6*dm - 10*(d6*dm < 0.05), -0.5)", r: "0.17*d6*dm"}
+      - sphere: {c: "v(2.1 + 0.22*d6*dm, 0.03 + 0.04*d6*dm - 10*(d6*dm < 0.05), -0.5 + 0.05)", r: "0.12*d6*dm"}
+      - sphere: {c: "v(2.1 - 0.24*d6*dm, 0.03 + 0.06*d6*dm - 10*(d6*dm < 0.05), -0.5 - 0.03)", r: "0.12*d6*dm"}
+      - sphere: {c: "v(-0.3, 0.03 + 0.10*d7*dm - 10*(d7*dm < 0.05), -0.8)", r: "0.17*d7*dm"}
+      - sphere: {c: "v(-0.3 + 0.22*d7*dm, 0.03 + 0.04*d7*dm - 10*(d7*dm < 0.05), -0.8 + 0.05)", r: "0.12*d7*dm"}
+      - sphere: {c: "v(-0.3 - 0.24*d7*dm, 0.03 + 0.06*d7*dm - 10*(d7*dm < 0.05), -0.8 - 0.03)", r: "0.12*d7*dm"}
+      - sphere: {c: "v(1.0, 0.03 + 0.10*d8*dm - 10*(d8*dm < 0.05), 0.0)", r: "0.17*d8*dm"}
+      - sphere: {c: "v(1.0 + 0.22*d8*dm, 0.03 + 0.04*d8*dm - 10*(d8*dm < 0.05), 0.0 + 0.05)", r: "0.12*d8*dm"}
+      - sphere: {c: "v(1.0 - 0.24*d8*dm, 0.03 + 0.06*d8*dm - 10*(d8*dm < 0.05), 0.0 - 0.03)", r: "0.12*d8*dm"}
+      - sphere: {c: "v(-1.1, 0.03 + 0.10*d9*dm - 10*(d9*dm < 0.05), 0.4)", r: "0.17*d9*dm"}
+      - sphere: {c: "v(-1.1 + 0.22*d9*dm, 0.03 + 0.04*d9*dm - 10*(d9*dm < 0.05), 0.4 + 0.05)", r: "0.12*d9*dm"}
+      - sphere: {c: "v(-1.1 - 0.24*d9*dm, 0.03 + 0.06*d9*dm - 10*(d9*dm < 0.05), 0.4 - 0.03)", r: "0.12*d9*dm"}
+      - sphere: {c: "v(0.4, 0.03 + 0.10*d10*dm - 10*(d10*dm < 0.05), 1.9)", r: "0.17*d10*dm"}
+      - sphere: {c: "v(0.4 + 0.22*d10*dm, 0.03 + 0.04*d10*dm - 10*(d10*dm < 0.05), 1.9 + 0.05)", r: "0.12*d10*dm"}
+      - sphere: {c: "v(0.4 - 0.24*d10*dm, 0.03 + 0.06*d10*dm - 10*(d10*dm < 0.05), 1.9 - 0.03)", r: "0.12*d10*dm"}
+      - sphere: {c: "v(-0.4, 0.03 + 0.10*d11*dm - 10*(d11*dm < 0.05), -2.0)", r: "0.17*d11*dm"}
+      - sphere: {c: "v(-0.4 + 0.22*d11*dm, 0.03 + 0.04*d11*dm - 10*(d11*dm < 0.05), -2.0 + 0.05)", r: "0.12*d11*dm"}
+      - sphere: {c: "v(-0.4 - 0.24*d11*dm, 0.03 + 0.06*d11*dm - 10*(d11*dm < 0.05), -2.0 - 0.03)", r: "0.12*d11*dm"}
+      - sphere: {c: "v(1.7, 0.03 + 0.10*d12*dm - 10*(d12*dm < 0.05), -1.3)", r: "0.17*d12*dm"}
+      - sphere: {c: "v(1.7 + 0.22*d12*dm, 0.03 + 0.04*d12*dm - 10*(d12*dm < 0.05), -1.3 + 0.05)", r: "0.12*d12*dm"}
+      - sphere: {c: "v(1.7 - 0.24*d12*dm, 0.03 + 0.06*d12*dm - 10*(d12*dm < 0.05), -1.3 - 0.03)", r: "0.12*d12*dm"}
+      - sphere: {c: "v(-1.6, 0.03 + 0.10*d13*dm - 10*(d13*dm < 0.05), 1.5)", r: "0.17*d13*dm"}
+      - sphere: {c: "v(-1.6 + 0.22*d13*dm, 0.03 + 0.04*d13*dm - 10*(d13*dm < 0.05), 1.5 + 0.05)", r: "0.12*d13*dm"}
+      - sphere: {c: "v(-1.6 - 0.24*d13*dm, 0.03 + 0.06*d13*dm - 10*(d13*dm < 0.05), 1.5 - 0.03)", r: "0.12*d13*dm"}
+      - sphere: {c: "v(0.7, 0.03 + 0.10*d14*dm - 10*(d14*dm < 0.05), 0.9)", r: "0.17*d14*dm"}
+      - sphere: {c: "v(0.7 + 0.22*d14*dm, 0.03 + 0.04*d14*dm - 10*(d14*dm < 0.05), 0.9 + 0.05)", r: "0.12*d14*dm"}
+      - sphere: {c: "v(0.7 - 0.24*d14*dm, 0.03 + 0.06*d14*dm - 10*(d14*dm < 0.05), 0.9 - 0.03)", r: "0.12*d14*dm"}
+      - sphere: {c: "v(-1.0, 0.03 + 0.10*d15*dm - 10*(d15*dm < 0.05), -1.8)", r: "0.17*d15*dm"}
+      - sphere: {c: "v(-1.0 + 0.22*d15*dm, 0.03 + 0.04*d15*dm - 10*(d15*dm < 0.05), -1.8 + 0.05)", r: "0.12*d15*dm"}
+      - sphere: {c: "v(-1.0 - 0.24*d15*dm, 0.03 + 0.06*d15*dm - 10*(d15*dm < 0.05), -1.8 - 0.03)", r: "0.12*d15*dm"}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+  dust_hi:
+    material: dust_hi
+    space: l1
+    blend: 0.05
+    prims:
+      - sphere: {c: "v(0.2, 0.08 + 0.10*d0*dm - 10*(d0*dm < 0.05), 0.1)", r: "0.09*d0*dm"}
+      - sphere: {c: "v(0.2 + 0.22*d0*dm, 0.08 + 0.04*d0*dm - 10*(d0*dm < 0.05), 0.1 + 0.05)", r: "0.06*d0*dm"}
+      - sphere: {c: "v(0.2 - 0.24*d0*dm, 0.08 + 0.06*d0*dm - 10*(d0*dm < 0.05), 0.1 - 0.03)", r: "0.06*d0*dm"}
+      - sphere: {c: "v(-1.5, 0.08 + 0.10*d1*dm - 10*(d1*dm < 0.05), -1.0)", r: "0.09*d1*dm"}
+      - sphere: {c: "v(-1.5 + 0.22*d1*dm, 0.08 + 0.04*d1*dm - 10*(d1*dm < 0.05), -1.0 + 0.05)", r: "0.06*d1*dm"}
+      - sphere: {c: "v(-1.5 - 0.24*d1*dm, 0.08 + 0.06*d1*dm - 10*(d1*dm < 0.05), -1.0 - 0.03)", r: "0.06*d1*dm"}
+      - sphere: {c: "v(1.6, 0.08 + 0.10*d2*dm - 10*(d2*dm < 0.05), 0.9)", r: "0.09*d2*dm"}
+      - sphere: {c: "v(1.6 + 0.22*d2*dm, 0.08 + 0.04*d2*dm - 10*(d2*dm < 0.05), 0.9 + 0.05)", r: "0.06*d2*dm"}
+      - sphere: {c: "v(1.6 - 0.24*d2*dm, 0.08 + 0.06*d2*dm - 10*(d2*dm < 0.05), 0.9 - 0.03)", r: "0.06*d2*dm"}
+      - sphere: {c: "v(-0.6, 0.08 + 0.10*d3*dm - 10*(d3*dm < 0.05), 1.7)", r: "0.09*d3*dm"}
+      - sphere: {c: "v(-0.6 + 0.22*d3*dm, 0.08 + 0.04*d3*dm - 10*(d3*dm < 0.05), 1.7 + 0.05)", r: "0.06*d3*dm"}
+      - sphere: {c: "v(-0.6 - 0.24*d3*dm, 0.08 + 0.06*d3*dm - 10*(d3*dm < 0.05), 1.7 - 0.03)", r: "0.06*d3*dm"}
+      - sphere: {c: "v(0.9, 0.08 + 0.10*d4*dm - 10*(d4*dm < 0.05), -1.6)", r: "0.09*d4*dm"}
+      - sphere: {c: "v(0.9 + 0.22*d4*dm, 0.08 + 0.04*d4*dm - 10*(d4*dm < 0.05), -1.6 + 0.05)", r: "0.06*d4*dm"}
+      - sphere: {c: "v(0.9 - 0.24*d4*dm, 0.08 + 0.06*d4*dm - 10*(d4*dm < 0.05), -1.6 - 0.03)", r: "0.06*d4*dm"}
+      - sphere: {c: "v(-2.0, 0.08 + 0.10*d5*dm - 10*(d5*dm < 0.05), 0.6)", r: "0.09*d5*dm"}
+      - sphere: {c: "v(-2.0 + 0.22*d5*dm, 0.08 + 0.04*d5*dm - 10*(d5*dm < 0.05), 0.6 + 0.05)", r: "0.06*d5*dm"}
+      - sphere: {c: "v(-2.0 - 0.24*d5*dm, 0.08 + 0.06*d5*dm - 10*(d5*dm < 0.05), 0.6 - 0.03)", r: "0.06*d5*dm"}
+      - sphere: {c: "v(2.1, 0.08 + 0.10*d6*dm - 10*(d6*dm < 0.05), -0.5)", r: "0.09*d6*dm"}
+      - sphere: {c: "v(2.1 + 0.22*d6*dm, 0.08 + 0.04*d6*dm - 10*(d6*dm < 0.05), -0.5 + 0.05)", r: "0.06*d6*dm"}
+      - sphere: {c: "v(2.1 - 0.24*d6*dm, 0.08 + 0.06*d6*dm - 10*(d6*dm < 0.05), -0.5 - 0.03)", r: "0.06*d6*dm"}
+      - sphere: {c: "v(-0.3, 0.08 + 0.10*d7*dm - 10*(d7*dm < 0.05), -0.8)", r: "0.09*d7*dm"}
+      - sphere: {c: "v(-0.3 + 0.22*d7*dm, 0.08 + 0.04*d7*dm - 10*(d7*dm < 0.05), -0.8 + 0.05)", r: "0.06*d7*dm"}
+      - sphere: {c: "v(-0.3 - 0.24*d7*dm, 0.08 + 0.06*d7*dm - 10*(d7*dm < 0.05), -0.8 - 0.03)", r: "0.06*d7*dm"}
+      - sphere: {c: "v(1.0, 0.08 + 0.10*d8*dm - 10*(d8*dm < 0.05), 0.0)", r: "0.09*d8*dm"}
+      - sphere: {c: "v(1.0 + 0.22*d8*dm, 0.08 + 0.04*d8*dm - 10*(d8*dm < 0.05), 0.0 + 0.05)", r: "0.06*d8*dm"}
+      - sphere: {c: "v(1.0 - 0.24*d8*dm, 0.08 + 0.06*d8*dm - 10*(d8*dm < 0.05), 0.0 - 0.03)", r: "0.06*d8*dm"}
+      - sphere: {c: "v(-1.1, 0.08 + 0.10*d9*dm - 10*(d9*dm < 0.05), 0.4)", r: "0.09*d9*dm"}
+      - sphere: {c: "v(-1.1 + 0.22*d9*dm, 0.08 + 0.04*d9*dm - 10*(d9*dm < 0.05), 0.4 + 0.05)", r: "0.06*d9*dm"}
+      - sphere: {c: "v(-1.1 - 0.24*d9*dm, 0.08 + 0.06*d9*dm - 10*(d9*dm < 0.05), 0.4 - 0.03)", r: "0.06*d9*dm"}
+      - sphere: {c: "v(0.4, 0.08 + 0.10*d10*dm - 10*(d10*dm < 0.05), 1.9)", r: "0.09*d10*dm"}
+      - sphere: {c: "v(0.4 + 0.22*d10*dm, 0.08 + 0.04*d10*dm - 10*(d10*dm < 0.05), 1.9 + 0.05)", r: "0.06*d10*dm"}
+      - sphere: {c: "v(0.4 - 0.24*d10*dm, 0.08 + 0.06*d10*dm - 10*(d10*dm < 0.05), 1.9 - 0.03)", r: "0.06*d10*dm"}
+      - sphere: {c: "v(-0.4, 0.08 + 0.10*d11*dm - 10*(d11*dm < 0.05), -2.0)", r: "0.09*d11*dm"}
+      - sphere: {c: "v(-0.4 + 0.22*d11*dm, 0.08 + 0.04*d11*dm - 10*(d11*dm < 0.05), -2.0 + 0.05)", r: "0.06*d11*dm"}
+      - sphere: {c: "v(-0.4 - 0.24*d11*dm, 0.08 + 0.06*d11*dm - 10*(d11*dm < 0.05), -2.0 - 0.03)", r: "0.06*d11*dm"}
+      - sphere: {c: "v(1.7, 0.08 + 0.10*d12*dm - 10*(d12*dm < 0.05), -1.3)", r: "0.09*d12*dm"}
+      - sphere: {c: "v(1.7 + 0.22*d12*dm, 0.08 + 0.04*d12*dm - 10*(d12*dm < 0.05), -1.3 + 0.05)", r: "0.06*d12*dm"}
+      - sphere: {c: "v(1.7 - 0.24*d12*dm, 0.08 + 0.06*d12*dm - 10*(d12*dm < 0.05), -1.3 - 0.03)", r: "0.06*d12*dm"}
+      - sphere: {c: "v(-1.6, 0.08 + 0.10*d13*dm - 10*(d13*dm < 0.05), 1.5)", r: "0.09*d13*dm"}
+      - sphere: {c: "v(-1.6 + 0.22*d13*dm, 0.08 + 0.04*d13*dm - 10*(d13*dm < 0.05), 1.5 + 0.05)", r: "0.06*d13*dm"}
+      - sphere: {c: "v(-1.6 - 0.24*d13*dm, 0.08 + 0.06*d13*dm - 10*(d13*dm < 0.05), 1.5 - 0.03)", r: "0.06*d13*dm"}
+      - sphere: {c: "v(0.7, 0.08 + 0.10*d14*dm - 10*(d14*dm < 0.05), 0.9)", r: "0.09*d14*dm"}
+      - sphere: {c: "v(0.7 + 0.22*d14*dm, 0.08 + 0.04*d14*dm - 10*(d14*dm < 0.05), 0.9 + 0.05)", r: "0.06*d14*dm"}
+      - sphere: {c: "v(0.7 - 0.24*d14*dm, 0.08 + 0.06*d14*dm - 10*(d14*dm < 0.05), 0.9 - 0.03)", r: "0.06*d14*dm"}
+      - sphere: {c: "v(-1.0, 0.08 + 0.10*d15*dm - 10*(d15*dm < 0.05), -1.8)", r: "0.09*d15*dm"}
+      - sphere: {c: "v(-1.0 + 0.22*d15*dm, 0.08 + 0.04*d15*dm - 10*(d15*dm < 0.05), -1.8 + 0.05)", r: "0.06*d15*dm"}
+      - sphere: {c: "v(-1.0 - 0.24*d15*dm, 0.08 + 0.06*d15*dm - 10*(d15*dm < 0.05), -1.8 - 0.03)", r: "0.06*d15*dm"}
+    cut:
+      - box: {c: [0, -5.0, 0], half: [6, 5.0, 6]}
+
+animations:
+  mark:
+    loop: false
+    keys:
+      - {ms: 60, event: start, set: {rb: 1, rs: 0.55}}
+      - {ms: 60, set: {rb: 1, rs: 0.90}}
+      - {ms: 65, set: {rb: 1, rs: 1.06}}
+      - {ms: 65, set: {rb: 0, rs: 1.0}}
+  rain:
+    frames: 8
+    ms: 70
+    channels:
+      i0: "((f + 0) - 8*floor((f + 0)/8))"
+      i1: "((f + 3) - 8*floor((f + 3)/8))"
+      i2: "((f + 6) - 8*floor((f + 6)/8))"
+      i3: "((f + 1) - 8*floor((f + 1)/8))"
+      i4: "((f + 4) - 8*floor((f + 4)/8))"
+      i5: "((f + 7) - 8*floor((f + 7)/8))"
+      i6: "((f + 2) - 8*floor((f + 2)/8))"
+      i7: "((f + 5) - 8*floor((f + 5)/8))"
+      i8: "((f + 4) - 8*floor((f + 4)/8))"
+      i9: "((f + 1) - 8*floor((f + 1)/8))"
+      i10: "((f + 5) - 8*floor((f + 5)/8))"
+      i11: "((f + 2) - 8*floor((f + 2)/8))"
+      i12: "((f + 7) - 8*floor((f + 7)/8))"
+      i13: "((f + 3) - 8*floor((f + 3)/8))"
+      i14: "((f + 6) - 8*floor((f + 6)/8))"
+      i15: "((f + 0) - 8*floor((f + 0)/8))"
+      d0: "0.55*(((f + 0) - 8*floor((f + 0)/8)) == 2) + 1.0*(((f + 0) - 8*floor((f + 0)/8)) == 3) + 0.6*(((f + 0) - 8*floor((f + 0)/8)) == 4)"
+      d1: "0.55*(((f + 3) - 8*floor((f + 3)/8)) == 2) + 1.0*(((f + 3) - 8*floor((f + 3)/8)) == 3) + 0.6*(((f + 3) - 8*floor((f + 3)/8)) == 4)"
+      d2: "0.55*(((f + 6) - 8*floor((f + 6)/8)) == 2) + 1.0*(((f + 6) - 8*floor((f + 6)/8)) == 3) + 0.6*(((f + 6) - 8*floor((f + 6)/8)) == 4)"
+      d3: "0.55*(((f + 1) - 8*floor((f + 1)/8)) == 2) + 1.0*(((f + 1) - 8*floor((f + 1)/8)) == 3) + 0.6*(((f + 1) - 8*floor((f + 1)/8)) == 4)"
+      d4: "0.55*(((f + 4) - 8*floor((f + 4)/8)) == 2) + 1.0*(((f + 4) - 8*floor((f + 4)/8)) == 3) + 0.6*(((f + 4) - 8*floor((f + 4)/8)) == 4)"
+      d5: "0.55*(((f + 7) - 8*floor((f + 7)/8)) == 2) + 1.0*(((f + 7) - 8*floor((f + 7)/8)) == 3) + 0.6*(((f + 7) - 8*floor((f + 7)/8)) == 4)"
+      d6: "0.55*(((f + 2) - 8*floor((f + 2)/8)) == 2) + 1.0*(((f + 2) - 8*floor((f + 2)/8)) == 3) + 0.6*(((f + 2) - 8*floor((f + 2)/8)) == 4)"
+      d7: "0.55*(((f + 5) - 8*floor((f + 5)/8)) == 2) + 1.0*(((f + 5) - 8*floor((f + 5)/8)) == 3) + 0.6*(((f + 5) - 8*floor((f + 5)/8)) == 4)"
+      d8: "0.55*(((f + 4) - 8*floor((f + 4)/8)) == 2) + 1.0*(((f + 4) - 8*floor((f + 4)/8)) == 3) + 0.6*(((f + 4) - 8*floor((f + 4)/8)) == 4)"
+      d9: "0.55*(((f + 1) - 8*floor((f + 1)/8)) == 2) + 1.0*(((f + 1) - 8*floor((f + 1)/8)) == 3) + 0.6*(((f + 1) - 8*floor((f + 1)/8)) == 4)"
+      d10: "0.55*(((f + 5) - 8*floor((f + 5)/8)) == 2) + 1.0*(((f + 5) - 8*floor((f + 5)/8)) == 3) + 0.6*(((f + 5) - 8*floor((f + 5)/8)) == 4)"
+      d11: "0.55*(((f + 2) - 8*floor((f + 2)/8)) == 2) + 1.0*(((f + 2) - 8*floor((f + 2)/8)) == 3) + 0.6*(((f + 2) - 8*floor((f + 2)/8)) == 4)"
+      d12: "0.55*(((f + 7) - 8*floor((f + 7)/8)) == 2) + 1.0*(((f + 7) - 8*floor((f + 7)/8)) == 3) + 0.6*(((f + 7) - 8*floor((f + 7)/8)) == 4)"
+      d13: "0.55*(((f + 3) - 8*floor((f + 3)/8)) == 2) + 1.0*(((f + 3) - 8*floor((f + 3)/8)) == 3) + 0.6*(((f + 3) - 8*floor((f + 3)/8)) == 4)"
+      d14: "0.55*(((f + 6) - 8*floor((f + 6)/8)) == 2) + 1.0*(((f + 6) - 8*floor((f + 6)/8)) == 3) + 0.6*(((f + 6) - 8*floor((f + 6)/8)) == 4)"
+      d15: "0.55*(((f + 0) - 8*floor((f + 0)/8)) == 2) + 1.0*(((f + 0) - 8*floor((f + 0)/8)) == 3) + 0.6*(((f + 0) - 8*floor((f + 0)/8)) == 4)"
+  end:
+    loop: false
+    keys:
+      - {ms: 60, set: {i1: 3, d1: 1.0, i2: 6, i3: 1, i4: 4, d4: 0.6, i6: 2, d6: 0.55, i7: 5, i8: 4, d8: 0.6, i9: 1, i10: 5, i11: 2, d11: 0.55, i13: 3, d13: 1.0, i14: 6, ascale: 1.0, rs: 1.0, dm: 1.0, rt: 1.0}}
+      - {ms: 60, set: {i1: 4, d1: 0.6, i3: 2, d3: 0.55, i6: 3, d6: 1.0, i7: 6, i9: 2, d9: 0.55, i10: 6, i11: 3, d11: 1.0, i13: 4, d13: 0.6, ascale: 0.75, rs: 0.98, dm: 1.0, rt: 1.0}}
+      - {ms: 60, set: {i1: 5, i3: 3, d3: 1.0, i6: 4, d6: 0.6, i7: 7, i9: 3, d9: 1.0, i11: 4, d11: 0.6, i13: 5, ascale: 0.45, rs: 0.95, dm: 0.8, rt: 0.8}}
+      - {ms: 60, set: {i3: 4, d3: 0.6, i6: 5, i9: 4, d9: 0.6, i11: 5, ascale: 0.0, rs: 0.92, dm: 0.55, rt: 0.6}}
+      - {ms: 60, event: done, set: {i3: 5, i6: 6, i9: 5, i11: 6, ascale: 0.0, rs: 0.9, dm: 0.35, rt: 0.4}}

@@ -1,0 +1,172 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_cleave
+kind: prop
+view: topdown
+size: 64
+directions: 8
+mirror: true             # the sweep mirrors with the barbarian: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (32, 32) = the barbarian's ground point
+shadow: null             # a slash of light: no ground shadow
+
+# Barbarian basic attack effect (Cleave), played in front of him on each combo hit.
+brief:
+  summary: a bright crescent axe sweep in front of the barbarian, 110 deg wide and ~30 px forward (+Z = facing),
+    swinging from his right to his left - cold steel at the trailing end, orange body, white-hot leading
+    edge - with sparks flung off the trailing side; it fades by thinning out from the tail toward the tip.
+    `slash_heavy` (combo finisher) is bigger, thicker and steeper and ends in a small glowing ground crack.
+  must_keep: [crescent reads in every direction, white-hot outer edge, steel -> orange -> white along the sweep,
+    sparks off the trailing side, rage-red crack glow on the heavy hit]
+  simplify: [the crescent is the `arc` smear primitive (tapered at both ends), one flat band per layer,
+    no transparency - fading is thinning]
+  exceptions: |
+    kind prop, size 64, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. Slash layers, sparks and
+    the crack glow are emissive with no outline (as fx_fireball); dust puffs of the heavy hit are lit bone-tan
+    with no outline (soft). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 32) = the barbarian's ground point; play the sprite at his feet with his
+    facing direction. The arc is centred on the pivot, radius 1.34 u (~24 px, white edge out to ~28 px; heavy 1.36 u, ~29 px), from
+    -55 deg (his right) to +55 deg (his left) at hip height (0.6 u), the plane rolled so it starts high on
+    his right and ends low on his left. The game hitbox is the 110 deg cone at melee range.
+    `slash`: 5 frames, 250 ms, event `hit` on frame 1 (50 ms). `slash_heavy`: 6 frames, 320 ms, event `hit`
+    on frame 1 (50 ms); the crack sits on the ground at the left end of the arc (~(+1.05, 0, +0.80) u).
+    White edge and sparks sit on bones pushed toward the camera (`cam1`, `cam2`, from `yaw`), so they always
+    draw over the body without moving on screen.
+
+ramps:
+  rage:  ["#1c0f1a", "#6e1d24", "#c13a2b", "#e0664a"]
+  crack: ["#1c0f1a", "#2e1418", "#4a2a1a"]
+
+materials:
+  sl_steel: {ramp: steel, emissive: true, band: 3, outline: false, line: false}   # cold trailing end
+  sl_orange: {ramp: fire, emissive: true, band: 1, outline: false, line: false}   # orange body
+  sl_hot:   {ramp: fire, emissive: true, band: 2, outline: false, line: false}    # hot body near the tip
+  sl_cream: {ramp: fire, emissive: true, band: 3, outline: false, line: false}    # white-hot edge
+  sl_white: {ramp: fx_core, emissive: true, band: 0, outline: false, line: false}
+  spark:    {ramp: fire, emissive: true, band: 2, outline: false, line: false}
+  spark_o:  {ramp: fire, emissive: true, band: 1, outline: false, line: false}
+  cr_dark:  {ramp: crack, emissive: true, band: 1, outline: false, line: false}
+  cr_glow:  {ramp: rage, emissive: true, band: 2, outline: false, line: false}
+  cr_hot:   {ramp: fire, emissive: true, band: 1, outline: false, line: false}
+  dust:     {ramp: bone, bands: [2, 3], outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  r: 1.34          # arc radius (units; 1.34 = 24 px, white edge out to ~28 px)
+  y: 0.40          # arc height (low enough that the n view clears the top edge)
+  roll: -0.22      # tilt of the arc plane (negative: starts high on his right, ends low on his left)
+  a0: 0.0          # arc start angle (rad; 0 = straight ahead, -0.96 = his right)
+  a1: 0.0          # arc end angle (leading tip)
+  w: 0.0           # body width (0 = hidden)
+  spk: 0.0         # spark travel 0..1 (streak head)
+  spt: 0.0         # streak tail (lags behind spk)
+  sr: 0.0          # spark radius
+  crack: 0.0       # heavy: ground crack size 0..1
+  crg: 0.0         # heavy: crack glow 0..1
+  dust: 0.0        # heavy: dust puffs spread 0..1
+
+bones:
+  # layers pushed toward the camera (model space): edge and sparks always draw over the body
+  cam1: {parent: root, pos: "0.25*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  cam2: {parent: root, pos: "0.50*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  # facing away (ne, n, nw) the plane drops 0.15 u so arc and sparks clear the top edge
+  plane0: {parent: root, pos: "[0, y - 0.15*pos(-cos(radians(yaw))), 0]", rot: "[0, 0, roll]"}
+  plane1: {parent: cam1, pos: "[0, y - 0.15*pos(-cos(radians(yaw))), 0]", rot: "[0, 0, roll]"}
+  plane2: {parent: cam2, pos: "[0, y - 0.15*pos(-cos(radians(yaw))), 0]", rot: "[0, 0, roll]"}
+
+parts:
+  # ---------------- the crescent ----------------
+  body:
+    when: "w > 0.01"
+    materials: [sl_steel, sl_orange, sl_hot]
+    space: plane0
+    blend: 0.03
+    prims:
+      - arc: {c: [0, 0, 0], r: r, a0: a0, a1: a1, width: w, fade: 1, dip: 0.0, segments: 12}
+  edge:
+    when: "w > 0.03"
+    materials: [sl_orange, sl_cream, sl_white]
+    space: plane1
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: "r + 0.5*w", a0: "a0 + 0.08", a1: a1, width: "0.45*w", fade: 1, dip: 0.0, segments: 12}
+
+  # ---------------- sparks off the trailing side (fly outward, a little back, and fall) ----------------
+  sparks:          # streaks from the tail position (spt) to the head (spk)
+    when: "sr > 0.01"
+    material: spark
+    space: plane2
+    prims:
+      - cone: {a: "(r + 0.05 + 0.14*spt)*v(sin(-0.62 - 0.24*spt), 0, cos(-0.62 - 0.24*spt)) + v(0, 0.15*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.14*spk)*v(sin(-0.62 - 0.24*spk), 0, cos(-0.62 - 0.24*spk)) + v(0, 0.15*spk - 0.60*spk*spk, 0)", r: ["0.50*sr", "1.00*sr"]}
+      - cone: {a: "(r + 0.05 + 0.18*spt)*v(sin(-0.45 - 0.20*spt), 0, cos(-0.45 - 0.20*spt)) + v(0, 0.24*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.18*spk)*v(sin(-0.45 - 0.20*spk), 0, cos(-0.45 - 0.20*spk)) + v(0, 0.24*spk - 0.60*spk*spk, 0)", r: ["0.45*sr", "0.90*sr"]}
+      - cone: {a: "(r + 0.05 + 0.12*spt)*v(sin(-0.15 - 0.24*spt), 0, cos(-0.15 - 0.24*spt)) + v(0, 0.09*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.12*spk)*v(sin(-0.15 - 0.24*spk), 0, cos(-0.15 - 0.24*spk)) + v(0, 0.09*spk - 0.60*spk*spk, 0)", r: ["0.50*sr", "1.00*sr"]}
+      - cone: {a: "(r + 0.05 + 0.15*spt)*v(sin(0.20 - 0.20*spt), 0, cos(0.20 - 0.20*spt)) + v(0, 0.21*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.15*spk)*v(sin(0.20 - 0.20*spk), 0, cos(0.20 - 0.20*spk)) + v(0, 0.21*spk - 0.60*spk*spk, 0)", r: ["0.40*sr", "0.80*sr"]}
+  sparks_o:
+    when: "sr > 0.01"
+    material: spark_o
+    space: plane2
+    prims:
+      - cone: {a: "(r + 0.05 + 0.10*spt)*v(sin(-0.50 - 0.29*spt), 0, cos(-0.50 - 0.29*spt)) + v(0, -0.03*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.10*spk)*v(sin(-0.50 - 0.29*spk), 0, cos(-0.50 - 0.29*spk)) + v(0, -0.03*spk - 0.60*spk*spk, 0)", r: ["0.40*sr", "0.80*sr"]}
+      - cone: {a: "(r + 0.05 + 0.17*spt)*v(sin(-0.30 - 0.14*spt), 0, cos(-0.30 - 0.14*spt)) + v(0, 0.30*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.17*spk)*v(sin(-0.30 - 0.14*spk), 0, cos(-0.30 - 0.14*spk)) + v(0, 0.30*spk - 0.60*spk*spk, 0)", r: ["0.40*sr", "0.80*sr"]}
+      - cone: {a: "(r + 0.05 + 0.10*spt)*v(sin(0.05 - 0.29*spt), 0, cos(0.05 - 0.29*spt)) + v(0, 0.06*spt - 0.60*spt*spt, 0)", b: "(r + 0.05 + 0.10*spk)*v(sin(0.05 - 0.29*spk), 0, cos(0.05 - 0.29*spk)) + v(0, 0.06*spk - 0.60*spk*spk, 0)", r: ["0.35*sr", "0.70*sr"]}
+
+  # ---------------- heavy: ground crack at the left end of the arc ----------------
+  crack_dark:
+    when: "crack > 0.05"
+    material: cr_dark
+    space: root
+    blend: 0.02
+    prims:
+      - ellipsoid: {c: [1.02, 0.0, 0.8], r: ["0.17*crack", 0.03, "0.14*crack"]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.23*crack", 0.01, "0.8 + -0.03*crack"], ["1.02 + 0.30*crack", 0.01, "0.8 + 0.10*crack"]], r: [0.06, 0.045, 0.03]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.11*crack", 0.01, "0.8 + 0.19*crack"], ["1.02 + 0.08*crack", 0.01, "0.8 + 0.40*crack"]], r: [0.06, 0.045, 0.03]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + -0.17*crack", 0.01, "0.8 + 0.08*crack"], ["1.02 + -0.36*crack", 0.01, "0.8 + 0.04*crack"]], r: [0.06, 0.045, 0.03]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.04*crack", 0.01, "0.8 + -0.20*crack"], ["1.02 + 0.20*crack", 0.01, "0.8 + -0.32*crack"]], r: [0.06, 0.045, 0.03]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + -0.04*crack", 0.01, "0.8 + 0.18*crack"], ["1.02 + -0.18*crack", 0.01, "0.8 + 0.30*crack"]], r: [0.06, 0.045, 0.03]}
+  crack_glow:
+    when: "crack > 0.05 and crg > 0.05"
+    material: cr_glow
+    space: cam1
+    blend: 0.02
+    prims:
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.23*crack", 0.01, "0.8 + -0.03*crack"], ["1.02 + 0.24*crack", 0.01, "0.8 + 0.08*crack"]], r: ["0.04*crg", "0.03*crg", "0.02*crg"]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.11*crack", 0.01, "0.8 + 0.19*crack"], ["1.02 + 0.06*crack", 0.01, "0.8 + 0.32*crack"]], r: ["0.04*crg", "0.03*crg", "0.02*crg"]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + -0.17*crack", 0.01, "0.8 + 0.08*crack"], ["1.02 + -0.29*crack", 0.01, "0.8 + 0.03*crack"]], r: ["0.04*crg", "0.03*crg", "0.02*crg"]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + 0.04*crack", 0.01, "0.8 + -0.20*crack"], ["1.02 + 0.16*crack", 0.01, "0.8 + -0.26*crack"]], r: ["0.04*crg", "0.03*crg", "0.02*crg"]}
+      - chain: {pts: [[1.02, 0.01, 0.8], ["1.02 + -0.04*crack", 0.01, "0.8 + 0.18*crack"], ["1.02 + -0.14*crack", 0.01, "0.8 + 0.24*crack"]], r: ["0.04*crg", "0.03*crg", "0.02*crg"]}
+  crack_hot:
+    when: "crack > 0.05 and crg > 0.5"
+    material: cr_hot
+    space: cam2
+    prims:
+      - sphere: {c: [1.02, 0.01, 0.8], r: "0.08*crg"}
+  dust:            # tan dust kicked up by the impact, spreading and shrinking
+    when: "dust > 0.02"
+    material: dust
+    space: root
+    blend: 0.05
+    prims:
+      - sphere: {c: "[1.02 + 0.30*dust, 0.08 + 0.10*dust, 0.8 + 0.10*dust]", r: "0.13*(1.2 - dust)"}
+      - sphere: {c: "[1.02 - 0.28*dust, 0.08 + 0.12*dust, 0.8 + 0.06*dust]", r: "0.12*(1.2 - dust)"}
+      - sphere: {c: "[1.02 + 0.04*dust, 0.08 + 0.16*dust, 0.8 + 0.30*dust]", r: "0.11*(1.2 - dust)"}
+      - sphere: {c: "[1.02 + 0.10*dust, 0.10 + 0.14*dust, 0.8 - 0.26*dust]", r: "0.10*(1.2 - dust)"}
+
+animations:
+  slash:
+    loop: false
+    keys:
+      - {ms: 50, set: {a0: -0.96, a1: -0.20, w: 0.14}}                                     # sweep enters on his right
+      - {ms: 45, event: hit, set: {a0: -0.96, a1: 0.96, w: 0.22, spk: 0.15, spt: 0.00, sr: 0.081}}    # full crescent
+      - {ms: 50, set: {a0: -0.70, a1: 0.96, w: 0.19, spk: 0.45, spt: 0.15, sr: 0.081}}                # sparks fly
+      - {ms: 50, set: {a0: -0.15, a1: 0.96, w: 0.12, spk: 0.75, spt: 0.45, sr: 0.068}}                # thinning from the tail
+      - {ms: 55, set: {a0: 0.40, a1: 0.96, w: 0.06, spk: 1.00, spt: 0.70, sr: 0.054}}                  # last sliver
+  slash_heavy:
+    loop: false
+    keys:
+      - {ms: 50, set: {r: 1.36, roll: -0.42, y: 0.42, a0: -1.0, a1: -0.10, w: 0.17}}
+      - {ms: 50, event: hit, set: {r: 1.36, roll: -0.42, y: 0.42, a0: -1.0, a1: 1.0, w: 0.25, spk: 0.15, spt: 0.00, sr: 0.088}}
+      - {ms: 55, set: {r: 1.36, roll: -0.42, y: 0.42, a0: -0.80, a1: 1.0, w: 0.23, spk: 0.40, spt: 0.10, sr: 0.081, crack: 0.6, crg: 1.0, dust: 0.25}}
+      - {ms: 55, set: {r: 1.36, roll: -0.42, y: 0.42, a0: -0.30, a1: 1.0, w: 0.16, spk: 0.65, spt: 0.35, sr: 0.074, crack: 1.0, crg: 1.0, dust: 0.5}}
+      - {ms: 55, set: {r: 1.36, roll: -0.42, y: 0.42, a0: 0.25, a1: 1.0, w: 0.10, spk: 0.85, spt: 0.55, sr: 0.061, crack: 1.0, crg: 0.6, dust: 0.75}}
+      - {ms: 55, set: {r: 1.36, roll: -0.42, y: 0.42, a0: 0.60, a1: 1.0, w: 0.05, spk: 1.00, spt: 0.70, sr: 0.054, dust: 1.0, crack: 0.9, crg: 0.3}}

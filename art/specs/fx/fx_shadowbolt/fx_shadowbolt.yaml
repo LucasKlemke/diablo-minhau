@@ -1,0 +1,181 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_shadowbolt
+kind: prop
+view: topdown
+size: 32
+directions: 8
+mirror: true             # symmetric bolt: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (16, 16) = the bolt's centre
+shadow: null             # a projectile in the air: no ground shadow
+
+# The Sorcerer's basic projectile (spell effect).
+brief:
+  summary: a shadow bolt flying along +Z (the facing direction) - a black void core ringed with fel-green
+    fire, violet wisps trailing behind like a comet tail and a few pale-green soul flecks shed behind;
+    `explode` bursts into a ~24 px ball of fel fire with an expanding purple smoke ring, then implodes
+    into a black point
+  must_keep: [dark core visible inside the green ring in every direction, head in front and tail behind,
+    purple comet tail, seamless fly loop]
+  simplify: [fel and arcane ramps one band per layer, no outline (the dark-purple wisps are the edge),
+    souls as 1-2 px flecks]
+  exceptions: |
+    kind prop, size 32, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. Flames and wisps are
+    emissive, no outline (as fx_fireball). camera.scale/pitch/light untouched. Spec-local ramp `voidc`
+    (near-black violet) for the core.
+  decisions: |
+    PIVOT CONTRACT: pivot (16, 16) = the bolt's centre; the game places it at the projectile point.
+    Inner layers sit on bones pushed toward the camera (`c1..c3`, from `yaw`) so the void core always draws
+    over the fel ring without changing the silhouette. Palette = the Sorcerer's: fel (#5dff3d) + arcane
+    void purple (#7a0ff8, #310e8b). `explode` is radially symmetric, so every direction looks the same;
+    the game may play it with any direction. Event `hit` on frame 0.
+
+ramps:
+  voidc: ["#0b0612", "#1c0f1a", "#2a0f45"]
+
+materials:
+  fel:     {ramp: fel, emissive: true, band: 1, outline: false, glow: {color: "#5dff3d", mix: 0.35, radius: 1}}
+  fel_hi:  {ramp: fel, emissive: true, band: 2, outline: false}
+  soul:    {ramp: fel, emissive: true, band: 3, outline: false}
+  wisp:    {ramp: arcane, emissive: true, band: 1, outline: false}
+  wisp_dk: {ramp: arcane, emissive: true, band: 0, outline: false}
+  core:    {ramp: voidc, emissive: true, band: 0, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  fly: 1          # 1 = projectile parts visible
+  boom: 0         # explode: 1 = burst visible
+  rb: 0.0         # fel burst radius
+  hot: 0.0        # bright inner fel radius
+  puff: 0.0       # burst puffs drifting out (negative = sucked in)
+  ring: 0.0       # purple smoke ring radius
+  ring_w: 0.0     # smoke ring thickness
+  vr: 0.0         # void core radius in the burst
+  fl: 0.0         # fleck distance from the centre
+  flr: 0.0        # fleck radius
+
+bones:
+  body: {parent: root}
+  c1: {parent: body, pos: "0.30*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c2: {parent: body, pos: "0.60*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c3: {parent: body, pos: "0.90*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+
+parts:
+  # ---------------- fly: head along +Z, tail along -Z ----------------
+  tail_dark:      # long dark-purple comet wisps (outermost layer)
+    when: "fly > 0.5"
+    material: wisp_dk
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0, 0.06], r: [0.27, 0.26, 0.30]}
+      - chain: {pts: [[0, 0, -0.05], ["0.07*sin(p + 0.5)", "0.05*sin(2*p)", -0.40], ["0.13*sin(p + 1.6)", "0.08*sin(2*p + 1)", "-0.67 - 0.04*sin(2*p)"]], r: [0.20, 0.10, 0.03]}
+      - chain: {pts: [[0.08, 0.05, -0.10], ["0.20 + 0.05*sin(p + 3.0)", "0.08*cos(p)", -0.42], ["0.16 + 0.07*sin(p + 4.0)", "0.06*cos(p + 1)", "-0.60 + 0.04*sin(2*p + 1)"]], r: [0.10, 0.06, 0.02]}
+      - chain: {pts: [[-0.08, -0.03, -0.10], ["-0.19 + 0.05*sin(p + 1.5)", "0.07*sin(p + 2)", -0.40], ["-0.15 + 0.07*sin(p + 2.5)", "0.06*sin(p + 3)", "-0.57 + 0.04*sin(2*p + 3)"]], r: [0.10, 0.06, 0.02]}
+  tail_wisp:      # brighter violet wisps
+    when: "fly > 0.5"
+    material: wisp
+    space: c1
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, -0.08], ["0.05*sin(p + 1.0)", "0.04*sin(2*p + 0.5)", -0.34], ["0.10*sin(p + 2.0)", "0.06*sin(2*p + 1.5)", "-0.56 - 0.04*sin(2*p + 1)"]], r: [0.14, 0.07, 0.02]}
+      - chain: {pts: [[0.06, 0.04, -0.12], ["0.14 + 0.04*sin(p + 3.5)", "0.06*cos(p + 1)", "-0.40 + 0.04*sin(3*p)"]], r: [0.06, 0.02]}
+  fel_ring:       # green fire around the core, flickering
+    when: "fly > 0.5"
+    material: fel
+    space: c1
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0, 0.10], r: ["0.215 + 0.015*sin(2*p)", "0.205 + 0.015*sin(2*p + 1)", 0.22]}
+      - chain: {pts: [[0, 0.02, 0.0], ["0.05*sin(p + 0.6)", "0.04*sin(2*p)", -0.20], ["0.08*sin(p + 1.6)", "0.05*sin(2*p + 1)", "-0.36 - 0.04*sin(2*p + 1)"]], r: [0.15, 0.07, 0.02]}
+      # flame tongues licking back from the rim (flicker in 2p, staggered)
+      - chain: {pts: [[0.15, 0.08, 0.02], ["0.26 + 0.03*sin(2*p)", "0.13 + 0.03*sin(2*p + 1)", "-0.16 - 0.05*sin(2*p)"]], r: [0.07, 0.015]}
+      - chain: {pts: [[-0.15, 0.06, 0.0], ["-0.25 - 0.03*sin(2*p + 2)", "0.10 + 0.03*sin(2*p + 3)", "-0.14 - 0.05*sin(2*p + 2)"]], r: [0.07, 0.015]}
+      - chain: {pts: [[0.02, 0.17, 0.0], ["0.03*sin(2*p + 4)", "0.29 + 0.03*sin(2*p + 4)", "-0.12 - 0.05*sin(2*p + 4)"]], r: [0.065, 0.015]}
+  fel_hi:         # pale-green front lip, so the ring reads as fire not paint
+    when: "fly > 0.5"
+    material: fel_hi
+    space: c2
+    prims:
+      - sphere: {c: [0, 0, 0.18], r: "0.150 + 0.01*sin(2*p + 2)"}
+  void_core:
+    when: "fly > 0.5"
+    material: core
+    space: c3
+    prims:
+      - sphere: {c: [0, 0, 0.16], r: "0.105 + 0.008*sin(2*p)"}
+  souls:          # pale soul flecks peeling off the tail
+    when: "fly > 0.5"
+    material: soul
+    space: c3
+    prims:
+      - sphere: {c: ["0.18 + 0.04*sin(p)", "0.08", "-0.22 - 0.55*(p/tau - floor(p/tau))"], r: "0.055*(1 - 0.6*(p/tau - floor(p/tau)))"}
+      - sphere: {c: ["-0.20 + 0.04*sin(p + 2)", "-0.04", "-0.22 - 0.55*(p/tau + 0.5 - floor(p/tau + 0.5))"], r: "0.055*(1 - 0.6*(p/tau + 0.5 - floor(p/tau + 0.5)))"}
+
+  # ---------------- explode: fel burst + purple smoke ring, then implosion ----------------
+  bx_smoke:
+    when: "boom > 0.5 and ring_w > 0.01"
+    material: wisp_dk
+    space: body
+    prims:
+      - torus: {c: [0, -0.05, 0], R: ring, r: ring_w}
+      - torus: {c: [0, 0.05, 0], R: "ring*0.8", r: "ring_w*0.8", rot: [1.5708, 0, 0]}
+  bx_smoke_hi:
+    when: "boom > 0.5 and ring_w > 0.03"
+    material: wisp
+    space: c1
+    prims:
+      - torus: {c: [0, -0.05, 0], R: ring, r: "ring_w*0.55"}
+  bx_fel:
+    when: "boom > 0.5 and rb > 0.01"
+    material: fel
+    space: c1
+    blend: 0.07
+    prims:
+      - sphere: {c: [0, 0, 0], r: "rb*(1 - 0.5*abs(puff))"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(0.62, 0.10, 0.10)",  r: "rb*0.48"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(-0.60, 0.05, -0.15)", r: "rb*0.46"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(0.15, 0.55, 0.20)",  r: "rb*0.48"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(-0.25, -0.50, 0.15)", r: "rb*0.44"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(0.35, -0.35, -0.40)", r: "rb*0.42"}
+      - sphere: {c: "(0.22 + 0.35*puff)*v(-0.35, 0.40, -0.35)", r: "rb*0.44"}
+  bx_hot:
+    when: "boom > 0.5 and hot > 0.01"
+    material: fel_hi
+    space: c2
+    prims:
+      - sphere: {c: [0, 0, 0], r: hot}
+  bx_void:
+    when: "boom > 0.5 and vr > 0.01"
+    material: core
+    space: c3
+    prims:
+      - sphere: {c: [0, 0, 0], r: vr}
+  bx_flecks:
+    when: "boom > 0.5 and flr > 0.01"
+    material: soul
+    space: c3
+    prims:
+      - sphere: {c: "fl*v(0.95, 0.20, 0.10)",   r: flr}
+      - sphere: {c: "fl*v(-0.90, 0.30, -0.20)", r: flr}
+      - sphere: {c: "fl*v(0.30, 0.90, 0.10)",   r: flr}
+      - sphere: {c: "fl*v(-0.40, -0.70, 0.30)", r: flr}
+      - sphere: {c: "fl*v(0.60, -0.60, -0.30)", r: flr}
+      - sphere: {c: "fl*v(-0.55, 0.75, 0.30)",  r: flr}
+
+animations:
+  fly:
+    frames: 6
+    ms: 65
+    channels: {}
+  explode:
+    loop: false
+    keys:
+      - {ms: 40, event: hit, set: {fly: 0, boom: 1, rb: 0.30, hot: 0.20, vr: 0.06, ring: 0.34, ring_w: 0.05}}                                         # flash
+      - {ms: 50, set: {fly: 0, boom: 1, rb: 0.40, hot: 0.22, ring: 0.52, ring_w: 0.07, fl: 0.50, flr: 0.05}}     # bloom
+      - {ms: 60, set: {fly: 0, boom: 1, rb: 0.58, hot: 0.16, puff: 0.2, ring: 0.58, ring_w: 0.08, vr: 0.08, fl: 0.66, flr: 0.05}}  # peak ~24 px
+      - {ms: 60, set: {fly: 0, boom: 1, rb: 0.46, puff: 0.5, ring: 0.64, ring_w: 0.07, vr: 0.16, fl: 0.70, flr: 0.045}}           # smoke out, void opens
+      - {ms: 60, set: {fly: 0, boom: 1, rb: 0.36, puff: -0.2, ring: 0.46, ring_w: 0.07, vr: 0.18, fl: 0.48, flr: 0.045}}          # implode starts
+      - {ms: 70, set: {fly: 0, boom: 1, rb: 0.22, puff: -0.45, ring: 0.26, ring_w: 0.06, vr: 0.14, fl: 0.26, flr: 0.04}}          # sucked in
+      - {ms: 70, set: {fly: 0, boom: 1, rb: 0.17, hot: 0.07, ring: 0.16, ring_w: 0.045, vr: 0.10, fl: 0.14, flr: 0.035}}                                                # pop

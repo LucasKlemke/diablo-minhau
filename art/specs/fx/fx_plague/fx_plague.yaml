@@ -1,0 +1,439 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_plague
+kind: prop
+view: topdown
+size: 128
+directions: [s]
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.34898, 0]}   # 5 px above the pivot -> pivot (64, 69)
+shadow: null             # a spell effect: no ground shadow
+
+# The sorcerer's Plague: a vial of plague shatters at the cursor and a toxic cloud lingers 4 s.
+brief:
+  summary: |
+    `spawn` a purple vial hits the ground and shatters, a fel-green splash crown and a billowing puff grow
+    into the cloud; `cloud` a low ring of churning sickly yellow-green fog puffs (radius ~48 px, ellipse
+    0.62 as tall as wide) over a bubbling fel sludge pool, small skull wisps rising, flies and spores.
+  must_keep: [radius ~48 px, gaps between the fog clumps (no transparency in the engine), skull wisps, fel bubbles]
+  simplify: [fog puffs are three flat emissive layers (rim / body / highlight), the sludge is a flat ground decal]
+  exceptions: |
+    kind prop, size 128, directions [s] only, mirror false, shadow null, camera.center [0, 0.34898, 0]
+    (integer pivot). Fog, bubbles, spores and skulls are emissive without outline (the darkest fog band is
+    the rim); own ramps `plague` (sickly yellow-green) and `sludge`; fel ramp for the bubbles and splash,
+    void purple (arcane ramp) for the vial and the skull eyes. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 69) = the ground point at the centre of the cloud (the cursor).
+    Fog layers sit on bones pushed toward the camera along the view ray (l1..l4) so the inner tones always
+    draw over the rim without changing the silhouette. Seven fog clumps on a ring of radius ~2 units
+    (36 px) plus two small inner clumps; their sizes reach ~48 px. `cloud` loops on p: every motion is
+    periodic (puffs breathe, rising puffs / bubbles / skulls use phase channels u*, s* that wrap from 1 to 0
+    while their size is 0). `spawn` ends on the pose of cloud frame 0 so the game can chain spawn -> cloud.
+
+ramps:
+  plague: ["#2e3010", "#7d8a1c", "#bcc42e", "#e6ea5c", "#fafac0"]
+  sludge: ["#1c0f1a", "#2f4211", "#4a6418", "#6e8f1c"]
+  fly:    ["#1c0f1a"]
+
+materials:
+  fog_rim:  {ramp: plague, emissive: true, band: 0, outline: false, line: false, glow: {color: "#bcc42e", mix: 0.25, radius: 1}}
+  fog:      {ramp: plague, emissive: true, band: 2, outline: false, line: false}
+  fog_hi:   {ramp: plague, emissive: true, band: 3, outline: false, line: false}
+  sludge:   {ramp: sludge, bands: [2, 2], outline: false, line: false}
+  sludge_hi: {ramp: sludge, bands: [3, 3], outline: false, line: false}
+  bubble:   {ramp: fel, emissive: true, band: 1, outline: false, line: false, glow: {color: "#5dff3d", mix: 0.4, radius: 1}}
+  bubble_hi: {ramp: fel, emissive: true, band: 3, outline: false, line: false}
+  spore:    {ramp: fel, emissive: true, band: 2, outline: false, line: false}
+  skull:    {ramp: plague, emissive: true, band: 4, outline: false, line: false}
+  skull_eye: {ramp: arcane, emissive: true, band: 0, outline: false, line: false}
+  fly:      {ramp: fly, emissive: true, band: 0, outline: false, line: false}
+  splash:   {ramp: fel, emissive: true, band: 1, outline: false, line: false, glow: {color: "#5dff3d", mix: 0.4, radius: 1}}
+  splash_hi: {ramp: fel, emissive: true, band: 2, outline: false, line: false}
+  glass:    {ramp: arcane, bands: [1, 3]}
+
+channels:
+  root: [0, 0, 0]
+  cs: 1.0          # cloud size (spawn grows it 0 -> 1)
+  fp: 0.0          # churn phase (cloud sets it to p)
+  u0: 0.0          # life phases 0..1 of rising puffs and bubbles (cloud: p/tau + k/4, wrapped)
+  u1: 0.25
+  u2: 0.5
+  u3: 0.75
+  s0: 0.0          # life phases of the three skull wisps (p/tau + k/3, wrapped)
+  s1: 0.33333
+  s2: 0.66667
+  vial: 0          # 1 = the intact vial dropping in (spawn frame 0)
+  vy: 0.4          # vial height
+  gs: 0.0          # glass shards: distance flown
+  cr: 0.0          # splash crown radius
+  ch: 0.0          # splash crown height
+  bl: 0.0          # spawn billow size
+  bu: 0.0          # spawn billow rise
+
+bones:
+  body: {parent: root}
+  cloud: {parent: body, scale: "max(cs, 0.01)"}
+  # layers along the view ray (camera direction (0, 0.616, 0.788)): same pixels, nearer = drawn on top
+  l1: {parent: cloud, pos: [0, 0.216, 0.276]}    # 0.35 front
+  l2: {parent: cloud, pos: [0, 0.431, 0.552]}    # 0.7 front
+  l3: {parent: cloud, pos: [0, 0.678, 0.867]}    # 1.1 front
+  l4: {parent: cloud, pos: [0, 0.924, 1.182]}    # 1.5 front
+  sp1: {parent: body, pos: [0, 0.431, 0.552]}     # spawn layers (not scaled by cs)
+  sp2: {parent: body, pos: [0, 0.862, 1.103]}
+
+parts:
+  # ================= ground: sludge pool and bubbles =================
+  sludge:
+    when: "cs > 0.05"
+    material: sludge
+    space: cloud
+    prims:
+      - ellipsoid: {c: [0.30, 0.004, 0.10], r: [0.62, 0.004, 0.48], rot: [0, 0.4, 0]}
+      - ellipsoid: {c: [-0.35, 0.004, -0.25], r: [0.42, 0.004, 0.30], rot: [0, -0.3, 0]}
+      - ellipsoid: {c: [-0.95, 0.004, 0.55], r: [0.45, 0.004, 0.30], rot: [0, -0.5, 0]}
+      - ellipsoid: {c: [1.00, 0.004, -0.55], r: [0.42, 0.004, 0.28], rot: [0, 0.6, 0]}
+      - ellipsoid: {c: [0.20, 0.004, 0.98], r: [0.32, 0.004, 0.22], rot: [0, 1.2, 0]}
+      - ellipsoid: {c: [-0.15, 0.004, -0.98], r: [0.30, 0.004, 0.20], rot: [0, -1.0, 0]}
+  sludge_hi:
+    when: "cs > 0.05"
+    material: sludge_hi
+    space: cloud
+    prims:
+      - ellipsoid: {c: [0.15, 0.008, 0.00], r: [0.30, 0.004, 0.15], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [0.95, 0.008, -0.62], r: [0.20, 0.004, 0.10], rot: [0, 0.2, 0]}
+      - ellipsoid: {c: [-1.05, 0.008, 0.50], r: [0.25, 0.004, 0.12], rot: [0, -0.3, 0]}
+  bubbles:
+    when: "cs > 0.05"
+    material: bubble
+    space: cloud
+    prims:
+      - sphere: {c: [0.25, 0.0, 0.15], r: "0.01 + 0.15*sin(pi*u0)"}
+      - sphere: {c: [-0.55, 0.0, -0.30], r: "0.01 + 0.13*sin(pi*u1)"}
+      - sphere: {c: [0.95, 0.0, -0.55], r: "0.01 + 0.12*sin(pi*u2)"}
+      - sphere: {c: [-0.95, 0.0, 0.55], r: "0.01 + 0.13*sin(pi*u3)"}
+      - sphere: {c: [0.20, 0.0, 0.95], r: "0.01 + 0.11*sin(pi*u2)"}
+      - sphere: {c: [-0.15, 0.0, -0.95], r: "0.01 + 0.11*sin(pi*u0)"}
+  bubbles_hi:
+    when: "cs > 0.05"
+    material: bubble_hi
+    space: l1
+    prims:
+      - sphere: {c: [0.20, "0.07*sin(pi*u0)", 0.15], r: "0.005 + 0.05*sin(pi*u0)"}
+      - sphere: {c: [-0.59, "0.06*sin(pi*u1)", -0.30], r: "0.005 + 0.045*sin(pi*u1)"}
+      - sphere: {c: [0.91, "0.06*sin(pi*u2)", -0.55], r: "0.005 + 0.04*sin(pi*u2)"}
+      - sphere: {c: [-0.99, "0.06*sin(pi*u3)", 0.55], r: "0.005 + 0.045*sin(pi*u3)"}
+
+  # ================= fog clumps: rim (back) -> body -> highlight (front) =================
+  fog_rim:
+    when: "cs > 0.05"
+    material: fog_rim
+    space: cloud
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [1.920, "0.150 + 0.05*sin(fp + 0.8)", 0.339], r: "v(0.625*(1 + 0.14*sin(fp + 0.0)), 0.400*(1 + 0.14*sin(fp + 0.0)), 0.550*(1 + 0.14*sin(fp + 0.0)))"}
+      - ellipsoid: {c: [1.941, "0.099 + 0.05*sin(fp + 2.5)", 0.799], r: "v(0.413*(1 + 0.14*sin(fp + 1.7)), 0.264*(1 + 0.14*sin(fp + 1.7)), 0.363*(1 + 0.14*sin(fp + 1.7)))"}
+      - ellipsoid: {c: [1.872, "0.083 + 0.05*sin(fp + 4.2)", -0.076], r: "v(0.344*(1 + 0.14*sin(fp + 3.4)), 0.220*(1 + 0.14*sin(fp + 3.4)), 0.303*(1 + 0.14*sin(fp + 3.4)))"}
+      - ellipsoid: {c: [0.930, "0.138 + 0.05*sin(fp + 2.9)", 1.748], r: "v(0.575*(1 + 0.14*sin(fp + 2.1)), 0.368*(1 + 0.14*sin(fp + 2.1)), 0.506*(1 + 0.14*sin(fp + 2.1)))"}
+      - ellipsoid: {c: [0.579, "0.091 + 0.05*sin(fp + 4.6)", 2.048], r: "v(0.380*(1 + 0.14*sin(fp + 3.8)), 0.243*(1 + 0.14*sin(fp + 3.8)), 0.334*(1 + 0.14*sin(fp + 3.8)))"}
+      - ellipsoid: {c: [1.226, "0.076 + 0.05*sin(fp + 6.3)", 1.454], r: "v(0.316*(1 + 0.14*sin(fp + 5.5)), 0.202*(1 + 0.14*sin(fp + 5.5)), 0.278*(1 + 0.14*sin(fp + 5.5)))"}
+      - ellipsoid: {c: [-0.712, "0.156 + 0.05*sin(fp + 4.8)", 1.762], r: "v(0.650*(1 + 0.14*sin(fp + 4.0)), 0.416*(1 + 0.14*sin(fp + 4.0)), 0.572*(1 + 0.14*sin(fp + 4.0)))"}
+      - ellipsoid: {c: [-1.166, "0.103 + 0.05*sin(fp + 6.5)", 1.686], r: "v(0.429*(1 + 0.14*sin(fp + 5.7)), 0.275*(1 + 0.14*sin(fp + 5.7)), 0.378*(1 + 0.14*sin(fp + 5.7)))"}
+      - ellipsoid: {c: [-0.296, "0.086 + 0.05*sin(fp + 8.2)", 1.800], r: "v(0.358*(1 + 0.14*sin(fp + 7.4)), 0.229*(1 + 0.14*sin(fp + 7.4)), 0.315*(1 + 0.14*sin(fp + 7.4)))"}
+      - ellipsoid: {c: [-1.879, "0.144 + 0.05*sin(fp + 2.0)", 0.684], r: "v(0.600*(1 + 0.14*sin(fp + 1.2)), 0.384*(1 + 0.14*sin(fp + 1.2)), 0.528*(1 + 0.14*sin(fp + 1.2)))"}
+      - ellipsoid: {c: [-2.127, "0.095 + 0.05*sin(fp + 3.7)", 0.295], r: "v(0.396*(1 + 0.14*sin(fp + 2.9)), 0.253*(1 + 0.14*sin(fp + 2.9)), 0.348*(1 + 0.14*sin(fp + 2.9)))"}
+      - ellipsoid: {c: [-1.630, "0.079 + 0.05*sin(fp + 5.4)", 1.019], r: "v(0.330*(1 + 0.14*sin(fp + 4.6)), 0.211*(1 + 0.14*sin(fp + 4.6)), 0.290*(1 + 0.14*sin(fp + 4.6)))"}
+      - ellipsoid: {c: [-1.628, "0.132 + 0.05*sin(fp + 4.1)", -1.017], r: "v(0.550*(1 + 0.14*sin(fp + 3.3)), 0.352*(1 + 0.14*sin(fp + 3.3)), 0.484*(1 + 0.14*sin(fp + 3.3)))"}
+      - ellipsoid: {c: [-1.475, "0.087 + 0.05*sin(fp + 5.8)", -1.452], r: "v(0.363*(1 + 0.14*sin(fp + 5.0)), 0.232*(1 + 0.14*sin(fp + 5.0)), 0.319*(1 + 0.14*sin(fp + 5.0)))"}
+      - ellipsoid: {c: [-1.738, "0.073 + 0.05*sin(fp + 7.5)", -0.615], r: "v(0.303*(1 + 0.14*sin(fp + 6.7)), 0.194*(1 + 0.14*sin(fp + 6.7)), 0.266*(1 + 0.14*sin(fp + 6.7)))"}
+      - ellipsoid: {c: [-0.273, "0.144 + 0.05*sin(fp + 5.9)", -1.941], r: "v(0.600*(1 + 0.14*sin(fp + 5.1)), 0.384*(1 + 0.14*sin(fp + 5.1)), 0.528*(1 + 0.14*sin(fp + 5.1)))"}
+      - ellipsoid: {c: [0.159, "0.095 + 0.05*sin(fp + 7.6)", -2.103], r: "v(0.396*(1 + 0.14*sin(fp + 6.8)), 0.253*(1 + 0.14*sin(fp + 6.8)), 0.348*(1 + 0.14*sin(fp + 6.8)))"}
+      - ellipsoid: {c: [-0.652, "0.079 + 0.05*sin(fp + 9.3)", -1.766], r: "v(0.330*(1 + 0.14*sin(fp + 8.5)), 0.211*(1 + 0.14*sin(fp + 8.5)), 0.290*(1 + 0.14*sin(fp + 8.5)))"}
+      - ellipsoid: {c: [1.285, "0.138 + 0.05*sin(fp + 1.5)", -1.427], r: "v(0.575*(1 + 0.14*sin(fp + 0.7)), 0.368*(1 + 0.14*sin(fp + 0.7)), 0.506*(1 + 0.14*sin(fp + 0.7)))"}
+      - ellipsoid: {c: [1.686, "0.091 + 0.05*sin(fp + 3.2)", -1.200], r: "v(0.380*(1 + 0.14*sin(fp + 2.4)), 0.243*(1 + 0.14*sin(fp + 2.4)), 0.334*(1 + 0.14*sin(fp + 2.4)))"}
+      - ellipsoid: {c: [0.907, "0.076 + 0.05*sin(fp + 4.9)", -1.605], r: "v(0.316*(1 + 0.14*sin(fp + 4.1)), 0.202*(1 + 0.14*sin(fp + 4.1)), 0.278*(1 + 0.14*sin(fp + 4.1)))"}
+      - ellipsoid: {c: [0.550, "0.108 + 0.05*sin(fp + 3.5)", -0.450], r: "v(0.450*(1 + 0.14*sin(fp + 2.7)), 0.288*(1 + 0.14*sin(fp + 2.7)), 0.396*(1 + 0.14*sin(fp + 2.7)))"}
+      - ellipsoid: {c: [-0.700, "0.096 + 0.05*sin(fp + 5.4)", 0.550], r: "v(0.400*(1 + 0.14*sin(fp + 4.6)), 0.256*(1 + 0.14*sin(fp + 4.6)), 0.352*(1 + 0.14*sin(fp + 4.6)))"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  fog:
+    when: "cs > 0.05"
+    material: fog
+    space: l1
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [1.850, "0.240 + 0.05*sin(fp + 0.8)", 0.329], r: "v(0.500*(1 + 0.14*sin(fp + 0.0)), 0.320*(1 + 0.14*sin(fp + 0.0)), 0.440*(1 + 0.14*sin(fp + 0.0)))"}
+      - ellipsoid: {c: [1.895, "0.158 + 0.05*sin(fp + 2.5)", 0.793], r: "v(0.330*(1 + 0.14*sin(fp + 1.7)), 0.211*(1 + 0.14*sin(fp + 1.7)), 0.290*(1 + 0.14*sin(fp + 1.7)))"}
+      - ellipsoid: {c: [1.833, "0.132 + 0.05*sin(fp + 4.2)", -0.082], r: "v(0.275*(1 + 0.14*sin(fp + 3.4)), 0.176*(1 + 0.14*sin(fp + 3.4)), 0.242*(1 + 0.14*sin(fp + 3.4)))"}
+      - ellipsoid: {c: [0.865, "0.221 + 0.05*sin(fp + 2.9)", 1.739], r: "v(0.460*(1 + 0.14*sin(fp + 2.1)), 0.294*(1 + 0.14*sin(fp + 2.1)), 0.405*(1 + 0.14*sin(fp + 2.1)))"}
+      - ellipsoid: {c: [0.537, "0.146 + 0.05*sin(fp + 4.6)", 2.042], r: "v(0.304*(1 + 0.14*sin(fp + 3.8)), 0.194*(1 + 0.14*sin(fp + 3.8)), 0.267*(1 + 0.14*sin(fp + 3.8)))"}
+      - ellipsoid: {c: [1.191, "0.121 + 0.05*sin(fp + 6.3)", 1.449], r: "v(0.253*(1 + 0.14*sin(fp + 5.5)), 0.162*(1 + 0.14*sin(fp + 5.5)), 0.223*(1 + 0.14*sin(fp + 5.5)))"}
+      - ellipsoid: {c: [-0.785, "0.250 + 0.05*sin(fp + 4.8)", 1.751], r: "v(0.520*(1 + 0.14*sin(fp + 4.0)), 0.333*(1 + 0.14*sin(fp + 4.0)), 0.458*(1 + 0.14*sin(fp + 4.0)))"}
+      - ellipsoid: {c: [-1.214, "0.165 + 0.05*sin(fp + 6.5)", 1.679], r: "v(0.343*(1 + 0.14*sin(fp + 5.7)), 0.220*(1 + 0.14*sin(fp + 5.7)), 0.302*(1 + 0.14*sin(fp + 5.7)))"}
+      - ellipsoid: {c: [-0.336, "0.137 + 0.05*sin(fp + 8.2)", 1.795], r: "v(0.286*(1 + 0.14*sin(fp + 7.4)), 0.183*(1 + 0.14*sin(fp + 7.4)), 0.252*(1 + 0.14*sin(fp + 7.4)))"}
+      - ellipsoid: {c: [-1.947, "0.230 + 0.05*sin(fp + 2.0)", 0.674], r: "v(0.480*(1 + 0.14*sin(fp + 1.2)), 0.307*(1 + 0.14*sin(fp + 1.2)), 0.422*(1 + 0.14*sin(fp + 1.2)))"}
+      - ellipsoid: {c: [-2.172, "0.152 + 0.05*sin(fp + 3.7)", 0.289], r: "v(0.317*(1 + 0.14*sin(fp + 2.9)), 0.203*(1 + 0.14*sin(fp + 2.9)), 0.279*(1 + 0.14*sin(fp + 2.9)))"}
+      - ellipsoid: {c: [-1.667, "0.127 + 0.05*sin(fp + 5.4)", 1.014], r: "v(0.264*(1 + 0.14*sin(fp + 4.6)), 0.169*(1 + 0.14*sin(fp + 4.6)), 0.232*(1 + 0.14*sin(fp + 4.6)))"}
+      - ellipsoid: {c: [-1.690, "0.211 + 0.05*sin(fp + 4.1)", -1.026], r: "v(0.440*(1 + 0.14*sin(fp + 3.3)), 0.282*(1 + 0.14*sin(fp + 3.3)), 0.387*(1 + 0.14*sin(fp + 3.3)))"}
+      - ellipsoid: {c: [-1.515, "0.139 + 0.05*sin(fp + 5.8)", -1.458], r: "v(0.290*(1 + 0.14*sin(fp + 5.0)), 0.186*(1 + 0.14*sin(fp + 5.0)), 0.256*(1 + 0.14*sin(fp + 5.0)))"}
+      - ellipsoid: {c: [-1.772, "0.116 + 0.05*sin(fp + 7.5)", -0.619], r: "v(0.242*(1 + 0.14*sin(fp + 6.7)), 0.155*(1 + 0.14*sin(fp + 6.7)), 0.213*(1 + 0.14*sin(fp + 6.7)))"}
+      - ellipsoid: {c: [-0.340, "0.230 + 0.05*sin(fp + 5.9)", -1.951], r: "v(0.480*(1 + 0.14*sin(fp + 5.1)), 0.307*(1 + 0.14*sin(fp + 5.1)), 0.422*(1 + 0.14*sin(fp + 5.1)))"}
+      - ellipsoid: {c: [0.115, "0.152 + 0.05*sin(fp + 7.6)", -2.109], r: "v(0.317*(1 + 0.14*sin(fp + 6.8)), 0.203*(1 + 0.14*sin(fp + 6.8)), 0.279*(1 + 0.14*sin(fp + 6.8)))"}
+      - ellipsoid: {c: [-0.689, "0.127 + 0.05*sin(fp + 9.3)", -1.772], r: "v(0.264*(1 + 0.14*sin(fp + 8.5)), 0.169*(1 + 0.14*sin(fp + 8.5)), 0.232*(1 + 0.14*sin(fp + 8.5)))"}
+      - ellipsoid: {c: [1.220, "0.221 + 0.05*sin(fp + 1.5)", -1.436], r: "v(0.460*(1 + 0.14*sin(fp + 0.7)), 0.294*(1 + 0.14*sin(fp + 0.7)), 0.405*(1 + 0.14*sin(fp + 0.7)))"}
+      - ellipsoid: {c: [1.644, "0.146 + 0.05*sin(fp + 3.2)", -1.206], r: "v(0.304*(1 + 0.14*sin(fp + 2.4)), 0.194*(1 + 0.14*sin(fp + 2.4)), 0.267*(1 + 0.14*sin(fp + 2.4)))"}
+      - ellipsoid: {c: [0.872, "0.121 + 0.05*sin(fp + 4.9)", -1.610], r: "v(0.253*(1 + 0.14*sin(fp + 4.1)), 0.162*(1 + 0.14*sin(fp + 4.1)), 0.223*(1 + 0.14*sin(fp + 4.1)))"}
+      - ellipsoid: {c: [0.500, "0.173 + 0.05*sin(fp + 3.5)", -0.457], r: "v(0.360*(1 + 0.14*sin(fp + 2.7)), 0.230*(1 + 0.14*sin(fp + 2.7)), 0.317*(1 + 0.14*sin(fp + 2.7)))"}
+      - ellipsoid: {c: [-0.745, "0.154 + 0.05*sin(fp + 5.4)", 0.544], r: "v(0.320*(1 + 0.14*sin(fp + 4.6)), 0.205*(1 + 0.14*sin(fp + 4.6)), 0.282*(1 + 0.14*sin(fp + 4.6)))"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  fog_hi:
+    when: "cs > 0.05"
+    material: fog_hi
+    space: l2
+    prims:
+      - ellipsoid: {c: [1.750, "0.390 + 0.05*sin(fp + 0.8)", 0.339], r: "v(0.250*(1 + 0.14*sin(fp + 0.0)), 0.160*(1 + 0.14*sin(fp + 0.0)), 0.220*(1 + 0.14*sin(fp + 0.0)))"}
+      - ellipsoid: {c: [1.829, "0.257 + 0.05*sin(fp + 2.5)", 0.799], r: "v(0.165*(1 + 0.14*sin(fp + 1.7)), 0.106*(1 + 0.14*sin(fp + 1.7)), 0.145*(1 + 0.14*sin(fp + 1.7)))"}
+      - ellipsoid: {c: [1.778, "0.215 + 0.05*sin(fp + 4.2)", -0.076], r: "v(0.138*(1 + 0.14*sin(fp + 3.4)), 0.088*(1 + 0.14*sin(fp + 3.4)), 0.121*(1 + 0.14*sin(fp + 3.4)))"}
+      - ellipsoid: {c: [0.773, "0.359 + 0.05*sin(fp + 2.9)", 1.748], r: "v(0.230*(1 + 0.14*sin(fp + 2.1)), 0.147*(1 + 0.14*sin(fp + 2.1)), 0.202*(1 + 0.14*sin(fp + 2.1)))"}
+      - ellipsoid: {c: [0.476, "0.237 + 0.05*sin(fp + 4.6)", 2.048], r: "v(0.152*(1 + 0.14*sin(fp + 3.8)), 0.097*(1 + 0.14*sin(fp + 3.8)), 0.134*(1 + 0.14*sin(fp + 3.8)))"}
+      - ellipsoid: {c: [1.140, "0.197 + 0.05*sin(fp + 6.3)", 1.454], r: "v(0.127*(1 + 0.14*sin(fp + 5.5)), 0.081*(1 + 0.14*sin(fp + 5.5)), 0.111*(1 + 0.14*sin(fp + 5.5)))"}
+      - ellipsoid: {c: [-0.889, "0.406 + 0.05*sin(fp + 4.8)", 1.762], r: "v(0.260*(1 + 0.14*sin(fp + 4.0)), 0.166*(1 + 0.14*sin(fp + 4.0)), 0.229*(1 + 0.14*sin(fp + 4.0)))"}
+      - ellipsoid: {c: [-1.283, "0.268 + 0.05*sin(fp + 6.5)", 1.686], r: "v(0.172*(1 + 0.14*sin(fp + 5.7)), 0.110*(1 + 0.14*sin(fp + 5.7)), 0.151*(1 + 0.14*sin(fp + 5.7)))"}
+      - ellipsoid: {c: [-0.393, "0.223 + 0.05*sin(fp + 8.2)", 1.800], r: "v(0.143*(1 + 0.14*sin(fp + 7.4)), 0.092*(1 + 0.14*sin(fp + 7.4)), 0.126*(1 + 0.14*sin(fp + 7.4)))"}
+      - ellipsoid: {c: [-2.043, "0.374 + 0.05*sin(fp + 2.0)", 0.684], r: "v(0.240*(1 + 0.14*sin(fp + 1.2)), 0.154*(1 + 0.14*sin(fp + 1.2)), 0.211*(1 + 0.14*sin(fp + 1.2)))"}
+      - ellipsoid: {c: [-2.235, "0.247 + 0.05*sin(fp + 3.7)", 0.295], r: "v(0.158*(1 + 0.14*sin(fp + 2.9)), 0.101*(1 + 0.14*sin(fp + 2.9)), 0.139*(1 + 0.14*sin(fp + 2.9)))"}
+      - ellipsoid: {c: [-1.720, "0.206 + 0.05*sin(fp + 5.4)", 1.019], r: "v(0.132*(1 + 0.14*sin(fp + 4.6)), 0.084*(1 + 0.14*sin(fp + 4.6)), 0.116*(1 + 0.14*sin(fp + 4.6)))"}
+      - ellipsoid: {c: [-1.778, "0.343 + 0.05*sin(fp + 4.1)", -1.017], r: "v(0.220*(1 + 0.14*sin(fp + 3.3)), 0.141*(1 + 0.14*sin(fp + 3.3)), 0.194*(1 + 0.14*sin(fp + 3.3)))"}
+      - ellipsoid: {c: [-1.573, "0.227 + 0.05*sin(fp + 5.8)", -1.452], r: "v(0.145*(1 + 0.14*sin(fp + 5.0)), 0.093*(1 + 0.14*sin(fp + 5.0)), 0.128*(1 + 0.14*sin(fp + 5.0)))"}
+      - ellipsoid: {c: [-1.821, "0.189 + 0.05*sin(fp + 7.5)", -0.615], r: "v(0.121*(1 + 0.14*sin(fp + 6.7)), 0.077*(1 + 0.14*sin(fp + 6.7)), 0.106*(1 + 0.14*sin(fp + 6.7)))"}
+      - ellipsoid: {c: [-0.436, "0.374 + 0.05*sin(fp + 5.9)", -1.941], r: "v(0.240*(1 + 0.14*sin(fp + 5.1)), 0.154*(1 + 0.14*sin(fp + 5.1)), 0.211*(1 + 0.14*sin(fp + 5.1)))"}
+      - ellipsoid: {c: [0.051, "0.247 + 0.05*sin(fp + 7.6)", -2.103], r: "v(0.158*(1 + 0.14*sin(fp + 6.8)), 0.101*(1 + 0.14*sin(fp + 6.8)), 0.139*(1 + 0.14*sin(fp + 6.8)))"}
+      - ellipsoid: {c: [-0.742, "0.206 + 0.05*sin(fp + 9.3)", -1.766], r: "v(0.132*(1 + 0.14*sin(fp + 8.5)), 0.084*(1 + 0.14*sin(fp + 8.5)), 0.116*(1 + 0.14*sin(fp + 8.5)))"}
+      - ellipsoid: {c: [1.128, "0.359 + 0.05*sin(fp + 1.5)", -1.427], r: "v(0.230*(1 + 0.14*sin(fp + 0.7)), 0.147*(1 + 0.14*sin(fp + 0.7)), 0.202*(1 + 0.14*sin(fp + 0.7)))"}
+      - ellipsoid: {c: [1.583, "0.237 + 0.05*sin(fp + 3.2)", -1.200], r: "v(0.152*(1 + 0.14*sin(fp + 2.4)), 0.097*(1 + 0.14*sin(fp + 2.4)), 0.134*(1 + 0.14*sin(fp + 2.4)))"}
+      - ellipsoid: {c: [0.821, "0.197 + 0.05*sin(fp + 4.9)", -1.605], r: "v(0.127*(1 + 0.14*sin(fp + 4.1)), 0.081*(1 + 0.14*sin(fp + 4.1)), 0.111*(1 + 0.14*sin(fp + 4.1)))"}
+      - ellipsoid: {c: [0.428, "0.281 + 0.05*sin(fp + 3.5)", -0.450], r: "v(0.180*(1 + 0.14*sin(fp + 2.7)), 0.115*(1 + 0.14*sin(fp + 2.7)), 0.158*(1 + 0.14*sin(fp + 2.7)))"}
+      - ellipsoid: {c: [-0.809, "0.250 + 0.05*sin(fp + 5.4)", 0.550], r: "v(0.160*(1 + 0.14*sin(fp + 4.6)), 0.102*(1 + 0.14*sin(fp + 4.6)), 0.141*(1 + 0.14*sin(fp + 4.6)))"}
+  fog_wisp:        # low fog trails linking the clumps along the ground (gaps stay between them)
+    when: "cs > 0.05"
+    material: fog_rim
+    space: cloud
+    blend: 0.04
+    prims:
+      - chain: {pts: [["1.842 + 0.08*sin(fp + 0.0)", "0.10 + 0.03*sin(fp + 0.0)", 0.782], ["1.578 + 0.08*sin(fp + 1.0)", "0.14 + 0.03*sin(fp + 0.0)", 1.146], ["1.313 + 0.08*sin(fp + 2.0)", "0.18 + 0.03*sin(fp + 0.0)", 1.510]], r: [0.07, 0.13, 0.06]}
+      - chain: {pts: [["-1.090 + 0.08*sin(fp + 2.0)", "0.10 + 0.03*sin(fp + 1.8)", 1.678], ["-1.403 + 0.08*sin(fp + 3.0)", "0.14 + 0.03*sin(fp + 1.8)", 1.355], ["-1.715 + 0.08*sin(fp + 4.0)", "0.18 + 0.03*sin(fp + 1.8)", 1.031]], r: [0.07, 0.13, 0.06]}
+      - chain: {pts: [["-1.439 + 0.08*sin(fp + 4.0)", "0.10 + 0.03*sin(fp + 3.6)", -1.390], ["-1.062 + 0.08*sin(fp + 5.0)", "0.14 + 0.03*sin(fp + 3.6)", -1.635], ["-0.685 + 0.08*sin(fp + 6.0)", "0.18 + 0.03*sin(fp + 3.6)", -1.880]], r: [0.07, 0.13, 0.06]}
+      - chain: {pts: [["1.639 + 0.08*sin(fp + 6.0)", "0.10 + 0.03*sin(fp + 5.4)", -1.148], ["1.808 + 0.08*sin(fp + 7.0)", "0.14 + 0.03*sin(fp + 5.4)", -0.730], ["1.977 + 0.08*sin(fp + 8.0)", "0.18 + 0.03*sin(fp + 5.4)", -0.313]], r: [0.07, 0.13, 0.06]}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  fog_wisp_hi:
+    when: "cs > 0.05"
+    material: fog
+    space: l1
+    prims:
+      - chain: {pts: [["1.842 + 0.08*sin(fp + 0.0)", "0.10 + 0.03*sin(fp + 0.0)", 0.782], ["1.578 + 0.08*sin(fp + 1.0)", "0.14 + 0.03*sin(fp + 0.0)", 1.146], ["1.313 + 0.08*sin(fp + 2.0)", "0.18 + 0.03*sin(fp + 0.0)", 1.510]], r: [0.03, 0.07, 0.03]}
+      - chain: {pts: [["-1.090 + 0.08*sin(fp + 2.0)", "0.10 + 0.03*sin(fp + 1.8)", 1.678], ["-1.403 + 0.08*sin(fp + 3.0)", "0.14 + 0.03*sin(fp + 1.8)", 1.355], ["-1.715 + 0.08*sin(fp + 4.0)", "0.18 + 0.03*sin(fp + 1.8)", 1.031]], r: [0.03, 0.07, 0.03]}
+      - chain: {pts: [["-1.439 + 0.08*sin(fp + 4.0)", "0.10 + 0.03*sin(fp + 3.6)", -1.390], ["-1.062 + 0.08*sin(fp + 5.0)", "0.14 + 0.03*sin(fp + 3.6)", -1.635], ["-0.685 + 0.08*sin(fp + 6.0)", "0.18 + 0.03*sin(fp + 3.6)", -1.880]], r: [0.03, 0.07, 0.03]}
+      - chain: {pts: [["1.639 + 0.08*sin(fp + 6.0)", "0.10 + 0.03*sin(fp + 5.4)", -1.148], ["1.808 + 0.08*sin(fp + 7.0)", "0.14 + 0.03*sin(fp + 5.4)", -0.730], ["1.977 + 0.08*sin(fp + 8.0)", "0.18 + 0.03*sin(fp + 5.4)", -0.313]], r: [0.03, 0.07, 0.03]}
+  # puffs breaking off the clumps and rising (life phase u*)
+  rise_rim:
+    when: "cs > 0.05"
+    material: fog_rim
+    space: cloud
+    prims:
+      - sphere: {c: ["1.80 - 0.4*u0", "0.45 + 0.85*u0", 0.30], r: "0.01 + 0.24*sin(pi*u0)"}
+      - sphere: {c: ["-0.65 + 0.3*u1", "0.45 + 0.85*u1", 1.60], r: "0.01 + 0.22*sin(pi*u1)"}
+      - sphere: {c: ["-1.55 + 0.4*u2", "0.45 + 0.85*u2", -0.95], r: "0.01 + 0.22*sin(pi*u2)"}
+      - sphere: {c: ["1.20 - 0.3*u3", "0.45 + 0.85*u3", -1.35], r: "0.01 + 0.22*sin(pi*u3)"}
+  rise:
+    when: "cs > 0.05"
+    material: fog
+    space: l1
+    prims:
+      - sphere: {c: ["1.78 - 0.4*u0", "0.47 + 0.85*u0", 0.31], r: "0.005 + 0.17*sin(pi*u0)"}
+      - sphere: {c: ["-0.67 + 0.3*u1", "0.47 + 0.85*u1", 1.61], r: "0.005 + 0.155*sin(pi*u1)"}
+      - sphere: {c: ["-1.57 + 0.4*u2", "0.47 + 0.85*u2", -0.94], r: "0.005 + 0.155*sin(pi*u2)"}
+      - sphere: {c: ["1.18 - 0.3*u3", "0.47 + 0.85*u3", -1.34], r: "0.005 + 0.155*sin(pi*u3)"}
+
+  # ================= skull wisps (life phase s*) =================
+  skull0:
+    when: "cs > 0.5 and sin(pi*s0) > 0.3"
+    material: skull
+    space: l3
+    blend: 0.03
+    prims:
+      - sphere: {c: ["-0.45 + 0.08*sin(2*pi*s0)", "0.55 + 0.6*s0", -0.30], r: "0.21*sin(pi*s0)"}
+      - ellipsoid: {c: ["-0.45 + 0.08*sin(2*pi*s0)", "0.55 + 0.6*s0 - 0.16*sin(pi*s0)", -0.27], r: "v(0.13*sin(pi*s0), 0.09*sin(pi*s0), 0.12*sin(pi*s0))"}
+      - chain: {pts: ["v(-0.45 + 0.08*sin(2*pi*s0), 0.55 + 0.6*s0 - 0.12, -0.32)", "v(-0.45 - 0.06*cos(2*pi*s0), 0.55 + 0.6*s0 - 0.30, -0.34)", "v(-0.45 + 0.08*sin(2*pi*s0 + 2), 0.55 + 0.6*s0 - 0.48, -0.36)"], r: ["0.07*sin(pi*s0)", "0.04*sin(pi*s0)", 0.01]}
+  skull0_eyes:
+    when: "cs > 0.5 and sin(pi*s0) > 0.3"
+    material: skull_eye
+    space: l4
+    prims:
+      - sphere: {c: ["-0.45 + 0.08*sin(2*pi*s0) - 0.095*sin(pi*s0)", "0.55 + 0.6*s0 - 0.01", -0.30], r: "0.055*sin(pi*s0)"}
+      - sphere: {c: ["-0.45 + 0.08*sin(2*pi*s0) + 0.095*sin(pi*s0)", "0.55 + 0.6*s0 - 0.01", -0.30], r: "0.055*sin(pi*s0)"}
+  skull1:
+    when: "cs > 0.5 and sin(pi*s1) > 0.3"
+    material: skull
+    space: l3
+    blend: 0.03
+    prims:
+      - sphere: {c: ["1.00 + 0.08*sin(2*pi*s1)", "0.55 + 0.6*s1", 0.55], r: "0.21*sin(pi*s1)"}
+      - ellipsoid: {c: ["1.00 + 0.08*sin(2*pi*s1)", "0.55 + 0.6*s1 - 0.16*sin(pi*s1)", 0.58], r: "v(0.13*sin(pi*s1), 0.09*sin(pi*s1), 0.12*sin(pi*s1))"}
+      - chain: {pts: ["v(1.00 + 0.08*sin(2*pi*s1), 0.55 + 0.6*s1 - 0.12, 0.53)", "v(1.00 - 0.06*cos(2*pi*s1), 0.55 + 0.6*s1 - 0.30, 0.51)", "v(1.00 + 0.08*sin(2*pi*s1 + 2), 0.55 + 0.6*s1 - 0.48, 0.49)"], r: ["0.07*sin(pi*s1)", "0.04*sin(pi*s1)", 0.01]}
+  skull1_eyes:
+    when: "cs > 0.5 and sin(pi*s1) > 0.3"
+    material: skull_eye
+    space: l4
+    prims:
+      - sphere: {c: ["1.00 + 0.08*sin(2*pi*s1) - 0.095*sin(pi*s1)", "0.55 + 0.6*s1 - 0.01", 0.55], r: "0.055*sin(pi*s1)"}
+      - sphere: {c: ["1.00 + 0.08*sin(2*pi*s1) + 0.095*sin(pi*s1)", "0.55 + 0.6*s1 - 0.01", 0.55], r: "0.055*sin(pi*s1)"}
+  skull2:
+    when: "cs > 0.5 and sin(pi*s2) > 0.3"
+    material: skull
+    space: l3
+    blend: 0.03
+    prims:
+      - sphere: {c: ["-1.15 + 0.08*sin(2*pi*s2)", "0.55 + 0.6*s2", 0.85], r: "0.21*sin(pi*s2)"}
+      - ellipsoid: {c: ["-1.15 + 0.08*sin(2*pi*s2)", "0.55 + 0.6*s2 - 0.16*sin(pi*s2)", 0.88], r: "v(0.13*sin(pi*s2), 0.09*sin(pi*s2), 0.12*sin(pi*s2))"}
+      - chain: {pts: ["v(-1.15 + 0.08*sin(2*pi*s2), 0.55 + 0.6*s2 - 0.12, 0.83)", "v(-1.15 - 0.06*cos(2*pi*s2), 0.55 + 0.6*s2 - 0.30, 0.81)", "v(-1.15 + 0.08*sin(2*pi*s2 + 2), 0.55 + 0.6*s2 - 0.48, 0.79)"], r: ["0.07*sin(pi*s2)", "0.04*sin(pi*s2)", 0.01]}
+  skull2_eyes:
+    when: "cs > 0.5 and sin(pi*s2) > 0.3"
+    material: skull_eye
+    space: l4
+    prims:
+      - sphere: {c: ["-1.15 + 0.08*sin(2*pi*s2) - 0.095*sin(pi*s2)", "0.55 + 0.6*s2 - 0.01", 0.85], r: "0.055*sin(pi*s2)"}
+      - sphere: {c: ["-1.15 + 0.08*sin(2*pi*s2) + 0.095*sin(pi*s2)", "0.55 + 0.6*s2 - 0.01", 0.85], r: "0.055*sin(pi*s2)"}
+
+  # ================= spores rising and flies circling =================
+  spores:
+    when: "cs > 0.5"
+    material: spore
+    space: l3
+    prims:
+      - sphere: {c: ["0.60 + 0.10*sin(2*pi*u0)", "0.35 + 1.0*u0", 0.20], r: "0.045*sin(pi*u0) + 0.005"}
+      - sphere: {c: ["-0.95 + 0.10*sin(2*pi*u1)", "0.35 + 1.0*u1", -0.20], r: "0.045*sin(pi*u1) + 0.005"}
+      - sphere: {c: ["0.20 + 0.10*sin(2*pi*u2)", "0.35 + 1.0*u2", -1.30], r: "0.045*sin(pi*u2) + 0.005"}
+      - sphere: {c: ["-0.20 + 0.10*sin(2*pi*u3)", "0.35 + 1.0*u3", 1.20], r: "0.045*sin(pi*u3) + 0.005"}
+      - sphere: {c: ["1.50 + 0.10*sin(2*pi*u2)", "0.45 + 0.9*u2", -0.40], r: "0.04*sin(pi*u2) + 0.005"}
+      - sphere: {c: ["-1.45 + 0.10*sin(2*pi*u0)", "0.45 + 0.9*u0", 0.20], r: "0.04*sin(pi*u0) + 0.005"}
+  flies:
+    when: "cs > 0.5"
+    material: fly
+    space: l4
+    prims:
+      - sphere: {c: ["0.30 + 0.40*cos(fp)", "0.95 + 0.10*sin(2*fp)", "-0.40 + 0.40*sin(fp)"], r: 0.05}
+      - sphere: {c: ["0.30 + 0.40*cos(fp + 3.1)", "1.05 + 0.10*sin(2*fp + 1)", "-0.40 + 0.40*sin(fp + 3.1)"], r: 0.05}
+      - sphere: {c: ["-1.20 + 0.35*cos(-fp + 1)", "0.85 + 0.10*sin(2*fp + 2)", "0.20 + 0.35*sin(-fp + 1)"], r: 0.05}
+      - sphere: {c: ["1.40 + 0.35*cos(2*fp + 2)", "0.80 + 0.08*sin(2*fp + 3)", "0.90 + 0.30*sin(2*fp + 2)"], r: 0.05}
+      - sphere: {c: ["-0.40 + 0.45*cos(-fp + 4)", "1.15 + 0.10*sin(2*fp + 4)", "1.20 + 0.30*sin(-fp + 4)"], r: 0.05}
+
+  # ================= spawn: vial, glass shards, splash crown, billow =================
+  vial:
+    when: "vial > 0.5"
+    material: glass
+    space: body
+    blend: 0.04
+    prims:
+      - sphere: {c: "v(0, vy + 0.22, 0)", r: 0.23}
+      - cylinder: {a: "v(0, vy + 0.38, 0)", b: "v(0, vy + 0.62, 0)", r: 0.085}
+  vial_liquid:
+    when: "vial > 0.5"
+    material: splash
+    space: sp1
+    prims:
+      - ellipsoid: {c: "v(0.02, vy + 0.16, 0)", r: [0.17, 0.11, 0.17]}
+  glass_shards:
+    when: "gs > 0.05"
+    material: glass
+    space: body
+    prims:
+      - box: {c: "v(0.95*gs, 0.10 + 0.9*gs - 0.6*gs*gs, 0.30*gs)", half: [0.07, 0.05, 0.04], rot: "[gs*3, gs*2, 0.4]"}
+      - box: {c: "v(-0.80*gs, 0.10 + 1.0*gs - 0.6*gs*gs, 0.55*gs)", half: [0.06, 0.05, 0.04], rot: "[0.3, gs*3, gs*2]"}
+      - box: {c: "v(-0.55*gs, 0.10 + 0.8*gs - 0.6*gs*gs, -0.85*gs)", half: [0.07, 0.04, 0.04], rot: "[gs*2, 0.5, gs*3]"}
+      - box: {c: "v(0.50*gs, 0.10 + 1.1*gs - 0.6*gs*gs, -0.80*gs)", half: [0.06, 0.05, 0.04], rot: "[gs, gs*3, 0.2]"}
+      - box: {c: "v(0.10*gs, 0.10 + 0.9*gs - 0.6*gs*gs, 1.00*gs)", half: [0.06, 0.04, 0.05], rot: "[gs*3, 0.2, gs]"}
+  crown:
+    when: "cr > 0.05"
+    material: splash
+    space: body
+    prims:
+      - torus: {c: [0, 0.02, 0], R: "0.8*cr", r: "0.10*cr"}
+      - cone: {a: "v(0.80*cr, 0, 0)", b: "v(1.05*cr, ch, 0)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(0.57*cr, 0, 0.57*cr)", b: "v(0.74*cr, ch*1.1, 0.74*cr)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(0, 0, 0.80*cr)", b: "v(0, ch*0.9, 1.05*cr)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(-0.57*cr, 0, 0.57*cr)", b: "v(-0.74*cr, ch*1.2, 0.74*cr)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(-0.80*cr, 0, 0)", b: "v(-1.05*cr, ch, 0)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(-0.57*cr, 0, -0.57*cr)", b: "v(-0.74*cr, ch*0.9, -0.74*cr)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(0, 0, -0.80*cr)", b: "v(0, ch*1.1, -1.05*cr)", r: ["0.10*cr", 0.02]}
+      - cone: {a: "v(0.57*cr, 0, -0.57*cr)", b: "v(0.74*cr, ch, -0.74*cr)", r: ["0.10*cr", 0.02]}
+      - sphere: {c: "v(1.30*cr, ch*1.3, 0.20*cr)", r: "0.06*cr"}
+      - sphere: {c: "v(-0.30*cr, ch*1.4, 1.25*cr)", r: "0.06*cr"}
+      - sphere: {c: "v(-1.25*cr, ch*1.2, -0.40*cr)", r: "0.06*cr"}
+      - sphere: {c: "v(0.50*cr, ch*1.5, -1.20*cr)", r: "0.06*cr"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  crown_hi:
+    when: "cr > 0.05"
+    material: splash_hi
+    space: sp1
+    prims:
+      - torus: {c: [0, 0.02, 0], R: "0.8*cr", r: "0.05*cr"}
+  billow_rim:
+    when: "bl > 0.05"
+    material: fog_rim
+    space: body
+    blend: 0.10
+    prims:
+      - ellipsoid: {c: "v(0, 0.30*bl + 0.5*bu, 0)", r: "v(0.80*bl, 0.50*bl, 0.70*bl)"}
+      - sphere: {c: "v(0.62*bl, 0.22*bl + 0.3*bu, 0.20*bl)", r: "0.40*bl"}
+      - sphere: {c: "v(-0.62*bl, 0.22*bl + 0.4*bu, -0.05*bl)", r: "0.42*bl"}
+      - sphere: {c: "v(-0.22*bl, 0.62*bl + 0.8*bu, -0.05)", r: "0.36*bl"}
+      - sphere: {c: "v(0.30*bl, 0.58*bl + 0.9*bu, -0.10)", r: "0.32*bl"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  billow:
+    when: "bl > 0.05"
+    material: fog
+    space: sp1
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: "v(-0.10*bl, 0.38*bl + 0.5*bu, 0)", r: "v(0.62*bl, 0.38*bl, 0.55*bl)"}
+      - sphere: {c: "v(0.56*bl, 0.30*bl + 0.3*bu, 0.20*bl)", r: "0.28*bl"}
+      - sphere: {c: "v(-0.68*bl, 0.30*bl + 0.4*bu, -0.05*bl)", r: "0.30*bl"}
+      - sphere: {c: "v(-0.26*bl, 0.70*bl + 0.8*bu, -0.05)", r: "0.26*bl"}
+      - sphere: {c: "v(0.26*bl, 0.66*bl + 0.9*bu, -0.10)", r: "0.22*bl"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  billow_hi:
+    when: "bl > 0.05"
+    material: fog_hi
+    space: sp2
+    prims:
+      - ellipsoid: {c: "v(-0.25*bl, 0.50*bl + 0.5*bu, 0)", r: "v(0.30*bl, 0.16*bl, 0.25*bl)"}
+      - sphere: {c: "v(-0.34*bl, 0.80*bl + 0.8*bu, -0.05)", r: "0.12*bl"}
+      - sphere: {c: "v(-0.80*bl, 0.40*bl + 0.4*bu, -0.05*bl)", r: "0.12*bl"}
+
+animations:
+  spawn:
+    loop: false
+    keys:
+      - {ms: 60, event: start, set: {vial: 1, vy: 0.35, cs: 0}}
+      - {ms: 60, event: hit, set: {gs: 0.35, cr: 0.55, ch: 0.55, bl: 0.45, cs: 0.15}}
+      - {ms: 70, set: {gs: 0.80, cr: 0.95, ch: 0.50, bl: 0.80, bu: 0.15, cs: 0.40}}
+      - {ms: 70, set: {gs: 1.15, cr: 1.25, ch: 0.25, bl: 1.00, bu: 0.40, cs: 0.70}}
+      - {ms: 70, set: {bl: 0.60, bu: 0.85, cs: 0.90}}
+      - {ms: 70, set: {bl: 0.25, bu: 1.30, cs: 1.0}}
+  cloud:
+    frames: 8
+    ms: 100
+    channels:
+      fp: p
+      u0: "p/tau - floor(p/tau)"
+      u1: "p/tau + 0.25 - floor(p/tau + 0.25)"
+      u2: "p/tau + 0.5 - floor(p/tau + 0.5)"
+      u3: "p/tau + 0.75 - floor(p/tau + 0.75)"
+      s0: "p/tau - floor(p/tau)"
+      s1: "p/tau + 0.33333 - floor(p/tau + 0.33333)"
+      s2: "p/tau + 0.66667 - floor(p/tau + 0.66667)"

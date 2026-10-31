@@ -1,0 +1,144 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_arrow_fan
+kind: prop
+view: topdown
+size: 64
+directions: 8
+mirror: true             # symmetric fan: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (32, 32) = the bow / muzzle point
+shadow: null             # a gust of air: no ground shadow
+
+# The archer's Fan of Arrows muzzle effect, played at the bow when the 5 arrows leave.
+brief:
+  summary: a 50 deg fan of wind slashes and air streaks bursting forward (+Z = facing) from the bow,
+    five streaks along the arrows' paths, two crescent wind slashes expanding outward, green leaf-like
+    gusts in the archer's green (#5fd06a) tumbling out and small white sparkles; it fades by thinning.
+  must_keep: [the 50 deg fan reads forward in every direction, archer green, white sparkles, nothing behind the bow]
+  simplify: [emissive layers one band each, no transparency - fading is thinning and shrinking]
+  exceptions: |
+    kind prop, size 64, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. Wind and sparkles are
+    emissive with no outline (as fx_cleave); the leaves are emissive with the dark outline so they read over
+    the green grass tiles. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 32) = the bow / muzzle point (in the air); play it at the archer's bow with
+    his facing direction. The fan lies in the horizontal plane through the pivot, from -25 deg to +25 deg
+    around +Z, the same angles as the five arrows (-25, -12.5, 0, 12.5, 25 deg); it reaches ~1.6 u
+    (~29 px) forward. White and pale layers sit on bones pushed toward the camera so they always draw over
+    the green ones without moving on screen. Event `release` on frame 0.
+
+ramps:
+  gust: ["#1c0f1a", "#2c8a3a", "#5fd06a", "#b8f0b0", "#f4fff0"]
+
+materials:
+  g_dark:  {ramp: gust, emissive: true, band: 1, outline: false, line: false}
+  g_green: {ramp: gust, emissive: true, band: 2, outline: false, line: false, glow: {color: "#5fd06a", mix: 0.25, radius: 1}}
+  g_pale:  {ramp: gust, emissive: true, band: 3, outline: false, line: false}
+  g_white: {ramp: gust, emissive: true, band: 4, outline: false, line: false}
+  leaf:    {ramp: gust, emissive: true, band: 2, outline: true, line: false}
+  spark:   {ramp: fx_core, emissive: true, band: 0, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  fl: 0.0         # bow flash radius
+  s0: 0.0         # streaks: start distance (tail)
+  s1: 0.0         # streaks: end distance (head)
+  sw: 0.0         # streak radius (0 = hidden)
+  ar: 0.0         # outer wind slash radius
+  aw: 0.0         # outer wind slash width (0 = hidden)
+  ar2: 0.0        # inner wind slash radius
+  aw2: 0.0        # inner wind slash width
+  ld: 0.0         # leaves: distance
+  ls: 0.0         # leaves: size factor (0 = hidden)
+  sp: 0.0         # sparkles: distance
+  ss: 0.0         # sparkle radius
+
+bones:
+  body: {parent: root, rot: "[radians(28)*cos(radians(yaw)), 0, 0]"}
+  cam1: {parent: root, pos: "0.25*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)", rot: "[radians(28)*cos(radians(yaw)), 0, 0]"}
+  cam2: {parent: root, pos: "0.50*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)", rot: "[radians(28)*cos(radians(yaw)), 0, 0]"}
+  cam3: {parent: root, pos: "0.75*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)", rot: "[radians(28)*cos(radians(yaw)), 0, 0]"}
+
+parts:
+  # ---------------- crescent wind slashes, expanding forward ----------------
+  slash_outer:
+    when: "aw > 0.01"
+    materials: [g_dark, g_green, g_dark]
+    space: body
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: ar, a0: -0.50, a1: 0.50, width: aw, fade: 1, dip: 0.0, segments: 12}
+  slash_outer_hot:
+    when: "aw > 0.05"
+    materials: [g_green, g_pale, g_green]
+    space: cam1
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: "ar + 0.25*aw", a0: -0.40, a1: 0.40, width: "0.45*aw", fade: 1, dip: 0.0, segments: 12}
+  slash_inner:
+    when: "aw2 > 0.01"
+    materials: [g_green, g_pale, g_green]
+    space: cam1
+    blend: 0.02
+    prims:
+      - arc: {c: [0, 0, 0], r: ar2, a0: -0.44, a1: 0.44, width: aw2, fade: 1, dip: 0.0, segments: 12}
+
+  # ---------------- five air streaks along the arrows' paths ----------------
+  streaks:
+    when: "sw > 0.005"
+    material: g_pale
+    space: cam2
+    prims:
+      - chain: {pts: ["s0*v(sin(-0.436), 0, cos(-0.436))", "s1*v(sin(-0.436), 0, cos(-0.436))"], r: ["0.3*sw", sw]}
+      - chain: {pts: ["(s0 + 0.10)*v(sin(-0.218), 0, cos(-0.218))", "(s1 - 0.10)*v(sin(-0.218), 0, cos(-0.218))"], r: ["0.3*sw", "0.8*sw"]}
+      - chain: {pts: ["s0*v(0, 0, 1)", "(s1 + 0.05)*v(0, 0, 1)"], r: ["0.3*sw", sw]}
+      - chain: {pts: ["(s0 + 0.10)*v(sin(0.218), 0, cos(0.218))", "(s1 - 0.10)*v(sin(0.218), 0, cos(0.218))"], r: ["0.3*sw", "0.8*sw"]}
+      - chain: {pts: ["s0*v(sin(0.436), 0, cos(0.436))", "s1*v(sin(0.436), 0, cos(0.436))"], r: ["0.3*sw", sw]}
+  streak_heads:
+    when: "sw > 0.03"
+    material: g_white
+    space: cam3
+    prims:
+      - sphere: {c: "s1*v(sin(-0.436), 0, cos(-0.436))", r: "0.9*sw"}
+      - sphere: {c: "(s1 + 0.05)*v(0, 0, 1)", r: "0.9*sw"}
+      - sphere: {c: "s1*v(sin(0.436), 0, cos(0.436))", r: "0.9*sw"}
+
+  # ---------------- leaf-like gusts tumbling out between the streaks ----------------
+  leaves:
+    when: "ls > 0.05"
+    material: leaf
+    space: cam2
+    prims:
+      - ellipsoid: {c: "ld*v(sin(-0.33), 0, cos(-0.33)) + v(0, 0.10*sin(4*ld), 0)",        r: "ls*v(0.07, 0.03, 0.14)", rot: "[0.6, -0.33 + 3.0*ld, 0.8*ld]"}
+      - ellipsoid: {c: "0.85*ld*v(sin(0.10), 0, cos(0.10)) + v(0, 0.12*sin(4*ld + 2), 0)", r: "ls*v(0.07, 0.03, 0.14)", rot: "[0.8, 0.10 - 3.5*ld, -0.6*ld]"}
+      - ellipsoid: {c: "1.05*ld*v(sin(0.34), 0, cos(0.34)) + v(0, 0.08*sin(4*ld + 4), 0)", r: "ls*v(0.07, 0.03, 0.14)", rot: "[0.5, 0.34 + 2.8*ld, 0.7*ld]"}
+      - ellipsoid: {c: "0.65*ld*v(sin(-0.12), 0, cos(-0.12)) + v(0, 0.14 + 0.06*sin(4*ld + 1), 0)", r: "ls*v(0.06, 0.028, 0.12)", rot: "[0.9, -0.12 - 3.0*ld, 0.5*ld]"}
+
+  # ---------------- bow flash and white sparkles ----------------
+  flash:
+    when: "fl > 0.02"
+    material: g_white
+    space: cam3
+    prims:
+      - ellipsoid: {c: [0, 0, 0.08], r: "v(1.3*fl, fl, fl)"}
+  sparkles:
+    when: "ss > 0.01"
+    material: spark
+    space: cam3
+    prims:
+      - sphere: {c: "sp*v(sin(-0.20), 0.10, cos(-0.20))",  r: ss}
+      - sphere: {c: "1.15*sp*v(sin(0.25), -0.06, cos(0.25))", r: ss}
+      - sphere: {c: "0.80*sp*v(sin(0.42), 0.14, cos(0.42))",  r: "0.8*ss"}
+      - sphere: {c: "0.90*sp*v(sin(-0.45), -0.10, cos(-0.45))", r: "0.8*ss"}
+      - sphere: {c: "1.25*sp*v(sin(-0.05), 0.04, cos(-0.05))", r: "0.7*ss"}
+
+animations:
+  release:
+    loop: false
+    keys:
+      - {ms: 40, event: release, set: {fl: 0.15, s0: 0.10, s1: 0.70, sw: 0.055, ar: 0.55, aw: 0.12, ld: 0.35, ls: 0.8, sp: 0.35, ss: 0.050}}   # burst at the bow
+      - {ms: 50, set: {fl: 0.07, s0: 0.25, s1: 1.15, sw: 0.050, ar: 1.00, aw: 0.15, ar2: 0.50, aw2: 0.08, ld: 0.70, ls: 1.0, sp: 0.65, ss: 0.060}}
+      - {ms: 60, set: {s0: 0.60, s1: 1.45, sw: 0.045, ar: 1.30, aw: 0.13, ar2: 0.85, aw2: 0.09, ld: 1.00, ls: 1.0, sp: 0.95, ss: 0.060}}
+      - {ms: 60, set: {s0: 1.00, s1: 1.58, sw: 0.038, ar: 1.48, aw: 0.08, ar2: 1.12, aw2: 0.07, ld: 1.22, ls: 0.95, sp: 1.15, ss: 0.050}}
+      - {ms: 70, set: {s0: 1.28, s1: 1.56, sw: 0.028, ar2: 1.32, aw2: 0.045, ld: 1.40, ls: 0.0, sp: 1.22, ss: 0.040}}                            # fading

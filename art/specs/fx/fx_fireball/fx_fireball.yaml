@@ -1,0 +1,160 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_fireball
+kind: prop
+view: topdown
+size: 32
+directions: 8
+mirror: true             # symmetric fire: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (16, 16) = the fireball's centre
+shadow: null             # a projectile in the air: fire casts light, not shadow
+
+# The mage's basic projectile (spell effect).
+brief:
+  summary: a fist-sized ball of fire flying along +Z (the facing direction), white-hot core, orange body,
+    dark-red flickering tail and a few sparks shed behind; `explode` blooms into a ~26 px burst that
+    breaks into puffs and embers
+  must_keep: [head in front and tail behind in every direction, four fire tones, seamless fly loop]
+  simplify: [layers of the farm `fire` ramp, one band each, no outline (the dark-red layer is the rim)]
+  exceptions: |
+    kind prop, size 32, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. Flames are emissive,
+    no outline (as fire_large). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (16, 16) = the fireball's centre; the game places it at the projectile point
+    (~12 px above the ground). Inner fire layers sit on bones pushed toward the camera (`c1..c3`, computed
+    from `yaw`) so they always draw over the outer layer without changing the silhouette.
+    `explode` is radially symmetric, so every direction looks the same (the format has no per-clip
+    directions); the game may play it with any direction.
+
+materials:
+  outer: {ramp: fire, emissive: true, band: 0, outline: false, glow: {color: "#fe6607", mix: 0.3, radius: 1}}
+  mid:   {ramp: fire, emissive: true, band: 1, outline: false}
+  inner: {ramp: fire, emissive: true, band: 2, outline: false}
+  core:  {ramp: fire, emissive: true, band: 3, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  fly: 1          # 1 = projectile parts visible
+  boom: 0         # explode: 1 = burst visible
+  rb: 0.0         # burst radius (outer layer) in world units
+  core_r: 0.0     # burst white core radius
+  puff: 0.0       # how far the burst puffs have drifted out (0 = compact ball)
+  ps: 1.0         # puff size factor
+  emb: 0.0        # ember distance from the centre
+  er: 0.0         # ember radius
+
+bones:
+  body: {parent: root}
+  # layers pushed toward the camera (model space): inner fire always in front of the outer rim
+  c1: {parent: body, pos: "0.30*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c2: {parent: body, pos: "0.60*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c3: {parent: body, pos: "0.90*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+
+parts:
+  # ---------------- fly: head along +Z, tail along -Z ----------------
+  fb_outer:
+    when: "fly > 0.5"
+    material: outer
+    space: body
+    blend: 0.06
+    prims:
+      - ellipsoid: {c: [0, 0, 0.10], r: ["0.25 + 0.015*sin(2*p)", "0.24 + 0.015*sin(2*p)", 0.30]}
+      - chain: {pts: [[0, 0, -0.05], ["0.06*sin(p + 1.0)", "0.05*sin(2*p + 0.5)", -0.36], ["0.12*sin(p + 2.0)", "0.08*sin(2*p + 1.5)", "-0.70 - 0.05*sin(2*p)"]], r: [0.21, 0.12, 0.03]}
+      - chain: {pts: [[0.05, 0.06, -0.10], ["0.16 + 0.05*sin(p + 3.0)", "0.10*cos(p)", "-0.50 + 0.06*sin(3*p)"]], r: [0.10, 0.03]}
+      - chain: {pts: [[-0.05, -0.03, -0.10], ["-0.15 + 0.05*sin(p + 4.5)", "0.08*sin(p + 2)", "-0.46 + 0.06*sin(3*p + 2)"]], r: [0.09, 0.03]}
+  fb_mid:
+    when: "fly > 0.5"
+    material: mid
+    space: c1
+    blend: 0.05
+    prims:
+      - ellipsoid: {c: [0, 0, 0.12], r: [0.20, 0.19, 0.23]}
+      - chain: {pts: [[0, 0, 0.0], ["0.05*sin(p + 0.6)", "0.04*sin(2*p)", -0.26], ["0.09*sin(p + 1.6)", "0.06*sin(2*p + 1)", "-0.48 - 0.05*sin(2*p + 1)"]], r: [0.16, 0.08, 0.02]}
+  fb_inner:
+    when: "fly > 0.5"
+    material: inner
+    space: c2
+    blend: 0.04
+    prims:
+      - sphere: {c: [0, 0, 0.14], r: 0.145}
+      - chain: {pts: [[0, 0, 0.05], ["0.04*sin(p + 0.3)", 0, "-0.24 - 0.04*sin(2*p + 2)"]], r: [0.10, 0.02]}
+  fb_core:
+    when: "fly > 0.5"
+    material: core
+    space: c3
+    prims:
+      - sphere: {c: [0, 0, 0.16], r: "0.09 + 0.01*sin(2*p)"}
+  fb_sparks:
+    when: "fly > 0.5"
+    material: inner
+    space: c3
+    prims:
+      - sphere: {c: ["0.20 + 0.05*sin(p)", "0.10", "-0.25 - 0.55*(p/tau + 0.00 - floor(p/tau + 0.00))"], r: "0.06*(1 - 0.6*(p/tau + 0.00 - floor(p/tau + 0.00)))"}
+      - sphere: {c: ["-0.22 + 0.05*sin(p + 2)", "-0.06", "-0.25 - 0.55*(p/tau + 0.50 - floor(p/tau + 0.50))"], r: "0.06*(1 - 0.6*(p/tau + 0.50 - floor(p/tau + 0.50)))"}
+      - sphere: {c: ["0.04", "0.16 + 0.04*sin(p + 1)", "-0.40 - 0.40*(p/tau + 0.33 - floor(p/tau + 0.33))"], r: "0.05*(1 - 0.6*(p/tau + 0.33 - floor(p/tau + 0.33)))"}
+
+  # ---------------- explode: a round burst of puffs, then embers ----------------
+  bx_outer:
+    when: "boom > 0.5 and rb > 0.01"
+    material: outer
+    space: body
+    blend: 0.08
+    prims:
+      - sphere: {c: [0, 0, 0], r: "rb*(1 - 0.6*puff)"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(0.62, 0.10, 0.10)",  r: "rb*0.50*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(-0.60, 0.05, -0.15)", r: "rb*0.48*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(0.15, 0.55, 0.20)",  r: "rb*0.50*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(-0.25, -0.50, 0.15)", r: "rb*0.46*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(0.35, -0.35, -0.40)", r: "rb*0.44*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(-0.35, 0.40, -0.35)", r: "rb*0.46*ps"}
+  bx_mid:
+    when: "boom > 0.5 and rb > 0.01"
+    material: mid
+    space: c1
+    blend: 0.06
+    prims:
+      - sphere: {c: [0, 0, 0], r: "rb*0.80*(1 - 0.7*puff)"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(0.62, 0.10, 0.10)",  r: "rb*0.36*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(0.15, 0.55, 0.20)",  r: "rb*0.36*ps"}
+      - sphere: {c: "(0.25 + 0.4*puff)*v(-0.35, 0.40, -0.35)", r: "rb*0.32*ps"}
+  bx_inner:
+    when: "boom > 0.5 and rb > 0.01 and puff < 0.7"
+    material: inner
+    space: c2
+    prims:
+      - sphere: {c: [0, 0, 0], r: "rb*0.58*(1 - 1.3*puff)"}
+  bx_core:
+    when: "boom > 0.5 and core_r > 0.01"
+    material: core
+    space: c3
+    prims:
+      - sphere: {c: [0, 0, 0], r: core_r}
+  bx_embers:
+    when: "boom > 0.5 and er > 0.01"
+    material: inner
+    space: c3
+    prims:
+      - sphere: {c: "emb*v(0.95, 0.20, 0.10)",   r: er}
+      - sphere: {c: "emb*v(-0.90, 0.30, -0.20)", r: er}
+      - sphere: {c: "emb*v(0.30, 0.90, 0.10)",   r: er}
+      - sphere: {c: "emb*v(-0.40, -0.70, 0.30)", r: er}
+      - sphere: {c: "emb*v(0.60, -0.60, -0.30)", r: er}
+      - sphere: {c: "emb*v(-0.55, 0.75, 0.30)",  r: er}
+      - sphere: {c: "emb*v(0.10, -0.20, 0.95)",  r: er}
+
+animations:
+  fly:
+    frames: 6
+    ms: 70
+    channels: {}
+  explode:
+    loop: false
+    keys:
+      - {ms: 40, event: hit, set: {fly: 0, boom: 1, rb: 0.30, core_r: 0.20}}                       # flash
+      - {ms: 50, set: {fly: 0, boom: 1, rb: 0.55, core_r: 0.24, emb: 0.55, er: 0.05}}              # bloom
+      - {ms: 60, set: {fly: 0, boom: 1, rb: 0.70, core_r: 0.18, emb: 0.68, er: 0.055}}             # peak (~26 px)
+      - {ms: 60, set: {fly: 0, boom: 1, rb: 0.74, core_r: 0.06, puff: 0.25, emb: 0.72, er: 0.055}} # breaking
+      - {ms: 70, set: {fly: 0, boom: 1, rb: 0.62, puff: 0.55, ps: 0.9, emb: 0.74, er: 0.05}}       # puffs
+      - {ms: 80, set: {fly: 0, boom: 1, rb: 0.50, puff: 0.85, ps: 0.7, emb: 0.76, er: 0.045}}      # dissipating
+      - {ms: 90, set: {fly: 0, boom: 1, rb: 0.38, puff: 1.0, ps: 0.6, emb: 0.74, er: 0.05}}       # wisps + embers

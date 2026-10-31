@@ -1,0 +1,197 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_blood_pact
+kind: prop
+view: topdown
+size: 64
+directions: 1
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 1.0470, 0]}   # 15 px above the pivot -> pivot (32, 47)
+shadow: null             # light, not an object
+
+# The sorcerer's Blood Pact buff (10 s, + life steal, + damage), drawn over the hero (game tint #c1272d).
+brief:
+  summary: a crimson blood aura around the hero - a glowing ring + pentagram sigil on the ground (~36 x 22 px),
+    two thin blood ribbons spiralling up around the body, a few rising and falling blood droplets and dark-red
+    embers; the face is kept clear
+  must_keep: [ground ring + pentagram sigil, two spiralling ribbons, blood droplets, dark embers, clear face]
+  simplify: [ribbons are tapered tubes on a helix, droplets are teardrops, embers single pixels]
+  exceptions: |
+    kind prop, size 64, directions 1 (s only), mirror false, shadow null, camera.center [0, 1.0470, 0] so the
+    pivot is the integer (32, 47) like fx_arcane_shield. Everything is emissive with outline false, so the
+    project's dark outline does not apply. Own ramps `blood` (crimson around the game tint #c1272d) and
+    `ember` (dark red). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 47) = the ground point under the hero's feet (same pivot as the hero's).
+    Sigil and ribbons are modelled in world (root) space on the ground / on a helix (radius 0.92 at the
+    ground narrowing to 0.58 at the top, 1.15 turns, top 2.09 = ~30 px above the pivot). Two screen-aligned
+    cut boxes (rot x 0.908 = the camera's tilt, so they cut a screen rectangle through all depths) keep the
+    hero readable: `body` (|x| < 7 px, 0..40 px above the pivot) removes everything BEHIND the hero (back of
+    the ground sigil, back halves of the ribbons) and `face` (|x| < 7.6 px, 6..22 px above the pivot: the sorcerer's eyes sit ~13 px up)
+    removes the front ribbon halves where they would cross the face. Ribbon halves behind the body are a
+    darker band (depth read). Droplets sit at the sides (|x| >= 8 px). `up` grows the sigil with a flash,
+    bursts the droplets up and raises the ribbons; `loop` spins the ribbons half a turn (2 ribbons =
+    seamless), pulses the sigil, bobs the droplets and lifts the embers; `end` drops the ribbons into the
+    sigil, which then dims and shrinks to nothing.
+
+ramps:
+  blood: ["#1c0f1a", "#4a0a18", "#7d1224", "#c1272d", "#e8463c", "#ff8a78"]
+  ember: ["#1c0f1a", "#5a0a12", "#8e1414", "#c4301c"]
+
+materials:
+  sigil:      {ramp: blood, emissive: true, band: 3, outline: false, glow: {color: "#c1272d", mix: 0.35, radius: 1}}
+  sigil_hot:  {ramp: blood, emissive: true, band: 4, outline: false, glow: {color: "#e8463c", mix: 0.45, radius: 1}}
+  sigil_dim:  {ramp: blood, emissive: true, band: 2, outline: false}
+  star:       {ramp: blood, emissive: true, band: 2, outline: false}
+  star_hot:   {ramp: blood, emissive: true, band: 3, outline: false}
+  ribbon:     {ramp: blood, emissive: true, band: 3, outline: false, glow: {color: "#c1272d", mix: 0.35, radius: 1}}
+  ribbon_back: {ramp: blood, emissive: true, band: 2, outline: false}
+  drop:       {ramp: blood, emissive: true, band: 4, outline: false}
+  ember:      {ramp: ember, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  ring: 1        # sigil size (0..1)
+  shot: 0        # sigil flash (> 0.5 = hot)
+  fade: 0        # sigil dimmed (end)
+  ribs: 1        # ribbons on/off
+  rib: 1         # ribbon height 0..1 (0 = lying on the sigil)
+  spin: 0        # ribbon angle around the body
+  ph: 0          # phase of droplets and embers (0..tau)
+  drops: 1       # droplets on/off
+  dh: 1          # droplet height factor
+  dlift: 0       # extra droplet lift (burst)
+  emb: 1         # embers on/off
+
+bones:
+  # droplets on the sides (|x| >= 8 px), bobbing at their own phase
+  d0: {parent: root, pos: "[0.66, 0.03 + dlift + dh*(0.55 + 0.16*sin(ph)), 0.46]"}
+  d1: {parent: root, pos: "[-0.78, 0.03 + dlift + dh*(0.95 + 0.16*sin(ph + 2.1)), 0.14]"}
+  d2: {parent: root, pos: "[0.75, 0.03 + dlift + dh*(1.35 + 0.16*sin(ph + 4.2)), -0.30]"}
+  d3: {parent: root, pos: "[-0.62, 0.03 + dlift + dh*(0.40 + 0.16*sin(ph + 1.0)), 0.52]"}
+  d4: {parent: root, pos: "[0.80, 0.03 + dlift + dh*(0.85 + 0.16*sin(ph + 3.1)), 0.05]"}
+  d5: {parent: root, pos: "[-0.70, 0.03 + dlift + dh*(1.55 + 0.16*sin(ph + 5.2)), -0.36]"}
+  # embers rising and wrapping once per loop
+  e0: {parent: root, pos: "[0.55, 0.3 + 2.0*(ph/tau - floor(ph/tau)), 0.30]"}
+  e1: {parent: root, pos: "[-0.50, 0.3 + 2.0*(ph/tau + 0.25 - floor(ph/tau + 0.25)), 0.25]"}
+  e2: {parent: root, pos: "[0.95, 0.3 + 2.0*(ph/tau + 0.5 - floor(ph/tau + 0.5)), -0.20]"}
+  e3: {parent: root, pos: "[-0.98, 0.3 + 2.0*(ph/tau + 0.75 - floor(ph/tau + 0.75)), -0.10]"}
+
+parts:
+  # ---- ground sigil: ring, pentagram and five rune notches (world ground plane) ----
+  sigil:
+    when: "ring*(1 - shot)*(1 - fade) > 0.05"
+    material: sigil
+    prims:
+      - chain: {pts: &ring ["[0.000*ring, 0.02, 1.000*ring]", "[0.309*ring, 0.02, 0.951*ring]", "[0.588*ring, 0.02, 0.809*ring]", "[0.809*ring, 0.02, 0.588*ring]", "[0.951*ring, 0.02, 0.309*ring]", "[1.000*ring, 0.02, 0.000*ring]", "[0.951*ring, 0.02, -0.309*ring]", "[0.809*ring, 0.02, -0.588*ring]", "[0.588*ring, 0.02, -0.809*ring]", "[0.309*ring, 0.02, -0.951*ring]", "[0.000*ring, 0.02, -1.000*ring]", "[-0.309*ring, 0.02, -0.951*ring]", "[-0.588*ring, 0.02, -0.809*ring]", "[-0.809*ring, 0.02, -0.588*ring]", "[-0.951*ring, 0.02, -0.309*ring]", "[-1.000*ring, 0.02, -0.000*ring]", "[-0.951*ring, 0.02, 0.309*ring]", "[-0.809*ring, 0.02, 0.588*ring]", "[-0.588*ring, 0.02, 0.809*ring]", "[-0.309*ring, 0.02, 0.951*ring]", "[-0.000*ring, 0.02, 1.000*ring]"], r: &ring_r [0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06, 0.06]}
+    cut: &body
+      - box: {c: [0, 1.396, 0], half: [0.40, 3, 1.1], rot: [0.908, 0, 0]}
+  sigil_hot:
+    when: "ring*shot*(1 - fade) > 0.05"
+    material: sigil_hot
+    prims:
+      - chain: {pts: *ring, r: *ring_r}
+    cut: *body
+  sigil_dim:
+    when: "ring*fade > 0.05"
+    material: sigil_dim
+    prims:
+      - chain: {pts: *ring, r: *ring_r}
+    cut: *body
+  star:
+    when: "ring*(1 - fade) > 0.05"
+    material: star
+    prims:
+      - chain: {pts: ["[0.000*ring, 0.02, 0.860*ring]", "[0.505*ring, 0.02, -0.696*ring]", "[-0.818*ring, 0.02, 0.266*ring]", "[0.818*ring, 0.02, 0.266*ring]", "[-0.505*ring, 0.02, -0.696*ring]", "[0.000*ring, 0.02, 0.860*ring]"], r: [0.04, 0.04, 0.04, 0.04, 0.04, 0.04]}
+      # rune notches crossing the ring between the star points
+      - cone: {a: "[0.529*ring, 0.02, 0.728*ring]", b: "[0.659*ring, 0.02, 0.907*ring]", r: [0.04, 0.04]}
+      - cone: {a: "[-0.529*ring, 0.02, 0.728*ring]", b: "[-0.659*ring, 0.02, 0.907*ring]", r: [0.04, 0.04]}
+      - cone: {a: "[0.856*ring, 0.02, -0.278*ring]", b: "[1.066*ring, 0.02, -0.346*ring]", r: [0.04, 0.04]}
+      - cone: {a: "[-0.856*ring, 0.02, -0.278*ring]", b: "[-1.066*ring, 0.02, -0.346*ring]", r: [0.04, 0.04]}
+    cut: *body
+
+  # ---- two blood ribbons on a helix; front halves bright, back halves dark ----
+  ribbon_a:
+    when: "ribs > 0.5"
+    material: ribbon
+    prims:
+      - chain: {pts: &rib_a ["[0.92*sin(spin + 0.000), 0.060*rib + 0.03, 0.92*cos(spin + 0.000)]", "[(0.92 - 0.031*rib)*sin(spin + 0.657), 0.242*rib + 0.03, (0.92 - 0.031*rib)*cos(spin + 0.657)]", "[(0.92 - 0.062*rib)*sin(spin + 1.314), 0.424*rib + 0.03, (0.92 - 0.062*rib)*cos(spin + 1.314)]", "[(0.92 - 0.093*rib)*sin(spin + 1.971), 0.605*rib + 0.03, (0.92 - 0.093*rib)*cos(spin + 1.971)]", "[(0.92 - 0.124*rib)*sin(spin + 2.628), 0.787*rib + 0.03, (0.92 - 0.124*rib)*cos(spin + 2.628)]", "[(0.92 - 0.155*rib)*sin(spin + 3.284), 0.969*rib + 0.03, (0.92 - 0.155*rib)*cos(spin + 3.284)]", "[(0.92 - 0.185*rib)*sin(spin + 3.941), 1.151*rib + 0.03, (0.92 - 0.185*rib)*cos(spin + 3.941)]", "[(0.92 - 0.216*rib)*sin(spin + 4.598), 1.333*rib + 0.03, (0.92 - 0.216*rib)*cos(spin + 4.598)]", "[(0.92 - 0.247*rib)*sin(spin + 5.255), 1.515*rib + 0.03, (0.92 - 0.247*rib)*cos(spin + 5.255)]", "[(0.92 - 0.278*rib)*sin(spin + 5.912), 1.696*rib + 0.03, (0.92 - 0.278*rib)*cos(spin + 5.912)]", "[(0.92 - 0.309*rib)*sin(spin + 6.569), 1.878*rib + 0.03, (0.92 - 0.309*rib)*cos(spin + 6.569)]", "[(0.92 - 0.340*rib)*sin(spin + 7.226), 2.060*rib + 0.03, (0.92 - 0.340*rib)*cos(spin + 7.226)]"], r: &rib_r [0.028, 0.04, 0.05, 0.056, 0.06, 0.06, 0.058, 0.054, 0.048, 0.042, 0.034, 0.026]}
+    cut: &front
+      - box: {c: [0, 1, -2], half: [3, 3, 2]}
+      - box: {c: [0, 0.977, 0], half: [0.42, 3, 0.46], rot: [0.908, 0, 0]}
+  ribbon_a_back:
+    when: "ribs > 0.5"
+    material: ribbon_back
+    prims:
+      - chain: {pts: *rib_a, r: *rib_r}
+    cut: &back
+      - box: {c: [0, 1, 2], half: [3, 3, 2]}
+      - box: {c: [0, 1.396, 0], half: [0.40, 3, 1.1], rot: [0.908, 0, 0]}
+  ribbon_b:
+    when: "ribs > 0.5"
+    material: ribbon
+    prims:
+      - chain: {pts: &rib_b ["[0.92*sin(spin + 3.142), 0.060*rib + 0.03, 0.92*cos(spin + 3.142)]", "[(0.92 - 0.031*rib)*sin(spin + 3.798), 0.242*rib + 0.03, (0.92 - 0.031*rib)*cos(spin + 3.798)]", "[(0.92 - 0.062*rib)*sin(spin + 4.455), 0.424*rib + 0.03, (0.92 - 0.062*rib)*cos(spin + 4.455)]", "[(0.92 - 0.093*rib)*sin(spin + 5.112), 0.605*rib + 0.03, (0.92 - 0.093*rib)*cos(spin + 5.112)]", "[(0.92 - 0.124*rib)*sin(spin + 5.769), 0.787*rib + 0.03, (0.92 - 0.124*rib)*cos(spin + 5.769)]", "[(0.92 - 0.155*rib)*sin(spin + 6.426), 0.969*rib + 0.03, (0.92 - 0.155*rib)*cos(spin + 6.426)]", "[(0.92 - 0.185*rib)*sin(spin + 7.083), 1.151*rib + 0.03, (0.92 - 0.185*rib)*cos(spin + 7.083)]", "[(0.92 - 0.216*rib)*sin(spin + 7.740), 1.333*rib + 0.03, (0.92 - 0.216*rib)*cos(spin + 7.740)]", "[(0.92 - 0.247*rib)*sin(spin + 8.397), 1.515*rib + 0.03, (0.92 - 0.247*rib)*cos(spin + 8.397)]", "[(0.92 - 0.278*rib)*sin(spin + 9.053), 1.696*rib + 0.03, (0.92 - 0.278*rib)*cos(spin + 9.053)]", "[(0.92 - 0.309*rib)*sin(spin + 9.710), 1.878*rib + 0.03, (0.92 - 0.309*rib)*cos(spin + 9.710)]", "[(0.92 - 0.340*rib)*sin(spin + 10.367), 2.060*rib + 0.03, (0.92 - 0.340*rib)*cos(spin + 10.367)]"], r: *rib_r}
+    cut: *front
+  ribbon_b_back:
+    when: "ribs > 0.5"
+    material: ribbon_back
+    prims:
+      - chain: {pts: *rib_b, r: *rib_r}
+    cut: *back
+
+  # ---- blood droplets (teardrops, tip up) ----
+  drops:
+    when: "drops > 0.5"
+    material: drop
+    prims:
+      - sphere: {c: "@d0", r: 0.055}
+      - cone: {a: "@d0", b: {at: d0, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+      - sphere: {c: "@d1", r: 0.055}
+      - cone: {a: "@d1", b: {at: d1, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+      - sphere: {c: "@d2", r: 0.055}
+      - cone: {a: "@d2", b: {at: d2, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+      - sphere: {c: "@d3", r: 0.055}
+      - cone: {a: "@d3", b: {at: d3, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+      - sphere: {c: "@d4", r: 0.055}
+      - cone: {a: "@d4", b: {at: d4, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+      - sphere: {c: "@d5", r: 0.055}
+      - cone: {a: "@d5", b: {at: d5, off: [0, 0.11, 0]}, r: [0.05, 0.012]}
+
+  # ---- dark embers (1-2 px), shrinking as they rise ----
+  embers:
+    when: "emb > 0.5"
+    material: ember
+    prims:
+      - sphere: {c: "@e0", r: "0.045*(1.2 - (ph/tau - floor(ph/tau)))"}
+      - sphere: {c: "@e1", r: "0.045*(1.2 - (ph/tau + 0.25 - floor(ph/tau + 0.25)))"}
+      - sphere: {c: "@e2", r: "0.045*(1.2 - (ph/tau + 0.5 - floor(ph/tau + 0.5)))"}
+      - sphere: {c: "@e3", r: "0.045*(1.2 - (ph/tau + 0.75 - floor(ph/tau + 0.75)))"}
+
+animations:
+  loop:
+    frames: 8
+    ms: 100
+    channels:
+      spin: "p/2"            # 2 ribbons, half a turn per loop -> seamless
+      ph: "p"
+      shot: "0.5 + 0.5*sin(p)"
+  up:
+    loop: false
+    keys:
+      - {ms: 55, set: {ring: 0.45, shot: 1, ribs: 0, drops: 0, emb: 0}}
+      - {ms: 60, set: {ring: 0.85, shot: 1, ribs: 0, dh: 0.3, emb: 0}}
+      - {ms: 65, set: {ring: 1.08, shot: 1, rib: 0.3, spin: -1.2, dh: 0.9, dlift: 0.4, emb: 0}}
+      - {ms: 70, set: {rib: 0.65, spin: -0.7, dlift: 0.5}}
+      - {ms: 70, set: {rib: 0.95, spin: -0.3, dlift: 0.25}}
+      - {ms: 80, set: {spin: -0.1}}
+  end:
+    loop: false
+    keys:
+      - {ms: 60, set: {rib: 0.75, spin: 0.4, shot: 1, dlift: 0.2}}
+      - {ms: 60, set: {rib: 0.45, spin: 0.8, shot: 1, dh: 0.6}}
+      - {ms: 65, set: {rib: 0.15, spin: 1.1, shot: 1, dh: 0.2, ring: 1.05, emb: 0}}
+      - {ms: 65, set: {ribs: 0, drops: 0, emb: 0, ring: 0.8}}
+      - {ms: 70, set: {ribs: 0, drops: 0, emb: 0, ring: 0.5, fade: 1}}
+      - {ms: 80, set: {ribs: 0, drops: 0, emb: 0, ring: 0.25, fade: 1}}

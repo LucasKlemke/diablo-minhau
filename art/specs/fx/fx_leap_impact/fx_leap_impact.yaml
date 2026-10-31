@@ -1,0 +1,200 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_leap_impact
+kind: prop
+view: topdown
+size: 128
+directions: [s]
+mirror: false
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0.83755, 0]}   # 12 px above the pivot -> pivot (64, 76)
+shadow: null             # a ground effect: no shadow
+
+# Barbarian skill effect: Crushing Leap landing (stuns enemies within ~46 px).
+brief:
+  summary: |
+    `impact` the barbarian lands: the ground cracks under him, a dust shockwave ring races out to ~46 px
+    (ellipse 0.62 as tall as wide), rock chips and dirt clods fly up and fall back, orange sparks flash
+    at the centre; it ends on fading cracks.
+  must_keep: [ring reaches the stun radius (~46 px), outlined rocks and dust over grass, orange sparks only at the centre]
+  simplify: [dust ring as one lit band of outlined puffs, cracks as near-black flat lines, no transparency - fading is shrinking]
+  exceptions: |
+    fx sprite: kind prop, size 128, directions [s], mirror false, shadow null, camera.center [0, 0.83755, 0]
+    (integer pivot). Sparks emissive (farm `fire` ramp, no outline). camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (64, 76) = the ground point where the barbarian lands. One-shot, 8 frames, 500 ms;
+    event `hit` on frame 0 (the landing, stun applies). The dust ring's outer edge reaches ~46 px at frame 5-6.
+
+ramps:
+  li_rock:  ["#1c0f1a", "#3a302e", "#5e5048", "#857262", "#a8957e"]
+  li_soil:  ["#1c0f1a", "#4a2a1a", "#7a4a2a", "#a8703f", "#cf9c62"]
+  li_dust:  ["#1c0f1a", "#7d5a3c", "#a3825a", "#c9ae86", "#e6d9b0"]
+  li_crack: ["#1c0f1a", "#22141a"]
+  li_dent:  ["#1c0f1a", "#5a3a26"]
+  li_dent2: ["#1c0f1a", "#432a1e"]
+
+materials:
+  rock:       {ramp: li_rock, bands: [2, 4]}
+  soil:       {ramp: li_soil, bands: [2, 4]}
+  dust:       {ramp: li_dust, bands: [2, 4], line: false}
+  crack:      {ramp: li_crack, bands: [1, 1], outline: false, line: false}
+  dent:       {ramp: li_dent, bands: [1, 1], outline: false, line: false}
+  dent2:      {ramp: li_dent2, bands: [1, 1], outline: false, line: false}
+  spark:      {ramp: fire, emissive: true, band: 1, outline: false, glow: {color: "#fe6607", mix: 0.35, radius: 1}}
+  spark_core: {ramp: fire, emissive: true, band: 3, outline: false}
+  ember:      {ramp: fire, emissive: true, band: 2, outline: false}
+
+channels:
+  root: [0, 0, 0]
+  crk: 0      # crack length (0..1)
+  cw: 1       # crack width
+  dent: 0     # trampled dirt patch under the landing (radius scale)
+  dr: 0       # dust ring radius (units; 2.4 = ~44 px to the puff centres)
+  ds: 0       # dust puff radius
+  dh: 0       # dust drifting up
+  rd: 0       # rocks/clods: distance from the centre
+  rh: 0       # rocks/clods: height
+  rs: 1       # rock size (shrinks once landed)
+  sp: 0       # spark star size
+  ed: 0       # embers: distance
+  eh: 0       # embers: height
+  er: 0       # embers: radius
+
+bones:
+  body: {parent: root}
+  # layers along the view ray (camera direction (0, 0.616, 0.788)): same pixels, nearer = drawn on top
+  f1: {parent: body, pos: [0, 0.370, 0.473]}     # 0.6 front
+  f2: {parent: body, pos: [0, 0.739, 0.946]}     # 1.2 front
+
+parts:
+  dent_patch:       # bare trampled dirt under the cracks
+    when: "dent > 0.05"
+    material: dent
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.004, 0], r: ["0.75*dent", 0.004, "0.68*dent"], rot: [0, 0.5, 0]}
+      - ellipsoid: {c: [0.15, 0.004, -0.1], r: ["0.6*dent", 0.004, "0.62*dent"], rot: [0, 1.2, 0]}
+  dent_core:
+    when: "dent > 0.05"
+    material: dent2
+    space: body
+    prims:
+      - ellipsoid: {c: [0, 0.008, 0], r: ["0.38*dent", 0.004, "0.34*dent"], rot: [0, 0.3, 0]}
+  cracks:          # dark jagged fissures radiating from the landing point
+    when: "crk > 0.05 and cw > 0.05"
+    material: crack
+    space: body
+    prims:
+      - chain: {pts: [["0.252*crk", 0.012, "0.038*crk"], ["0.771*crk", 0.012, "0.004*crk"], ["1.25*crk", 0.012, "0.238*crk"], ["1.697*crk", 0.012, "0.118*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - cone: {a: ["0.838*crk", 0.012, "0.127*crk"], b: ["1.265*crk", 0.012, "-0.135*crk"], r: ["0.05*cw", "0.015*cw"]}
+      - chain: {pts: [["0.128*crk", 0.012, "0.223*crk"], ["0.507*crk", 0.012, "0.599*crk"], ["0.638*crk", 0.012, "1.117*crk"], ["0.981*crk", 0.012, "1.414*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - chain: {pts: [["-0.072*crk", 0.012, "0.252*crk"], ["-0.084*crk", 0.012, "0.793*crk"], ["-0.235*crk", 0.012, "1.294*crk"], ["-0.458*crk", 0.012, "1.684*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - cone: {a: ["-0.24*crk", 0.012, "0.839*crk"], b: ["-0.036*crk", 0.012, "1.295*crk"], r: ["0.05*cw", "0.015*cw"]}
+      - chain: {pts: [["-0.274*crk", 0.012, "0.113*crk"], ["-0.838*crk", 0.012, "0.301*crk"], ["-1.38*crk", 0.012, "0.541*crk"], ["-1.773*crk", 0.012, "0.884*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - chain: {pts: [["-0.244*crk", 0.012, "-0.12*crk"], ["-0.796*crk", 0.012, "-0.232*crk"], ["-1.259*crk", 0.012, "-0.522*crk"], ["-1.618*crk", 0.012, "-0.819*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - cone: {a: ["-0.813*crk", 0.012, "-0.401*crk"], b: ["-1.299*crk", 0.012, "-0.282*crk"], r: ["0.05*cw", "0.015*cw"]}
+      - chain: {pts: [["-0.065*crk", 0.012, "-0.243*crk"], ["-0.306*crk", 0.012, "-0.701*crk"], ["-0.445*crk", 0.012, "-1.185*crk"], ["-0.495*crk", 0.012, "-1.607*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - chain: {pts: [["0.183*crk", 0.012, "-0.222*crk"], ["0.469*crk", 0.012, "-0.732*crk"], ["0.933*crk", 0.012, "-1.095*crk"], ["1.251*crk", 0.012, "-1.453*crk"]], r: ["0.095*cw", "0.08*cw", "0.06*cw", "0.025*cw"]}
+      - cone: {a: ["0.608*crk", 0.012, "-0.741*crk"], b: ["1.1*crk", 0.012, "-0.832*crk"], r: ["0.05*cw", "0.015*cw"]}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  dust_ring:       # puffs riding the shockwave ellipse
+    when: "ds > 0.03"
+    material: dust
+    space: body
+    blend: 0.10
+    prims:
+      - sphere: {c: ["0.999*dr", "0.126 + 0.524*ds + 0.3*dh", "-0.064*dr"], r: "1.019*ds"}
+      - sphere: {c: ["0.944*dr", "0.118 + 0.493*ds + 0.3*dh", "0.276*dr"], r: "1.083*ds"}
+      - sphere: {c: ["0.776*dr", "0.105 + 0.436*ds + 0.3*dh", "0.576*dr"], r: "0.925*ds"}
+      - sphere: {c: ["0.582*dr", "0.12 + 0.499*ds + 0.3*dh", "0.736*dr"], r: "0.94*ds"}
+      - sphere: {c: ["0.427*dr", "0.1 + 0.415*ds + 0.3*dh", "0.876*dr"], r: "1.033*ds"}
+      - sphere: {c: ["0.133*dr", "0.141 + 0.587*ds + 0.3*dh", "0.937*dr"], r: "0.953*ds"}
+      - sphere: {c: ["-0.133*dr", "0.123 + 0.512*ds + 0.3*dh", "1.018*dr"], r: "0.873*ds"}
+      - sphere: {c: ["-0.462*dr", "0.113 + 0.47*ds + 0.3*dh", "0.9*dr"], r: "0.952*ds"}
+      - sphere: {c: ["-0.661*dr", "0.1 + 0.419*ds + 0.3*dh", "0.763*dr"], r: "0.871*ds"}
+      - sphere: {c: ["-0.821*dr", "0.131 + 0.546*ds + 0.3*dh", "0.571*dr"], r: "0.869*ds"}
+      - sphere: {c: ["-0.939*dr", "0.117 + 0.489*ds + 0.3*dh", "0.307*dr"], r: "1.054*ds"}
+      - sphere: {c: ["-1.018*dr", "0.141 + 0.588*ds + 0.3*dh", "-0.035*dr"], r: "0.954*ds"}
+      - sphere: {c: ["-0.957*dr", "0.106 + 0.444*ds + 0.3*dh", "-0.257*dr"], r: "0.998*ds"}
+      - sphere: {c: ["-0.862*dr", "0.14 + 0.583*ds + 0.3*dh", "-0.514*dr"], r: "0.969*ds"}
+      - sphere: {c: ["-0.62*dr", "0.109 + 0.456*ds + 0.3*dh", "-0.715*dr"], r: "0.97*ds"}
+      - sphere: {c: ["-0.455*dr", "0.13 + 0.541*ds + 0.3*dh", "-0.86*dr"], r: "1.015*ds"}
+      - sphere: {c: ["-0.065*dr", "0.107 + 0.446*ds + 0.3*dh", "-0.996*dr"], r: "0.964*ds"}
+      - sphere: {c: ["0.072*dr", "0.097 + 0.402*ds + 0.3*dh", "-0.942*dr"], r: "1.048*ds"}
+      - sphere: {c: ["0.439*dr", "0.103 + 0.429*ds + 0.3*dh", "-0.84*dr"], r: "0.935*ds"}
+      - sphere: {c: ["0.653*dr", "0.102 + 0.425*ds + 0.3*dh", "-0.745*dr"], r: "0.946*ds"}
+      - sphere: {c: ["0.893*dr", "0.132 + 0.548*ds + 0.3*dh", "-0.504*dr"], r: "1.046*ds"}
+      - sphere: {c: ["0.974*dr", "0.129 + 0.536*ds + 0.3*dh", "-0.293*dr"], r: "1.136*ds"}
+    cut:
+      - box: {c: [0, -1.0, 0], half: [4, 1.0, 4]}
+  rocks:           # outlined rock chips thrown up and falling back
+    when: "rs > 0.05"
+    material: rock
+    space: body
+    prims:
+      - box: {c: ["0.827*rd", "0.936*rh + 0.134*rs", "0.379*rd"], half: ["0.139*rs", "0.134*rs", "0.121*rs"], rot: ["2.977*rd", "1.322", "1.165*rd"], round: "0.025*rs"}
+      - box: {c: ["0.175*rd", "1.04*rh + 0.167*rs", "0.771*rd"], half: ["0.142*rs", "0.167*rs", "0.147*rs"], rot: ["1.605*rd", "0.624", "1.564*rd"], round: "0.025*rs"}
+      - box: {c: ["-0.722*rd", "1.061*rh + 0.117*rs", "0.872*rd"], half: ["0.138*rs", "0.117*rs", "0.139*rs"], rot: ["2.967*rd", "1.441", "1.468*rd"], round: "0.025*rs"}
+      - box: {c: ["-1.023*rd", "1.144*rh + 0.152*rs", "0.236*rd"], half: ["0.139*rs", "0.152*rs", "0.141*rs"], rot: ["1.808*rd", "2.856", "1.543*rd"], round: "0.025*rs"}
+      - box: {c: ["-0.655*rd", "1.155*rh + 0.149*rs", "-0.903*rd"], half: ["0.128*rs", "0.149*rs", "0.115*rs"], rot: ["2.768*rd", "1.555", "2.362*rd"], round: "0.025*rs"}
+      - box: {c: ["0.087*rd", "1.025*rh + 0.148*rs", "-0.835*rd"], half: ["0.14*rs", "0.148*rs", "0.147*rs"], rot: ["2.683*rd", "2.275", "1.293*rd"], round: "0.025*rs"}
+      - box: {c: ["0.737*rd", "1.182*rh + 0.14*rs", "-0.535*rd"], half: ["0.122*rs", "0.14*rs", "0.154*rs"], rot: ["2.984*rd", "2.37", "1.708*rd"], round: "0.025*rs"}
+  clods:           # dirt clods (lit soil)
+    when: "rs > 0.05"
+    material: soil
+    space: body
+    prims:
+      - sphere: {c: ["0.786*rd", "1.107*rh + 0.094*rs", "-0.097*rd"], r: "0.094*rs"}
+      - sphere: {c: ["0.38*rd", "1.485*rh + 0.072*rs", "0.576*rd"], r: "0.072*rs"}
+      - sphere: {c: ["-0.048*rd", "1.103*rh + 0.084*rs", "0.736*rd"], r: "0.084*rs"}
+      - sphere: {c: ["-0.768*rd", "0.901*rh + 0.097*rs", "0.2*rd"], r: "0.097*rs"}
+      - sphere: {c: ["-0.748*rd", "1.401*rh + 0.074*rs", "-0.304*rd"], r: "0.074*rs"}
+      - sphere: {c: ["-0.222*rd", "1.02*rh + 0.097*rs", "-0.805*rd"], r: "0.097*rs"}
+      - sphere: {c: ["0.485*rd", "0.952*rh + 0.098*rs", "-0.642*rd"], r: "0.098*rs"}
+  sparks:          # orange impact star at the centre
+    when: "sp > 0.05"
+    material: spark
+    space: f1
+    prims:
+      - ellipsoid: {c: [0, "0.25*sp", 0], r: ["0.42*sp", "0.3*sp", "0.42*sp"]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["0.98*sp", "0.55*sp + 0.05", "0.199*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["0.387*sp", "0.35*sp + 0.05", "0.583*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["-0.199*sp", "0.55*sp + 0.05", "0.98*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["-0.583*sp", "0.35*sp + 0.05", "0.387*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["-0.98*sp", "0.55*sp + 0.05", "-0.199*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["-0.387*sp", "0.35*sp + 0.05", "-0.583*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["0.199*sp", "0.55*sp + 0.05", "-0.98*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: ["0.583*sp", "0.35*sp + 0.05", "-0.387*sp"], r: ["0.13*sp", 0.02]}
+      - cone: {a: [0, "0.25*sp", 0], b: [0, "1.15*sp", 0], r: ["0.13*sp", 0.02]}
+  sparks_core:
+    when: "sp > 0.05"
+    material: spark_core
+    space: f2
+    prims:
+      - ellipsoid: {c: [0, "0.25*sp", 0], r: ["0.24*sp", "0.18*sp", "0.24*sp"]}
+  embers:          # spark dots flung outward
+    when: "er > 0.01"
+    material: ember
+    space: f2
+    prims:
+      - sphere: {c: ["0.487*ed", "1.246*eh", "0.739*ed"], r: er}
+      - sphere: {c: ["-0.046*ed", "1.396*eh", "0.762*ed"], r: er}
+      - sphere: {c: ["-0.754*ed", "1.079*eh", "0.556*ed"], r: er}
+      - sphere: {c: ["-0.823*ed", "1.158*eh", "-0.464*ed"], r: er}
+      - sphere: {c: ["-0.247*ed", "0.894*eh", "-1.046*ed"], r: er}
+      - sphere: {c: ["0.454*ed", "1.28*eh", "-0.544*ed"], r: er}
+      - sphere: {c: ["0.738*ed", "1.25*eh", "0.069*ed"], r: er}
+
+animations:
+  impact:
+    loop: false
+    keys:
+      - {ms: 40, event: hit, set: {crk: 0.45, dent: 0.7, dr: 0.7, ds: 0.24, rd: 0.25, rh: 0.35, sp: 1.15, ed: 0.3, eh: 0.4, er: 0.07}}
+      - {ms: 50, set: {crk: 0.85, dent: 0.9, dr: 1.25, ds: 0.32, rd: 0.65, rh: 0.85, sp: 0.85, ed: 0.75, eh: 0.8, er: 0.065}}
+      - {ms: 60, set: {crk: 1.0, dent: 1.0, dr: 1.70, ds: 0.34, rd: 1.05, rh: 1.10, sp: 0.5, ed: 1.15, eh: 1.0, er: 0.055}}
+      - {ms: 60, set: {crk: 1.0, dent: 1.0, dr: 2.05, ds: 0.31, dh: 0.1, rd: 1.40, rh: 1.0, sp: 0.25, ed: 1.4, eh: 0.9, er: 0.045}}
+      - {ms: 70, set: {crk: 1.0, dent: 1.0, dr: 2.28, ds: 0.29, dh: 0.25, rd: 1.65, rh: 0.6}}
+      - {ms: 70, set: {crk: 1.0, dent: 1.0, dr: 2.38, ds: 0.22, dh: 0.4, rd: 1.82, rh: 0.15}}
+      - {ms: 70, set: {crk: 0.9, cw: 0.75, dent: 0.9, dr: 2.42, ds: 0.13, dh: 0.55, rd: 1.85, rh: 0.0, rs: 0.75}}
+      - {ms: 80, set: {crk: 0.65, cw: 0.5, dent: 0.6, rd: 1.85, rh: 0.0, rs: 0.45}}

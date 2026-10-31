@@ -1,0 +1,199 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/LucasJRamos/spritekiln/main/spritekiln/data/spec.schema.json
+spritekiln: 1
+name: fx_piercing_arrow
+kind: prop
+view: topdown
+size: 64
+directions: 8
+mirror: true             # symmetric: the engine flips sw, w, nw
+palette: "farm"
+camera: {pitch: 38, scale: 0.055, center: [0, 0, 0]}   # pivot (32, 32) = the arrow's centre
+shadow: null             # a projectile in the air: light, not shadow
+
+# The archer's charged "Piercing Arrow" (goes through every enemy).
+brief:
+  summary: an arrow flying along +Z wrapped in golden-white light, a long bright comet trail behind it and
+    wind rings spiralling back along the trail; `charge` is golden light gathering into a point
+    (converging sparks, a shrinking ring) that ends in a flash, played at the bow while the archer draws
+  must_keep: [head in front and trail behind in every direction, white-hot core over a gold rim, seamless fly loop]
+  simplify: [trail is three nested emissive chains (gold rim, pale gold, white core), rings are thin tori]
+  exceptions: |
+    kind prop, size 64, directions 8 mirrored, shadow null, camera.center [0, 0, 0]. All light is emissive
+    with no outline (spec-local `holy` ramp from the farm `gold`/`eye` tones); the arrow keeps the archer's
+    wood shaft with the dark outline. camera.scale/pitch/light untouched.
+  decisions: |
+    PIVOT CONTRACT: pivot (32, 32) = the arrow's centre; the game places it at the projectile point.
+    The trail reaches ~30 px behind the pivot (the frame's half-width keeps it unclipped in e/w); with the
+    glowing head the bright streak is ~40 px long overall. Inner light layers sit on bones pushed toward the
+    camera (`c1..c3`, from `yaw`), the halo on a bone pushed away (`cb`) so the arrow draws in front of it.
+    `charge` is built in a world-fixed bone (`w`, counter-rotated by yaw), so every direction renders the
+    same frames; event `ready` on the last (flash) frame.
+
+ramps:
+  holy: ["#e1a227", "#ffe14d", "#fff6b0", "#ffffff"]
+
+materials:
+  wood:  {ramp: wood, bands: [2, 3]}
+  rim:   {ramp: holy, emissive: true, band: 0, outline: false, line: false, glow: {color: "#ffe14d", mix: 0.35, radius: 1}}
+  gold:  {ramp: holy, emissive: true, band: 1, outline: false, line: false}
+  pale:  {ramp: holy, emissive: true, band: 2, outline: false, line: false}
+  core:  {ramp: holy, emissive: true, band: 3, outline: false, line: false}
+
+channels:
+  root: [0, 0, 0]
+  fly: 1          # 1 = projectile visible
+  chg: 0          # charge: 1 = charge clip visible
+  ring: 0.0       # charge ring radius
+  rw: 0.03        # charge ring thickness
+  sp: 0.0         # converging spark distance
+  sr: 0.0         # spark radius
+  ball: 0.0       # gathered light radius
+  star: 0.0       # flash star arm length
+
+bones:
+  body: {parent: root}
+  cb: {parent: body, pos: "-0.40*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c1: {parent: body, pos: "0.30*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c2: {parent: body, pos: "0.60*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  c3: {parent: body, pos: "0.90*v(-sin(radians(yaw))*0.788, 0.616, cos(radians(yaw))*0.788)"}
+  # world-fixed frames for `charge`: +X = screen right, same in every direction
+  w:  {parent: root, rot: "[0, -radians(yaw), 0]"}
+  wf: {parent: w, pos: [0, 0.40, 0.51]}     # toward the camera
+  wr: {parent: w, rot: [0.907, 0, 0]}       # torus axis tilted to the camera (90 - 38 deg)
+
+parts:
+  # ---------------- fly: head along +Z, trail along -Z ----------------
+  halo:            # golden envelope behind the arrow
+    when: "fly > 0.5"
+    material: rim
+    space: cb
+    blend: 0.08
+    prims:
+      - ellipsoid: {c: [0, 0, 0.08], r: ["0.17 + 0.015*sin(p)", "0.17 + 0.015*sin(p)", 0.50]}
+  trail_rim:
+    when: "fly > 0.5"
+    material: rim
+    space: body
+    blend: 0.05
+    prims:
+      - chain: {pts: [[0, 0, -0.20], ["0.025*sin(p)", "0.02*cos(p)", -0.75], ["0.05*sin(p + 1)", "0.04*cos(p + 1)", -1.25], ["0.06*sin(p + 2)", "0.05*cos(p + 2)", -1.56]],
+                r: ["0.20 + 0.015*sin(p)", 0.16, 0.10, 0.03]}
+  trail_gold:
+    when: "fly > 0.5"
+    material: gold
+    space: c1
+    blend: 0.04
+    prims:
+      - chain: {pts: [[0, 0, -0.15], ["0.02*sin(p)", "0.015*cos(p)", -0.65], ["0.04*sin(p + 1)", "0.03*cos(p + 1)", -1.05], ["0.05*sin(p + 2)", "0.04*cos(p + 2)", -1.40]],
+                r: [0.15, 0.12, 0.075, 0.03]}
+  trail_pale:
+    when: "fly > 0.5"
+    material: pale
+    space: c2
+    prims:
+      - chain: {pts: [[0, 0, -0.12], ["0.015*sin(p)", 0, -0.55], ["0.03*sin(p + 1)", "0.02*cos(p + 1)", -0.95]], r: [0.10, 0.075, 0.03]}
+  trail_core:
+    when: "fly > 0.5"
+    material: core
+    space: c3
+    prims:
+      - chain: {pts: [[0, 0, -0.10], [0, 0, -0.40], ["0.02*sin(p + 1)", 0, -0.62]], r: [0.06, 0.045, 0.028]}
+  shaft:
+    when: "fly > 0.5"
+    material: wood
+    space: c3
+    prims:
+      - cone: {a: [0, 0, -0.30], b: [0, 0, 0.26], r: [0.03, 0.03]}
+  head:            # white-hot glowing head
+    when: "fly > 0.5"
+    material: core
+    space: c3
+    prims:
+      - cone: {a: [0, 0, 0.22], b: [0, 0, 0.30], r: [0.035, 0.08]}
+      - cone: {a: [0, 0, 0.30], b: [0, 0, 0.52], r: [0.08, 0.01]}
+  fletch:
+    when: "fly > 0.5"
+    material: pale
+    space: c3
+    prims:
+      - box: {c: [0.055, 0, -0.26], half: [0.05, 0.014, 0.08], round: 0.01}
+      - box: {c: [-0.055, 0, -0.26], half: [0.05, 0.014, 0.08], round: 0.01}
+  wind_rings:      # rings travelling back along the trail, growing and thinning
+    when: "fly > 0.5"
+    material: pale
+    space: c1
+    prims:
+      - torus: {c: [0, 0, "-0.25 - 1.05*(p/tau - floor(p/tau))"], R: "0.22 + 0.14*(p/tau - floor(p/tau))", r: 0.032, rot: [1.5708, 0, 0]}
+      - torus: {c: [0, 0, "-0.25 - 1.05*(p/tau + 0.5 - floor(p/tau + 0.5))"], R: "0.22 + 0.14*(p/tau + 0.5 - floor(p/tau + 0.5))", r: 0.032, rot: [1.5708, 0, 0]}
+  wind_spiral:     # two strands of motes winding around the trail
+    when: "fly > 0.5"
+    material: core
+    space: c2
+    prims:
+      - sphere: {c: ["0.27*cos(p + 0.0)", "0.27*sin(p + 0.0)", -0.35], r: 0.048}
+      - sphere: {c: ["0.29*cos(p + 2.1)", "0.29*sin(p + 2.1)", -0.70], r: 0.044}
+      - sphere: {c: ["0.31*cos(p + 4.2)", "0.31*sin(p + 4.2)", -1.05], r: 0.04}
+      - sphere: {c: ["-0.27*cos(p + 0.0)", "-0.27*sin(p + 0.0)", -0.35], r: 0.048}
+      - sphere: {c: ["-0.29*cos(p + 2.1)", "-0.29*sin(p + 2.1)", -0.70], r: 0.044}
+      - sphere: {c: ["-0.31*cos(p + 4.2)", "-0.31*sin(p + 4.2)", -1.05], r: 0.04}
+
+  # ---------------- charge: light gathering into a point (world-fixed) ----------------
+  charge_ring:
+    when: "chg > 0.5 and ring > 0.02"
+    material: gold
+    space: wr
+    prims:
+      - torus: {c: [0, 0, 0], R: ring, r: rw}
+  charge_sparks:
+    when: "chg > 0.5 and sr > 0.005"
+    material: pale
+    space: wf
+    prims:
+      - cone: {a: "sp*v(0.92, 0.38, 0)", b: "(sp + 0.18)*v(0.92, 0.38, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(0.38, 0.92, 0)", b: "(sp + 0.14)*v(0.38, 0.92, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(-0.38, 0.92, 0)", b: "(sp + 0.18)*v(-0.38, 0.92, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(-0.92, 0.38, 0)", b: "(sp + 0.14)*v(-0.92, 0.38, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(-0.92, -0.38, 0)", b: "(sp + 0.18)*v(-0.92, -0.38, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(-0.38, -0.92, 0)", b: "(sp + 0.14)*v(-0.38, -0.92, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(0.38, -0.92, 0)", b: "(sp + 0.18)*v(0.38, -0.92, 0)", r: ["sr", "sr*0.7"]}
+      - cone: {a: "sp*v(0.92, -0.38, 0)", b: "(sp + 0.14)*v(0.92, -0.38, 0)", r: ["sr", "sr*0.7"]}
+  charge_ball_rim:
+    when: "chg > 0.5 and ball > 0.01"
+    material: rim
+    space: w
+    prims:
+      - sphere: {c: [0, 0, 0], r: "ball*1.5"}
+  charge_ball:
+    when: "chg > 0.5 and ball > 0.01"
+    material: core
+    space: wf
+    prims:
+      - sphere: {c: [0, 0, 0], r: ball}
+  charge_star:
+    when: "chg > 0.5 and star > 0.01"
+    material: core
+    space: wf
+    prims:
+      - cone: {a: [0, 0, 0], b: "v(star, 0, 0)", r: [0.06, 0.03]}
+      - cone: {a: [0, 0, 0], b: "v(-star, 0, 0)", r: [0.06, 0.03]}
+      - cone: {a: [0, 0, 0], b: "v(0, 0.9*star, 0)", r: [0.06, 0.03]}
+      - cone: {a: [0, 0, 0], b: "v(0, -0.9*star, 0)", r: [0.06, 0.03]}
+      - cone: {a: [0, 0, 0], b: "0.4*star*v(1, 1, 0)", r: [0.045, 0.028]}
+      - cone: {a: [0, 0, 0], b: "0.4*star*v(-1, 1, 0)", r: [0.045, 0.028]}
+      - cone: {a: [0, 0, 0], b: "0.4*star*v(1, -1, 0)", r: [0.045, 0.028]}
+      - cone: {a: [0, 0, 0], b: "0.4*star*v(-1, -1, 0)", r: [0.045, 0.028]}
+
+animations:
+  fly:
+    frames: 6
+    ms: 50
+    channels: {}
+  charge:
+    loop: false
+    keys:
+      - {ms: 60, set: {fly: 0, chg: 1, ring: 0.80, rw: 0.035, sp: 1.08, sr: 0.035, ball: 0.04}}     # light appears wide
+      - {ms: 60, set: {fly: 0, chg: 1, ring: 0.62, rw: 0.035, sp: 0.86, sr: 0.04, ball: 0.06}}      # converging
+      - {ms: 60, set: {fly: 0, chg: 1, ring: 0.45, rw: 0.035, sp: 0.64, sr: 0.04, ball: 0.08}}
+      - {ms: 60, set: {fly: 0, chg: 1, ring: 0.30, rw: 0.03, sp: 0.42, sr: 0.035, ball: 0.10}}
+      - {ms: 60, set: {fly: 0, chg: 1, ring: 0.17, rw: 0.03, sp: 0.24, sr: 0.03, ball: 0.13}}       # gathered
+      - {ms: 60, event: ready, set: {fly: 0, chg: 1, ball: 0.16, star: 0.75}}                      # flash
