@@ -1274,6 +1274,7 @@ export class GameScene extends Phaser.Scene {
     this.objPts = this.objectivePoints();
     this.updateObjectiveArrows(time);
     this.updateDecor(time);
+    this.cullOffscreen();
     for (const n of this.npcs) n.spr.setDepth(n.spr.y);
 
     if (time > this.mapAt) {
@@ -5445,6 +5446,24 @@ export class GameScene extends Phaser.Scene {
         if (id === "shield") sfx.hit(false);
       }
       this.buffSprs.get(id)?.setPosition(this.hero.x, this.hero.y).setDepth(this.hero.y + 1);
+    }
+  }
+
+  /**
+   * Skips drawing world sprites outside the camera (Phaser draws everything in the display list otherwise).
+   * Uses the camera filter rather than `visible`, which the game logic reads and sets on its own.
+   */
+  private cullOffscreen() {
+    const cam = this.cameras.main, v = cam.worldView, m = 96; // margin: the view moves before the next draw
+    const x0 = v.x - m, x1 = v.right + m, y0 = v.y - m, y1 = v.bottom + m;
+    for (const c of this.children.list) {
+      if (c.type !== "Sprite" && c.type !== "Image") continue;
+      const o = c as Phaser.GameObjects.Image;
+      if (o.scrollFactorX !== 1) continue;
+      const w = o.displayWidth, ht = o.displayHeight;
+      const l = o.x - w * o.originX, t = o.y - ht * o.originY;
+      const off = l > x1 || l + w < x0 || t > y1 || t + ht < y0;
+      o.cameraFilter = off ? cam.id : 0;
     }
   }
 

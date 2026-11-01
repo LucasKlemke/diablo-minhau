@@ -107,6 +107,11 @@ const DEBUFF = {
 
 const DOLL_DIRS: Dir[] = ["s", "sw", "w", "nw", "n", "ne", "e", "se"];
 
+/** Writes the text only when it changed: the HUD updates every frame and each write costs a DOM mutation. */
+function setText(el: Element, txt: string) {
+  if (el.textContent !== txt) el.textContent = txt;
+}
+
 export class Hud {
   readonly world = el("div", "world");
   readonly minimap = el("canvas", "minimap interactive");
@@ -359,7 +364,7 @@ export class Hud {
     const s = h.stats;
     const set = (orb: HTMLElement, v: number, max: number) => {
       (orb.querySelector(".fill") as HTMLElement).style.height = `${Math.max(0, Math.min(1, v / max)) * 100}%`;
-      orb.querySelector(".val")!.textContent = `${Math.ceil(v)}/${Math.round(max)}`;
+      setText(orb.querySelector(".val")!, `${Math.ceil(v)}/${Math.round(max)}`);
     };
     set(this.orbHp, h.hp, s.maxHp);
     (this.orbHp.querySelector(".shield") as HTMLElement).style.opacity = h.absorb > 0 ? "1" : "0";
@@ -375,7 +380,8 @@ export class Hud {
       this.lvlBadge.innerHTML = this.cache.lvl = lvl;
       this.lvlBadge.title = `${CLASSES[h.cls].name} · ${L("Nível", "Level")} ${h.level}`;
     }
-    this.bTree.innerHTML = h.skillPoints ? `${L("Habilidades (K)", "Skills (K)")} <span class="badge">${h.skillPoints}</span>` : L("Habilidades (K)", "Skills (K)");
+    const tree = h.skillPoints ? `${L("Habilidades (K)", "Skills (K)")} <span class="badge">${h.skillPoints}</span>` : L("Habilidades (K)", "Skills (K)");
+    if (this.cache.tree !== tree) this.bTree.innerHTML = this.cache.tree = tree;
     const showAlert = h.skillPoints > 0 && !this.tree.classList.contains("open");
     this.spAlert.style.display = showAlert ? "block" : "none";
     if (showAlert) {
@@ -411,12 +417,12 @@ export class Hud {
       cd.style.height = sk.cooldown && left > 0 ? `${(left / sk.cooldown) * 100}%` : "0";
       e.classList.toggle("locked", rank === 0);
       e.style.opacity = rank > 0 && h.mana < sk.cost ? "0.45" : "1";
-      (e.querySelector(".count") as HTMLElement).textContent = rank === 0 ? `${L("nv", "lv")} ${sk.reqLevel}` : sk.cost ? String(sk.cost) : "";
+      setText(e.querySelector(".count")!, rank === 0 ? `${L("nv", "lv")} ${sk.reqLevel}` : sk.cost ? String(sk.cost) : "");
     });
     const dash = this.skillEls[active.length];
     (dash.querySelector(".cd") as HTMLElement).style.height = `${Math.max(0, h.dashCooldown / 1200) * 100}%`;
-    (this.skillEls[active.length + 1].querySelector(".count") as HTMLElement).textContent = String(h.potions.hp);
-    (this.skillEls[active.length + 2].querySelector(".count") as HTMLElement).textContent = String(h.potions.mp);
+    setText(this.skillEls[active.length + 1].querySelector(".count")!, String(h.potions.hp));
+    setText(this.skillEls[active.length + 2].querySelector(".count")!, String(h.potions.mp));
 
     if (this.invDirty) {
       this.invDirty = false;
